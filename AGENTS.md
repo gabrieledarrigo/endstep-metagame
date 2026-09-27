@@ -58,6 +58,28 @@ Open one when an issue is done.
 - Carry over the issue's labels, both the type label and the wave label.
 - Do not merge. That is the reviewer's call.
 
+## Review loop
+
+Every pull request gets an independent review before it reaches the human reviewer. The author does not review its own work from memory, because it already believes the code is right.
+
+1. Open the pull request.
+2. Run `/code-review <pr-number> --comment`. It runs in its own context and posts findings as inline comments on the pull request.
+3. Grade every finding. Either fix it or decline it.
+4. To fix: change the code, commit, and push to the same branch.
+5. To decline: reply on the thread with a one sentence reason and leave the thread unresolved, so the human reviewer sees it as an open item.
+6. Run the review once more after the fixes.
+7. Stop there. Two rounds is the cap, whatever the second round returns.
+
+The loop runs unattended. Report once at the end: what was found, what was fixed, what was declined and why, and what is still open.
+
+The reviewer checks three things.
+
+- **Correctness.** Bugs, edge cases, wrong behaviour.
+- **This agreement.** Simple code, few abstractions, no explanatory inline comments.
+- **Acceptance criteria.** Whether the issue's "Done when" list is actually met.
+
+Never merge. That decision belongs to the human reviewer.
+
 ## Project context
 
 | File | What it holds |
