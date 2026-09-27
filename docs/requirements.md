@@ -192,7 +192,7 @@ The application is one `index.html` file with all markup, styles and logic. Ever
 | ReactDOM | 18.3.1 | `ReactDOM` |
 | react-is | 18.3.1 | `ReactIs` |
 | Recharts | 3.10.1 | `Recharts` |
-| Babel Standalone | 7.28.x | n/a |
+| Babel Standalone | 7.29.9 | n/a |
 
 **React is pinned to 18, not 19, and this is forced.** React 19 ships no UMD build: `react@19/umd/*` returns 404. A no-build page cannot load it from a script tag. React 18.3.1 is the last version with UMD builds, and Recharts 3 supports it. Its peer range is `^16.8 || ^17 || ^18 || ^19`. Changing this means dropping either NFR-1 or the UMD approach in favour of ES modules and an import map.
 
