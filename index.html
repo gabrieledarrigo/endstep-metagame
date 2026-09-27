@@ -215,6 +215,12 @@
         border-radius: 8px;
         padding: 3px;
         gap: 2px;
+        max-width: 100%;
+        overflow-x: auto;
+      }
+
+      .seg button {
+        flex: 0 0 auto;
       }
 
       .seg button {
@@ -240,6 +246,16 @@
 
       .seg button[aria-pressed='true']:hover {
         background: #184f95;
+      }
+
+      .seg button:disabled:hover {
+        background: transparent;
+        color: var(--text-600);
+      }
+
+      .seg button[aria-pressed='true']:disabled:hover {
+        background: var(--primary);
+        color: var(--text-inverse);
       }
 
       .pips {
@@ -317,7 +333,7 @@
         color: var(--text-400);
       }
 
-      .scaffold dl {
+      .scaffold > dl {
         margin: 0;
         display: grid;
         grid-template-columns: 190px 1fr;
@@ -325,11 +341,11 @@
         font-size: 13px;
       }
 
-      .scaffold dt {
+      .scaffold > dl > dt {
         color: var(--text-600);
       }
 
-      .scaffold dd {
+      .scaffold > dl > dd {
         margin: 0;
         font-variant-numeric: tabular-nums;
       }
@@ -574,14 +590,15 @@
 
       function Button({ variant = 'primary', children, ...rest }) {
         return (
-          <button type="button" className={`b-${variant}`} {...rest}>
+          <button type="button" {...rest} className={`b-${variant}`}>
             {children}
           </button>
         )
       }
 
-      function ColourPips({ colours }) {
-        const letters = colours.length > 0 ? colours : ['C']
+      function ColourPips({ colours = [] }) {
+        const known = colours.filter((letter) => letter in PIP_FILL)
+        const letters = known.length > 0 ? known : ['C']
 
         return (
           <span className="pips">
@@ -635,12 +652,12 @@
       }
 
       function Skeleton({ width, height }) {
-        return <div className="sk" style={{ width, height }} />
+        return <div className="sk" style={{ width, height }} aria-hidden="true" />
       }
 
-      function StatePanel({ title, detail, action }) {
+      function StatePanel({ title, detail, action, busy }) {
         return (
-          <div className="state">
+          <div className="state" role={busy ? 'status' : undefined} aria-busy={busy || undefined}>
             <h2>{title}</h2>
             {detail && <p>{detail}</p>}
             {action}
@@ -737,7 +754,7 @@
               </dl>
 
               <span className="gallery__label">Skeletons</span>
-              <div className="gallery__row">
+              <div className="gallery__row" aria-busy="true">
                 <Skeleton width="180px" height="17px" />
                 <Skeleton width="90px" height="26px" />
                 <Skeleton width="240px" height="12px" />
@@ -782,7 +799,7 @@
             </header>
 
             {state.status === 'loading' && (
-              <StatePanel title="Loading" detail={`Fetching the ${timeWindow} window.`} />
+              <StatePanel busy title="Loading" detail={`Fetching the ${timeWindow} window.`} />
             )}
 
             {state.status === 'error' && <Failed error={state.error} onRetry={reload} />}
@@ -793,9 +810,10 @@
                   <Summary totals={state.decks.totals} />
                 </Panel>
                 <Scaffold decks={state.decks} series={state.series} />
-                <Gallery />
               </React.Fragment>
             )}
+
+            <Gallery />
 
             <footer>
               Data from <a href="https://endstep.cc/metagame">Endstep</a>. Not an official Endstep
