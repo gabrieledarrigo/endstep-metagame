@@ -1,18 +1,13 @@
 const http = require('node:http')
 const { readFile } = require('node:fs/promises')
-const { extname, join } = require('node:path')
+const { join } = require('node:path')
 
 const proxy = require('./api/metagame/[...path].js')
 
 const PORT = Number(process.env.PORT || 3000)
+const HOST = '127.0.0.1'
 const PREFIX = '/api/metagame/'
-
-const TYPES = {
-  '.html': 'text/html; charset=utf-8',
-  '.js': 'text/javascript; charset=utf-8',
-  '.css': 'text/css; charset=utf-8',
-  '.svg': 'image/svg+xml',
-}
+const PAGE = join(__dirname, 'index.html')
 
 function asVercelResponse(res) {
   res.status = (code) => {
@@ -31,27 +26,40 @@ function asVercelResponse(res) {
   return res
 }
 
-const server = http.createServer(async (req, res) => {
-  const url = new URL(req.url, 'http://localhost')
+function segmentsOf(pathname) {
+  try {
+    return pathname.slice(PREFIX.length).split('/').filter(Boolean).map(decodeURIComponent)
+  } catch {
+    return []
+  }
+}
+
+async function handle(req, res) {
+  const url = new URL(req.url, `http://${HOST}`)
 
   if (url.pathname.startsWith(PREFIX)) {
     req.query = Object.fromEntries(url.searchParams)
-    req.query.path = url.pathname.slice(PREFIX.length).split('/').filter(Boolean)
+    req.query.path = segmentsOf(url.pathname)
 
     res.on('finish', () => console.log(`${res.statusCode} ${req.method} ${req.url}`))
     return proxy(req, asVercelResponse(res))
   }
 
-  const file = url.pathname === '/' ? 'index.html' : url.pathname.slice(1)
-
-  try {
-    const body = await readFile(join(__dirname, file))
-    res.setHeader('content-type', TYPES[extname(file)] || 'application/octet-stream')
-    res.end(body)
-  } catch {
+  if (url.pathname !== '/' && url.pathname !== '/index.html') {
     res.statusCode = 404
-    res.end('Not found')
+    return res.end('Not found')
   }
+
+  res.setHeader('content-type', 'text/html; charset=utf-8')
+  res.end(await readFile(PAGE))
+}
+
+const server = http.createServer((req, res) => {
+  handle(req, res).catch((error) => {
+    console.error(error)
+    if (!res.headersSent) res.statusCode = 500
+    res.end()
+  })
 })
 
-server.listen(PORT, () => console.log(`Serving on http://localhost:${PORT}`))
+server.listen(PORT, HOST, () => console.log(`Serving on http://${HOST}:${PORT}`))

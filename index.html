@@ -305,7 +305,15 @@
             continue
           }
 
-          if (response.ok) return response.json()
+          if (response.ok) {
+            try {
+              return await response.json()
+            } catch {
+              throw Object.assign(new Error('The server returned a malformed response.'), {
+                kind: 'malformed',
+              })
+            }
+          }
 
           const detail = failure(response.status)
           const retryable = response.status === 429 || response.status >= 500
@@ -372,8 +380,11 @@
       }
 
       function Scaffold({ decks, series }) {
-        const { provenance, totals } = decks
-        const window = provenance.window
+        const range = decks.provenance.window
+        const items = decks.decks.items
+        const points = series.series.length > 0 ? series.series[0].points : []
+        const withData = points.filter((point) => point.rate !== null).length
+        const top = items[0]
 
         return (
           <div className="scaffold">
@@ -381,25 +392,22 @@
             <dl>
               <dt>Window</dt>
               <dd>
-                {window.preset}, {window.from} to {window.to}
+                {range.preset}, {range.from} to {range.to}
               </dd>
               <dt>Population</dt>
-              <dd>{provenance.population}</dd>
+              <dd>{decks.provenance.population}</dd>
               <dt>Decks returned</dt>
               <dd>
-                {decks.decks.items.length} of {decks.decks.total}
+                {items.length} of {decks.decks.total}
               </dd>
               <dt>Series returned</dt>
               <dd>{series.series.length}</dd>
               <dt>Days with data</dt>
               <dd>
-                {series.series[0].points.filter((point) => point.rate !== null).length} of{' '}
-                {series.series[0].points.length}
+                {withData} of {points.length}
               </dd>
               <dt>Top deck</dt>
-              <dd>
-                {decks.decks.items[0].name}, {(decks.decks.items[0].share.rate * 100).toFixed(2)}%
-              </dd>
+              <dd>{top ? `${top.name}, ${(top.share.rate * 100).toFixed(2)}%` : 'no decks'}</dd>
             </dl>
           </div>
         )
