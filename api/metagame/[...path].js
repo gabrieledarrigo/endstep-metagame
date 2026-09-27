@@ -1,5 +1,4 @@
 const UPSTREAM = 'https://endstep.cc/api/metagame/v1'
-const PREFIX = '/api/metagame/'
 const TIMEOUT_MS = 8000
 
 const ENDPOINTS = [
@@ -11,6 +10,23 @@ const ENDPOINTS = [
   [':format', 'decks', ':slug', 'matchups'],
   [':format', 'decks', ':slug', 'cards'],
   [':format', 'decks', ':slug', 'ratings'],
+]
+
+const QUERY_PARAMS = [
+  'window',
+  'population',
+  'ratingBand',
+  'minMatches',
+  'q',
+  'sort',
+  'dir',
+  'page',
+  'pageSize',
+  'section',
+  'type',
+  'width',
+  'decks',
+  'v',
 ]
 
 const SEGMENT = /^[A-Za-z0-9_-]+$/
@@ -26,26 +42,22 @@ function isAllowed(segments) {
   )
 }
 
-function requestedSegments(url) {
-  const pathname = url.split('?')[0]
-  if (!pathname.startsWith(PREFIX)) return []
+function forwardedQuery(query) {
+  const params = new URLSearchParams()
 
-  try {
-    return pathname.slice(PREFIX.length).split('/').filter(Boolean).map(decodeURIComponent)
-  } catch {
-    return []
+  for (const name of QUERY_PARAMS) {
+    const value = query[name]
+    if (value !== undefined) params.set(name, String(value))
   }
+
+  const search = params.toString()
+  return search ? `?${search}` : ''
 }
 
-function forwardedQuery(url) {
-  const start = url.indexOf('?')
-  if (start === -1) return ''
-
-  const params = new URLSearchParams(url.slice(start + 1))
-  params.delete('path')
-
-  const query = params.toString()
-  return query ? `?${query}` : ''
+function cacheControl(status) {
+  if (status < 400) return 'public, s-maxage=300, stale-while-revalidate=600'
+  if (status === 429) return 'public, s-maxage=10'
+  return 'no-store'
 }
 
 module.exports = async function handler(req, res) {
@@ -63,13 +75,14 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const segments = requestedSegments(req.url)
+  const query = req.query || {}
+  const segments = [].concat(query.path || [])
 
   if (!isAllowed(segments)) {
     return res.status(400).json({ error: 'Unsupported metagame path' })
   }
 
-  const target = `${UPSTREAM}/${segments.join('/')}${forwardedQuery(req.url)}`
+  const target = `${UPSTREAM}/${segments.join('/')}${forwardedQuery(query)}`
 
   let status
   let contentType
@@ -91,10 +104,7 @@ module.exports = async function handler(req, res) {
 
   res.status(status)
   res.setHeader('Content-Type', contentType || 'application/json')
-  res.setHeader(
-    'Cache-Control',
-    status < 400 ? 'public, s-maxage=300, stale-while-revalidate=600' : 'public, s-maxage=10'
-  )
+  res.setHeader('Cache-Control', cacheControl(status))
 
   return res.send(body)
 }
