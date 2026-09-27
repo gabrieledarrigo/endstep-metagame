@@ -216,14 +216,16 @@
         padding: 3px;
         gap: 2px;
         max-width: 100%;
-        overflow-x: auto;
+      }
+
+      @media (max-width: 400px) {
+        .seg {
+          overflow-x: auto;
+        }
       }
 
       .seg button {
         flex: 0 0 auto;
-      }
-
-      .seg button {
         border: 0;
         background: transparent;
         color: var(--text-600);
@@ -588,16 +590,16 @@
         return <div className="panel">{children}</div>
       }
 
-      function Button({ variant = 'primary', children, ...rest }) {
+      function Button({ variant = 'primary', className, children, ...rest }) {
         return (
-          <button type="button" {...rest} className={`b-${variant}`}>
+          <button type="button" {...rest} className={['b-' + variant, className].filter(Boolean).join(' ')}>
             {children}
           </button>
         )
       }
 
-      function ColourPips({ colours = [] }) {
-        const known = colours.filter((letter) => letter in PIP_FILL)
+      function ColourPips({ colours }) {
+        const known = (colours || []).filter((letter) => letter in PIP_FILL)
         const letters = known.length > 0 ? known : ['C']
 
         return (
@@ -657,7 +659,7 @@
 
       function StatePanel({ title, detail, action, busy }) {
         return (
-          <div className="state" role={busy ? 'status' : undefined} aria-busy={busy || undefined}>
+          <div className="state" aria-busy={busy || undefined}>
             <h2>{title}</h2>
             {detail && <p>{detail}</p>}
             {action}
@@ -759,6 +761,8 @@
                 <Skeleton width="90px" height="26px" />
                 <Skeleton width="240px" height="12px" />
               </div>
+
+              <span className="gallery__label">State panels</span>
             </div>
 
             <div className="gallery__states">
@@ -798,11 +802,12 @@
               <h1>Pauper metagame</h1>
             </header>
 
-            {state.status === 'loading' && (
-              <StatePanel busy title="Loading" detail={`Fetching the ${timeWindow} window.`} />
-            )}
-
-            {state.status === 'error' && <Failed error={state.error} onRetry={reload} />}
+            <div role="status" aria-live="polite">
+              {state.status === 'loading' && (
+                <StatePanel busy title="Loading" detail={`Fetching the ${timeWindow} window.`} />
+              )}
+              {state.status === 'error' && <Failed error={state.error} onRetry={reload} />}
+            </div>
 
             {state.status === 'ready' && (
               <React.Fragment>
