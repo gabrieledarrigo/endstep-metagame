@@ -65,8 +65,10 @@ Every pull request gets an independent review before it reaches the human review
 1. Open the pull request.
 2. Run `/code-review <pr-number> --comment`. It runs in its own context and posts findings as inline comments on the pull request.
 3. Grade every finding. Either fix it or decline it.
-4. To fix: change the code, commit, and push to the same branch.
+4. To fix: change the code, commit, and push to the same branch. Then reply on the thread with `Fixed by <sha>` and resolve it.
 5. To decline: reply on the thread with a one sentence reason and leave the thread unresolved, so the human reviewer sees it as an open item.
+
+Only a thread that is actually fixed gets resolved. If a later round reverses an earlier fix, say so on the original thread and leave it open. An open thread is the record that something is unsettled.
 6. Run the review once more after the fixes.
 7. Stop there. Two rounds is the cap, whatever the second round returns.
 
