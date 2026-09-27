@@ -135,6 +135,15 @@
         gap: 12px;
         padding: 42px 22px;
         text-align: center;
+        background: var(--surface);
+        border: 1px solid var(--edge);
+        border-radius: 10px;
+      }
+
+      .state h2 {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 600;
       }
 
       .state p {
@@ -151,13 +160,138 @@
         padding: 9px 17px;
         border-radius: 7px;
         border: 1px solid transparent;
-        background: var(--primary);
-        color: var(--text-inverse);
         cursor: pointer;
       }
 
-      button:hover {
+      .b-primary {
+        background: var(--primary);
+        color: var(--text-inverse);
+      }
+
+      .b-primary:hover {
         background: #184f95;
+      }
+
+      .b-secondary {
+        background: var(--surface);
+        color: var(--secondary);
+        border-color: var(--edge);
+      }
+
+      .b-secondary:hover {
+        background: #f1f0ec;
+      }
+
+      .b-ghost {
+        background: transparent;
+        color: var(--primary);
+      }
+
+      .b-ghost:hover {
+        background: var(--primary-wash);
+      }
+
+      button:disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+      }
+
+      .b-primary:disabled:hover {
+        background: var(--primary);
+      }
+
+      .b-secondary:disabled:hover {
+        background: var(--surface);
+      }
+
+      .b-ghost:disabled:hover {
+        background: transparent;
+      }
+
+      .seg {
+        display: inline-flex;
+        background: var(--surface);
+        border: 1px solid var(--edge);
+        border-radius: 8px;
+        padding: 3px;
+        gap: 2px;
+      }
+
+      .seg button {
+        border: 0;
+        background: transparent;
+        color: var(--text-600);
+        font-size: 13px;
+        font-weight: 600;
+        padding: 7px 15px;
+        border-radius: 6px;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .seg button:hover {
+        background: #f1f0ec;
+        color: var(--text-900);
+      }
+
+      .seg button[aria-pressed='true'] {
+        background: var(--primary);
+        color: var(--text-inverse);
+      }
+
+      .seg button[aria-pressed='true']:hover {
+        background: #184f95;
+      }
+
+      .pips {
+        display: inline-flex;
+        gap: 3px;
+        align-items: center;
+        flex-shrink: 0;
+      }
+
+      .pip {
+        width: 17px;
+        height: 17px;
+        display: block;
+      }
+
+      .pip text {
+        font: 700 11px var(--sans);
+        fill: #1a1714;
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+        border: 0;
+      }
+
+      .sk {
+        background: var(--rule);
+        border-radius: 5px;
+        animation: pulse 1.5s ease-in-out infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.55;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .sk {
+          animation: none;
+        }
       }
 
       :focus-visible {
@@ -174,7 +308,7 @@
         gap: 10px;
       }
 
-      .scaffold h2 {
+      .scaffold > h2 {
         margin: 0;
         font-size: 11px;
         font-weight: 600;
@@ -198,6 +332,35 @@
       .scaffold dd {
         margin: 0;
         font-variant-numeric: tabular-nums;
+      }
+
+      .gallery {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .gallery__label {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: var(--text-400);
+        margin-top: 10px;
+      }
+
+      .gallery__row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        align-items: center;
+      }
+
+      .gallery__states {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 14px;
+        margin-top: 14px;
       }
 
       footer {
@@ -387,6 +550,104 @@
         return [state, reload]
       }
 
+      const PIP_FILL = {
+        W: '#fffbd5',
+        U: '#aae0fa',
+        B: '#cbc2bf',
+        R: '#f9aa8f',
+        G: '#9bd3ae',
+        C: '#cac5c0',
+      }
+
+      const PIP_NAME = {
+        W: 'white',
+        U: 'blue',
+        B: 'black',
+        R: 'red',
+        G: 'green',
+        C: 'colourless',
+      }
+
+      function Panel({ children }) {
+        return <div className="panel">{children}</div>
+      }
+
+      function Button({ variant = 'primary', children, ...rest }) {
+        return (
+          <button type="button" className={`b-${variant}`} {...rest}>
+            {children}
+          </button>
+        )
+      }
+
+      function ColourPips({ colours }) {
+        const letters = colours.length > 0 ? colours : ['C']
+
+        return (
+          <span className="pips">
+            <span className="sr-only">
+              Colours: {letters.map((letter) => PIP_NAME[letter]).join(', ')}
+            </span>
+            {letters.map((letter, index) => (
+              <svg key={index} className="pip" viewBox="0 0 20 20" aria-hidden="true">
+                <circle
+                  cx="10"
+                  cy="10"
+                  r="9"
+                  fill={PIP_FILL[letter]}
+                  stroke="rgba(11,11,11,.22)"
+                  strokeWidth="1"
+                />
+                <text x="10" y="14.3" textAnchor="middle">
+                  {letter}
+                </text>
+              </svg>
+            ))}
+          </span>
+        )
+      }
+
+      function SegmentedControl({ label, options, value, onChange, disabled }) {
+        return (
+          <div className="seg" role="group" aria-label={label}>
+            {options.map((option) => (
+              <button
+                key={option}
+                type="button"
+                aria-pressed={option === value}
+                disabled={disabled}
+                onClick={() => onChange(option)}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+        )
+      }
+
+      function StatTile({ label, value, hero }) {
+        return (
+          <div className={hero ? 'tile hero' : 'tile'}>
+            <dt>{label}</dt>
+            <dd>{value}</dd>
+          </div>
+        )
+      }
+
+      function Skeleton({ width, height }) {
+        return <div className="sk" style={{ width, height }} />
+      }
+
+      function StatePanel({ title, detail, action }) {
+        return (
+          <div className="state">
+            <h2>{title}</h2>
+            {detail && <p>{detail}</p>}
+            {action}
+          </div>
+        )
+      }
+
       function Scaffold({ decks, series }) {
         const range = decks.provenance.window
         const items = decks.decks.items
@@ -424,27 +685,88 @@
       function Summary({ totals }) {
         return (
           <dl className="tiles">
-            <div className="tile hero">
-              <dt>Registrations</dt>
-              <dd>{totals.registrations.toLocaleString('en-GB')}</dd>
-            </div>
-            <div className="tile">
-              <dt>Players</dt>
-              <dd>{totals.players.toLocaleString('en-GB')}</dd>
-            </div>
+            <StatTile hero label="Registrations" value={totals.registrations.toLocaleString('en-GB')} />
+            <StatTile label="Players" value={totals.players.toLocaleString('en-GB')} />
           </dl>
+        )
+      }
+
+      function Gallery() {
+        const [selected, setSelected] = useState('30d')
+
+        return (
+          <div className="scaffold">
+            <h2>Temporary gallery, removed once the real sections land</h2>
+
+            <div className="gallery">
+              <span className="gallery__label">Buttons</span>
+              <div className="gallery__row">
+                <Button>Retry</Button>
+                <Button variant="secondary">View on endstep.cc</Button>
+                <Button variant="ghost">Show all 24</Button>
+                <Button disabled>Retry</Button>
+                <Button variant="secondary" disabled>
+                  Disabled
+                </Button>
+              </div>
+
+              <span className="gallery__label">Segmented control</span>
+              <div className="gallery__row">
+                <SegmentedControl
+                  label="Time window"
+                  options={WINDOWS}
+                  value={selected}
+                  onChange={setSelected}
+                />
+              </div>
+
+              <span className="gallery__label">Colour identity</span>
+              <div className="gallery__row">
+                <ColourPips colours={['W']} />
+                <ColourPips colours={['R', 'G']} />
+                <ColourPips colours={['W', 'U', 'B']} />
+                <ColourPips colours={['W', 'U', 'B', 'R', 'G']} />
+                <ColourPips colours={[]} />
+              </div>
+
+              <span className="gallery__label">Stat tiles</span>
+              <dl className="tiles">
+                <StatTile hero label="Registrations" value="152,638" />
+                <StatTile label="Players" value="6,729" />
+                <StatTile label="Archetypes" value="265" />
+              </dl>
+
+              <span className="gallery__label">Skeletons</span>
+              <div className="gallery__row">
+                <Skeleton width="180px" height="17px" />
+                <Skeleton width="90px" height="26px" />
+                <Skeleton width="240px" height="12px" />
+              </div>
+            </div>
+
+            <div className="gallery__states">
+              <StatePanel
+                title="The metagame could not be loaded"
+                detail="Endstep did not respond. The data is cached for five minutes, so a retry usually works."
+                action={<Button>Retry</Button>}
+              />
+              <StatePanel
+                title="No decks in this window"
+                detail="The 1 day window has no registrations yet. Try a longer window."
+                action={<Button variant="secondary">Switch to 7d</Button>}
+              />
+            </div>
+          </div>
         )
       }
 
       function Failed({ error, onRetry }) {
         return (
-          <div className="panel state">
-            <strong>The metagame could not be loaded</strong>
-            <p>{error.message}</p>
-            <button type="button" onClick={onRetry}>
-              Retry
-            </button>
-          </div>
+          <StatePanel
+            title="The metagame could not be loaded"
+            detail={error.message}
+            action={<Button onClick={onRetry}>Retry</Button>}
+          />
         )
       }
 
@@ -460,19 +782,18 @@
             </header>
 
             {state.status === 'loading' && (
-              <div className="panel state">
-                <p>Loading the {timeWindow} window.</p>
-              </div>
+              <StatePanel title="Loading" detail={`Fetching the ${timeWindow} window.`} />
             )}
 
             {state.status === 'error' && <Failed error={state.error} onRetry={reload} />}
 
             {state.status === 'ready' && (
               <React.Fragment>
-                <div className="panel">
+                <Panel>
                   <Summary totals={state.decks.totals} />
-                </div>
+                </Panel>
                 <Scaffold decks={state.decks} series={state.series} />
+                <Gallery />
               </React.Fragment>
             )}
 
