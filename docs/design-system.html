@@ -108,7 +108,7 @@ table.swatch tbody tr:hover { background:transparent; }
 .button--secondary:hover { background:#f1f0ec; }
 .button--ghost { background:transparent; color:var(--primary); }
 .button--ghost:hover { background:var(--primary-wash); }
-.button:disabled { opacity:.45; cursor:not-allowed; }
+button:disabled { opacity:.45; cursor:not-allowed; }
 .button--primary:disabled:hover { background:var(--primary); }
 .button--secondary:disabled:hover { background:var(--surface); }
 .button--ghost:disabled:hover { background:transparent; }
@@ -116,7 +116,8 @@ table.swatch tbody tr:hover { background:transparent; }
 .segmented__option[aria-pressed="true"]:disabled:hover { background:var(--primary); color:var(--text-inverse); }
 
 .segmented { display:inline-flex; background:var(--surface); border:1px solid var(--edge);
-  border-radius:8px; padding:3px; gap:2px; }
+  border-radius:8px; padding:3px; gap:2px; max-width:100%; }
+@media (max-width:400px) { .segmented { overflow-x:auto; } }
 .segmented__option { flex:0 0 auto; font-family:inherit; cursor:pointer; border:0; background:transparent; color:var(--text-600); font-size:13px;
   font-weight:600; padding:7px 15px; border-radius:6px; font-variant-numeric:tabular-nums; }
 .segmented__option:hover { background:#f1f0ec; color:var(--text-900); }
@@ -178,7 +179,7 @@ pre b { color:var(--text-900); font-weight:600; }
   font-size:13px; color:var(--text-600); max-width:56ch; }
 .anatomy ol b { color:var(--text-900); font-weight:600; }
 
-.stat-list { display:flex; flex-wrap:wrap; gap:34px; align-items:flex-end; }
+.stat-list { display:flex; flex-wrap:wrap; gap:34px; align-items:flex-end; margin:0; }
 .stat-tile { display:flex; flex-direction:column; gap:2px; }
 .stat-tile__label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.07em; color:var(--text-400); }
 .stat-tile__value { margin:0; font-size:15px; font-weight:600; font-variant-numeric:tabular-nums; }
