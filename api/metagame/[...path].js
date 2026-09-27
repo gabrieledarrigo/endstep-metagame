@@ -1,4 +1,6 @@
 const UPSTREAM = 'https://endstep.cc/api/metagame/v1'
+const PREFIX = '/api/metagame/'
+const TIMEOUT_MS = 8000
 
 const ENDPOINTS = [
   ['formats'],
@@ -24,44 +26,74 @@ function isAllowed(segments) {
   )
 }
 
-function queryString(url) {
+function requestedSegments(url) {
+  const pathname = url.split('?')[0]
+  if (!pathname.startsWith(PREFIX)) return []
+
+  try {
+    return pathname.slice(PREFIX.length).split('/').filter(Boolean).map(decodeURIComponent)
+  } catch {
+    return []
+  }
+}
+
+function forwardedQuery(url) {
   const start = url.indexOf('?')
-  return start === -1 ? '' : url.slice(start)
+  if (start === -1) return ''
+
+  const params = new URLSearchParams(url.slice(start + 1))
+  params.delete('path')
+
+  const query = params.toString()
+  return query ? `?${query}` : ''
 }
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*')
 
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS')
+    res.setHeader('Access-Control-Allow-Headers', '*')
+    res.setHeader('Access-Control-Max-Age', '86400')
+    return res.status(204).end()
+  }
+
   if (req.method !== 'GET' && req.method !== 'HEAD') {
-    res.setHeader('Allow', 'GET, HEAD')
+    res.setHeader('Allow', 'GET, HEAD, OPTIONS')
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const segments = [].concat(req.query.path || [])
+  const segments = requestedSegments(req.url)
 
   if (!isAllowed(segments)) {
     return res.status(400).json({ error: 'Unsupported metagame path' })
   }
 
-  const target = `${UPSTREAM}/${segments.join('/')}${queryString(req.url)}`
+  const target = `${UPSTREAM}/${segments.join('/')}${forwardedQuery(req.url)}`
 
-  let upstream
+  let status
+  let contentType
+  let body
+
   try {
-    upstream = await fetch(target, {
+    const upstream = await fetch(target, {
       method: req.method,
       headers: { accept: 'application/json' },
+      signal: AbortSignal.timeout(TIMEOUT_MS),
     })
+
+    status = upstream.status
+    contentType = upstream.headers.get('content-type')
+    body = await upstream.text()
   } catch {
     return res.status(502).json({ error: 'Endstep is unreachable' })
   }
 
-  const body = await upstream.text()
-
-  res.status(upstream.status)
-  res.setHeader('Content-Type', upstream.headers.get('content-type') || 'application/json')
+  res.status(status)
+  res.setHeader('Content-Type', contentType || 'application/json')
   res.setHeader(
     'Cache-Control',
-    upstream.ok ? 'public, s-maxage=300, stale-while-revalidate=600' : 'no-store'
+    status < 400 ? 'public, s-maxage=300, stale-while-revalidate=600' : 'public, s-maxage=10'
   )
 
   return res.send(body)
