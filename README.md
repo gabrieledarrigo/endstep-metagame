@@ -1,2 +1,3 @@
-# endstep-metagame
-A more appealing representation of endstep.cc Pauper metagame
+# Endstep.cc metagame
+
+A more visually appealing representation of [endstep.cc](https://endstep.cc/) Pauper metagame.
