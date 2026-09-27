@@ -4,7 +4,7 @@ const { join } = require('node:path')
 
 const proxy = require('./api/metagame/[...path].js')
 
-const PORT = Number(process.env.PORT || 3000)
+const PORT = Number.parseInt(process.env.PORT, 10) || 3000
 const HOST = '127.0.0.1'
 const PREFIX = '/api/metagame/'
 const PAGE = join(__dirname, 'index.html')
