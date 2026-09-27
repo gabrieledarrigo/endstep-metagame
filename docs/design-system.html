@@ -58,6 +58,7 @@ h4.sub { font-size:17px; font-weight:600; margin-top:6px; }
 .demo { background:var(--surface); border:1px solid var(--edge); border-radius:10px; padding:26px;
   display:flex; flex-wrap:wrap; gap:16px; align-items:center; }
 .demo.col { flex-direction:column; align-items:stretch; }
+.button-row { display:flex; flex-wrap:wrap; gap:16px; align-items:center; }
 
 .scale { display:flex; flex-direction:column; }
 .srow { display:grid; grid-template-columns:118px 1fr; gap:20px; align-items:baseline;
@@ -108,8 +109,11 @@ table.swatch tbody tr:hover { background:transparent; }
 .button--ghost { background:transparent; color:var(--primary); }
 .button--ghost:hover { background:var(--primary-wash); }
 .button:disabled { opacity:.45; cursor:not-allowed; }
-button:disabled:hover { background:var(--primary); }
+.button--primary:disabled:hover { background:var(--primary); }
 .button--secondary:disabled:hover { background:var(--surface); }
+.button--ghost:disabled:hover { background:transparent; }
+.segmented__option:disabled:hover { background:transparent; color:var(--text-600); }
+.segmented__option[aria-pressed="true"]:disabled:hover { background:var(--primary); color:var(--text-inverse); }
 
 .segmented { display:inline-flex; background:var(--surface); border:1px solid var(--edge);
   border-radius:8px; padding:3px; gap:2px; }
@@ -302,7 +306,7 @@ pre b { color:var(--text-900); font-weight:600; }
     near-black on an outline. A second saturated colour would compete with the series palette.</p>
   </div>
   <div class="panel" style="display:flex;flex-direction:column;gap:20px">
-    <div class="demo">
+    <div class="button-row">
       <button class="button button--primary" type="button">Apply window</button>
       <button class="button button--secondary" type="button">Reset filters</button>
       <button class="button button--ghost" type="button">View as table</button>
