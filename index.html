@@ -77,7 +77,7 @@
         letter-spacing: -0.015em;
       }
 
-      .eyebrow {
+      .page__eyebrow {
         font-size: 12px;
         font-weight: 600;
         text-transform: uppercase;
@@ -92,7 +92,7 @@
         padding: 22px;
       }
 
-      .tiles {
+      .stat-list {
         display: flex;
         flex-wrap: wrap;
         gap: 34px;
@@ -100,13 +100,13 @@
         margin: 0;
       }
 
-      .tile {
+      .stat-tile {
         display: flex;
         flex-direction: column;
         gap: 2px;
       }
 
-      .tile dt {
+      .stat-tile__label {
         font-size: 11px;
         font-weight: 600;
         text-transform: uppercase;
@@ -114,21 +114,21 @@
         color: var(--text-400);
       }
 
-      .tile dd {
+      .stat-tile__value {
         margin: 0;
         font-size: 15px;
         font-weight: 600;
         font-variant-numeric: tabular-nums;
       }
 
-      .tile.hero dd {
+      .stat-tile--hero .stat-tile__value {
         font-size: 40px;
         font-weight: 700;
         letter-spacing: -0.02em;
         line-height: 1.05;
       }
 
-      .state {
+      .state-panel {
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -140,20 +140,20 @@
         border-radius: 10px;
       }
 
-      .state h2 {
+      .state-panel__title {
         margin: 0;
         font-size: 15px;
         font-weight: 600;
       }
 
-      .state p {
+      .state-panel__detail {
         margin: 0;
         font-size: 14px;
         color: var(--text-600);
         max-width: 44ch;
       }
 
-      button {
+      .button {
         font-family: inherit;
         font-size: 14px;
         font-weight: 600;
@@ -163,52 +163,52 @@
         cursor: pointer;
       }
 
-      .b-primary {
+      .button--primary {
         background: var(--primary);
         color: var(--text-inverse);
       }
 
-      .b-primary:hover {
+      .button--primary:hover {
         background: #184f95;
       }
 
-      .b-secondary {
+      .button--secondary {
         background: var(--surface);
         color: var(--secondary);
         border-color: var(--edge);
       }
 
-      .b-secondary:hover {
+      .button--secondary:hover {
         background: #f1f0ec;
       }
 
-      .b-ghost {
+      .button--ghost {
         background: transparent;
         color: var(--primary);
       }
 
-      .b-ghost:hover {
+      .button--ghost:hover {
         background: var(--primary-wash);
       }
 
-      button:disabled {
+      .button:disabled {
         opacity: 0.45;
         cursor: not-allowed;
       }
 
-      .b-primary:disabled:hover {
+      .button--primary:disabled:hover {
         background: var(--primary);
       }
 
-      .b-secondary:disabled:hover {
+      .button--secondary:disabled:hover {
         background: var(--surface);
       }
 
-      .b-ghost:disabled:hover {
+      .button--ghost:disabled:hover {
         background: transparent;
       }
 
-      .seg {
+      .segmented {
         display: inline-flex;
         background: var(--surface);
         border: 1px solid var(--edge);
@@ -219,13 +219,15 @@
       }
 
       @media (max-width: 400px) {
-        .seg {
+        .segmented {
           overflow-x: auto;
         }
       }
 
-      .seg button {
+      .segmented__option {
         flex: 0 0 auto;
+        font-family: inherit;
+        cursor: pointer;
         border: 0;
         background: transparent;
         color: var(--text-600);
@@ -236,49 +238,49 @@
         font-variant-numeric: tabular-nums;
       }
 
-      .seg button:hover {
+      .segmented__option:hover {
         background: #f1f0ec;
         color: var(--text-900);
       }
 
-      .seg button[aria-pressed='true'] {
+      .segmented__option[aria-pressed='true'] {
         background: var(--primary);
         color: var(--text-inverse);
       }
 
-      .seg button[aria-pressed='true']:hover {
+      .segmented__option[aria-pressed='true']:hover {
         background: #184f95;
       }
 
-      .seg button:disabled:hover {
+      .segmented__option:disabled:hover {
         background: transparent;
         color: var(--text-600);
       }
 
-      .seg button[aria-pressed='true']:disabled:hover {
+      .segmented__option[aria-pressed='true']:disabled:hover {
         background: var(--primary);
         color: var(--text-inverse);
       }
 
-      .pips {
+      .colour-pips {
         display: inline-flex;
         gap: 3px;
         align-items: center;
         flex-shrink: 0;
       }
 
-      .pip {
+      .colour-pips__pip {
         width: 17px;
         height: 17px;
         display: block;
       }
 
-      .pip text {
+      .colour-pips__pip text {
         font: 700 11px var(--sans);
         fill: #1a1714;
       }
 
-      .sr-only {
+      .visually-hidden {
         position: absolute;
         width: 1px;
         height: 1px;
@@ -290,7 +292,7 @@
         border: 0;
       }
 
-      .sk {
+      .skeleton {
         background: var(--rule);
         border-radius: 5px;
         animation: pulse 1.5s ease-in-out infinite;
@@ -307,7 +309,7 @@
       }
 
       @media (prefers-reduced-motion: reduce) {
-        .sk {
+        .skeleton {
           animation: none;
         }
       }
@@ -326,7 +328,7 @@
         gap: 10px;
       }
 
-      .scaffold > h2 {
+      .scaffold__title {
         margin: 0;
         font-size: 11px;
         font-weight: 600;
@@ -335,7 +337,7 @@
         color: var(--text-400);
       }
 
-      .scaffold > dl {
+      .scaffold__list {
         margin: 0;
         display: grid;
         grid-template-columns: 190px 1fr;
@@ -343,11 +345,11 @@
         font-size: 13px;
       }
 
-      .scaffold > dl > dt {
+      .scaffold__list dt {
         color: var(--text-600);
       }
 
-      .scaffold > dl > dd {
+      .scaffold__list dd {
         margin: 0;
         font-variant-numeric: tabular-nums;
       }
@@ -592,7 +594,7 @@
 
       function Button({ variant = 'primary', className, children, ...rest }) {
         return (
-          <button type="button" {...rest} className={['b-' + variant, className].filter(Boolean).join(' ')}>
+          <button type="button" {...rest} className={['button', 'button--' + variant, className].filter(Boolean).join(' ')}>
             {children}
           </button>
         )
@@ -603,12 +605,12 @@
         const letters = known.length > 0 ? known : ['C']
 
         return (
-          <span className="pips">
-            <span className="sr-only">
+          <span className="colour-pips">
+            <span className="visually-hidden">
               Colours: {letters.map((letter) => PIP_NAME[letter]).join(', ')}
             </span>
             {letters.map((letter, index) => (
-              <svg key={index} className="pip" viewBox="0 0 20 20" aria-hidden="true">
+              <svg key={index} className="colour-pips__pip" viewBox="0 0 20 20" aria-hidden="true">
                 <circle
                   cx="10"
                   cy="10"
@@ -628,11 +630,12 @@
 
       function SegmentedControl({ label, options, value, onChange, disabled }) {
         return (
-          <div className="seg" role="group" aria-label={label}>
+          <div className="segmented" role="group" aria-label={label}>
             {options.map((option) => (
               <button
                 key={option}
                 type="button"
+                className="segmented__option"
                 aria-pressed={option === value}
                 disabled={disabled}
                 onClick={() => onChange(option)}
@@ -646,22 +649,22 @@
 
       function StatTile({ label, value, hero }) {
         return (
-          <div className={hero ? 'tile hero' : 'tile'}>
-            <dt>{label}</dt>
-            <dd>{value}</dd>
+          <div className={hero ? 'stat-tile stat-tile--hero' : 'stat-tile'}>
+            <dt className="stat-tile__label">{label}</dt>
+            <dd className="stat-tile__value">{value}</dd>
           </div>
         )
       }
 
       function Skeleton({ width, height }) {
-        return <div className="sk" style={{ width, height }} aria-hidden="true" />
+        return <div className="skeleton" style={{ width, height }} aria-hidden="true" />
       }
 
       function StatePanel({ title, detail, action, busy }) {
         return (
-          <div className="state" aria-busy={busy || undefined}>
-            <h2>{title}</h2>
-            {detail && <p>{detail}</p>}
+          <div className="state-panel" aria-busy={busy || undefined}>
+            <h2 className="state-panel__title">{title}</h2>
+            {detail && <p className="state-panel__detail">{detail}</p>}
             {action}
           </div>
         )
@@ -676,8 +679,8 @@
 
         return (
           <div className="scaffold">
-            <h2>Temporary scaffold, removed by S1</h2>
-            <dl>
+            <h2 className="scaffold__title">Temporary scaffold, removed by S1</h2>
+            <dl className="scaffold__list">
               <dt>Window</dt>
               <dd>
                 {range.preset}, {range.from} to {range.to}
@@ -703,7 +706,7 @@
 
       function Summary({ totals }) {
         return (
-          <dl className="tiles">
+          <dl className="stat-list">
             <StatTile hero label="Registrations" value={totals.registrations.toLocaleString('en-GB')} />
             <StatTile label="Players" value={totals.players.toLocaleString('en-GB')} />
           </dl>
@@ -715,7 +718,7 @@
 
         return (
           <div className="scaffold">
-            <h2>Temporary gallery, removed once the real sections land</h2>
+            <h2 className="scaffold__title">Temporary gallery, removed once the real sections land</h2>
 
             <div className="gallery">
               <span className="gallery__label">Buttons</span>
@@ -749,7 +752,7 @@
               </div>
 
               <span className="gallery__label">Stat tiles</span>
-              <dl className="tiles">
+              <dl className="stat-list">
                 <StatTile hero label="Registrations" value="152,638" />
                 <StatTile label="Players" value="6,729" />
                 <StatTile label="Archetypes" value="265" />
@@ -798,7 +801,7 @@
         return (
           <div className="page">
             <header>
-              <div className="eyebrow">Endstep</div>
+              <div className="page__eyebrow">Endstep</div>
               <h1>Pauper metagame</h1>
             </header>
 
