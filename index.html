@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Pauper Metagame</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --background: #f9f9f7;
+        --surface: #fcfcfb;
+        --edge: rgba(11, 11, 11, 0.1);
+
+        --text-900: #0b0b0b;
+        --text-600: #52514e;
+        --text-400: #898781;
+        --text-inverse: #ffffff;
+
+        --rule: #e1e0d9;
+        --baseline: #c3c2b7;
+
+        --primary: #1c5cab;
+        --primary-wash: #eaf1fb;
+        --secondary: #3f3f3c;
+
+        --up: #006300;
+        --down: #d03b3b;
+
+        --s1: #2a78d6;
+        --s2: #eb6834;
+        --s3: #1baf7a;
+        --s4: #eda100;
+        --s5: #e87ba4;
+        --s6: #008300;
+        --s7: #4a3aa7;
+        --s8: #e34948;
+
+        --seq-100: #cde2fb;
+        --seq-200: #9ec5f4;
+        --seq-300: #6da7ec;
+        --seq-400: #3987e5;
+        --seq-500: #256abf;
+        --seq-600: #184f95;
+        --seq-700: #0d366b;
+
+        --sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--background);
+        color: var(--text-900);
+        font-family: var(--sans);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .page {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding-inline: 20px;
+        padding-block: 40px 72px;
+        display: flex;
+        flex-direction: column;
+        gap: 28px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 30px;
+        font-weight: 700;
+        letter-spacing: -0.015em;
+      }
+
+      .eyebrow {
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-400);
+      }
+
+      .panel {
+        background: var(--surface);
+        border: 1px solid var(--edge);
+        border-radius: 10px;
+        padding: 22px;
+      }
+
+      .tiles {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 34px;
+        align-items: flex-end;
+        margin: 0;
+      }
+
+      .tile {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+      }
+
+      .tile dt {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: var(--text-400);
+      }
+
+      .tile dd {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .tile.hero dd {
+        font-size: 40px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        line-height: 1.05;
+      }
+
+      .state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        padding: 42px 22px;
+        text-align: center;
+      }
+
+      .state p {
+        margin: 0;
+        font-size: 14px;
+        color: var(--text-600);
+        max-width: 44ch;
+      }
+
+      button {
+        font-family: inherit;
+        font-size: 14px;
+        font-weight: 600;
+        padding: 9px 17px;
+        border-radius: 7px;
+        border: 1px solid transparent;
+        background: var(--primary);
+        color: var(--text-inverse);
+        cursor: pointer;
+      }
+
+      button:hover {
+        background: #184f95;
+      }
+
+      :focus-visible {
+        outline: 2px solid var(--primary);
+        outline-offset: 2px;
+      }
+
+      .scaffold {
+        border: 1px dashed var(--baseline);
+        border-radius: 10px;
+        padding: 18px 22px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .scaffold h2 {
+        margin: 0;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--text-400);
+      }
+
+      .scaffold dl {
+        margin: 0;
+        display: grid;
+        grid-template-columns: 190px 1fr;
+        gap: 4px 16px;
+        font-size: 13px;
+      }
+
+      .scaffold dt {
+        color: var(--text-600);
+      }
+
+      .scaffold dd {
+        margin: 0;
+        font-variant-numeric: tabular-nums;
+      }
+
+      footer {
+        font-size: 13px;
+        color: var(--text-600);
+      }
+
+      a {
+        color: var(--primary);
+        text-underline-offset: 3px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+
+    <script
+      defer
+      crossorigin="anonymous"
+      src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js"
+      integrity="sha384-DGyLxAyjq0f9SPpVevD6IgztCFlnMF6oW/XQGmfe+IsZ8TqEiDrcHkMLKI6fiB/Z"
+    ></script>
+    <script
+      defer
+      crossorigin="anonymous"
+      src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js"
+      integrity="sha384-gTGxhz21lVGYNMcdJOyq01Edg0jhn/c22nsx0kyqP0TxaV5WVdsSH1fSDUf5YJj1"
+    ></script>
+    <script
+      defer
+      crossorigin="anonymous"
+      src="https://cdn.jsdelivr.net/npm/react-is@18.3.1/umd/react-is.production.min.js"
+      integrity="sha384-XYVQ7LtYqgha4ByzNRLR6NHo9p0yVDvmTNuQkiIweU0U8WqLWBkH1L771VlP6fYx"
+    ></script>
+    <script
+      defer
+      crossorigin="anonymous"
+      src="https://cdn.jsdelivr.net/npm/recharts@3.10.1/umd/Recharts.js"
+      integrity="sha384-B2qLloNSIrxapii5UnBrm+3aDNWhVlmIFQONXg13tES0lEd7YUzh6lrjD3WSiwZ1"
+    ></script>
+    <script
+      defer
+      crossorigin="anonymous"
+      src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.29.9/babel.min.js"
+      integrity="sha384-oLbIC13I/8DNBviftYPfOFQS5DC2WUmwk0SyIPmnzu1Ui+vYyATSSBJiJ5ETa4o/"
+    ></script>
+
+    <script type="text/babel" data-presets="react">
+      const { useState, useEffect, useCallback } = React
+
+      const FORMAT = 'Pauper'
+      const POPULATION = 'rated'
+      const WINDOWS = ['1d', '7d', '14d', '30d', 'season']
+      const DEFAULT_WINDOW = '30d'
+      const PAGE_SIZE = 24
+      const MAX_RETRIES = 2
+      const RETRY_BASE_MS = 400
+
+      function readTimeWindow() {
+        const value = new URLSearchParams(location.search).get('window')
+        return WINDOWS.includes(value) ? value : DEFAULT_WINDOW
+      }
+
+      function failure(status) {
+        if (status === 429) {
+          return {
+            kind: 'rateLimit',
+            message: 'Too many requests reached Endstep. The data is cached for five minutes, so this usually clears on its own.',
+          }
+        }
+        if (status === 502 || status === 504) {
+          return { kind: 'upstream', message: 'Endstep did not respond.' }
+        }
+        return { kind: 'http', message: `The request failed with status ${status}.` }
+      }
+
+      function wait(ms, signal) {
+        return new Promise((resolve, reject) => {
+          const timer = setTimeout(resolve, ms)
+          signal.addEventListener(
+            'abort',
+            () => {
+              clearTimeout(timer)
+              reject(new DOMException('Aborted', 'AbortError'))
+            },
+            { once: true }
+          )
+        })
+      }
+
+      async function getJson(path, params, signal) {
+        const url = `/api/metagame/${path}?${new URLSearchParams(params)}`
+
+        for (let attempt = 0; ; attempt += 1) {
+          let response
+
+          try {
+            response = await fetch(url, { signal })
+          } catch (error) {
+            if (error.name === 'AbortError') throw error
+            if (attempt === MAX_RETRIES) {
+              throw Object.assign(new Error('The server could not be reached.'), { kind: 'network' })
+            }
+            await wait(RETRY_BASE_MS * 2 ** attempt, signal)
+            continue
+          }
+
+          if (response.ok) return response.json()
+
+          const detail = failure(response.status)
+          const retryable = response.status === 429 || response.status >= 500
+
+          if (!retryable || attempt === MAX_RETRIES) {
+            throw Object.assign(new Error(detail.message), detail, { status: response.status })
+          }
+
+          await wait(RETRY_BASE_MS * 2 ** attempt, signal)
+        }
+      }
+
+      function useTimeWindow() {
+        const [value, setValue] = useState(readTimeWindow)
+
+        useEffect(() => {
+          const sync = () => setValue(readTimeWindow())
+          window.addEventListener('popstate', sync)
+          return () => window.removeEventListener('popstate', sync)
+        }, [])
+
+        return value
+      }
+
+      function useMetagame(timeWindow) {
+        const [state, setState] = useState({ status: 'loading' })
+        const [reloads, setReloads] = useState(0)
+
+        useEffect(() => {
+          const controller = new AbortController()
+          setState({ status: 'loading' })
+
+          Promise.all([
+            getJson(
+              `${FORMAT}/decks`,
+              {
+                window: timeWindow,
+                population: POPULATION,
+                sort: 'share',
+                dir: 'desc',
+                page: 1,
+                pageSize: PAGE_SIZE,
+              },
+              controller.signal
+            ),
+            getJson(
+              `${FORMAT}/share-series`,
+              { window: timeWindow, population: POPULATION },
+              controller.signal
+            ),
+          ])
+            .then(([decks, series]) => setState({ status: 'ready', decks, series }))
+            .catch((error) => {
+              if (error.name === 'AbortError') return
+              setState({ status: 'error', error })
+            })
+
+          return () => controller.abort()
+        }, [timeWindow, reloads])
+
+        const reload = useCallback(() => setReloads((count) => count + 1), [])
+
+        return [state, reload]
+      }
+
+      function Scaffold({ decks, series }) {
+        const { provenance, totals } = decks
+        const window = provenance.window
+
+        return (
+          <div className="scaffold">
+            <h2>Temporary scaffold, removed by S1</h2>
+            <dl>
+              <dt>Window</dt>
+              <dd>
+                {window.preset}, {window.from} to {window.to}
+              </dd>
+              <dt>Population</dt>
+              <dd>{provenance.population}</dd>
+              <dt>Decks returned</dt>
+              <dd>
+                {decks.decks.items.length} of {decks.decks.total}
+              </dd>
+              <dt>Series returned</dt>
+              <dd>{series.series.length}</dd>
+              <dt>Days with data</dt>
+              <dd>
+                {series.series[0].points.filter((point) => point.rate !== null).length} of{' '}
+                {series.series[0].points.length}
+              </dd>
+              <dt>Top deck</dt>
+              <dd>
+                {decks.decks.items[0].name}, {(decks.decks.items[0].share.rate * 100).toFixed(2)}%
+              </dd>
+            </dl>
+          </div>
+        )
+      }
+
+      function Summary({ totals }) {
+        return (
+          <dl className="tiles">
+            <div className="tile hero">
+              <dt>Registrations</dt>
+              <dd>{totals.registrations.toLocaleString('en-GB')}</dd>
+            </div>
+            <div className="tile">
+              <dt>Players</dt>
+              <dd>{totals.players.toLocaleString('en-GB')}</dd>
+            </div>
+          </dl>
+        )
+      }
+
+      function Failed({ error, onRetry }) {
+        return (
+          <div className="panel state">
+            <strong>The metagame could not be loaded</strong>
+            <p>{error.message}</p>
+            <button type="button" onClick={onRetry}>
+              Retry
+            </button>
+          </div>
+        )
+      }
+
+      function App() {
+        const timeWindow = useTimeWindow()
+        const [state, reload] = useMetagame(timeWindow)
+
+        return (
+          <div className="page">
+            <header>
+              <div className="eyebrow">Endstep</div>
+              <h1>Pauper metagame</h1>
+            </header>
+
+            {state.status === 'loading' && (
+              <div className="panel state">
+                <p>Loading the {timeWindow} window.</p>
+              </div>
+            )}
+
+            {state.status === 'error' && <Failed error={state.error} onRetry={reload} />}
+
+            {state.status === 'ready' && (
+              <React.Fragment>
+                <div className="panel">
+                  <Summary totals={state.decks.totals} />
+                </div>
+                <Scaffold decks={state.decks} series={state.series} />
+              </React.Fragment>
+            )}
+
+            <footer>
+              Data from <a href="https://endstep.cc/metagame">Endstep</a>. Not an official Endstep
+              product.
+            </footer>
+          </div>
+        )
+      }
+
+      ReactDOM.createRoot(document.getElementById('root')).render(<App />)
+    </script>
+  </body>
+</html>
