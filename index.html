@@ -319,6 +319,96 @@
         outline-offset: 2px;
       }
 
+      .deck-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(228px, 1fr));
+        gap: 16px;
+      }
+
+      .deck {
+        display: flex;
+        flex-direction: column;
+        background: var(--surface);
+        border: 1px solid var(--edge);
+        border-radius: 10px;
+        overflow: hidden;
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .deck:hover .deck__name {
+        text-decoration: underline;
+        text-decoration-thickness: 2px;
+      }
+
+      .deck__art {
+        display: block;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 626 / 300;
+        object-fit: cover;
+        object-position: center 38%;
+        background: var(--rule);
+      }
+
+      .deck__body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 14px 15px 15px;
+      }
+
+      .deck__top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .deck__name {
+        margin: 0;
+        min-height: 2.6em;
+        font-size: 15px;
+        font-weight: 600;
+        line-height: 1.3;
+      }
+
+      .deck__stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin: 0;
+      }
+
+      .deck__stats div {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+      }
+
+      .deck__stats dt {
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-400);
+      }
+
+      .deck__stats dd {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .deck__keys {
+        margin: auto 0 0;
+        font-size: 12px;
+        line-height: 1.45;
+        color: var(--text-600);
+      }
+
       .scaffold {
         border: 1px dashed var(--baseline);
         border-radius: 10px;
@@ -660,6 +750,64 @@
         return <div className="skeleton" style={{ width, height }} aria-hidden="true" />
       }
 
+      function artSource(cardName) {
+        return `https://endstep.cc/api/cards/image?${new URLSearchParams({
+          name: cardName,
+          version: 'art_crop',
+        })}`
+      }
+
+      function DeckCard({ deck }) {
+        return (
+          <a
+            className="deck"
+            href={`https://endstep.cc/metagame/${FORMAT}/${deck.slug}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <img
+              className="deck__art"
+              src={artSource(deck.art.cardName)}
+              alt={deck.art.cardName}
+              loading="lazy"
+              width="626"
+              height="300"
+            />
+            <div className="deck__body">
+              <div className="deck__top">
+                <h3 className="deck__name">{deck.name}</h3>
+                <ColourPips colours={deck.colours} />
+              </div>
+              <dl className="deck__stats">
+                <div>
+                  <dt>Share</dt>
+                  <dd>{(deck.share.rate * 100).toFixed(2)}%</dd>
+                </div>
+                <div>
+                  <dt>Players</dt>
+                  <dd>{deck.players.toLocaleString('en-GB')}</dd>
+                </div>
+                <div>
+                  <dt>Win rate</dt>
+                  <dd>{(deck.matchWinRate.rate * 100).toFixed(1)}%</dd>
+                </div>
+              </dl>
+              <p className="deck__keys">{deck.keyCards.join(', ')}</p>
+            </div>
+          </a>
+        )
+      }
+
+      function DeckGrid({ decks }) {
+        return (
+          <section className="deck-grid" aria-label="Decks by meta share">
+            {decks.map((deck) => (
+              <DeckCard key={deck.id} deck={deck} />
+            ))}
+          </section>
+        )
+      }
+
       function StatePanel({ title, detail, action, busy }) {
         return (
           <div className="state-panel" aria-busy={busy || undefined}>
@@ -817,6 +965,7 @@
                 <Panel>
                   <Summary totals={state.decks.totals} />
                 </Panel>
+                <DeckGrid decks={state.decks.decks.items} />
                 <Scaffold decks={state.decks} series={state.series} />
               </React.Fragment>
             )}
