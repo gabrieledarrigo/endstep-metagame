@@ -392,6 +392,85 @@
         color: var(--primary);
         text-underline-offset: 3px;
       }
+
+      .deck-table__scroll {
+        overflow-x: auto;
+      }
+
+      .deck-table {
+        border-collapse: collapse;
+        width: 100%;
+        min-width: 640px;
+        font-size: 14px;
+      }
+
+      .deck-table__header {
+        text-align: left;
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: var(--text-400);
+        padding: 0 12px 9px 0;
+        border-bottom: 1px solid var(--baseline);
+        white-space: nowrap;
+      }
+
+      .deck-table__header--numeric {
+        text-align: right;
+      }
+
+      .deck-table__sort {
+        font: inherit;
+        color: inherit;
+        text-transform: inherit;
+        letter-spacing: inherit;
+        background: none;
+        border: 0;
+        padding: 0;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .deck-table__sort:hover {
+        color: var(--text-900);
+      }
+
+      .deck-table__mark {
+        color: var(--primary);
+      }
+
+      .deck-table__row:hover {
+        background: #f5f4f0;
+      }
+
+      .deck-table__cell {
+        padding: 9px 12px 9px 0;
+        border-bottom: 1px solid var(--rule);
+        vertical-align: middle;
+      }
+
+      .deck-table__row:last-child .deck-table__cell {
+        border-bottom: 0;
+      }
+
+      .deck-table__cell--deck {
+        text-align: left;
+        font-weight: 400;
+      }
+
+      .deck-table__cell--numeric {
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .deck-table__cell--rank {
+        width: 26px;
+        color: var(--text-400);
+        font-variant-numeric: tabular-nums;
+      }
     </style>
   </head>
   <body>
@@ -588,8 +667,8 @@
         C: 'colourless',
       }
 
-      function Panel({ children }) {
-        return <div className="panel">{children}</div>
+      function Panel({ className, children }) {
+        return <div className={['panel', className].filter(Boolean).join(' ')}>{children}</div>
       }
 
       function Button({ variant = 'primary', className, children, ...rest }) {
@@ -667,6 +746,138 @@
             {detail && <p className="state-panel__detail">{detail}</p>}
             {action}
           </div>
+        )
+      }
+
+      function matchesOf(deck) {
+        return deck.matchWinRate.wins + deck.matchWinRate.losses
+      }
+
+      function percent(rate) {
+        return `${(rate * 100).toFixed(1)}%`
+      }
+
+      function count(value) {
+        return value.toLocaleString('en-GB')
+      }
+
+      const SORT_VALUES = {
+        name: (deck) => deck.name,
+        share: (deck) => deck.share.rate,
+        players: (deck) => deck.players,
+        matches: matchesOf,
+        winRate: (deck) => deck.matchWinRate.rate,
+      }
+
+      function sortDecks(decks, key, direction) {
+        const read = SORT_VALUES[key]
+        const sign = direction === 'ascending' ? 1 : -1
+
+        return [...decks].sort((left, right) => {
+          const a = read(left)
+          const b = read(right)
+          return sign * (typeof a === 'string' ? a.localeCompare(b) : a - b)
+        })
+      }
+
+      function SortHeader({ column, label, numeric, sort, onSort }) {
+        const active = sort.key === column
+
+        return (
+          <th
+            scope="col"
+            className={
+              numeric ? 'deck-table__header deck-table__header--numeric' : 'deck-table__header'
+            }
+            aria-sort={active ? sort.direction : 'none'}
+          >
+            <button type="button" className="deck-table__sort" onClick={() => onSort(column)}>
+              {label}
+              {active && (
+                <span className="deck-table__mark" aria-hidden="true">
+                  {sort.direction === 'ascending' ? '\u25b2' : '\u25bc'}
+                </span>
+              )}
+            </button>
+          </th>
+        )
+      }
+
+      function DeckTable({ decks }) {
+        const [sort, setSort] = useState({ key: 'share', direction: 'descending' })
+
+        const onSort = (key) =>
+          setSort((current) => {
+            if (current.key !== key) {
+              return { key, direction: key === 'name' ? 'ascending' : 'descending' }
+            }
+            return {
+              key,
+              direction: current.direction === 'ascending' ? 'descending' : 'ascending',
+            }
+          })
+
+        const ranks = new Map(decks.map((deck, index) => [deck.id, index + 1]))
+        const rows = sortDecks(decks, sort.key, sort.direction)
+
+        return (
+          <Panel className="deck-table__scroll">
+            <table className="deck-table">
+              <caption className="visually-hidden">
+                The top {decks.length} decks by meta share, sortable by column
+              </caption>
+              <thead>
+                <tr>
+                  <th scope="col" className="deck-table__header">
+                    <span className="visually-hidden">Rank</span>
+                  </th>
+                  <SortHeader column="name" label="Deck" sort={sort} onSort={onSort} />
+                  <th scope="col" className="deck-table__header">
+                    Colours
+                  </th>
+                  <SortHeader column="share" label="Share" numeric sort={sort} onSort={onSort} />
+                  <SortHeader column="players" label="Players" numeric sort={sort} onSort={onSort} />
+                  <SortHeader column="matches" label="Matches" numeric sort={sort} onSort={onSort} />
+                  <SortHeader
+                    column="winRate"
+                    label="Win rate"
+                    numeric
+                    sort={sort}
+                    onSort={onSort}
+                  />
+                  <th scope="col" className="deck-table__header deck-table__header--numeric">
+                    Change
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((deck) => (
+                  <tr key={deck.id} className="deck-table__row">
+                    <td className="deck-table__cell deck-table__cell--rank">{ranks.get(deck.id)}</td>
+                    <th scope="row" className="deck-table__cell deck-table__cell--deck">
+                      {deck.name}
+                    </th>
+                    <td className="deck-table__cell">
+                      <ColourPips colours={deck.colours} />
+                    </td>
+                    <td className="deck-table__cell deck-table__cell--numeric">
+                      {percent(deck.share.rate)}
+                    </td>
+                    <td className="deck-table__cell deck-table__cell--numeric">
+                      {count(deck.players)}
+                    </td>
+                    <td className="deck-table__cell deck-table__cell--numeric">
+                      {count(matchesOf(deck))}
+                    </td>
+                    <td className="deck-table__cell deck-table__cell--numeric">
+                      {percent(deck.matchWinRate.rate)}
+                    </td>
+                    <td className="deck-table__cell deck-table__cell--numeric" />
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Panel>
         )
       }
 
@@ -817,6 +1028,7 @@
                 <Panel>
                   <Summary totals={state.decks.totals} />
                 </Panel>
+                <DeckTable decks={state.decks.decks.items} />
                 <Scaffold decks={state.decks} series={state.series} />
               </React.Fragment>
             )}
