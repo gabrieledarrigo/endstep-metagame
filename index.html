@@ -367,7 +367,14 @@
       }
 
       .deck__name {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        overflow: hidden;
+        overflow-wrap: break-word;
         margin: 0;
+        min-width: 0;
         min-height: 2.6em;
         font-size: 15px;
         font-weight: 600;
@@ -764,6 +771,7 @@
             href={`https://endstep.cc/metagame/${FORMAT}/${deck.slug}`}
             target="_blank"
             rel="noreferrer"
+            aria-label={`${deck.name}, on endstep.cc in a new tab`}
           >
             <img
               className="deck__art"
@@ -792,7 +800,7 @@
                   <dd>{(deck.matchWinRate.rate * 100).toFixed(1)}%</dd>
                 </div>
               </dl>
-              <p className="deck__keys">{deck.keyCards.join(', ')}</p>
+              <p className="deck__keys">{deck.keyCards.join(' · ')}</p>
             </div>
           </a>
         )
@@ -800,7 +808,10 @@
 
       function DeckGrid({ decks }) {
         return (
-          <section className="deck-grid" aria-label="Decks by meta share">
+          <section className="deck-grid" aria-labelledby="deck-grid-heading">
+            <h2 className="visually-hidden" id="deck-grid-heading">
+              Decks by meta share
+            </h2>
             {decks.map((deck) => (
               <DeckCard key={deck.id} deck={deck} />
             ))}
