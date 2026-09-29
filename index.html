@@ -87,8 +87,6 @@
 
       .page__controls {
         display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
       }
 
       .panel {
@@ -256,6 +254,10 @@
 
       .segmented__option[aria-pressed='true']:hover {
         background: #184f95;
+      }
+
+      .segmented[aria-busy='true'] .segmented__option {
+        opacity: 0.45;
       }
 
       .segmented__option:disabled:hover {
@@ -523,23 +525,32 @@
         }
       }
 
+      function timeWindowUrl(value) {
+        const url = new URL(location.href)
+        url.searchParams.set('window', value)
+        return url
+      }
+
       function useTimeWindow() {
         const [value, setValue] = useState(readTimeWindow)
 
         useEffect(() => {
+          history.replaceState(null, '', timeWindowUrl(readTimeWindow()))
+
           const sync = () => setValue(readTimeWindow())
           window.addEventListener('popstate', sync)
           return () => window.removeEventListener('popstate', sync)
         }, [])
 
-        const select = useCallback((next) => {
-          if (next === readTimeWindow()) return
+        const select = useCallback(
+          (next) => {
+            if (next === value) return
 
-          const url = new URL(location.href)
-          url.searchParams.set('window', next)
-          history.pushState(null, '', url)
-          setValue(next)
-        }, [])
+            history.pushState(null, '', timeWindowUrl(next))
+            setValue(next)
+          },
+          [value]
+        )
 
         return [value, select]
       }
@@ -643,9 +654,9 @@
         )
       }
 
-      function SegmentedControl({ label, options, value, onChange, disabled }) {
+      function SegmentedControl({ label, options, value, onChange, disabled, busy }) {
         return (
-          <div className="segmented" role="group" aria-label={label}>
+          <div className="segmented" role="group" aria-label={label} aria-busy={busy || undefined}>
             {options.map((option) => (
               <button
                 key={option}
@@ -826,7 +837,7 @@
                 options={WINDOWS}
                 value={timeWindow}
                 onChange={selectTimeWindow}
-                disabled={state.status === 'loading'}
+                busy={state.status === 'loading'}
               />
             </div>
 
