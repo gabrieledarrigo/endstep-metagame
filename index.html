@@ -764,8 +764,26 @@
 
       const CHART_CARTESIAN_GRID = { stroke: CHART_GRID, vertical: false }
 
+      const seriesSlots = new Map()
+
       function seriesColours(keys) {
-        return new Map(keys.map((key, index) => [key, SERIES_COLOURS[index]]))
+        const taken = new Set()
+        const unplaced = []
+
+        keys.forEach((key) => {
+          const slot = seriesSlots.get(key)
+          if (slot === undefined || taken.has(slot)) unplaced.push(key)
+          else taken.add(slot)
+        })
+
+        let free = 0
+        unplaced.forEach((key) => {
+          while (taken.has(free)) free += 1
+          taken.add(free)
+          seriesSlots.set(key, free)
+        })
+
+        return new Map(keys.map((key) => [key, SERIES_COLOURS[seriesSlots.get(key)]]))
       }
 
       function ChartFrame({ aspect = 2.9, children }) {
