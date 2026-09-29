@@ -85,6 +85,12 @@
         color: var(--text-400);
       }
 
+      .page__controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+      }
+
       .panel {
         background: var(--surface);
         border: 1px solid var(--edge);
@@ -526,7 +532,16 @@
           return () => window.removeEventListener('popstate', sync)
         }, [])
 
-        return value
+        const select = useCallback((next) => {
+          if (next === readTimeWindow()) return
+
+          const url = new URL(location.href)
+          url.searchParams.set('window', next)
+          history.pushState(null, '', url)
+          setValue(next)
+        }, [])
+
+        return [value, select]
       }
 
       function useMetagame(timeWindow) {
@@ -795,7 +810,7 @@
       }
 
       function App() {
-        const timeWindow = useTimeWindow()
+        const [timeWindow, selectTimeWindow] = useTimeWindow()
         const [state, reload] = useMetagame(timeWindow)
 
         return (
@@ -804,6 +819,16 @@
               <div className="page__eyebrow">Endstep</div>
               <h1>Pauper metagame</h1>
             </header>
+
+            <div className="page__controls">
+              <SegmentedControl
+                label="Time window"
+                options={WINDOWS}
+                value={timeWindow}
+                onChange={selectTimeWindow}
+                disabled={state.status === 'loading'}
+              />
+            </div>
 
             <div role="status" aria-live="polite">
               {state.status === 'loading' && (
