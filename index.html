@@ -337,23 +337,6 @@
         color: var(--text-400);
       }
 
-      .scaffold__list {
-        margin: 0;
-        display: grid;
-        grid-template-columns: 190px 1fr;
-        gap: 4px 16px;
-        font-size: 13px;
-      }
-
-      .scaffold__list dt {
-        color: var(--text-600);
-      }
-
-      .scaffold__list dd {
-        margin: 0;
-        font-variant-numeric: tabular-nums;
-      }
-
       .gallery {
         display: flex;
         flex-direction: column;
@@ -670,40 +653,6 @@
         )
       }
 
-      function Scaffold({ decks, series }) {
-        const range = decks.provenance.window
-        const items = decks.decks.items
-        const points = series.series.length > 0 ? series.series[0].points : []
-        const withData = points.filter((point) => point.rate !== null).length
-        const top = items[0]
-
-        return (
-          <div className="scaffold">
-            <h2 className="scaffold__title">Temporary scaffold, removed by S1</h2>
-            <dl className="scaffold__list">
-              <dt>Window</dt>
-              <dd>
-                {range.preset}, {range.from} to {range.to}
-              </dd>
-              <dt>Population</dt>
-              <dd>{decks.provenance.population}</dd>
-              <dt>Decks returned</dt>
-              <dd>
-                {items.length} of {decks.decks.total}
-              </dd>
-              <dt>Series returned</dt>
-              <dd>{series.series.length}</dd>
-              <dt>Days with data</dt>
-              <dd>
-                {withData} of {points.length}
-              </dd>
-              <dt>Top deck</dt>
-              <dd>{top ? `${top.name}, ${(top.share.rate * 100).toFixed(2)}%` : 'no decks'}</dd>
-            </dl>
-          </div>
-        )
-      }
-
       function Summary({ totals }) {
         return (
           <dl className="stat-list">
@@ -813,12 +762,9 @@
             </div>
 
             {state.status === 'ready' && (
-              <React.Fragment>
-                <Panel>
-                  <Summary totals={state.decks.totals} />
-                </Panel>
-                <Scaffold decks={state.decks} series={state.series} />
-              </React.Fragment>
+              <Panel>
+                <Summary totals={state.decks.totals} />
+              </Panel>
             )}
 
             <Gallery />
