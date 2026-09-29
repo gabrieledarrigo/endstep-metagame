@@ -667,8 +667,12 @@
         C: 'colourless',
       }
 
-      function Panel({ className, children }) {
-        return <div className={['panel', className].filter(Boolean).join(' ')}>{children}</div>
+      function Panel({ className, children, ...rest }) {
+        return (
+          <div {...rest} className={['panel', className].filter(Boolean).join(' ')}>
+            {children}
+          </div>
+        )
       }
 
       function Button({ variant = 'primary', className, children, ...rest }) {
@@ -776,7 +780,7 @@
         return [...decks].sort((left, right) => {
           const a = read(left)
           const b = read(right)
-          return sign * (typeof a === 'string' ? a.localeCompare(b) : a - b)
+          return sign * (typeof a === 'string' ? a.localeCompare(b, 'en-GB') : a - b)
         })
       }
 
@@ -821,10 +825,10 @@
         const rows = sortDecks(decks, sort.key, sort.direction)
 
         return (
-          <Panel className="deck-table__scroll">
+          <Panel className="deck-table__scroll" tabIndex="0" role="region" aria-label="Deck table">
             <table className="deck-table">
               <caption className="visually-hidden">
-                The top {decks.length} decks by meta share, sortable by column
+                The top {decks.length} decks, sortable by column
               </caption>
               <thead>
                 <tr>
@@ -840,7 +844,7 @@
                   <SortHeader column="matches" label="Matches" numeric sort={sort} onSort={onSort} />
                   <SortHeader
                     column="winRate"
-                    label="Win rate"
+                    label="Match win rate"
                     numeric
                     sort={sort}
                     onSort={onSort}
