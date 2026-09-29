@@ -256,8 +256,12 @@
         background: #184f95;
       }
 
-      .segmented[aria-busy='true'] .segmented__option {
-        opacity: 0.45;
+      .segmented[data-busy] {
+        background: var(--rule);
+      }
+
+      .segmented[data-busy] .segmented__option {
+        cursor: progress;
       }
 
       .segmented__option:disabled:hover {
@@ -656,7 +660,7 @@
 
       function SegmentedControl({ label, options, value, onChange, disabled, busy }) {
         return (
-          <div className="segmented" role="group" aria-label={label} aria-busy={busy || undefined}>
+          <div className="segmented" role="group" aria-label={label} data-busy={busy || undefined}>
             {options.map((option) => (
               <button
                 key={option}
