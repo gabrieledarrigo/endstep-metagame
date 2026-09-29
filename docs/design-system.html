@@ -190,19 +190,19 @@ pre b { color:var(--text-900); font-weight:600; }
 .delta.down { color:var(--down); }
 .delta.na { color:var(--text-400); font-weight:400; font-size:12px; }
 
-.tip { background:var(--surface); border:1px solid var(--edge); border-radius:8px;
+.chart-tooltip { background:var(--surface); border:1px solid var(--edge); border-radius:8px;
   padding:11px 13px; box-shadow:0 4px 14px rgba(11,11,11,.09); display:inline-flex;
   flex-direction:column; gap:7px; min-width:196px; }
-.tip__day { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.07em; color:var(--text-400); }
-.tip__row { display:flex; align-items:center; gap:8px; font-size:13px; }
-.tip__sw { width:10px; height:10px; border-radius:2px; flex-shrink:0; }
-.tip__nm { color:var(--text-600); flex:1; }
-.tip__v { font-weight:600; font-variant-numeric:tabular-nums; }
-.legend { display:flex; flex-wrap:wrap; gap:8px 18px; }
-.legend button { all:unset; cursor:pointer; display:inline-flex; align-items:center; gap:7px; font-size:13px; color:var(--text-600); }
-.legend button:hover { color:var(--text-900); }
-.legend .off { opacity:.4; text-decoration:line-through; }
-.legend .sw { width:12px; height:3px; border-radius:2px; }
+.chart-tooltip__day { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.07em; color:var(--text-400); }
+.chart-tooltip__row { display:flex; align-items:center; gap:8px; font-size:13px; }
+.chart-tooltip__swatch { width:10px; height:10px; border-radius:2px; flex-shrink:0; }
+.chart-tooltip__name { color:var(--text-600); flex:1; }
+.chart-tooltip__value { font-weight:600; font-variant-numeric:tabular-nums; }
+.chart-legend { display:flex; flex-wrap:wrap; gap:8px 18px; }
+.chart-legend__item { all:unset; cursor:pointer; display:inline-flex; align-items:center; gap:7px; font-size:13px; color:var(--text-600); }
+.chart-legend__item:hover { color:var(--text-900); }
+.chart-legend__item--off { opacity:.4; text-decoration:line-through; }
+.chart-legend__swatch { width:12px; height:3px; border-radius:2px; flex-shrink:0; }
 
 .skeleton { background:var(--rule); border-radius:5px; animation:pulse 1.5s ease-in-out infinite; }
 @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.55} }
@@ -848,20 +848,20 @@ pre b { color:var(--text-900); font-weight:600; }
   <p class="why">Recharts ships its own tooltip and legend. Both are replaced, because the defaults do
   not use these tokens.</p></div>
   <div class="demo">
-    <div class="tip">
-      <div class="tip__day">15 September 2026</div>
-      <div class="tip__row"><span class="tip__sw" style="background:var(--s1)"></span><span class="tip__nm">Affinity</span><span class="tip__v">12.56%</span></div>
-      <div class="tip__row"><span class="tip__sw" style="background:var(--s2)"></span><span class="tip__nm">Mono-Red Madness</span><span class="tip__v">8.09%</span></div>
-      <div class="tip__row"><span class="tip__sw" style="background:var(--s3)"></span><span class="tip__nm">Monster Tron</span><span class="tip__v">8.30%</span></div>
+    <div class="chart-tooltip">
+      <div class="chart-tooltip__day">15 September 2026</div>
+      <div class="chart-tooltip__row"><span class="chart-tooltip__swatch" style="background:var(--s1)"></span><span class="chart-tooltip__name">Affinity</span><span class="chart-tooltip__value">12.56%</span></div>
+      <div class="chart-tooltip__row"><span class="chart-tooltip__swatch" style="background:var(--s2)"></span><span class="chart-tooltip__name">Mono-Red Madness</span><span class="chart-tooltip__value">8.09%</span></div>
+      <div class="chart-tooltip__row"><span class="chart-tooltip__swatch" style="background:var(--s3)"></span><span class="chart-tooltip__name">Monster Tron</span><span class="chart-tooltip__value">8.30%</span></div>
     </div>
   </div>
   <div class="panel">
-    <div class="legend">
-      <button type="button"><span class="sw" style="background:var(--s1)"></span>Affinity</button>
-      <button type="button"><span class="sw" style="background:var(--s2)"></span>Mono-Red Madness</button>
-      <button type="button"><span class="sw" style="background:var(--s3)"></span>Monster Tron</button>
-      <button type="button" class="off"><span class="sw" style="background:var(--s4)"></span>Gruul Ponza</button>
-      <button type="button"><span class="sw" style="background:var(--s5)"></span>Blue Terror</button>
+    <div class="chart-legend">
+      <button type="button" class="chart-legend__item"><span class="chart-legend__swatch" style="background:var(--s1)"></span>Affinity</button>
+      <button type="button" class="chart-legend__item"><span class="chart-legend__swatch" style="background:var(--s2)"></span>Mono-Red Madness</button>
+      <button type="button" class="chart-legend__item"><span class="chart-legend__swatch" style="background:var(--s3)"></span>Monster Tron</button>
+      <button type="button" class="chart-legend__item chart-legend__item--off"><span class="chart-legend__swatch" style="background:var(--s4)"></span>Gruul Ponza</button>
+      <button type="button" class="chart-legend__item"><span class="chart-legend__swatch" style="background:var(--s5)"></span>Blue Terror</button>
     </div>
   </div>
   <p class="spec">Tooltip values are ordered by value, not by series index, so the row under the cursor
