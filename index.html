@@ -1323,8 +1323,9 @@
 
       const WIN_RATE_MARK = token('--s1')
       const CHART_LABEL = token('--text-600')
-      const LABEL_GAP_X = 0.16
-      const LABEL_GAP_Y = 0.09
+      const LABEL_PLOT_WIDTH = 590
+      const LABEL_CHAR_WIDTH = 6.6
+      const LABEL_GAP_Y = 0.18
 
       function winRatePoints(decks) {
         return decks.map((deck) => ({
@@ -1338,23 +1339,22 @@
         }))
       }
 
-      function labelledPoints(points) {
-        const shares = points.map((point) => point.share)
-        const rates = points.map((point) => point.winRate)
-        const spanX = Math.max(...shares) - Math.min(...shares) || 1
-        const spanY = Math.max(...rates) - Math.min(...rates) || 1
-
+      function labelledPoints(points, spanX, spanY) {
         const byShare = [...points].sort((a, b) => b.share - a.share)
         const byWinRate = [...points].sort((a, b) => b.winRate - a.winRate)
         const wanted = [...byShare.slice(0, 3), ...byWinRate.slice(0, 2), ...byWinRate.slice(-2)]
 
         const kept = []
         wanted.forEach((point) => {
-          const crowded = kept.some(
-            (other) =>
-              Math.abs(other.share - point.share) / spanX < LABEL_GAP_X &&
+          const crowded = kept.some((other) => {
+            const names = (point.name.length + other.name.length) / 2
+            const gap = (names * LABEL_CHAR_WIDTH) / LABEL_PLOT_WIDTH
+
+            return (
+              Math.abs(other.share - point.share) / spanX < gap &&
               Math.abs(other.winRate - point.winRate) / spanY < LABEL_GAP_Y
-          )
+            )
+          })
           if (!crowded) kept.push(point)
         })
 
@@ -1426,11 +1426,11 @@
         if (decks.length === 0) return null
 
         const points = winRatePoints(decks)
-        const labelled = labelledPoints(points)
         const rates = points.map((point) => point.winRate)
         const shareMax = Math.ceil((Math.max(...points.map((point) => point.share)) + 1) / 2) * 2
         const rateMin = Math.min(45, Math.max(0, Math.floor((Math.min(...rates) - 1) / 5) * 5))
         const rateMax = Math.max(55, Math.min(100, Math.ceil((Math.max(...rates) + 1) / 5) * 5))
+        const labelled = labelledPoints(points, shareMax, rateMax - rateMin)
 
         return (
           <Panel className="chart-section">
