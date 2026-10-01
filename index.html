@@ -526,23 +526,6 @@
         color: var(--text-400);
       }
 
-      .scaffold__list {
-        margin: 0;
-        display: grid;
-        grid-template-columns: 190px 1fr;
-        gap: 4px 16px;
-        font-size: 13px;
-      }
-
-      .scaffold__list dt {
-        color: var(--text-600);
-      }
-
-      .scaffold__list dd {
-        margin: 0;
-        font-variant-numeric: tabular-nums;
-      }
-
       .gallery {
         display: flex;
         flex-direction: column;
@@ -940,6 +923,8 @@
         )
       }
 
+      const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
       const rootTokens = getComputedStyle(document.documentElement)
       const token = (name) => rootTokens.getPropertyValue(name).trim()
 
@@ -1034,38 +1019,8 @@
         )
       }
 
-      function Scaffold({ decks, series }) {
-        const range = decks.provenance.window
-        const items = decks.decks.items
-        const points = series.series.length > 0 ? series.series[0].points : []
-        const withData = points.filter((point) => point.rate !== null).length
-        const top = items[0]
-
-        return (
-          <div className="scaffold">
-            <h2 className="scaffold__title">Temporary scaffold, removed by S1</h2>
-            <dl className="scaffold__list">
-              <dt>Window</dt>
-              <dd>
-                {range.preset}, {range.from} to {range.to}
-              </dd>
-              <dt>Population</dt>
-              <dd>{decks.provenance.population}</dd>
-              <dt>Decks returned</dt>
-              <dd>
-                {items.length} of {decks.decks.total}
-              </dd>
-              <dt>Series returned</dt>
-              <dd>{series.series.length}</dd>
-              <dt>Days with data</dt>
-              <dd>
-                {withData} of {points.length}
-              </dd>
-              <dt>Top deck</dt>
-              <dd>{top ? `${top.name}, ${(top.share.rate * 100).toFixed(2)}%` : 'no decks'}</dd>
-            </dl>
-          </div>
-        )
+      function formatCount(value) {
+        return value.toLocaleString('en-GB')
       }
 
       function shareRows(series) {
@@ -1151,11 +1106,33 @@
         )
       }
 
-      function Summary({ totals }) {
+      function formatDate(value, withYear) {
+        const [year, month, day] = value.split('-').map(Number)
+        const head = `${day} ${MONTHS[month - 1]}`
+
+        return withYear ? `${head} ${year}` : head
+      }
+
+      function formatWindow({ from, to }) {
+        const sameYear = from.slice(0, 4) === to.slice(0, 4)
+
+        return `${formatDate(from, !sameYear)} to ${formatDate(to, true)}`
+      }
+
+      function formatPopulation(population) {
+        return population.charAt(0).toUpperCase() + population.slice(1)
+      }
+
+      function Summary({ decks }) {
+        const { provenance, totals } = decks
+
         return (
           <dl className="stat-list">
-            <StatTile hero label="Registrations" value={totals.registrations.toLocaleString('en-GB')} />
-            <StatTile label="Players" value={totals.players.toLocaleString('en-GB')} />
+            <StatTile hero label="Registrations" value={formatCount(totals.registrations)} />
+            <StatTile label="Players" value={formatCount(totals.players)} />
+            <StatTile label="Archetypes" value={formatCount(decks.decks.total)} />
+            <StatTile label="Window" value={formatWindow(provenance.window)} />
+            <StatTile label="Population" value={formatPopulation(provenance.population)} />
           </dl>
         )
       }
@@ -1272,10 +1249,9 @@
             {state.status === 'ready' && (
               <React.Fragment>
                 <Panel>
-                  <Summary totals={state.decks.totals} />
+                  <Summary decks={state.decks} />
                 </Panel>
                 <DeckGrid decks={state.decks.decks.items} />
-                <Scaffold decks={state.decks} series={state.series} />
                 <ChartScaffold series={state.series.series} />
               </React.Fragment>
             )}
@@ -1283,8 +1259,8 @@
             <Gallery />
 
             <footer>
-              Data from <a href="https://endstep.cc/metagame">Endstep</a>. Not an official Endstep
-              product.
+              Data from <a href="https://endstep.cc/metagame">endstep.cc</a>. This is not an
+              official Endstep product.
             </footer>
           </div>
         )
