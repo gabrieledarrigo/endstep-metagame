@@ -1313,7 +1313,7 @@
         }))
 
         const other = 100 - bars.reduce((sum, bar) => sum + bar.share, 0)
-        if (other <= 0) return bars
+        if (other < 0.01) return bars
 
         return [
           ...bars,
