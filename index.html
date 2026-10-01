@@ -85,6 +85,10 @@
         color: var(--text-400);
       }
 
+      .page__controls {
+        display: flex;
+      }
+
       .panel {
         background: var(--surface);
         border: 1px solid var(--edge);
@@ -250,6 +254,14 @@
 
       .segmented__option[aria-pressed='true']:hover {
         background: #184f95;
+      }
+
+      .segmented[data-busy] {
+        background: var(--rule);
+      }
+
+      .segmented[data-busy] .segmented__option {
+        cursor: progress;
       }
 
       .segmented__option:disabled:hover {
@@ -695,16 +707,34 @@
         }
       }
 
+      function timeWindowUrl(value) {
+        const url = new URL(location.href)
+        url.searchParams.set('window', value)
+        return url
+      }
+
       function useTimeWindow() {
         const [value, setValue] = useState(readTimeWindow)
 
         useEffect(() => {
+          history.replaceState(null, '', timeWindowUrl(readTimeWindow()))
+
           const sync = () => setValue(readTimeWindow())
           window.addEventListener('popstate', sync)
           return () => window.removeEventListener('popstate', sync)
         }, [])
 
-        return value
+        const select = useCallback(
+          (next) => {
+            if (next === value) return
+
+            history.pushState(null, '', timeWindowUrl(next))
+            setValue(next)
+          },
+          [value]
+        )
+
+        return [value, select]
       }
 
       function useMetagame(timeWindow) {
@@ -806,9 +836,9 @@
         )
       }
 
-      function SegmentedControl({ label, options, value, onChange, disabled }) {
+      function SegmentedControl({ label, options, value, onChange, disabled, busy }) {
         return (
-          <div className="segmented" role="group" aria-label={label}>
+          <div className="segmented" role="group" aria-label={label} data-busy={busy || undefined}>
             {options.map((option) => (
               <button
                 key={option}
@@ -1212,7 +1242,7 @@
       }
 
       function App() {
-        const timeWindow = useTimeWindow()
+        const [timeWindow, selectTimeWindow] = useTimeWindow()
         const [state, reload] = useMetagame(timeWindow)
 
         return (
@@ -1221,6 +1251,16 @@
               <div className="page__eyebrow">Endstep</div>
               <h1>Pauper metagame</h1>
             </header>
+
+            <div className="page__controls">
+              <SegmentedControl
+                label="Time window"
+                options={WINDOWS}
+                value={timeWindow}
+                onChange={selectTimeWindow}
+                busy={state.status === 'loading'}
+              />
+            </div>
 
             <div role="status" aria-live="polite">
               {state.status === 'loading' && (
