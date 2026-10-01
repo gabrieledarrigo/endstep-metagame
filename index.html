@@ -1476,7 +1476,13 @@
                   }}
                   {...CHART_AXIS}
                 />
-                <ZAxis type="number" dataKey="players" range={[240, 1020]} name="Players" />
+                <ZAxis
+                  type="number"
+                  dataKey="players"
+                  domain={[0, 'dataMax']}
+                  range={[0, 1020]}
+                  name="Players"
+                />
                 <ReferenceLine
                   y={50}
                   stroke={CHART_TICK}
