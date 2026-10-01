@@ -1318,6 +1318,16 @@
         )
       }
 
+      function Failed({ error, onRetry }) {
+        return (
+          <StatePanel
+            title="The metagame could not be loaded"
+            detail={error.message}
+            action={<Button onClick={onRetry}>Retry</Button>}
+          />
+        )
+      }
+
       function App() {
         const [timeWindow, selectTimeWindow] = useTimeWindow()
         const [state, reload] = useMetagame(timeWindow)
