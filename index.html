@@ -1326,6 +1326,10 @@
       }
 
       function RankedBars({ decks }) {
+        if (decks.items.length === 0) {
+          return <StatePanel title="No decks" detail="This window returned no decks." />
+        }
+
         const bars = shareBars(decks)
         const axisMax = Math.ceil(Math.max(...bars.map((bar) => bar.share)) / 5) * 5
 
