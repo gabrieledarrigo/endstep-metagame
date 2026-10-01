@@ -85,6 +85,10 @@
         color: var(--text-400);
       }
 
+      .page__controls {
+        display: flex;
+      }
+
       .panel {
         background: var(--surface);
         border: 1px solid var(--edge);
@@ -252,6 +256,14 @@
         background: #184f95;
       }
 
+      .segmented[data-busy] {
+        background: var(--rule);
+      }
+
+      .segmented[data-busy] .segmented__option {
+        cursor: progress;
+      }
+
       .segmented__option:disabled:hover {
         background: transparent;
         color: var(--text-600);
@@ -278,6 +290,86 @@
       .colour-pips__pip text {
         font: 700 11px var(--sans);
         fill: #1a1714;
+      }
+
+      .chart-frame {
+        width: 100%;
+      }
+
+      .chart-tooltip {
+        background: var(--surface);
+        border: 1px solid var(--edge);
+        border-radius: 8px;
+        padding: 11px 13px;
+        box-shadow: 0 4px 14px rgba(11, 11, 11, 0.09);
+        display: inline-flex;
+        flex-direction: column;
+        gap: 7px;
+        min-width: 196px;
+      }
+
+      .chart-tooltip__day {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: var(--text-400);
+      }
+
+      .chart-tooltip__row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+      }
+
+      .chart-tooltip__swatch {
+        width: 10px;
+        height: 10px;
+        border-radius: 2px;
+        flex-shrink: 0;
+      }
+
+      .chart-tooltip__name {
+        color: var(--text-600);
+        flex: 1;
+      }
+
+      .chart-tooltip__value {
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .chart-legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px 18px;
+      }
+
+      .chart-legend__item {
+        all: unset;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 13px;
+        color: var(--text-600);
+      }
+
+      .chart-legend__item:hover {
+        color: var(--text-900);
+      }
+
+      .chart-legend__item--off {
+        opacity: 0.4;
+        text-decoration: line-through;
+      }
+
+      .chart-legend__swatch {
+        width: 12px;
+        height: 3px;
+        border-radius: 2px;
+        flex-shrink: 0;
       }
 
       .visually-hidden {
@@ -319,6 +411,103 @@
         outline-offset: 2px;
       }
 
+      .deck-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(228px, 1fr));
+        gap: 16px;
+      }
+
+      .deck {
+        display: flex;
+        flex-direction: column;
+        background: var(--surface);
+        border: 1px solid var(--edge);
+        border-radius: 10px;
+        overflow: hidden;
+        color: inherit;
+        text-decoration: none;
+      }
+
+      .deck:hover .deck__name {
+        text-decoration: underline;
+        text-decoration-thickness: 2px;
+      }
+
+      .deck__art {
+        display: block;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 626 / 300;
+        object-fit: cover;
+        object-position: center 38%;
+        background: var(--rule);
+      }
+
+      .deck__body {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding: 14px 15px 15px;
+      }
+
+      .deck__top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .deck__name {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        overflow: hidden;
+        overflow-wrap: break-word;
+        margin: 0;
+        min-width: 0;
+        min-height: 2.6em;
+        font-size: 15px;
+        font-weight: 600;
+        line-height: 1.3;
+      }
+
+      .deck__stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin: 0;
+      }
+
+      .deck__stats div {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+      }
+
+      .deck__stats dt {
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--text-400);
+      }
+
+      .deck__stats dd {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+      }
+
+      .deck__keys {
+        margin: auto 0 0;
+        font-size: 12px;
+        line-height: 1.45;
+        color: var(--text-600);
+      }
+
       .scaffold {
         border: 1px dashed var(--baseline);
         border-radius: 10px;
@@ -335,23 +524,6 @@
         text-transform: uppercase;
         letter-spacing: 0.08em;
         color: var(--text-400);
-      }
-
-      .scaffold__list {
-        margin: 0;
-        display: grid;
-        grid-template-columns: 190px 1fr;
-        gap: 4px 16px;
-        font-size: 13px;
-      }
-
-      .scaffold__list dt {
-        color: var(--text-600);
-      }
-
-      .scaffold__list dd {
-        margin: 0;
-        font-variant-numeric: tabular-nums;
       }
 
       .gallery {
@@ -509,6 +681,7 @@
 
     <script type="text/babel" data-presets="react">
       const { useState, useEffect, useCallback } = React
+      const { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } = Recharts
 
       const FORMAT = 'Pauper'
       const POPULATION = 'rated'
@@ -596,16 +769,34 @@
         }
       }
 
+      function timeWindowUrl(value) {
+        const url = new URL(location.href)
+        url.searchParams.set('window', value)
+        return url
+      }
+
       function useTimeWindow() {
         const [value, setValue] = useState(readTimeWindow)
 
         useEffect(() => {
+          history.replaceState(null, '', timeWindowUrl(readTimeWindow()))
+
           const sync = () => setValue(readTimeWindow())
           window.addEventListener('popstate', sync)
           return () => window.removeEventListener('popstate', sync)
         }, [])
 
-        return value
+        const select = useCallback(
+          (next) => {
+            if (next === value) return
+
+            history.pushState(null, '', timeWindowUrl(next))
+            setValue(next)
+          },
+          [value]
+        )
+
+        return [value, select]
       }
 
       function useMetagame(timeWindow) {
@@ -711,9 +902,9 @@
         )
       }
 
-      function SegmentedControl({ label, options, value, onChange, disabled }) {
+      function SegmentedControl({ label, options, value, onChange, disabled, busy }) {
         return (
-          <div className="segmented" role="group" aria-label={label}>
+          <div className="segmented" role="group" aria-label={label} data-busy={busy || undefined}>
             {options.map((option) => (
               <button
                 key={option}
@@ -743,6 +934,68 @@
         return <div className="skeleton" style={{ width, height }} aria-hidden="true" />
       }
 
+      function artSource(cardName) {
+        return `https://endstep.cc/api/cards/image?${new URLSearchParams({
+          name: cardName,
+          version: 'art_crop',
+        })}`
+      }
+
+      function DeckCard({ deck }) {
+        return (
+          <a
+            className="deck"
+            href={`https://endstep.cc/metagame/${FORMAT}/${deck.slug}`}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={`${deck.name}, on endstep.cc in a new tab`}
+          >
+            <img
+              className="deck__art"
+              src={artSource(deck.art.cardName)}
+              alt={deck.art.cardName}
+              loading="lazy"
+              width="626"
+              height="300"
+            />
+            <div className="deck__body">
+              <div className="deck__top">
+                <h3 className="deck__name">{deck.name}</h3>
+                <ColourPips colours={deck.colours} />
+              </div>
+              <dl className="deck__stats">
+                <div>
+                  <dt>Share</dt>
+                  <dd>{(deck.share.rate * 100).toFixed(2)}%</dd>
+                </div>
+                <div>
+                  <dt>Players</dt>
+                  <dd>{deck.players.toLocaleString('en-GB')}</dd>
+                </div>
+                <div>
+                  <dt>Win rate</dt>
+                  <dd>{(deck.matchWinRate.rate * 100).toFixed(1)}%</dd>
+                </div>
+              </dl>
+              <p className="deck__keys">{deck.keyCards.join(' · ')}</p>
+            </div>
+          </a>
+        )
+      }
+
+      function DeckGrid({ decks }) {
+        return (
+          <section className="deck-grid" aria-labelledby="deck-grid-heading">
+            <h2 className="visually-hidden" id="deck-grid-heading">
+              Decks by meta share
+            </h2>
+            {decks.map((deck) => (
+              <DeckCard key={deck.id} deck={deck} />
+            ))}
+          </section>
+        )
+      }
+
       function StatePanel({ title, detail, action, busy }) {
         return (
           <div className="state-panel" aria-busy={busy || undefined}>
@@ -753,16 +1006,14 @@
         )
       }
 
+      const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
       function matchesOf(deck) {
         return deck.matchWinRate.wins + deck.matchWinRate.losses
       }
 
       function percent(rate) {
         return `${(rate * 100).toFixed(1)}%`
-      }
-
-      function count(value) {
-        return value.toLocaleString('en-GB')
       }
 
       const SORT_VALUES = {
@@ -868,10 +1119,10 @@
                       {percent(deck.share.rate)}
                     </td>
                     <td className="deck-table__cell deck-table__cell--numeric">
-                      {count(deck.players)}
+                      {formatCount(deck.players)}
                     </td>
                     <td className="deck-table__cell deck-table__cell--numeric">
-                      {count(matchesOf(deck))}
+                      {formatCount(matchesOf(deck))}
                     </td>
                     <td className="deck-table__cell deck-table__cell--numeric">
                       {percent(deck.matchWinRate.rate)}
@@ -885,45 +1136,214 @@
         )
       }
 
-      function Scaffold({ decks, series }) {
-        const range = decks.provenance.window
-        const items = decks.decks.items
-        const points = series.series.length > 0 ? series.series[0].points : []
-        const withData = points.filter((point) => point.rate !== null).length
-        const top = items[0]
+      const rootTokens = getComputedStyle(document.documentElement)
+      const token = (name) => rootTokens.getPropertyValue(name).trim()
 
+      const SERIES_COLOURS = ['--s1', '--s2', '--s3', '--s4', '--s5', '--s6', '--s7', '--s8'].map(token)
+      const CHART_GRID = token('--rule')
+      const CHART_BASELINE = token('--baseline')
+      const CHART_TICK = token('--text-400')
+      const CHART_SURFACE = token('--surface')
+
+      const CHART_AXIS = {
+        tickLine: false,
+        tick: { fill: CHART_TICK, fontSize: 12, style: { fontVariantNumeric: 'tabular-nums' } },
+        axisLine: { stroke: CHART_BASELINE },
+      }
+
+      const CHART_CARTESIAN_GRID = { stroke: CHART_GRID, vertical: false }
+
+      const seriesSlots = new Map()
+
+      function seriesColours(keys) {
+        const taken = new Set()
+        const unplaced = []
+
+        keys.forEach((key) => {
+          const slot = seriesSlots.get(key)
+          if (slot === undefined || taken.has(slot)) unplaced.push(key)
+          else taken.add(slot)
+        })
+
+        let free = 0
+        unplaced.forEach((key) => {
+          while (taken.has(free)) free += 1
+          taken.add(free)
+          seriesSlots.set(key, free)
+        })
+
+        return new Map(keys.map((key) => [key, SERIES_COLOURS[seriesSlots.get(key)]]))
+      }
+
+      function ChartFrame({ aspect = 2.9, children }) {
         return (
-          <div className="scaffold">
-            <h2 className="scaffold__title">Temporary scaffold, removed by S1</h2>
-            <dl className="scaffold__list">
-              <dt>Window</dt>
-              <dd>
-                {range.preset}, {range.from} to {range.to}
-              </dd>
-              <dt>Population</dt>
-              <dd>{decks.provenance.population}</dd>
-              <dt>Decks returned</dt>
-              <dd>
-                {items.length} of {decks.decks.total}
-              </dd>
-              <dt>Series returned</dt>
-              <dd>{series.series.length}</dd>
-              <dt>Days with data</dt>
-              <dd>
-                {withData} of {points.length}
-              </dd>
-              <dt>Top deck</dt>
-              <dd>{top ? `${top.name}, ${(top.share.rate * 100).toFixed(2)}%` : 'no decks'}</dd>
-            </dl>
+          <div className="chart-frame" style={{ aspectRatio: String(aspect) }}>
+            <ResponsiveContainer width="100%" height="100%">
+              {children}
+            </ResponsiveContainer>
           </div>
         )
       }
 
-      function Summary({ totals }) {
+      function ChartTooltip({ active, payload, label, formatLabel = String, formatValue = String }) {
+        if (!active || !payload) return null
+
+        const rows = payload.filter((row) => row.value !== null && row.value !== undefined)
+        if (rows.length === 0) return null
+
+        rows.sort((a, b) => b.value - a.value)
+
+        return (
+          <div className="chart-tooltip">
+            <div className="chart-tooltip__day">{formatLabel(label)}</div>
+            {rows.map((row) => (
+              <div className="chart-tooltip__row" key={row.dataKey}>
+                <span className="chart-tooltip__swatch" style={{ background: row.color }} />
+                <span className="chart-tooltip__name">{row.name}</span>
+                <span className="chart-tooltip__value">{formatValue(row.value)}</span>
+              </div>
+            ))}
+          </div>
+        )
+      }
+
+      function ChartLegend({ items, hidden, onToggle }) {
+        return (
+          <div className="chart-legend">
+            {items.map((item) => {
+              const off = hidden.has(item.key)
+
+              return (
+                <button
+                  key={item.key}
+                  type="button"
+                  className={off ? 'chart-legend__item chart-legend__item--off' : 'chart-legend__item'}
+                  aria-pressed={!off}
+                  onClick={() => onToggle(item.key)}
+                >
+                  <span className="chart-legend__swatch" style={{ background: item.colour }} />
+                  {item.name}
+                </button>
+              )
+            })}
+          </div>
+        )
+      }
+
+      function formatCount(value) {
+        return value.toLocaleString('en-GB')
+      }
+
+      function shareRows(series) {
+        const byDay = new Map()
+
+        series.forEach((item) => {
+          item.points.forEach((point) => {
+            const row = byDay.get(point.day) || { day: point.day }
+            row[item.deck.id] = point.rate === null ? null : point.rate * 100
+            byDay.set(point.day, row)
+          })
+        })
+
+        return [...byDay.values()].sort((a, b) => a.day.localeCompare(b.day))
+      }
+
+      const shortDay = (day) => day.slice(5)
+      const axisShare = (share) => `${share}%`
+      const tooltipShare = (share) => `${share.toFixed(2)}%`
+      const longDay = (day) =>
+        new Date(`${day}T00:00:00Z`).toLocaleDateString('en-GB', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+          timeZone: 'UTC',
+        })
+
+      function ChartScaffold({ series }) {
+        const [hidden, setHidden] = useState(() => new Set())
+
+        const colours = seriesColours(series.map((item) => item.deck.id))
+        const rows = shareRows(series)
+
+        const toggle = (key) =>
+          setHidden((current) => {
+            const next = new Set(current)
+            if (next.has(key)) next.delete(key)
+            else next.add(key)
+            return next
+          })
+
+        return (
+          <div className="scaffold">
+            <h2 className="scaffold__title">Temporary chart, removed by S4</h2>
+
+            <ChartFrame>
+              <LineChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }} accessibilityLayer>
+                <CartesianGrid {...CHART_CARTESIAN_GRID} />
+                <XAxis dataKey="day" tickFormatter={shortDay} minTickGap={24} {...CHART_AXIS} />
+                <YAxis tickFormatter={axisShare} width={46} {...CHART_AXIS} />
+                <Tooltip
+                  cursor={{ stroke: CHART_BASELINE }}
+                  content={<ChartTooltip formatLabel={longDay} formatValue={tooltipShare} />}
+                />
+                {series
+                  .filter((item) => !hidden.has(item.deck.id))
+                  .map((item) => (
+                    <Line
+                      key={item.deck.id}
+                      type="linear"
+                      dataKey={item.deck.id}
+                      name={item.deck.name}
+                      stroke={colours.get(item.deck.id)}
+                      strokeWidth={2}
+                      dot={false}
+                      activeDot={{ r: 3.5, strokeWidth: 2, stroke: CHART_SURFACE }}
+                      isAnimationActive={false}
+                    />
+                  ))}
+              </LineChart>
+            </ChartFrame>
+
+            <ChartLegend
+              items={series.map((item) => ({
+                key: item.deck.id,
+                name: item.deck.name,
+                colour: colours.get(item.deck.id),
+              }))}
+              hidden={hidden}
+              onToggle={toggle}
+            />
+          </div>
+        )
+      }
+
+      function formatDate(value, withYear) {
+        const [year, month, day] = value.split('-').map(Number)
+        const head = `${day} ${MONTHS[month - 1]}`
+
+        return withYear ? `${head} ${year}` : head
+      }
+
+      function formatWindow({ from, to }) {
+        const sameYear = from.slice(0, 4) === to.slice(0, 4)
+
+        return `${formatDate(from, !sameYear)} to ${formatDate(to, true)}`
+      }
+
+      function formatPopulation(population) {
+        return population.charAt(0).toUpperCase() + population.slice(1)
+      }
+
+      function Summary({ decks }) {
+        const { provenance, totals } = decks
+
         return (
           <dl className="stat-list">
-            <StatTile hero label="Registrations" value={totals.registrations.toLocaleString('en-GB')} />
-            <StatTile label="Players" value={totals.players.toLocaleString('en-GB')} />
+            <StatTile hero label="Registrations" value={formatCount(totals.registrations)} />
+            <StatTile label="Players" value={formatCount(totals.players)} />
+            <StatTile label="Archetypes" value={formatCount(decks.decks.total)} />
+            <StatTile label="Window" value={formatWindow(provenance.window)} />
+            <StatTile label="Population" value={formatPopulation(provenance.population)} />
           </dl>
         )
       }
@@ -1010,7 +1430,7 @@
       }
 
       function App() {
-        const timeWindow = useTimeWindow()
+        const [timeWindow, selectTimeWindow] = useTimeWindow()
         const [state, reload] = useMetagame(timeWindow)
 
         return (
@@ -1019,6 +1439,16 @@
               <div className="page__eyebrow">Endstep</div>
               <h1>Pauper metagame</h1>
             </header>
+
+            <div className="page__controls">
+              <SegmentedControl
+                label="Time window"
+                options={WINDOWS}
+                value={timeWindow}
+                onChange={selectTimeWindow}
+                busy={state.status === 'loading'}
+              />
+            </div>
 
             <div role="status" aria-live="polite">
               {state.status === 'loading' && (
@@ -1030,18 +1460,19 @@
             {state.status === 'ready' && (
               <React.Fragment>
                 <Panel>
-                  <Summary totals={state.decks.totals} />
+                  <Summary decks={state.decks} />
                 </Panel>
+                <DeckGrid decks={state.decks.decks.items} />
                 <DeckTable decks={state.decks.decks.items} />
-                <Scaffold decks={state.decks} series={state.series} />
+                <ChartScaffold series={state.series.series} />
               </React.Fragment>
             )}
 
             <Gallery />
 
             <footer>
-              Data from <a href="https://endstep.cc/metagame">Endstep</a>. Not an official Endstep
-              product.
+              Data from <a href="https://endstep.cc/metagame">endstep.cc</a>. This is not an
+              official Endstep product.
             </footer>
           </div>
         )
