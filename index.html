@@ -550,6 +550,12 @@
       }
 
       .deck__keys {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        overflow: hidden;
+        min-height: 2.9em;
         margin: auto 0 0;
         font-size: 12px;
         line-height: 1.45;
@@ -665,6 +671,7 @@
       }
 
       .deck-table__cell--deck {
+        white-space: nowrap;
         text-align: left;
         font-weight: 600;
       }
@@ -1140,7 +1147,7 @@
             <div className="deck__body">
               <div className="deck__top">
                 <h3 className="deck__name">
-                  <Skeleton width="78%" height="1.3em" />
+                  <Skeleton width={140} height="1.3em" />
                 </h3>
                 <Skeleton width={57} height={17} />
               </div>
@@ -1148,13 +1155,21 @@
                 {[0, 1, 2].map((index) => (
                   <div key={index}>
                     <dt>
-                      <Skeleton width="100%" height="1.3em" />
+                      <Skeleton width="100%" height="2.6em" />
                     </dt>
                     <dd>
                       <Skeleton width="76%" height="1.6em" />
                     </dd>
                   </div>
                 ))}
+                <div className="deck__change">
+                  <dt>
+                    <Skeleton width={72} height="1.3em" />
+                  </dt>
+                  <dd>
+                    <Skeleton width={86} height="1.6em" />
+                  </dd>
+                </div>
               </dl>
               <p className="deck__keys">
                 <Skeleton width="92%" height="2.9em" />
@@ -2039,11 +2054,11 @@
       }
 
       const SUMMARY_TILES = [
-        { label: 98, value: 148 },
-        { label: 53, value: 38 },
-        { label: 76, value: 24 },
-        { label: 45, value: 130 },
-        { label: 76, value: 40 },
+        { label: 'Registrations', value: 177 },
+        { label: 'Players', value: 40 },
+        { label: 'Archetypes', value: 26 },
+        { label: 'Window', value: 167 },
+        { label: 'Population', value: 42 },
       ]
 
       function SummarySkeleton() {
@@ -2055,9 +2070,7 @@
                   key={index}
                   className={index === 0 ? 'stat-tile stat-tile--hero' : 'stat-tile'}
                 >
-                  <dt className="stat-tile__label">
-                    <Skeleton width={tile.label} height="1.6em" />
-                  </dt>
+                  <dt className="stat-tile__label">{tile.label}</dt>
                   <dd className="stat-tile__value">
                     <Skeleton width={tile.value} height={index === 0 ? '1.05em' : '1.6em'} />
                   </dd>
