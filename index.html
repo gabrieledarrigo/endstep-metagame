@@ -421,6 +421,10 @@
         animation: pulse 1.5s ease-in-out infinite;
       }
 
+      .skeleton--end {
+        margin-left: auto;
+      }
+
       @keyframes pulse {
         0%,
         100% {
@@ -1014,8 +1018,14 @@
         )
       }
 
-      function Skeleton({ width, height }) {
-        return <div className="skeleton" style={{ width, height }} aria-hidden="true" />
+      function Skeleton({ className, width, height }) {
+        return (
+          <div
+            className={['skeleton', className].filter(Boolean).join(' ')}
+            style={{ width, height }}
+            aria-hidden="true"
+          />
+        )
       }
 
       function artSource(cardName) {
@@ -1115,6 +1125,47 @@
               <DeckCard key={deck.id} deck={deck} />
             ))}
           </section>
+        )
+      }
+
+      function DeckCardSkeleton() {
+        return (
+          <div className="deck">
+            <div className="skeleton deck__art" />
+            <div className="deck__body">
+              <div className="deck__top">
+                <h3 className="deck__name">
+                  <Skeleton width="78%" height="1.3em" />
+                </h3>
+                <Skeleton width={57} height={17} />
+              </div>
+              <dl className="deck__stats">
+                {[0, 1, 2].map((index) => (
+                  <div key={index}>
+                    <dt>
+                      <Skeleton width="100%" height="1.3em" />
+                    </dt>
+                    <dd>
+                      <Skeleton width="76%" height="1.6em" />
+                    </dd>
+                  </div>
+                ))}
+              </dl>
+              <p className="deck__keys">
+                <Skeleton width="92%" height="2.9em" />
+              </p>
+            </div>
+          </div>
+        )
+      }
+
+      function DeckGridSkeleton() {
+        return (
+          <div className="deck-grid" aria-busy="true">
+            {Array.from({ length: PAGE_SIZE }, (ignored, index) => (
+              <DeckCardSkeleton key={index} />
+            ))}
+          </div>
         )
       }
 
@@ -1252,6 +1303,65 @@
                     <td className="deck-table__cell deck-table__cell--numeric">
                       <ShareChange change={deck.shareChange} />
                     </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Panel>
+        )
+      }
+
+      const DECK_TABLE_COLUMNS = [
+        { label: '', width: 18 },
+        { label: 'Deck', width: 150 },
+        { label: 'Colours', width: 57 },
+        { label: 'Share', width: 44, numeric: true },
+        { label: 'Players', width: 40, numeric: true },
+        { label: 'Matches', width: 48, numeric: true },
+        { label: 'Match win rate', width: 44, numeric: true },
+        { label: 'Change', width: 52, numeric: true },
+      ]
+
+      function DeckTableSkeleton() {
+        return (
+          <Panel className="deck-table__scroll" aria-busy="true">
+            <table className="deck-table">
+              <thead>
+                <tr>
+                  {DECK_TABLE_COLUMNS.map((column) => (
+                    <th
+                      key={column.label}
+                      scope="col"
+                      className={
+                        column.numeric
+                          ? 'deck-table__header deck-table__header--numeric'
+                          : 'deck-table__header'
+                      }
+                    >
+                      {column.label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {Array.from({ length: PAGE_SIZE }, (ignored, row) => (
+                  <tr key={row}>
+                    {DECK_TABLE_COLUMNS.map((column) => (
+                      <td
+                        key={column.label}
+                        className={
+                          column.numeric
+                            ? 'deck-table__cell deck-table__cell--numeric'
+                            : 'deck-table__cell'
+                        }
+                      >
+                        <Skeleton
+                          className={column.numeric ? 'skeleton--end' : undefined}
+                          width={column.width}
+                          height={23.4}
+                        />
+                      </td>
+                    ))}
                   </tr>
                 ))}
               </tbody>
@@ -1454,8 +1564,32 @@
         )
       }
 
+      const SHARE_LEGEND_WIDTHS = [72, 124, 102, 54, 92, 86, 106, 96]
+
+      function ShareOverTimeSkeleton() {
+        return (
+          <section className="chart-section" aria-busy="true">
+            <h2 className="chart-section__title">Share over time</h2>
+
+            <Panel className="share-chart">
+              <div className="share-chart__scroll">
+                <div className="skeleton chart-frame" style={{ aspectRatio: '2.9' }} />
+              </div>
+
+              <div className="chart-legend">
+                {SHARE_LEGEND_WIDTHS.map((width) => (
+                  <Skeleton key={width} width={width} height={20.8} />
+                ))}
+              </div>
+            </Panel>
+          </section>
+        )
+      }
+
       function ShareOverTime({ series }) {
         const [hidden, setHidden] = useState(() => new Set())
+
+        if (series.length === 0) return null
 
         const colours = seriesColours(series.map((item) => item.deck.id))
         const rows = shareRows(series)
@@ -1556,10 +1690,25 @@
         ]
       }
 
+      const RANKED_BARS_NOTE =
+        'Other is a residual, not a deck. It covers every archetype outside the top 24 and the registrations Endstep did not classify.'
+
+      function RankedBarsSkeleton() {
+        return (
+          <section className="panel" aria-busy="true">
+            <h2 className="ranked-bars__title">Meta share by deck</h2>
+
+            <div className="ranked-bars__scroll">
+              <div className="skeleton chart-frame" style={{ height: 660 }} />
+            </div>
+
+            <p className="ranked-bars__note">{RANKED_BARS_NOTE}</p>
+          </section>
+        )
+      }
+
       function RankedBars({ decks }) {
-        if (decks.items.length === 0) {
-          return <StatePanel title="No decks" detail="This window returned no decks." />
-        }
+        if (decks.items.length === 0) return null
 
         const bars = shareBars(decks)
         const axisMax = Math.ceil(Math.max(...bars.map((bar) => bar.share)) / 5) * 5
@@ -1612,10 +1761,7 @@
               </ChartFrame>
             </div>
 
-            <p className="ranked-bars__note">
-              Other is a residual, not a deck. It covers every archetype outside the top 24 and the
-              registrations Endstep did not classify.
-            </p>
+            <p className="ranked-bars__note">{RANKED_BARS_NOTE}</p>
           </section>
         )
       }
@@ -1721,6 +1867,20 @@
         return ticks
       }
 
+      const WIN_RATE_NOTE =
+        'Bubble area is player count. Decks above the line win more than half their matches. The tooltip carries the confidence bounds, and small gaps between decks sit inside them.'
+
+      function WinRateScatterSkeleton() {
+        return (
+          <Panel className="chart-section" aria-busy="true">
+            <h2 className="chart-section__title">Win rate against share</h2>
+            <p className="chart-section__note">{WIN_RATE_NOTE}</p>
+
+            <div className="skeleton chart-frame" style={{ aspectRatio: '2.4' }} />
+          </Panel>
+        )
+      }
+
       function WinRateScatter({ decks }) {
         if (decks.length === 0) return null
 
@@ -1734,10 +1894,7 @@
         return (
           <Panel className="chart-section">
             <h2 className="chart-section__title">Win rate against share</h2>
-            <p className="chart-section__note">
-              Bubble area is player count. Decks above the line win more than half their matches. The
-              tooltip carries the confidence bounds, and small gaps between decks sit inside them.
-            </p>
+            <p className="chart-section__note">{WIN_RATE_NOTE}</p>
 
             <ChartFrame aspect={2.4}>
               <ScatterChart
@@ -1834,6 +1991,36 @@
 
       function formatPopulation(population) {
         return population.charAt(0).toUpperCase() + population.slice(1)
+      }
+
+      const SUMMARY_TILES = [
+        { label: 98, value: 148 },
+        { label: 53, value: 38 },
+        { label: 76, value: 24 },
+        { label: 45, value: 130 },
+        { label: 76, value: 40 },
+      ]
+
+      function SummarySkeleton() {
+        return (
+          <Panel aria-busy="true">
+            <dl className="stat-list">
+              {SUMMARY_TILES.map((tile, index) => (
+                <div
+                  key={index}
+                  className={index === 0 ? 'stat-tile stat-tile--hero' : 'stat-tile'}
+                >
+                  <dt className="stat-tile__label">
+                    <Skeleton width={tile.label} height="1.6em" />
+                  </dt>
+                  <dd className="stat-tile__value">
+                    <Skeleton width={tile.value} height={index === 0 ? '1.05em' : '1.6em'} />
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </Panel>
+        )
       }
 
       function Summary({ decks }) {
