@@ -888,7 +888,30 @@
         return [value, select]
       }
 
-      function useMetagame(timeWindow) {
+      function fetchDecks(timeWindow, signal) {
+        return getJson(
+          `${FORMAT}/decks`,
+          {
+            window: timeWindow,
+            population: POPULATION,
+            sort: 'share',
+            dir: 'desc',
+            page: 1,
+            pageSize: PAGE_SIZE,
+          },
+          signal
+        )
+      }
+
+      function fetchSeries(timeWindow, signal) {
+        return getJson(
+          `${FORMAT}/share-series`,
+          { window: timeWindow, population: POPULATION },
+          signal
+        )
+      }
+
+      function useResource(load, timeWindow) {
         const [state, setState] = useState({ status: 'loading' })
         const [reloads, setReloads] = useState(0)
 
@@ -896,37 +919,19 @@
           const controller = new AbortController()
           setState({ status: 'loading' })
 
-          Promise.all([
-            getJson(
-              `${FORMAT}/decks`,
-              {
-                window: timeWindow,
-                population: POPULATION,
-                sort: 'share',
-                dir: 'desc',
-                page: 1,
-                pageSize: PAGE_SIZE,
-              },
-              controller.signal
-            ),
-            getJson(
-              `${FORMAT}/share-series`,
-              { window: timeWindow, population: POPULATION },
-              controller.signal
-            ),
-          ])
-            .then(([decks, series]) => setState({ status: 'ready', decks, series }))
+          load(timeWindow, controller.signal)
+            .then((data) => setState({ status: 'ready', data }))
             .catch((error) => {
               if (error.name === 'AbortError') return
               setState({ status: 'error', error })
             })
 
           return () => controller.abort()
-        }, [timeWindow, reloads])
+        }, [load, timeWindow, reloads])
 
-        const reload = useCallback(() => setReloads((count) => count + 1), [])
+        const retry = useCallback(() => setReloads((count) => count + 1), [])
 
-        return [state, reload]
+        return [state, retry]
       }
 
       const PIP_FILL = {
@@ -1179,6 +1184,44 @@
         )
       }
 
+      function Section({ state, skeleton, title, onRetry, children }) {
+        if (state.status === 'loading') return skeleton
+
+        if (state.status === 'error') {
+          return (
+            <StatePanel
+              title={title}
+              detail={state.error.message}
+              action={<Button onClick={onRetry}>Retry</Button>}
+            />
+          )
+        }
+
+        return children(state.data)
+      }
+
+      function EmptyWindow({ timeWindow, onSelect }) {
+        const longer = WINDOWS[WINDOWS.indexOf(timeWindow) + 1]
+
+        return (
+          <StatePanel
+            title="No decks in this window"
+            detail={
+              longer
+                ? `The ${timeWindow} window has no registrations yet. Try a longer window.`
+                : `The ${timeWindow} window has no registrations yet.`
+            }
+            action={
+              longer && (
+                <Button variant="secondary" onClick={() => onSelect(longer)}>
+                  Switch to {longer}
+                </Button>
+              )
+            }
+          />
+        )
+      }
+
       const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
       function matchesOf(deck) {
@@ -1233,6 +1276,8 @@
 
       function DeckTable({ decks }) {
         const [sort, setSort] = useState({ key: 'share', direction: 'descending' })
+
+        if (decks.length === 0) return null
 
         const onSort = (key) =>
           setSort((current) => {
@@ -2037,19 +2082,12 @@
         )
       }
 
-      function Failed({ error, onRetry }) {
-        return (
-          <StatePanel
-            title="The metagame could not be loaded"
-            detail={error.message}
-            action={<Button onClick={onRetry}>Retry</Button>}
-          />
-        )
-      }
-
       function App() {
         const [timeWindow, selectTimeWindow] = useTimeWindow()
-        const [state, reload] = useMetagame(timeWindow)
+        const [decks, retryDecks] = useResource(fetchDecks, timeWindow)
+        const [series, retrySeries] = useResource(fetchSeries, timeWindow)
+
+        const loading = decks.status === 'loading' || series.status === 'loading'
 
         return (
           <div className="page">
@@ -2063,30 +2101,78 @@
                 label="Time window"
                 options={WINDOWS}
                 value={timeWindow}
-                onChange={(next) => selectTimeWindow(next, state.status === 'loading')}
-                busy={state.status === 'loading'}
+                onChange={(next) => selectTimeWindow(next, loading)}
+                busy={loading}
               />
             </div>
 
-            <div role="status" aria-live="polite">
-              {state.status === 'loading' && (
-                <StatePanel busy title="Loading" detail={`Fetching the ${timeWindow} window.`} />
-              )}
-              {state.status === 'error' && <Failed error={state.error} onRetry={reload} />}
-            </div>
+            <p className="visually-hidden" role="status">
+              {loading ? `Loading the ${timeWindow} window.` : ''}
+            </p>
 
-            {state.status === 'ready' && (
-              <React.Fragment>
+            <Section
+              state={decks}
+              skeleton={<SummarySkeleton />}
+              title="The summary could not be loaded"
+              onRetry={retryDecks}
+            >
+              {(data) => (
                 <Panel>
-                  <Summary decks={state.decks} />
+                  <Summary decks={data} />
                 </Panel>
-                <DeckGrid decks={state.decks.decks.items} />
-                <DeckTable decks={state.decks.decks.items} />
-                <ShareOverTime series={state.series.series} />
-                <RankedBars decks={state.decks.decks} />
-                <WinRateScatter decks={state.decks.decks.items} />
-              </React.Fragment>
-            )}
+              )}
+            </Section>
+
+            <Section
+              state={decks}
+              skeleton={<DeckGridSkeleton />}
+              title="The deck grid could not be loaded"
+              onRetry={retryDecks}
+            >
+              {(data) =>
+                data.decks.items.length === 0 ? (
+                  <EmptyWindow timeWindow={timeWindow} onSelect={selectTimeWindow} />
+                ) : (
+                  <DeckGrid decks={data.decks.items} />
+                )
+              }
+            </Section>
+
+            <Section
+              state={decks}
+              skeleton={<DeckTableSkeleton />}
+              title="The deck table could not be loaded"
+              onRetry={retryDecks}
+            >
+              {(data) => <DeckTable decks={data.decks.items} />}
+            </Section>
+
+            <Section
+              state={series}
+              skeleton={<ShareOverTimeSkeleton />}
+              title="Share over time could not be loaded"
+              onRetry={retrySeries}
+            >
+              {(data) => <ShareOverTime series={data.series} />}
+            </Section>
+
+            <Section
+              state={decks}
+              skeleton={<RankedBarsSkeleton />}
+              title="Meta share by deck could not be loaded"
+              onRetry={retryDecks}
+            >
+              {(data) => <RankedBars decks={data.decks} />}
+            </Section>
+
+            <Section
+              state={decks}
+              skeleton={<WinRateScatterSkeleton />}
+              title="Win rate against share could not be loaded"
+              onRetry={retryDecks}
+            >
+              {(data) => <WinRateScatter decks={data.decks.items} />}
+            </Section>
 
             <footer>
               Data from <a href="https://endstep.cc/metagame">endstep.cc</a>. This is not an
