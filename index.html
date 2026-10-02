@@ -264,8 +264,6 @@
         cursor: progress;
       }
 
-
-
       .colour-pips {
         display: inline-flex;
         gap: 3px;
@@ -463,7 +461,7 @@
 
       .deck:hover .deck__name {
         text-decoration: underline;
-        text-decoration-thickness: 2px;
+        text-underline-offset: 3px;
       }
 
       .deck__art {
@@ -520,6 +518,8 @@
       }
 
       .deck__stats dt {
+        min-height: 2.6em;
+        line-height: 1.3;
         font-size: 10px;
         font-weight: 600;
         text-transform: uppercase;
@@ -541,22 +541,37 @@
         color: var(--text-600);
       }
 
-      .scaffold {
-        border: 1px dashed var(--baseline);
-        border-radius: 10px;
-        padding: 18px 22px;
+      .chart-section {
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 14px;
       }
 
-      .scaffold__title {
+      .chart-section__title {
         margin: 0;
-        font-size: 11px;
+        font-size: 22px;
         font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: var(--text-400);
+        letter-spacing: -0.01em;
+      }
+
+      .share-chart {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+
+      .share-chart__scroll {
+        overflow-x: auto;
+      }
+
+      .share-chart__scroll > .chart-frame {
+        min-width: 620px;
+      }
+
+      .share-chart__end {
+        font-size: 12px;
+        font-weight: 500;
+        fill: var(--text-600);
       }
 
       footer {
@@ -644,8 +659,28 @@
 
       .deck-table__cell--rank {
         width: 26px;
-        color: var(--text-400);
+        color: var(--text-600);
         font-variant-numeric: tabular-nums;
+      }
+
+      .ranked-bars__title {
+        margin: 0 0 16px;
+        font-size: 17px;
+        font-weight: 600;
+      }
+
+      .ranked-bars__scroll {
+        overflow-x: auto;
+      }
+
+      .ranked-bars__scroll .chart-frame {
+        min-width: 620px;
+      }
+
+      .ranked-bars__note {
+        margin: 12px 0 0;
+        font-size: 13px;
+        color: var(--text-600);
       }
     </style>
   </head>
@@ -685,7 +720,9 @@
 
     <script type="text/babel" data-presets="react">
       const { useState, useEffect, useCallback } = React
-      const { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } = Recharts
+      const { ResponsiveContainer, LineChart, Line, BarChart, Bar, Cell, LabelList, XAxis, YAxis, CartesianGrid, Tooltip } =
+        Recharts
+      const { Customized, useXAxisScale, useYAxisScale, usePlotArea } = Recharts
       const { ScatterChart, Scatter, ZAxis, ReferenceLine } = Recharts
 
       const FORMAT = 'Pauper'
@@ -792,10 +829,11 @@
         }, [])
 
         const select = useCallback(
-          (next) => {
+          (next, replace) => {
             if (next === value) return
 
-            history.pushState(null, '', timeWindowUrl(next))
+            const write = replace ? history.replaceState : history.pushState
+            write.call(history, null, '', timeWindowUrl(next))
             setValue(next)
           },
           [value]
@@ -977,7 +1015,7 @@
                   <dd>{deck.players.toLocaleString('en-GB')}</dd>
                 </div>
                 <div>
-                  <dt>Win rate</dt>
+                  <dt>Match win rate</dt>
                   <dd>{(deck.matchWinRate.rate * 100).toFixed(1)}%</dd>
                 </div>
               </dl>
@@ -1179,9 +1217,9 @@
         return new Map(keys.map((key) => [key, SERIES_COLOURS[seriesSlots.get(key)]]))
       }
 
-      function ChartFrame({ aspect = 2.9, children }) {
+      function ChartFrame({ aspect = 2.9, height, children }) {
         return (
-          <div className="chart-frame" style={{ aspectRatio: String(aspect) }}>
+          <div className="chart-frame" style={height ? { height } : { aspectRatio: String(aspect) }}>
             <ResponsiveContainer width="100%" height="100%">
               {children}
             </ResponsiveContainer>
@@ -1263,11 +1301,87 @@
           timeZone: 'UTC',
         })
 
-      function ChartScaffold({ series }) {
+      const END_LABEL_OFFSET = 10
+      const END_LABEL_GAP = 16
+      const END_LABEL_CHAR_WIDTH = 8
+
+      function endLabelGutter(series) {
+        const longest = series.reduce((width, item) => Math.max(width, item.deck.name.length), 0)
+
+        return END_LABEL_OFFSET + longest * END_LABEL_CHAR_WIDTH
+      }
+
+      function seriesEnd(item) {
+        const last = item.points.findLast((point) => point.rate !== null)
+        if (!last) return null
+
+        return { key: item.deck.id, name: item.deck.name, day: last.day, share: last.rate * 100 }
+      }
+
+      function stackEnds(ends, bottom) {
+        const placed = [...ends].sort((a, b) => a.y - b.y)
+
+        let previous = -Infinity
+        placed.forEach((end) => {
+          end.labelY = Math.max(end.y, previous + END_LABEL_GAP)
+          previous = end.labelY
+        })
+
+        const overflow = previous - bottom
+        if (overflow > 0) placed.forEach((end) => (end.labelY -= overflow))
+
+        return placed
+      }
+
+      function SeriesEnds({ ends }) {
+        const xScale = useXAxisScale()
+        const yScale = useYAxisScale()
+        const plot = usePlotArea()
+
+        if (!xScale || !yScale || !plot) return null
+
+        const centre = xScale.bandwidth ? xScale.bandwidth() / 2 : 0
+        const placed = stackEnds(
+          ends.map((end) => ({ ...end, x: xScale(end.day) + centre, y: yScale(end.share) })),
+          plot.y + plot.height
+        )
+
+        return (
+          <g aria-hidden="true">
+            {placed.map((end) => (
+              <g key={end.key}>
+                <circle
+                  cx={end.x}
+                  cy={end.y}
+                  r="3.5"
+                  fill={end.colour}
+                  stroke={CHART_SURFACE}
+                  strokeWidth="2"
+                />
+                <text
+                  className="share-chart__end"
+                  x={plot.x + plot.width + END_LABEL_OFFSET}
+                  y={end.labelY}
+                  dy="0.32em"
+                >
+                  {end.name}
+                </text>
+              </g>
+            ))}
+          </g>
+        )
+      }
+
+      function ShareOverTime({ series }) {
         const [hidden, setHidden] = useState(() => new Set())
 
         const colours = seriesColours(series.map((item) => item.deck.id))
         const rows = shareRows(series)
+        const shown = series.filter((item) => !hidden.has(item.deck.id))
+        const ends = shown
+          .map(seriesEnd)
+          .filter(Boolean)
+          .map((end) => ({ ...end, colour: colours.get(end.key) }))
 
         const toggle = (key) =>
           setHidden((current) => {
@@ -1278,51 +1392,154 @@
           })
 
         return (
-          <div className="scaffold">
-            <h2 className="scaffold__title">Temporary chart, removed by S4</h2>
+          <section className="chart-section" aria-labelledby="share-over-time">
+            <h2 className="chart-section__title" id="share-over-time">
+              Share over time
+            </h2>
 
-            <ChartFrame>
-              <LineChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }} accessibilityLayer>
-                <CartesianGrid {...CHART_CARTESIAN_GRID} />
-                <XAxis dataKey="day" tickFormatter={shortDay} minTickGap={24} {...CHART_AXIS} />
-                <YAxis tickFormatter={axisShare} width={46} {...CHART_AXIS} />
-                <Tooltip
-                  cursor={{ stroke: CHART_BASELINE }}
-                  content={<ChartTooltip formatLabel={longDay} formatValue={tooltipShare} />}
-                />
-                {series
-                  .filter((item) => !hidden.has(item.deck.id))
-                  .map((item) => (
-                    <Line
-                      key={item.deck.id}
-                      type="linear"
-                      dataKey={item.deck.id}
-                      name={item.deck.name}
-                      stroke={colours.get(item.deck.id)}
-                      strokeWidth={2}
-                      dot={false}
-                      activeDot={{ r: 3.5, strokeWidth: 2, stroke: CHART_SURFACE }}
-                      isAnimationActive={false}
+            <Panel className="share-chart">
+              <div
+                className="share-chart__scroll"
+                tabIndex="0"
+                role="region"
+                aria-label="Daily meta share, top eight decks"
+              >
+                <ChartFrame>
+                  <LineChart
+                    data={rows}
+                    margin={{ top: 8, right: endLabelGutter(series), bottom: 0, left: 0 }}
+                    accessibilityLayer
+                  >
+                    <CartesianGrid {...CHART_CARTESIAN_GRID} />
+                    <XAxis dataKey="day" tickFormatter={shortDay} minTickGap={24} {...CHART_AXIS} />
+                    <YAxis tickFormatter={axisShare} width={46} {...CHART_AXIS} />
+                    <Tooltip
+                      cursor={{ stroke: CHART_BASELINE }}
+                      content={<ChartTooltip formatLabel={longDay} formatValue={tooltipShare} />}
                     />
-                  ))}
-              </LineChart>
-            </ChartFrame>
+                    {shown.map((item) => (
+                      <Line
+                        key={item.deck.id}
+                        type="linear"
+                        dataKey={item.deck.id}
+                        name={item.deck.name}
+                        stroke={colours.get(item.deck.id)}
+                        strokeWidth={2}
+                        dot={false}
+                        activeDot={{ r: 3.5, strokeWidth: 2, stroke: CHART_SURFACE }}
+                        isAnimationActive={false}
+                      />
+                    ))}
+                    <Customized component={<SeriesEnds ends={ends} />} />
+                  </LineChart>
+                </ChartFrame>
+              </div>
 
-            <ChartLegend
-              items={series.map((item) => ({
-                key: item.deck.id,
-                name: item.deck.name,
-                colour: colours.get(item.deck.id),
-              }))}
-              hidden={hidden}
-              onToggle={toggle}
-            />
-          </div>
+              <ChartLegend
+                items={series.map((item) => ({
+                  key: item.deck.id,
+                  name: item.deck.name,
+                  colour: colours.get(item.deck.id),
+                }))}
+                hidden={hidden}
+                onToggle={toggle}
+              />
+            </Panel>
+          </section>
+        )
+      }
+
+      const CHART_BAR = token('--seq-500')
+      const CHART_RESIDUAL = token('--text-400')
+      const CHART_LABEL = token('--text-900')
+      const CHART_NAME = token('--text-600')
+
+      function shareBars({ items, total }) {
+        const bars = items.map((deck) => ({
+          name: deck.name,
+          share: deck.share.rate * 100,
+          residual: false,
+        }))
+
+        const other = 100 - bars.reduce((sum, bar) => sum + bar.share, 0)
+        if (other < 0.01) return bars
+
+        return [
+          ...bars,
+          {
+            name: `Other (${total - items.length} archetypes and unclassified)`,
+            share: other,
+            residual: true,
+          },
+        ]
+      }
+
+      function RankedBars({ decks }) {
+        if (decks.items.length === 0) {
+          return <StatePanel title="No decks" detail="This window returned no decks." />
+        }
+
+        const bars = shareBars(decks)
+        const axisMax = Math.ceil(Math.max(...bars.map((bar) => bar.share)) / 5) * 5
+
+        return (
+          <section className="panel" aria-labelledby="ranked-bars-heading">
+            <h2 className="ranked-bars__title" id="ranked-bars-heading">
+              Meta share by deck
+            </h2>
+
+            <div
+              className="ranked-bars__scroll"
+              tabIndex="0"
+              role="region"
+              aria-label="Meta share by deck, chart"
+            >
+              <ChartFrame height={660}>
+                <BarChart data={bars} layout="vertical" margin={{ top: 4, right: 58, bottom: 0, left: 0 }}>
+                  <CartesianGrid {...CHART_CARTESIAN_GRID} horizontal={false} vertical />
+                  <XAxis
+                    type="number"
+                    orientation="top"
+                    domain={[0, axisMax]}
+                    tickCount={axisMax / 5 + 1}
+                    tickFormatter={axisShare}
+                    height={22}
+                    {...CHART_AXIS}
+                  />
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    width={210}
+                    interval={0}
+                    {...CHART_AXIS}
+                    tick={{ ...CHART_AXIS.tick, fill: CHART_NAME }}
+                  />
+                  <Bar dataKey="share" radius={[0, 3, 3, 0]} barSize={17} isAnimationActive={false}>
+                    {bars.map((bar) => (
+                      <Cell key={bar.name} fill={bar.residual ? CHART_RESIDUAL : CHART_BAR} />
+                    ))}
+                    <LabelList
+                      dataKey="share"
+                      position="right"
+                      formatter={tooltipShare}
+                      fill={CHART_LABEL}
+                      fontSize={12}
+                    />
+                  </Bar>
+                </BarChart>
+              </ChartFrame>
+            </div>
+
+            <p className="ranked-bars__note">
+              Other is a residual, not a deck. It covers every archetype outside the top 24 and the
+              registrations Endstep did not classify.
+            </p>
+          </section>
         )
       }
 
       const WIN_RATE_MARK = token('--s1')
-      const CHART_LABEL = token('--text-600')
+      const SCATTER_LABEL = token('--text-600')
       const LABEL_PLOT_WIDTH = 590
       const LABEL_CHAR_WIDTH = 6.6
       const LABEL_GAP_Y = 0.18
@@ -1493,7 +1710,7 @@
                   label={{
                     value: '50% win rate',
                     position: 'insideBottomRight',
-                    fill: CHART_LABEL,
+                    fill: SCATTER_LABEL,
                     fontSize: 12,
                   }}
                 />
@@ -1551,6 +1768,16 @@
         )
       }
 
+      function Failed({ error, onRetry }) {
+        return (
+          <StatePanel
+            title="The metagame could not be loaded"
+            detail={error.message}
+            action={<Button onClick={onRetry}>Retry</Button>}
+          />
+        )
+      }
+
       function App() {
         const [timeWindow, selectTimeWindow] = useTimeWindow()
         const [state, reload] = useMetagame(timeWindow)
@@ -1567,7 +1794,7 @@
                 label="Time window"
                 options={WINDOWS}
                 value={timeWindow}
-                onChange={selectTimeWindow}
+                onChange={(next) => selectTimeWindow(next, state.status === 'loading')}
                 busy={state.status === 'loading'}
               />
             </div>
@@ -1586,7 +1813,8 @@
                 </Panel>
                 <DeckGrid decks={state.decks.decks.items} />
                 <DeckTable decks={state.decks.decks.items} />
-                <ChartScaffold series={state.series.series} />
+                <ShareOverTime series={state.series.series} />
+                <RankedBars decks={state.decks.decks} />
                 <WinRateScatter decks={state.decks.decks.items} />
               </React.Fragment>
             )}
