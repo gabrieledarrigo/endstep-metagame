@@ -663,6 +663,27 @@
         font-variant-numeric: tabular-nums;
       }
 
+      .delta {
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
+        font-size: 13px;
+        white-space: nowrap;
+      }
+
+      .delta--up {
+        color: var(--up);
+      }
+
+      .delta--down {
+        color: var(--down);
+      }
+
+      .delta--unavailable {
+        color: var(--text-400);
+        font-weight: 400;
+        font-size: 12px;
+      }
+
       .ranked-bars__title {
         margin: 0 0 16px;
         font-size: 17px;
@@ -981,6 +1002,33 @@
           name: cardName,
           version: 'art_crop',
         })}`
+      }
+
+      const NO_CHANGE = {
+        previous_window_empty: 'no earlier data',
+        no_previous_window: 'no earlier window',
+      }
+
+      function ShareChange({ change }) {
+        const points = change && change.points
+
+        if (typeof points !== 'number') {
+          return (
+            <span className="delta delta--unavailable">
+              {NO_CHANGE[change && change.reason] || 'not available'}
+            </span>
+          )
+        }
+
+        const size = Math.abs(points)
+
+        return (
+          <span className={points < 0 ? 'delta delta--down' : 'delta delta--up'}>
+            <span aria-hidden="true">{points < 0 ? '\u25bc' : '\u25b2'}</span>
+            <span className="visually-hidden">{points < 0 ? 'down' : 'up'}</span>{' '}
+            {size < 0.005 ? '<0.01' : size.toFixed(2)} pts
+          </span>
+        )
       }
 
       function DeckCard({ deck }) {
