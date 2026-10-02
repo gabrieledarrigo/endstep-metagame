@@ -1035,8 +1035,9 @@
 
         return (
           <span className={points < 0 ? 'delta delta--down' : 'delta delta--up'}>
-            <span aria-hidden="true">{points < 0 ? '\u25bc' : '\u25b2'}</span>
-            <span className="visually-hidden">{points < 0 ? 'down' : 'up'}</span>{' '}
+            <span role="img" aria-label={points < 0 ? 'down' : 'up'}>
+              {points < 0 ? '\u25bc' : '\u25b2'}
+            </span>{' '}
             {size < 0.005 ? '<0.01' : size.toFixed(2)} pts
           </span>
         )
