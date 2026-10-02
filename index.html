@@ -500,22 +500,37 @@
         color: var(--text-600);
       }
 
-      .scaffold {
-        border: 1px dashed var(--baseline);
-        border-radius: 10px;
-        padding: 18px 22px;
+      .chart-section {
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 14px;
       }
 
-      .scaffold__title {
+      .chart-section__title {
         margin: 0;
-        font-size: 11px;
+        font-size: 22px;
         font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: var(--text-400);
+        letter-spacing: -0.01em;
+      }
+
+      .share-chart {
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+      }
+
+      .share-chart__scroll {
+        overflow-x: auto;
+      }
+
+      .share-chart__scroll > .chart-frame {
+        min-width: 620px;
+      }
+
+      .share-chart__end {
+        font-size: 12px;
+        font-weight: 500;
+        fill: var(--text-600);
       }
 
       footer {
@@ -645,6 +660,7 @@
     <script type="text/babel" data-presets="react">
       const { useState, useEffect, useCallback } = React
       const { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip } = Recharts
+      const { Customized, useXAxisScale, useYAxisScale, usePlotArea } = Recharts
 
       const FORMAT = 'Pauper'
       const POPULATION = 'rated'
@@ -1222,11 +1238,87 @@
           timeZone: 'UTC',
         })
 
-      function ChartScaffold({ series }) {
+      const END_LABEL_OFFSET = 10
+      const END_LABEL_GAP = 16
+      const END_LABEL_CHAR_WIDTH = 8
+
+      function endLabelGutter(series) {
+        const longest = series.reduce((width, item) => Math.max(width, item.deck.name.length), 0)
+
+        return END_LABEL_OFFSET + longest * END_LABEL_CHAR_WIDTH
+      }
+
+      function seriesEnd(item) {
+        const last = item.points.findLast((point) => point.rate !== null)
+        if (!last) return null
+
+        return { key: item.deck.id, name: item.deck.name, day: last.day, share: last.rate * 100 }
+      }
+
+      function stackEnds(ends, bottom) {
+        const placed = [...ends].sort((a, b) => a.y - b.y)
+
+        let previous = -Infinity
+        placed.forEach((end) => {
+          end.labelY = Math.max(end.y, previous + END_LABEL_GAP)
+          previous = end.labelY
+        })
+
+        const overflow = previous - bottom
+        if (overflow > 0) placed.forEach((end) => (end.labelY -= overflow))
+
+        return placed
+      }
+
+      function SeriesEnds({ ends }) {
+        const xScale = useXAxisScale()
+        const yScale = useYAxisScale()
+        const plot = usePlotArea()
+
+        if (!xScale || !yScale || !plot) return null
+
+        const centre = xScale.bandwidth ? xScale.bandwidth() / 2 : 0
+        const placed = stackEnds(
+          ends.map((end) => ({ ...end, x: xScale(end.day) + centre, y: yScale(end.share) })),
+          plot.y + plot.height
+        )
+
+        return (
+          <g aria-hidden="true">
+            {placed.map((end) => (
+              <g key={end.key}>
+                <circle
+                  cx={end.x}
+                  cy={end.y}
+                  r="3.5"
+                  fill={end.colour}
+                  stroke={CHART_SURFACE}
+                  strokeWidth="2"
+                />
+                <text
+                  className="share-chart__end"
+                  x={plot.x + plot.width + END_LABEL_OFFSET}
+                  y={end.labelY}
+                  dy="0.32em"
+                >
+                  {end.name}
+                </text>
+              </g>
+            ))}
+          </g>
+        )
+      }
+
+      function ShareOverTime({ series }) {
         const [hidden, setHidden] = useState(() => new Set())
 
         const colours = seriesColours(series.map((item) => item.deck.id))
         const rows = shareRows(series)
+        const shown = series.filter((item) => !hidden.has(item.deck.id))
+        const ends = shown
+          .map(seriesEnd)
+          .filter(Boolean)
+          .map((end) => ({ ...end, colour: colours.get(end.key) }))
 
         const toggle = (key) =>
           setHidden((current) => {
@@ -1237,46 +1329,60 @@
           })
 
         return (
-          <div className="scaffold">
-            <h2 className="scaffold__title">Temporary chart, removed by S4</h2>
+          <section className="chart-section" aria-labelledby="share-over-time">
+            <h2 className="chart-section__title" id="share-over-time">
+              Share over time
+            </h2>
 
-            <ChartFrame>
-              <LineChart data={rows} margin={{ top: 8, right: 16, bottom: 0, left: 0 }} accessibilityLayer>
-                <CartesianGrid {...CHART_CARTESIAN_GRID} />
-                <XAxis dataKey="day" tickFormatter={shortDay} minTickGap={24} {...CHART_AXIS} />
-                <YAxis tickFormatter={axisShare} width={46} {...CHART_AXIS} />
-                <Tooltip
-                  cursor={{ stroke: CHART_BASELINE }}
-                  content={<ChartTooltip formatLabel={longDay} formatValue={tooltipShare} />}
-                />
-                {series
-                  .filter((item) => !hidden.has(item.deck.id))
-                  .map((item) => (
-                    <Line
-                      key={item.deck.id}
-                      type="linear"
-                      dataKey={item.deck.id}
-                      name={item.deck.name}
-                      stroke={colours.get(item.deck.id)}
-                      strokeWidth={2}
-                      dot={false}
-                      activeDot={{ r: 3.5, strokeWidth: 2, stroke: CHART_SURFACE }}
-                      isAnimationActive={false}
+            <Panel className="share-chart">
+              <div
+                className="share-chart__scroll"
+                tabIndex="0"
+                role="region"
+                aria-label="Daily meta share, top eight decks"
+              >
+                <ChartFrame>
+                  <LineChart
+                    data={rows}
+                    margin={{ top: 8, right: endLabelGutter(series), bottom: 0, left: 0 }}
+                    accessibilityLayer
+                  >
+                    <CartesianGrid {...CHART_CARTESIAN_GRID} />
+                    <XAxis dataKey="day" tickFormatter={shortDay} minTickGap={24} {...CHART_AXIS} />
+                    <YAxis tickFormatter={axisShare} width={46} {...CHART_AXIS} />
+                    <Tooltip
+                      cursor={{ stroke: CHART_BASELINE }}
+                      content={<ChartTooltip formatLabel={longDay} formatValue={tooltipShare} />}
                     />
-                  ))}
-              </LineChart>
-            </ChartFrame>
+                    {shown.map((item) => (
+                      <Line
+                        key={item.deck.id}
+                        type="linear"
+                        dataKey={item.deck.id}
+                        name={item.deck.name}
+                        stroke={colours.get(item.deck.id)}
+                        strokeWidth={2}
+                        dot={false}
+                        activeDot={{ r: 3.5, strokeWidth: 2, stroke: CHART_SURFACE }}
+                        isAnimationActive={false}
+                      />
+                    ))}
+                    <Customized component={<SeriesEnds ends={ends} />} />
+                  </LineChart>
+                </ChartFrame>
+              </div>
 
-            <ChartLegend
-              items={series.map((item) => ({
-                key: item.deck.id,
-                name: item.deck.name,
-                colour: colours.get(item.deck.id),
-              }))}
-              hidden={hidden}
-              onToggle={toggle}
-            />
-          </div>
+              <ChartLegend
+                items={series.map((item) => ({
+                  key: item.deck.id,
+                  name: item.deck.name,
+                  colour: colours.get(item.deck.id),
+                }))}
+                hidden={hidden}
+                onToggle={toggle}
+              />
+            </Panel>
+          </section>
         )
       }
 
@@ -1364,7 +1470,7 @@
                 </Panel>
                 <DeckGrid decks={state.decks.decks.items} />
                 <DeckTable decks={state.decks.decks.items} />
-                <ChartScaffold series={state.series.series} />
+                <ShareOverTime series={state.series.series} />
               </React.Fragment>
             )}
 
