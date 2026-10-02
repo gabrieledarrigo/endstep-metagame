@@ -184,6 +184,8 @@ Endstep's data begins **2026-09-05**. A 30-day window returns 30 daily points an
 
 Printing `to` as the end date names a day that has not happened, and makes the 1-day window read as three days. Subtract one day before displaying it. The field is still the right one to read, it just is not the last covered day.
 
+Subtracting one day does not make `1d` cover a single day. The API's `1d` preset returns a two-day span, `from` two days before `to`, and the fix takes the label from three days to two. That remainder is upstream behaviour, not a display problem.
+
 ---
 
 ## 7. Non-functional requirements
