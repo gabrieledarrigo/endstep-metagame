@@ -783,7 +783,8 @@
         if (status === 429) {
           return {
             kind: 'rateLimit',
-            message: 'Too many requests reached Endstep. The data is cached for five minutes, so this usually clears on its own.',
+            message:
+              "Endstep's rate limit was reached. The data is cached for five minutes, so a retry usually works.",
           }
         }
         if (status === 502 || status === 504) {
