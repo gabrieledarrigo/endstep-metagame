@@ -534,6 +534,17 @@
         font-variant-numeric: tabular-nums;
       }
 
+      .deck__stats .deck__change {
+        grid-column: 1 / -1;
+        flex-direction: row;
+        align-items: baseline;
+        gap: 6px;
+      }
+
+      .deck__stats .deck__change dt {
+        min-height: 0;
+      }
+
       .deck__keys {
         margin: auto 0 0;
         font-size: 12px;
@@ -1066,6 +1077,12 @@
                   <dt>Match win rate</dt>
                   <dd>{(deck.matchWinRate.rate * 100).toFixed(1)}%</dd>
                 </div>
+                <div className="deck__change">
+                  <dt>Share change</dt>
+                  <dd>
+                    <ShareChange change={deck.shareChange} />
+                  </dd>
+                </div>
               </dl>
               <p className="deck__keys">{deck.keyCards.join(' · ')}</p>
             </div>
@@ -1217,7 +1234,9 @@
                     <td className="deck-table__cell deck-table__cell--numeric">
                       {percent(deck.matchWinRate.rate)}
                     </td>
-                    <td className="deck-table__cell deck-table__cell--numeric" />
+                    <td className="deck-table__cell deck-table__cell--numeric">
+                      <ShareChange change={deck.shareChange} />
+                    </td>
                   </tr>
                 ))}
               </tbody>
