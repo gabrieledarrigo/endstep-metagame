@@ -112,7 +112,7 @@ Public CORS proxies were tested on 2026-09-20 and rejected. All six failed. allo
 The page offers the five windows (`1d`, `7d`, `14d`, `30d`, `season`) and defaults to `30d`. Changing the window refetches and re-renders every section. The selected window is written to the URL query string, so a view can be linked and reloaded.
 
 ### FR-2. Header summary
-Shows the format, the resolved window dates (`provenance.window.from` to `provenance.window.to`), total registrations and total players. It states the population in use (`rated`). It attributes the data to Endstep and links to the source page.
+Shows the format, the resolved window dates, total registrations and total players. The dates run from `provenance.window.from` to the last day the window actually covers, which is `provenance.window.to` minus one. See §6.7. It states the population in use (`rated`). It attributes the data to Endstep and links to the source page.
 
 ### FR-3. Deck grid
 The top 24 decks by share, each as a card showing:
@@ -178,6 +178,13 @@ Endstep's data begins **2026-09-05**. A 30-day window returns 30 daily points an
 
 ### 6.6 Win rate is match-level
 `wins` and `losses` count matches, not games. Draws are not represented. Label the figure `match win rate`, not `win rate`.
+
+### 6.7 The window end date is an exclusive bound
+`provenance.window.to` is the day after the last day the window covers. Measured on 2026-10-01, every preset returned `to: 2026-10-02`, and the 30-day window ran from `2026-09-02`, which is 30 days ending 1 October.
+
+Printing `to` as the end date names a day that has not happened, and makes the 1-day window read as three days. Subtract one day before displaying it. The field is still the right one to read, it just is not the last covered day.
+
+Subtracting one day does not make `1d` cover a single day. The API's `1d` preset returns a two-day span, `from` two days before `to`, and the fix takes the label from three days to two. That remainder is upstream behaviour, not a display problem.
 
 ---
 

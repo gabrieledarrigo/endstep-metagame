@@ -264,16 +264,6 @@
         cursor: progress;
       }
 
-      .segmented__option:disabled:hover {
-        background: transparent;
-        color: var(--text-600);
-      }
-
-      .segmented__option[aria-pressed='true']:disabled:hover {
-        background: var(--primary);
-        color: var(--text-inverse);
-      }
-
       .colour-pips {
         display: inline-flex;
         gap: 3px;
@@ -430,7 +420,7 @@
 
       .deck:hover .deck__name {
         text-decoration: underline;
-        text-decoration-thickness: 2px;
+        text-underline-offset: 3px;
       }
 
       .deck__art {
@@ -487,6 +477,8 @@
       }
 
       .deck__stats dt {
+        min-height: 2.6em;
+        line-height: 1.3;
         font-size: 10px;
         font-weight: 600;
         text-transform: uppercase;
@@ -524,35 +516,6 @@
         text-transform: uppercase;
         letter-spacing: 0.08em;
         color: var(--text-400);
-      }
-
-      .gallery {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-      }
-
-      .gallery__label {
-        font-size: 11px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.07em;
-        color: var(--text-400);
-        margin-top: 10px;
-      }
-
-      .gallery__row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 14px;
-        align-items: center;
-      }
-
-      .gallery__states {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-        gap: 14px;
-        margin-top: 14px;
       }
 
       footer {
@@ -640,7 +603,7 @@
 
       .deck-table__cell--rank {
         width: 26px;
-        color: var(--text-400);
+        color: var(--text-600);
         font-variant-numeric: tabular-nums;
       }
     </style>
@@ -787,10 +750,11 @@
         }, [])
 
         const select = useCallback(
-          (next) => {
+          (next, replace) => {
             if (next === value) return
 
-            history.pushState(null, '', timeWindowUrl(next))
+            const write = replace ? history.replaceState : history.pushState
+            write.call(history, null, '', timeWindowUrl(next))
             setValue(next)
           },
           [value]
@@ -902,7 +866,7 @@
         )
       }
 
-      function SegmentedControl({ label, options, value, onChange, disabled, busy }) {
+      function SegmentedControl({ label, options, value, onChange, busy }) {
         return (
           <div className="segmented" role="group" aria-label={label} data-busy={busy || undefined}>
             {options.map((option) => (
@@ -911,7 +875,6 @@
                 type="button"
                 className="segmented__option"
                 aria-pressed={option === value}
-                disabled={disabled}
                 onClick={() => onChange(option)}
               >
                 {option}
@@ -973,7 +936,7 @@
                   <dd>{deck.players.toLocaleString('en-GB')}</dd>
                 </div>
                 <div>
-                  <dt>Win rate</dt>
+                  <dt>Match win rate</dt>
                   <dd>{(deck.matchWinRate.rate * 100).toFixed(1)}%</dd>
                 </div>
               </dl>
@@ -1324,10 +1287,18 @@
         return withYear ? `${head} ${year}` : head
       }
 
-      function formatWindow({ from, to }) {
-        const sameYear = from.slice(0, 4) === to.slice(0, 4)
+      function lastCoveredDay(to) {
+        const day = new Date(`${to}T00:00:00Z`)
+        day.setUTCDate(day.getUTCDate() - 1)
 
-        return `${formatDate(from, !sameYear)} to ${formatDate(to, true)}`
+        return day.toISOString().slice(0, 10)
+      }
+
+      function formatWindow({ from, to }) {
+        const last = lastCoveredDay(to)
+        const sameYear = from.slice(0, 4) === last.slice(0, 4)
+
+        return `${formatDate(from, !sameYear)} to ${formatDate(last, true)}`
       }
 
       function formatPopulation(population) {
@@ -1345,77 +1316,6 @@
             <StatTile label="Window" value={formatWindow(provenance.window)} />
             <StatTile label="Population" value={formatPopulation(provenance.population)} />
           </dl>
-        )
-      }
-
-      function Gallery() {
-        const [selected, setSelected] = useState('30d')
-
-        return (
-          <div className="scaffold">
-            <h2 className="scaffold__title">Temporary gallery, removed once the real sections land</h2>
-
-            <div className="gallery">
-              <span className="gallery__label">Buttons</span>
-              <div className="gallery__row">
-                <Button>Retry</Button>
-                <Button variant="secondary">View on endstep.cc</Button>
-                <Button variant="ghost">Show all 24</Button>
-                <Button disabled>Retry</Button>
-                <Button variant="secondary" disabled>
-                  Disabled
-                </Button>
-              </div>
-
-              <span className="gallery__label">Segmented control</span>
-              <div className="gallery__row">
-                <SegmentedControl
-                  label="Time window"
-                  options={WINDOWS}
-                  value={selected}
-                  onChange={setSelected}
-                />
-              </div>
-
-              <span className="gallery__label">Colour identity</span>
-              <div className="gallery__row">
-                <ColourPips colours={['W']} />
-                <ColourPips colours={['R', 'G']} />
-                <ColourPips colours={['W', 'U', 'B']} />
-                <ColourPips colours={['W', 'U', 'B', 'R', 'G']} />
-                <ColourPips colours={[]} />
-              </div>
-
-              <span className="gallery__label">Stat tiles</span>
-              <dl className="stat-list">
-                <StatTile hero label="Registrations" value="152,638" />
-                <StatTile label="Players" value="6,729" />
-                <StatTile label="Archetypes" value="265" />
-              </dl>
-
-              <span className="gallery__label">Skeletons</span>
-              <div className="gallery__row" aria-busy="true">
-                <Skeleton width="180px" height="17px" />
-                <Skeleton width="90px" height="26px" />
-                <Skeleton width="240px" height="12px" />
-              </div>
-
-              <span className="gallery__label">State panels</span>
-            </div>
-
-            <div className="gallery__states">
-              <StatePanel
-                title="The metagame could not be loaded"
-                detail="Endstep did not respond. The data is cached for five minutes, so a retry usually works."
-                action={<Button>Retry</Button>}
-              />
-              <StatePanel
-                title="No decks in this window"
-                detail="The 1 day window has no registrations yet. Try a longer window."
-                action={<Button variant="secondary">Switch to 7d</Button>}
-              />
-            </div>
-          </div>
         )
       }
 
@@ -1445,7 +1345,7 @@
                 label="Time window"
                 options={WINDOWS}
                 value={timeWindow}
-                onChange={selectTimeWindow}
+                onChange={(next) => selectTimeWindow(next, state.status === 'loading')}
                 busy={state.status === 'loading'}
               />
             </div>
@@ -1467,8 +1367,6 @@
                 <ChartScaffold series={state.series.series} />
               </React.Fragment>
             )}
-
-            <Gallery />
 
             <footer>
               Data from <a href="https://endstep.cc/metagame">endstep.cc</a>. This is not an
