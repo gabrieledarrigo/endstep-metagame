@@ -572,6 +572,7 @@
       }
 
       .share-chart__scroll {
+        position: relative;
         overflow-x: auto;
       }
 
@@ -596,6 +597,7 @@
       }
 
       .deck-table__scroll {
+        position: relative;
         overflow-x: auto;
       }
 
@@ -695,6 +697,12 @@
         font-size: 12px;
       }
 
+      .delta--unchanged {
+        color: var(--text-400);
+        font-weight: 400;
+        font-size: 12px;
+      }
+
       .ranked-bars__title {
         margin: 0 0 16px;
         font-size: 17px;
@@ -702,6 +710,7 @@
       }
 
       .ranked-bars__scroll {
+        position: relative;
         overflow-x: auto;
       }
 
@@ -1029,6 +1038,10 @@
               {NO_CHANGE[change && change.reason] || 'not available'}
             </span>
           )
+        }
+
+        if (points === 0) {
+          return <span className="delta delta--unchanged">no change</span>
         }
 
         const size = Math.abs(points)
