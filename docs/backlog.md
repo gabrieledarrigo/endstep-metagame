@@ -331,6 +331,8 @@ Covers FR-9. E2 produces the error states and E3 builds the panels. This story i
 
 ## H1. Accessibility and responsive pass
 
+> **Dropped.** Closed as not planned (#14). Hobby project. The accessibility work was done per story rather than as a pass; the end-to-end audit is what was skipped.
+
 Covers NFR-6 and NFR-7.
 
 **Tasks**
@@ -347,6 +349,8 @@ Covers NFR-6 and NFR-7.
 ---
 
 ## H2. Performance and budget check
+
+> **Dropped.** Closed as not planned (#15). The NFR-3 budget stays in the requirements as a note rather than a gate.
 
 Covers NFR-3 and NFR-4.
 
@@ -374,7 +378,7 @@ Covers NFR-10 and NFR-5.
 3. Attribution copy in place.
 4. README covering what the app is, where the data comes from, and how to run it.
 
-**Blocked by** H1, H2.
+**Blocked by** nothing. H1 and H2 were dropped.
 
 ---
 
