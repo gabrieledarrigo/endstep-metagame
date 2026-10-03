@@ -24,7 +24,9 @@ The application is read-only. It stores nothing. It has no authentication and no
 | Front end | React 19 and TypeScript, built with Vite. See NFR-1 |
 | Styling | Hand-written CSS, no framework. Light-only theme |
 | Charting | Recharts 3.x from npm |
-| Pages | Overview, deck page, matchup table. History API routing, see §4.5 |
+| Pages | Overview, deck page, matchup table. React Router in declarative mode, see §4.5 |
+| Quality gates | ESLint, Prettier and Vitest with React Testing Library, run by GitHub Actions on every pull request and every push to `main`. See NFR-1 |
+| Release | Vercel deploys from Git. Production waits until CI passes, through Vercel Deployment Checks. See §4.7 |
 | Grid size | Top 24 decks by share. The rest rolls into a single `Other` |
 | Filters exposed | Time window only |
 | Charts on the overview | Share over time, share composition, win rate against share |
@@ -170,7 +172,7 @@ Behaviour:
 
 ### 4.5 Routing
 
-The front end uses the History API. There are three routes.
+The front end uses **React Router 8 in declarative mode**: `BrowserRouter`, `Routes` and `Route`, `Link`, `useNavigate` and `useSearchParams`. No Vite plugin, no loaders, no data mode. It was chosen on the criteria that chose Recharts in NFR-2: it is the most used React router, and declarative mode is its simplest form. There are three routes.
 
 | Path | Page |
 |---|---|
@@ -179,10 +181,10 @@ The front end uses the History API. There are three routes.
 | `/matchups` | Matchup table |
 
 - `vercel.json` rewrites `/decks/:slug` and `/matchups` to `/index.html`. Vercel applies rewrites after it checks for real files, so built assets are not affected.
-- `?window=` belongs to every page and carries across links. See FR-1.
+- `?window=` belongs to every page and carries across links. Pages read and write it with `useSearchParams`. See FR-1.
 - Back and forward work. A route change does not reload the page.
 - Any other path is a Vercel 404.
-- A route change scrolls to the top and moves focus to the new page's main heading, so keyboard and screen reader users know the page changed.
+- A route change scrolls to the top and moves focus to the new page's main heading, so keyboard and screen reader users know the page changed. Declarative mode does not do this, because `ScrollRestoration` exists only in data mode, so the app does it on location change.
 
 ### 4.6 Local development
 
@@ -194,7 +196,9 @@ Vercel runs `npm run build` and serves `dist/`. The functions in `api/` are buil
 
 - `vercel.json` pins `"framework": "vite"`. The project was created with the "Other" preset. Without the pin, Vercel may skip the build and serve the source `index.html`, which renders a blank page.
 - `vercel.json` also carries the proxy rewrite (§4.3) and the page rewrites (§4.5).
-- Only `dist/` is served. Source files, `docs/` and the development files are no longer reachable from the public site, so `.vercelignore` is no longer needed for that.
+- Only `dist/` is served. Source files, `docs/` and the development files are no longer reachable from the public site.
+- Vercel deploys every file in `api/` as a function. `.vercelignore` therefore excludes `api/**/*.spec.ts`, so the specs beside the functions are never deployed.
+- **Production waits for CI.** The project's Deployment Checks require the `ci` job from NFR-1. Vercel still builds every push to `main`, but assigns the production domain only after `ci` passes on that commit. Preview deployments do not wait. The setting lives in the Vercel dashboard, not in `vercel.json`. See open item 6.
 
 ---
 
@@ -349,13 +353,49 @@ The front end is a Vite application in TypeScript with React 19. `npm run build`
 | Dependency | Version |
 |---|---|
 | React, ReactDOM | 19 |
+| React Router | 8, declarative mode |
 | Recharts | 3.10 |
 | Vite | 8 |
 | TypeScript | strict mode |
 
 - TypeScript runs in strict mode. Once the code is TypeScript, a type error fails the build. Until then, the build is `vite build` alone, because `tsc` fails on a project with no TypeScript files.
-- ESLint enforces the brace rule in `AGENTS.md`: `curly: all` requires the braces, and `@stylistic/brace-style` with `allowSingleLine: false` puts the body on its own line. `curly` alone accepts `if (x) { return y }` on one line.
 - The root `tsconfig.json` is read by Vercel's function build. Vite's client types belong in `tsconfig.app.json`. Putting them in the root config breaks the function build.
+
+**Scripts.**
+
+| Script | What it does |
+|---|---|
+| `npm run dev` | Vite with the API plugin, §4.6 |
+| `npm run build` | The type check, then `vite build` |
+| `npm run lint` | ESLint over the repository |
+| `npm run format` | Prettier rewrites every covered file |
+| `npm run format:check` | Prettier checks without writing. CI runs this one |
+| `npm test` | Vitest, one run, no watch mode |
+
+**Lint and format.** ESLint and Prettier are explicit dev dependencies, pinned in the lockfile.
+
+| Tool | Version | Configuration |
+|---|---|---|
+| ESLint | 10 | Flat config. `typescript-eslint` recommended rules, the React Hooks rules, `curly: all`, and `eslint-config-prettier`, so ESLint never disputes a formatting choice |
+| Prettier | 3 | Its defaults. `.prettierignore` excludes `dist/`, `docs/` and the lockfile. The documents in `docs/` are written by hand |
+
+`curly: all` requires the braces. Prettier always puts a block's body on its own line. Together they enforce the brace rule in `AGENTS.md`.
+
+**Tests.** Vitest 5 with React Testing Library 16 and jsdom. Vitest runs on the Vite configuration, so TypeScript, JSX, CSS imports and ES modules need no setup of their own. Its API matches Jest's.
+
+- Every component has a spec file beside it: `components/Card.tsx` and `components/Card.spec.tsx`. A component is any `.tsx` module that exports one.
+- Both functions in `api/` have one too: `api/metagame.spec.ts` and `api/matchups.spec.ts`. They are plain `Request` to `Response` handlers, so a spec calls them directly with `fetch` stubbed.
+- Specs query by role and by visible text, the way a user finds things. No snapshot tests.
+- Specs never call Endstep. Every request is stubbed.
+
+**Continuous integration.** One GitHub Actions workflow, `.github/workflows/ci.yml`.
+
+- It runs on every pull request and on every push to `main`.
+- It has one job, named `ci`. The Deployment Check in §4.7 refers to that name, so renaming the job breaks the release gate.
+- Steps: check out, set up Node 24 with the npm cache, `npm ci`, `npm run format:check`, `npm run lint`, `npm test`, `npm run build`. The first failure stops the job.
+- Branch protection on `main` requires `ci` to pass before a pull request merges.
+
+Every commit that reaches `main` therefore compiles, lints, is formatted, and passes the suite, and only such a commit reaches production.
 
 This replaces the no-build decision of Draft v2. That decision pinned React to 18, because React 19 ships no UMD build, and named Vite as the escape hatch. The owner took it on 2026-10-03, for modules, type checking and room for more pages. A mechanical port of the v2 page to Vite and React 19 rendered every section with live data, and an offline `vercel build` kept the function and the rewrite.
 
@@ -411,7 +451,7 @@ Current versions of Chrome, Firefox, Safari and Edge. No IE, no polyfills.
 No analytics, no cookies, no local storage of personal data, no third-party requests beyond the card-art host.
 
 ### NFR-10. Deployment
-Deployed on Vercel from the Git repository. A Vite build and two serverless functions. No environment variables and no secrets. See §4.7.
+Deployed on Vercel from the Git repository. A Vite build and two serverless functions. No environment variables and no secrets. Production waits until CI passes, §4.7.
 
 ---
 
@@ -433,3 +473,4 @@ Deployed on Vercel from the Git repository. A Vite build and two serverless func
 3. **Series count on the time chart.** Currently the API default of 8. Charting more than 8 of the 24 grid decks is possible by passing deck UUIDs to `share-series`, at no extra request cost.
 4. **Matchup coverage on other windows.** At 30d, every top-24 opponent was inside the first 50 matchup rows. Not yet checked on `1d`, `7d`, `14d` and `season`. §4.4 fills a pair found in one direction only. A pair outside both decks' first 50 rows reads as no data.
 5. **What the toss blocks count.** Endstep presents `playDraw` as game 1 results. Confirm against the numbers before FR-11 labels them.
+6. **Deployment Checks on this plan.** Vercel's documentation does not say which plans offer Deployment Checks. If this project's plan lacks them, the fallback is to turn off Vercel's Git deploys and deploy from the `ci` workflow with the Vercel CLI, which needs a `VERCEL_TOKEN` secret and the project IDs in GitHub.
