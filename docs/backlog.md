@@ -423,7 +423,7 @@ Covers NFR-1, §4.6 and §4.7. The riskiest item in the milestone.
 
 **Tasks**
 
-1. `package.json`, `vite.config.ts`, a root `tsconfig.json` and `tsconfig.app.json` as NFR-1 describes. React 19 and Recharts 3.10 from npm.
+1. `package.json`, `vite.config.ts`, a root `tsconfig.json` and `tsconfig.app.json` as NFR-1 describes. React 19 and Recharts 3.10 from npm. The build script is `vite build` alone, since there is no TypeScript yet.
 2. Move the CSS to one stylesheet and the script to `src/main.jsx`. Change only the imports and the mount call.
 3. Remove the CDN script tags and Babel Standalone.
 4. A Vite plugin that serves `/api/metagame/*` through `api/metagame.ts`, with the same rewrite as `vercel.json`. Delete `dev-server.js`.
@@ -471,7 +471,7 @@ Covers NFR-1.
 
 1. Types for every response in `src/api/types.ts`, from §3.6, §3.7 and the `/decks` and `/share-series` shapes. Include the gated win and loss block from §6.8.
 2. Convert every module to `.ts` or `.tsx`, starting with the data layer.
-3. Strict mode. A type error fails the build.
+3. Strict mode. Add the type check to the build script, so a type error fails the build.
 4. ESLint with `curly: all`.
 5. Fix the `<div>` inside a `<p>` in the deck card skeleton. React's development build reports it.
 
@@ -491,7 +491,7 @@ Covers FR-1, FR-3, FR-4, FR-10 and §4.5.
 
 **Tasks**
 
-1. A router hook of about 30 lines: read `location.pathname`, listen to `popstate`, push on navigation. A `Link` that keeps `?window=`.
+1. A router hook of about 30 lines: read `location.pathname`, listen to `popstate`, push on navigation, and a `replace` for corrected URLs. A `Link` that keeps `?window=`.
 2. Routes for `/`, `/decks/{slug}` and `/matchups`. The two new pages render a placeholder heading.
 3. Rewrites for `/decks/:slug` and `/matchups` in `vercel.json`.
 4. Page header with navigation, `aria-current` and the attribution, on every page.
@@ -514,17 +514,18 @@ Covers §4.4. Server side only, so it runs alongside the refactor.
 
 **Tasks**
 
-1. `api/matchups.ts`: check `window`, fetch the top 24, fetch their matchups in parallel, keep the top-24 cells.
-2. The response shape in §4.4.
-3. Fail the whole request on any upstream failure. 429 returns 429, anything else 502. Timeout per call.
-4. `Cache-Control`, method rules and CORS headers as the proxy.
-5. Check coverage on all five windows, open item 4 in the requirements. Record the result there.
-6. Test the handler under Node 24 with a plain `Request`. The dev plugin comes in E5 and is wired up in S11.
+1. `api/matchups.ts`: accept exactly one `window` and no other parameter, fetch the top 24, fetch their matchups in parallel, keep the top-24 cells.
+2. Fill a pair recorded in one direction only from the other direction, §4.4.
+3. The response shape in §4.4.
+4. Fail the whole request on any upstream failure. 429 returns 429, anything else 502. Timeout per call.
+5. `Cache-Control` by status, method rules and CORS headers as the proxy.
+6. Check coverage on all five windows, open item 4 in the requirements. Record the result there.
+7. Test the handler under Node 24 with a plain `Request`. The dev plugin comes in E5 and is wired up in S11.
 
 **Done when**
 
 - A preview returns 24 decks and a row of cells for each.
-- A bad `window` returns 400 and a `POST` returns 405.
+- A bad `window`, a repeated `window` or an extra parameter returns 400. A `POST` returns 405.
 - A repeat request inside five minutes is an edge cache hit.
 
 **Blocked by** nothing. **Blocks** S11.
@@ -564,9 +565,10 @@ Covers FR-11, §6.8 and §6.11.
 1. Fetch `/{format}/decks/{slug}` through the proxy, keyed by slug and window.
 2. Header, stat tiles, share line, games table, toss and texture, as FR-11 describes.
 3. Gated blocks read as too few to call.
-4. Not-found state for an unknown slug. Replace the URL when `deck.slug` differs.
-5. Loading, error and 429 states.
-6. Confirm what the toss blocks count, open item 5, before labelling them.
+4. Not-found state for an unknown slug. Replace the URL through the router when `deck.slug` differs.
+5. Empty state for a deck with no matches in the window.
+6. Loading, error and 429 states.
+7. Confirm what the toss blocks count, open item 5, before labelling them.
 
 **Done when**
 
@@ -594,12 +596,13 @@ Covers FR-12 and §6.10.
 5. The legend.
 6. Sticky header row and first column, scrolling inside the panel.
 7. Headers link to the deck pages.
-8. Loading, error and 429 states.
+8. The window selector and the resolved window dates.
+9. Loading, error and 429 states. No automatic retry, FR-12.
 
 **Done when**
 
 - A 24 by 24 table renders at 30d.
-- The coloured cells are exactly those whose range excludes 50% in the response.
+- The coloured cells are exactly the cells of clear pairs, as FR-12 defines them.
 - A gated pair reads as too few to call.
 - Keyboard focus on a cell shows its detail.
 - At 360 px the page does not scroll sideways.
@@ -612,6 +615,6 @@ Covers FR-12 and §6.10.
 
 **E5 first, and check a preview.** If Vercel skips the build, it serves the source `index.html` and the site goes blank. The framework pin prevents that. The preview proves it.
 
-**E6 and E7 run alone.** Each touches every file. Running anything else on the front end at the same time conflicts everywhere. E9 and D1 fill the parallel slots, because neither touches `src/`.
+**E6 and E7 run alone.** Each touches every file. Running anything else on the front end at the same time conflicts everywhere. E9 and D1 sit in wave 7 beside E5. Neither touches `src/`, so either can slip into wave 8 or 9 without a conflict.
 
 **E8 gives the stories empty pages.** S10 and S11 then fill a page each and never touch the router, so they can run in parallel.
