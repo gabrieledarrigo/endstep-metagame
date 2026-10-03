@@ -1,14 +1,14 @@
 # Endstep Pauper Metagame Viewer: Requirements
 
-**Status:** Draft v2 · **Date:** 2026-09-25
-**Scope:** the overview page only. The per-deck page is out of scope and will be specified separately.
+**Status:** Draft v3 · **Date:** 2026-10-03
+**Scope:** three pages. The overview, a deck page with its Numbers section, and a matchup table. Other deck page sections are out of scope, see §8.
 **Visual design** is specified in [`design-system.html`](./design-system.html). This document covers structure, content and behaviour.
 
 ---
 
 ## 1. Purpose
 
-A browser application that reads the public Endstep metagame API and shows the **Pauper** metagame on one page. It reports which decks are played, how much of the field each one holds, how they perform, and how that has changed over time.
+A browser application that reads the public Endstep metagame API and shows the **Pauper** metagame. The overview reports which decks are played, how much of the field each one holds, how they perform, and how that has changed over time. A deck page gives one deck's numbers. A matchup table shows how the top decks do against each other.
 
 The application is read-only. It stores nothing. It has no authentication and no user accounts. It is not affiliated with Endstep.
 
@@ -19,16 +19,18 @@ The application is read-only. It stores nothing. It has no authentication and no
 | Area | Decision |
 |---|---|
 | Format coverage | Pauper only |
-| Data access | Vercel serverless proxy. CORS workaround, see §4.1 |
+| Data access | Two Vercel functions: a proxy and a matchup aggregator. CORS workaround, see §4.1 |
 | Cache policy | 5 minutes at the edge, with stale-while-revalidate |
-| Front end | React via CDN and in-browser Babel. **No build step** |
+| Front end | React 19 and TypeScript, built with Vite. See NFR-1 |
 | Styling | Hand-written CSS, no framework. Light-only theme |
-| Charting | Recharts 3.x via its UMD build |
+| Charting | Recharts 3.x from npm |
+| Pages | Overview, deck page, matchup table. History API routing, see §4.5 |
 | Grid size | Top 24 decks by share. The rest rolls into a single `Other` |
 | Filters exposed | Time window only |
-| Charts on page 1 | Share over time, share composition, win rate against share |
-| Matchup matrix | **Excluded** from page 1. Deferred to the per-deck page |
-| Per-deck page | Deferred |
+| Charts on the overview | Share over time, share composition, win rate against share |
+| Deck page | Numbers section only. Matchups list, card usage, sample list and ratings are deferred |
+| Deck links | Our deck page. It links to the same deck on endstep.cc |
+| Matchup table | Its own page. Top 24 decks. Colour only where the range excludes 50% |
 
 ---
 
@@ -42,10 +44,12 @@ Base URL: `https://endstep.cc/api/metagame/v1`. All endpoints are public and req
 |---|---|---|
 | `/{format}/decks` | Deck list with share, players, win rate | `window`, `population`, `sort`, `dir`, `page`, `pageSize` |
 | `/{format}/share-series` | Daily share per deck | `window`, `population` |
+| `/{format}/decks/{slug}` | One deck: its row, games, toss, texture, daily share. See §3.6 | `window`, `population` |
+| `/{format}/decks/{slug}/matchups` | One deck's results against each opponent. Called by the matchup function, not the browser. See §3.7 | `window`, `population`, `sort`, `dir`, `pageSize` |
 
-### 3.2 Endpoints available but not used on page 1
+### 3.2 Endpoints available but not used
 
-`/formats`, `/visibility`, `/{format}/decks/{slug}`, `/{format}/decks/{slug}/matchups`, `/{format}/decks/{slug}/cards`, `/{format}/decks/{slug}/ratings`. These are reserved for the per-deck page.
+`/formats`, `/visibility`, `/{format}/decks/{slug}/cards`, `/{format}/decks/{slug}/ratings`. The last two are reserved for the deferred deck page sections.
 
 ### 3.3 Parameter vocabulary
 
@@ -53,10 +57,10 @@ Extracted from the Endstep client bundle. These are the authoritative values, no
 
 - **`window`**: `1d`, `7d`, `14d`, `30d`, `season`. Default `30d`.
 - **`population`**: `rated`, `casual`. This application uses `rated` throughout and does not expose the choice.
-- **`ratingBand`**: `q1` to `q4`, plus the ranges `q1-q2`, `q2-q3`, `q3-q4`, `q1-q3`, `q2-q4`. `q1-q4` is not a valid value. Not used on page 1.
-- **`minMatches`**: `0`, `20`, `50`, `100`. Not used on page 1, see §6.4.
-- **`sort`**: `share`, `players`, `winRate`, `shareChange`, `name`.
-- **`pageSize`**: **maximum 50**. Larger values return HTTP 400.
+- **`ratingBand`**: `q1` to `q4`, plus the ranges `q1-q2`, `q2-q3`, `q3-q4`, `q1-q3`, `q2-q4`. `q1-q4` is not a valid value. Not used. Endstep itself never passes it to the deck endpoints.
+- **`minMatches`**: `0`, `20`, `50`, `100`. Not used, see §6.4.
+- **`sort`**: `share`, `players`, `winRate`, `shareChange`, `name` on `/decks`. `matches`, `winRate`, `name` on `/matchups`, where `share` returns 400.
+- **`pageSize`**: **maximum 50**. Larger values return HTTP 400. Default 25.
 - **`decks`** (share-series only): comma-separated deck **UUIDs**, not slugs. When omitted, the API returns the top 8 series.
 - **`v`**: cache-buster. The value is the `dataVersion` string from `/visibility`.
 
@@ -73,13 +77,37 @@ Measured 2026-09-20 against Pauper, `window=30d`, `population=rated`.
 | Property | Value |
 |---|---|
 | Direct API latency | ~60 ms |
-| Rate limit | 300 requests per window, per IP. `x-ratelimit-*` headers are returned |
+| Rate limit | 300 requests per 60 seconds, per IP. `x-ratelimit-*` headers are returned. Window length measured 2026-10-03 |
 | Upstream cache header | `public, max-age=60, stale-while-revalidate=300` |
 | Archetypes in Pauper | 264 |
 | Registrations / players | 89,314 / 5,117 |
 | Sum of all archetype shares | 94.1%. The rest is unclassified, see §6.1 |
 | Machine-named archetypes | 230 of 264 |
 | Earliest data | 2026-09-05 |
+
+### 3.6 Deck detail
+
+Measured 2026-10-03. About 9.7 KB, 2.7 KB compressed. It honours `window` and `population` and ignores `ratingBand`.
+
+Every win and loss figure in this endpoint and in `/matchups` uses one block: `{wins, losses, required, gate, rate, low, high, deff}`. `required` is 20. Below 20 decided matches, `gate` is `"too_few"` and `rate`, `low`, `high` and `deff` are null. See §6.8.
+
+| Field | Contents | Used by |
+|---|---|---|
+| `deck` | The same object as a `/decks` row, including `art`, `colours`, `share`, `players`, `matchWinRate`, `shareChange` | FR-11 |
+| `gameResults` | `rows[3]` for games 1 to 3, each with `onPlay`, `onDraw` and `total` blocks, plus a `total` row and `unknownPositionGames`. Endstep's client treats it as nullable | FR-11 |
+| `games` | `game1`, `game2AfterWin`, `game2AfterLoss`, `game3` blocks | FR-11 |
+| `playDraw` | `tossWon`, `tossLost`, `onPlay`, `onDraw` blocks, and `choseToDraw {count, of, rate}` | FR-11 |
+| `texture` | `averageTurns`, `averageOpeningHand`, `mulliganRate {count, of, rate}` | FR-11 |
+| `shareSeries` | `points[{day, registrations, totalRegistrations, rate}]` for this deck only. Share only, no win rate history | FR-11 |
+| `sampleList`, `cardTableWithheld` | Sample decklist and its withheld states | Deferred |
+
+A UUID in place of the slug returns 404 `{"error": "Unknown deck"}`. A stale slug with the right 8-character suffix returns 307 with `canonicalSlug`. See §6.11.
+
+### 3.7 Matchups
+
+Measured 2026-10-03. About 15 KB at `pageSize=50`. Each row is a win and loss block plus `matches` and `opponent {id, slug, name, machineNamed}`. Opponents carry no colours and no art. The response also has `neverMet`, the count of archetypes never faced. The mirror is not listed.
+
+There is **no endpoint for a format-wide matrix**. Endstep's own client shows matchups only as a list on each deck's page. A 24 by 24 table therefore costs 24 calls. At 30d, every top-24 opponent of every top-24 deck was inside the first 50 rows sorted by `matches`.
 
 ---
 
@@ -93,29 +121,82 @@ Public CORS proxies were tested on 2026-09-20 and rejected. All six failed. allo
 
 ### 4.2 Components
 
-1. **`index.html`**. The whole application in one file: markup, CSS, and React components transpiled in the browser by Babel Standalone. Deployed as a Vercel static asset.
-2. **`/api/metagame/[...path].js`**. A Vercel serverless function. It forwards `GET` requests to `https://endstep.cc/api/metagame/v1/...`, preserves the query string, and returns the upstream body with CORS headers.
+1. **The front end**. A Vite application in `src/`, built to `dist/` on Vercel. It serves all three pages from one `index.html`.
+2. **`api/metagame.ts`**. The proxy. It forwards `GET` requests to `https://endstep.cc/api/metagame/v1/...`, keeps the allow-listed query parameters, and returns the upstream body with CORS headers.
+3. **`api/matchups.ts`**. The matchup aggregator. It builds the top-24 matrix on the server and returns it in one response. See §4.4. It is a separate function so the proxy stays a pass-through.
 
 ### 4.3 Proxy behaviour
 
+- The endpoint path reaches the function through the rewrite in `vercel.json`, as the `path` query parameter: `/api/metagame/Pauper/decks` becomes `/api/metagame?path=Pauper/decks`.
 - Accepts `GET` and `HEAD` only. Every other method returns 405.
 - **Allow-lists** the upstream path prefix, so the function cannot be used as an open proxy to arbitrary hosts.
 - Sets `Cache-Control: public, s-maxage=300, stale-while-revalidate=600`. The Vercel edge then serves repeat requests without calling Endstep.
 - Passes upstream non-2xx status codes through unchanged, so the client can tell a rate limit from a server error.
 - Sends no cookies, credentials or client identifying headers upstream.
 
-### 4.4 What deploys
+### 4.4 Matchup function
 
-Zero-config. Vercel serves the repository root statically and treats `api/` as serverless functions, so there is no `vercel.json`.
+`GET /api/matchups?window=30d`. `window` is the only parameter, checked against the five values in §3.3. The format is Pauper and the population is `rated`, both fixed.
 
-`.vercelignore` keeps `dev-server.js`, `AGENTS.md`, `CLAUDE.md` and `.claude/` out of the deployment. They are development files and would otherwise be fetchable from the public site. The deployed set is `index.html`, the proxy function, `docs/` and `README.md`.
+1. Fetch the top 24 decks: `/Pauper/decks?window=…&population=rated&sort=share&dir=desc&pageSize=24`.
+2. Fetch `/Pauper/decks/{slug}/matchups?window=…&population=rated&sort=matches&dir=desc&pageSize=50` for each of the 24, in parallel.
+3. Keep only the rows whose opponent is one of the 24. Drop everything else.
+
+Response:
+
+```
+{
+  window: { from, to },
+  decks: [{ id, slug, name, colours, share }],
+  cells: { [rowSlug]: { [columnSlug]: { wins, losses, matches, rate, low, high, gate } } }
+}
+```
+
+- `window` is `provenance.window` from step 1, unchanged. §6.7 applies when it is displayed.
+- `decks` is in share order. `share` is `share.rate`.
+- `cells[a][b]` is deck `a`'s record against deck `b`. A pair absent from `a`'s first 50 rows has no entry. The mirror has no entry.
+- About 30 KB uncompressed.
+
+Behaviour:
+
+- One cold build costs 25 upstream calls. The response carries the same `Cache-Control` as the proxy, so the edge holds one entry per window.
+- If any upstream call fails, the whole request fails. No partial matrix. An upstream 429 returns 429. Anything else returns 502.
+- Each upstream call has the same 8 second timeout as the proxy.
+- Same method rules and CORS headers as the proxy.
+
+### 4.5 Routing
+
+The front end uses the History API. There are three routes.
+
+| Path | Page |
+|---|---|
+| `/` | Overview |
+| `/decks/{slug}` | Deck page |
+| `/matchups` | Matchup table |
+
+- `vercel.json` rewrites `/decks/:slug` and `/matchups` to `/index.html`. Vercel applies rewrites after it checks for real files, so built assets are not affected.
+- `?window=` belongs to every page and carries across links. See FR-1.
+- Back and forward work. A route change does not reload the page.
+- Any other path is a Vercel 404.
+
+### 4.6 Local development
+
+`npm run dev` starts Vite. A small Vite plugin serves `/api/metagame/*` and `/api/matchups` by calling the real handlers, and applies the same rewrite as `vercel.json`. It replaces `dev-server.js`, which is deleted. Vite's dev server already falls back to `index.html` for the page routes.
+
+### 4.7 What deploys
+
+Vercel runs `npm run build` and serves `dist/`. The functions in `api/` are built from source as before.
+
+- `vercel.json` pins `"framework": "vite"`. The project was created with the "Other" preset. Without the pin, Vercel may skip the build and serve the source `index.html`, which renders a blank page.
+- `vercel.json` also carries the proxy rewrite (§4.3) and the page rewrites (§4.5).
+- Only `dist/` is served. Source files, `docs/` and the development files are no longer reachable from the public site, so `.vercelignore` is no longer needed for that.
 
 ---
 
 ## 5. Functional requirements
 
 ### FR-1. Window selector
-The page offers the five windows (`1d`, `7d`, `14d`, `30d`, `season`) and defaults to `30d`. Changing the window refetches and re-renders every section. The selected window is written to the URL query string, so a view can be linked and reloaded.
+Every page offers the five windows (`1d`, `7d`, `14d`, `30d`, `season`) and defaults to `30d`. Changing the window refetches and re-renders every section. The selected window is written to the URL query string and carries across links between pages, so a view can be linked and reloaded.
 
 ### FR-2. Header summary
 Shows the format, the resolved window dates, total registrations and total players. The dates run from `provenance.window.from` to the last day the window actually covers, which is `provenance.window.to` minus one. See §6.7. It states the population in use (`rated`). It attributes the data to Endstep and links to the source page.
@@ -131,12 +212,12 @@ The top 24 decks by share, each as a card showing:
 - **match win rate** as a percentage
 - the three key cards from `keyCards`
 
-Each card links to the per-deck view. That page does not exist yet, so for now cards link to the matching page on endstep.cc and open in a new tab.
+Each card links to the deck's page, FR-11.
 
 ### FR-4. Deck table
 The same 24 decks in tabular form: rank, name, colours, share, players, matches, win rate, share change. Columns sort client-side. Numbers use consistent precision: share and win rate to one decimal place, counts as integers with thousands separators.
 
-The table is a peer of the grid, not a replacement. Both are visible on the page.
+The table is a peer of the grid, not a replacement. Both are visible on the page. Each deck name links to the deck's page, FR-11.
 
 ### FR-5. Share over time
 A multi-series line chart of daily meta share. It uses the API's default top 8 series. Each series toggles from the legend. The x-axis covers the full date range of the window.
@@ -157,7 +238,46 @@ All markers use **one hue**. A scatter invites comparison between any two points
 Where `shareChange.points` is present, the grid and table show the movement against the previous window, with its direction. Where it is `null`, the UI states that no comparison is available. It must not show a zero or a blank. See §6.3.
 
 ### FR-9. Loading, error and empty states
-Every data-backed section has its own loading state. A failed fetch shows a readable error and a retry control. HTTP 429 is reported as a rate limit, not as a generic failure. A window that returns no decks renders an empty state rather than a broken chart.
+Every data-backed section has its own loading state. A failed fetch shows a readable error and a retry control. HTTP 429 is reported as a rate limit, not as a generic failure. A window that returns no decks renders an empty state rather than a broken chart. This applies on every page.
+
+### FR-10. Navigation
+Every page has a header with links to the overview and the matchup table. The current page is marked with `aria-current`. Every page carries the attribution required by NFR-5.
+
+Deck names link to `/decks/{slug}` wherever a deck is listed: grid cards, table rows, matrix headers. Links keep the current `?window=`.
+
+### FR-11. Deck page: Numbers
+One call to `/{format}/decks/{slug}` feeds the whole page. See §3.6.
+
+**Header.** Deck name, colour pips, key card art and the three key cards. The window selector and the resolved window dates (§6.7). A link to the same deck on endstep.cc, in a new tab.
+
+**Stat tiles.** Meta share, players, matches, match win rate with its range, and share change under the rules of FR-8.
+
+**Share over time.** One line, from `shareSeries.points`. Days with `rate: null` are a gap, as in FR-5.
+
+**Games.** A table from `gameResults`. Rows are game 1, game 2, game 3 and all games. Columns are on the play, on the draw and total. Each cell shows a game win rate, with its range and decided count on hover. A note under the table gives `unknownPositionGames`. Two more rows come from `games`: game 2 after winning game 1, and game 2 after losing it. If `gameResults` is null, the table shows the unavailable state.
+
+**Toss.** Win rate after winning the toss and after losing it, from `playDraw.tossWon` and `tossLost`. How often players chose to draw, from `choseToDraw`. Endstep presents these as game 1 results, open item 5.
+
+**Texture.** Average turns, average opening hand, mulligan rate.
+
+Figures in the games and toss sections count games, not matches. Label them game win rate, never match win rate. See §6.6.
+
+A gated block renders as too few to call, never as a zero or a blank. See §6.8.
+
+An unknown slug shows a not-found state with a link to the overview. A stale slug resolves to the current deck, and the page replaces the URL with `deck.slug`. See §6.11.
+
+### FR-12. Matchup table
+A page with one table: the top 24 decks by share, against each other. One call to `/api/matchups`, §4.4.
+
+- Rows and columns are the same 24 decks in share order. A cell is the row deck's match win rate against the column deck, as a whole percentage. The table reads by row.
+- **Colour only clear results.** A cell whose range excludes 50% gets the diverging colour for its side of 50%. Every other cell stays neutral and still shows its number. Clear cells also use a heavier weight, so colour is never the only cue. Measured 2026-10-03 at 30d, 97 of 275 cells qualify. See §6.10.
+- A gated cell shows no number. It reads as too few to call, with the decided count against the 20 required on hover. See §6.8.
+- A pair with no entry reads as no data. The diagonal is the mirror. It is muted and labelled for assistive technology.
+- Hover or keyboard focus on a cell shows both deck names, the match win rate to one decimal place, the range, wins, losses and matches.
+- A legend states the colour rule in words.
+- Row and column headers link to the deck pages, FR-10.
+- The header row and the first column stay in view while the table scrolls inside its panel. The page itself does not scroll sideways, NFR-7.
+- The page has the window selector and the resolved window dates.
 
 ---
 
@@ -192,24 +312,41 @@ Printing `to` as the end date names a day that has not happened, and makes the 1
 
 Subtracting one day does not make `1d` cover a single day. The API's `1d` preset returns a two-day span, `from` two days before `to`, and the fix takes the label from three days to two. That remainder is upstream behaviour, not a display problem.
 
+### 6.8 Win rates below 20 decided matches are gated
+Every win and loss block carries `required: 20`. Below that, `gate` is `"too_few"` and `rate`, `low`, `high` and `deff` are null, while `wins` and `losses` are still present. Show it as too few to call, with the count against the 20 required. A null rate plotted or printed as 0% is a false statement.
+
+No top-24 deck is gated at deck level today. The smallest on `1d` had 95 decided matches, measured 2026-10-03. Matchup cells and game splits are gated more often: one top-24 pair was gated at 30d.
+
+### 6.9 Matchup rows do not add up to the deck total
+Measured 2026-10-03: Izzet Control's matchup rows sum to 1,976 matches against a deck total of 2,122. The mirror is not listed, and the gap splits 90 wins to 56 losses, so it is not only the mirror. It is most likely matches against unclassified decks. Do not present a matchup row as a share of the deck's matches, and do not derive a deck's win rate from its rows.
+
+### 6.10 Most matchup cells are within noise
+Measured 2026-10-03 at 30d for the top 24: the median pair has 152 matches. 90 of 276 pairs have fewer than 100 and 25 have fewer than 50. The median range is 19 points wide, and 97 of 275 ungated cells have a range that excludes 50%. Colouring every cell by its rate would mostly display noise. That is why FR-12 colours only clear results.
+
+The two directions of a pair agree exactly: equal match counts, wins and losses swapped, rates adding to 1. The ranges differ slightly, because each direction uses its own deck's `deff`.
+
+### 6.11 Slugs change
+A deck's slug is a name part and an 8-character suffix, such as `affinity-e93f5f74`. Any name part with the right suffix, such as `renamed-e93f5f74`, returns 307 with `canonicalSlug`. The proxy's `fetch` follows the redirect, so the page receives the current deck. Verified through the production proxy on 2026-10-03. A deck page linked under an old name therefore still loads, and FR-11 corrects the URL.
+
 ---
 
 ## 7. Non-functional requirements
 
-### NFR-1. Single-file delivery, no build step
-The application is one `index.html` file with all markup, styles and logic. Every dependency loads from jsDelivr at a pinned version, with Subresource Integrity. There is no npm install, no bundler and no transpile step. The file must be editable in a text editor.
+### NFR-1. Build and toolchain
+The front end is a Vite application in TypeScript with React 19. `npm run build` type-checks it and bundles it into `dist/`. `package-lock.json` pins every dependency.
 
-| Dependency | Version | Global |
-|---|---|---|
-| React | 18.3.1 | `React` |
-| ReactDOM | 18.3.1 | `ReactDOM` |
-| react-is | 18.3.1 | `ReactIs` |
-| Recharts | 3.10.1 | `Recharts` |
-| Babel Standalone | 7.29.9 | n/a |
+| Dependency | Version |
+|---|---|
+| React, ReactDOM | 19 |
+| Recharts | 3.10 |
+| Vite | 8 |
+| TypeScript | strict mode |
 
-**React is pinned to 18, not 19, and this is forced.** React 19 ships no UMD build: `react@19/umd/*` returns 404. A no-build page cannot load it from a script tag. React 18.3.1 is the last version with UMD builds, and Recharts 3 supports it. Its peer range is `^16.8 || ^17 || ^18 || ^19`. Changing this means dropping either NFR-1 or the UMD approach in favour of ES modules and an import map.
+- TypeScript runs in strict mode. A type error fails the build.
+- ESLint enforces the brace rule in `AGENTS.md` with `curly: all`.
+- The root `tsconfig.json` is read by Vercel's function build. Vite's client types belong in `tsconfig.app.json`. Putting them in the root config breaks the function build.
 
-Accepted trade-off: JSX is transpiled in the browser, which delays first paint and gives no type checking. If that becomes unacceptable, the escape hatch is a Vite build that inlines to one file. Write the component code so that migration needs no rewrite. That change would also remove Babel's 544 KB from the payload.
+This replaces the no-build decision of Draft v2. That decision pinned React to 18, because React 19 ships no UMD build, and named Vite as the escape hatch. The owner took it on 2026-10-03, for modules, type checking and room for more pages. A mechanical port of the v2 page to Vite and React 19 rendered every section with live data, and an offline `vercel build` kept the function and the rewrite.
 
 ### NFR-1a. Design language
 Colour, typography and the chart palette are specified in [`design-system.html`](./design-system.html), which is the authority for every token. In summary: a light-only theme on `#f9f9f7`, `system-ui` as the single typeface so no font is fetched and NFR-9 holds, `#1c5cab` for links and primary buttons at 6.46:1, and an eight-hue categorical palette validated for colour-vision deficiency against our own surface.
@@ -217,7 +354,7 @@ Colour, typography and the chart palette are specified in [`design-system.html`]
 Three of the eight series hues fall below 3:1 against the surface. That triggers the relief rule: the chart must ship visible labels or a table view. FR-4's deck table covers this, and the line chart also labels its series ends. Do not drop either without re-checking the palette.
 
 ### NFR-2. Charting library: Recharts
-Charts use **Recharts 3.10.1**, loaded from its UMD build. Two criteria decided the choice: simplicity and popularity.
+Charts use **Recharts 3.10**, installed from npm. Two criteria decided the choice: simplicity and popularity. The comparison below was made under the no-build constraint of Draft v2. The move to a build removes the UMD argument against the others, and the simplicity argument still stands.
 
 **Popularity.** Recharts is the most downloaded charting library on npm, about 4.8 times Chart.js and 11 times ECharts.
 
@@ -229,25 +366,20 @@ Charts use **Recharts 3.10.1**, loaded from its UMD build. Two criteria decided 
 | ApexCharts | 1.6 M | 267 KB | Imperative wrapper required |
 | Observable Plot | 0.5 M | 69 KB plus 92 KB d3 | Imperative wrapper required |
 
-**Simplicity.** Recharts is the only candidate that is a React library rather than a JavaScript library with a React adapter. Charts are written as JSX, for example `<LineChart><Line/><XAxis/></LineChart>`. There are no refs, no lifecycle management, no `update()` or `destroy()` calls, and no wrapper component to write. Every other option needs that wrapper, because their React bindings ship no UMD build and cannot be used under NFR-1. Chart.js is half the size, but the saving is paid for in imperative code, which works against the stated criterion.
+**Simplicity.** Recharts is the only candidate that is a React library rather than a JavaScript library with a React adapter. Charts are written as JSX, for example `<LineChart><Line/><XAxis/></LineChart>`. There are no refs, no lifecycle management, no `update()` or `destroy()` calls, and no wrapper component to write. Chart.js is half the size, but the saving is paid for in imperative code, which works against the stated criterion.
 
 Recharts renders SVG rather than canvas, so chart content stays in the DOM. That helps NFR-6.
 
-**Verified, not assumed.** Recharts 3.10.1 ships `umd/Recharts.js`. Its UMD wrapper resolves three globals: `React`, `ReactDOM` and `ReactIs`. The full chain of React 18.3.1, ReactDOM 18.3.1, react-is 18.3.1 and Recharts 3.10.1 was loaded and exposed all sixteen components this application needs: `LineChart`, `Line`, `BarChart`, `Bar`, `LabelList`, `Cell`, `ScatterChart`, `Scatter`, `ZAxis`, `XAxis`, `YAxis`, `CartesianGrid`, `Tooltip`, `Legend`, `ReferenceLine`, `ResponsiveContainer`. Note the `react-is` dependency. It is 0.9 KB, and omitting it breaks the bundle at load time.
-
-Recharts covers all three charts on page 1: `LineChart` for FR-5, a horizontal `BarChart` with `LabelList` for FR-6, and `ScatterChart` with `ZAxis` for the bubble sizing in FR-7.
-
-**Cost in context.** Recharts adds 150 KB. Babel Standalone adds 544 KB, which is 3.6 times as much. The dominant cost of this page is the no-build decision in NFR-1, not the charting library. Trading Recharts for Chart.js would save 80 KB and would not address the real cost.
+Recharts covers the overview's three charts: `LineChart` for FR-5, a horizontal `BarChart` with `LabelList` for FR-6, and `ScatterChart` with `ZAxis` for the bubble sizing in FR-7. The deck page's share line in FR-11 is a `LineChart`. The matchup table in FR-12 is an HTML table, not a chart.
 
 ### NFR-3. Performance
 - Page interactive within 3 seconds on a normal broadband connection.
-- Initial render requires exactly **two** API calls: `decks` at `pageSize=24`, and `share-series`.
-- Total script payload is about **743 KB** brotli-compressed: Babel 544, Recharts 150, ReactDOM 44, React 4.4, react-is 0.9. This is the budget. Anything that pushes it materially higher has to be justified against the Vite escape hatch in NFR-1.
-- Scripts load with `defer`, so parsing does not block the initial paint.
+- Initial render API calls: exactly **two** on the overview, `decks` at `pageSize=24` and `share-series`. **One** on the deck page. **One** on the matchup table.
+- Script payload is a reference, not a gate. Draft v2 shipped about 743 KB brotli, 544 KB of it Babel Standalone. The mechanical Vite port measured 156 KB of script and 2 KB of CSS, brotli, on 2026-10-03.
 - Card art is lazy-loaded with `loading="lazy"` and sized to prevent layout shift.
 
 ### NFR-4. Respecting the upstream service
-The application must not put meaningful load on Endstep. Edge caching (§4.3) means repeat visits and repeated window switches cost no upstream requests. The client must not poll. It must not retry more than twice. It must back off on 429. Total upstream traffic should stay well below the 300-per-window limit.
+The application must not put meaningful load on Endstep. Edge caching (§4.3) means repeat visits and repeated window switches cost no upstream requests. The client must not poll. It must not retry more than twice. It must back off on 429. Total upstream traffic should stay well below the limit of 300 per 60 seconds. The matchup function costs 25 upstream calls per cold window, so warming all five windows costs 125.
 
 ### NFR-5. Attribution
 The page states that the data comes from Endstep and links to `https://endstep.cc/metagame`. It does not present itself as an official Endstep product.
@@ -265,16 +397,17 @@ Usable from 360 px to wide desktop. The table scrolls horizontally rather than r
 Current versions of Chrome, Firefox, Safari and Edge. No IE, no polyfills.
 
 ### NFR-9. Privacy
-No analytics, no cookies, no local storage of personal data, no third-party requests beyond the pinned CDN and the card-art host.
+No analytics, no cookies, no local storage of personal data, no third-party requests beyond the card-art host.
 
 ### NFR-10. Deployment
-Deployed on Vercel from the Git repository. One static asset and one serverless function. No environment variables and no secrets. See §4.4 for what is excluded.
+Deployed on Vercel from the Git repository. A Vite build and two serverless functions. No environment variables and no secrets. See §4.7.
 
 ---
 
 ## 8. Out of scope
 
-- The per-deck page, and with it the matchup matrix, card-usage table, rating distribution, play/draw splits and sample decklists.
+- Deck page sections beyond Numbers: the matchups list, card usage, the rating distribution and the sample decklist.
+- A matchup table beyond the top 24 decks.
 - Formats other than Pauper.
 - The `casual` population and rating-band filtering.
 - Deck search, `minMatches` filtering, and pagination beyond the top 24.
@@ -284,6 +417,8 @@ Deployed on Vercel from the Git repository. One static asset and one serverless 
 
 ## 9. Open items
 
-1. **Deck card link target.** Assumed to be endstep.cc in a new tab until the per-deck page exists. Confirm.
+1. ~~Deck card link target.~~ Settled: our deck page, which links to endstep.cc. FR-10.
 2. ~~Share composition chart form.~~ Settled: ranked horizontal bars, FR-6.
 3. **Series count on the time chart.** Currently the API default of 8. Charting more than 8 of the 24 grid decks is possible by passing deck UUIDs to `share-series`, at no extra request cost.
+4. **Matchup coverage on other windows.** At 30d, every top-24 opponent was inside the first 50 matchup rows. Not yet checked on `1d`, `7d`, `14d` and `season`. A pair outside them reads as no data, §4.4.
+5. **What the toss blocks count.** Endstep presents `playDraw` as game 1 results. Confirm against the numbers before FR-11 labels them.
