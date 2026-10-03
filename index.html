@@ -1476,7 +1476,9 @@
 
         let free = 0
         unplaced.forEach((key) => {
-          while (taken.has(free)) free += 1
+          while (taken.has(free)) {
+            free += 1
+          }
           taken.add(free)
           seriesSlots.set(key, free)
         })
@@ -1963,7 +1965,9 @@
 
       function axisTicks(min, max, step) {
         const ticks = []
-        for (let tick = min; tick <= max; tick += step) ticks.push(tick)
+        for (let tick = min; tick <= max; tick += step) {
+          ticks.push(tick)
+        }
         return ticks
       }
 

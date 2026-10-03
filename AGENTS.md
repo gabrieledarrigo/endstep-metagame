@@ -8,7 +8,7 @@ Write simple, readable code. Prefer the clean solution over the clever one.
 
 - Do not overengineer. Solve the problem in front of you, not the one you imagine next.
 - Keep abstractions few. Do not add a layer until there are two real callers.
-- Every `if` and `else` has braces, with its body on its own line. This includes a single `return`.
+- Every `if`, `else`, `for` and `while` has braces, with its body on its own line. This includes a single `return`.
 - No inline comments explaining what the code does. If a line needs a comment to be understood, rewrite the line.
 - Comments are for the rare case where the reason is not visible in the code, such as a workaround for an external API.
 
