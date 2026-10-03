@@ -42,6 +42,16 @@ function isAllowed(segments) {
   )
 }
 
+function pathSegments(value) {
+  const joined = Array.isArray(value) ? value.join('/') : value || ''
+
+  try {
+    return joined.split('/').filter(Boolean).map(decodeURIComponent)
+  } catch {
+    return []
+  }
+}
+
 function forwardedQuery(query) {
   const params = new URLSearchParams()
 
@@ -76,7 +86,7 @@ module.exports = async function handler(req, res) {
   }
 
   const query = req.query || {}
-  const segments = [].concat(query.path || [])
+  const segments = pathSegments(query.path)
 
   if (!isAllowed(segments)) {
     return res.status(400).json({ error: 'Unsupported metagame path' })

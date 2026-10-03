@@ -94,7 +94,7 @@ Public CORS proxies were tested on 2026-09-20 and rejected. All six failed. allo
 ### 4.2 Components
 
 1. **`index.html`**. The whole application in one file: markup, CSS, and React components transpiled in the browser by Babel Standalone. Deployed as a Vercel static asset.
-2. **`/api/metagame/[...path].js`**. A Vercel serverless function. It forwards `GET` requests to `https://endstep.cc/api/metagame/v1/...`, preserves the query string, and returns the upstream body with CORS headers.
+2. **`/api/metagame.js`**. A Vercel serverless function. It forwards `GET` requests to `https://endstep.cc/api/metagame/v1/...`, preserves the query string, and returns the upstream body with CORS headers.
 
 ### 4.3 Proxy behaviour
 
@@ -106,7 +106,17 @@ Public CORS proxies were tested on 2026-09-20 and rejected. All six failed. allo
 
 ### 4.4 What deploys
 
-Zero-config. Vercel serves the repository root statically and treats `api/` as serverless functions, so there is no `vercel.json`.
+Vercel serves the repository root statically and treats `api/` as serverless functions.
+
+`vercel.json` carries one rewrite, and it is required:
+
+```json
+{ "source": "/api/metagame/:path*", "destination": "/api/metagame?path=:path*" }
+```
+
+The original design used a catch-all filename, `api/metagame/[...path].js`, and read the segments from `req.query.path`. **That does not work on Vercel.** Measured against the live deployment on 2026-10-03: a single segment such as `/api/metagame/formats` reached the function but with an empty `req.query.path`, and anything with two or more segments returned 404 without reaching the function at all. The catch-all matched one segment and did not bind the parameter name.
+
+The rewrite removes the ambiguity: every path under `/api/metagame/` goes to one fixed function with the remainder in `?path=`, and the original query string is preserved alongside it.
 
 `.vercelignore` keeps `dev-server.js`, `AGENTS.md`, `CLAUDE.md` and `.claude/` out of the deployment. They are development files and would otherwise be fetchable from the public site. The deployed set is `index.html`, the proxy function, `docs/` and `README.md`.
 

@@ -2,7 +2,7 @@ const http = require('node:http')
 const { readFile } = require('node:fs/promises')
 const { join } = require('node:path')
 
-const proxy = require('./api/metagame/[...path].js')
+const proxy = require('./api/metagame.js')
 
 const PORT = Number.parseInt(process.env.PORT, 10) || 3000
 const HOST = '127.0.0.1'
@@ -26,20 +26,13 @@ function asVercelResponse(res) {
   return res
 }
 
-function segmentsOf(pathname) {
-  try {
-    return pathname.slice(PREFIX.length).split('/').filter(Boolean).map(decodeURIComponent)
-  } catch {
-    return []
-  }
-}
 
 async function handle(req, res) {
   const url = new URL(req.url, `http://${HOST}`)
 
   if (url.pathname.startsWith(PREFIX)) {
     req.query = Object.fromEntries(url.searchParams)
-    req.query.path = segmentsOf(url.pathname)
+    req.query.path = url.pathname.slice(PREFIX.length)
 
     res.on('finish', () => console.log(`${res.statusCode} ${req.method} ${req.url}`))
     return proxy(req, asVercelResponse(res))
