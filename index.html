@@ -421,6 +421,10 @@
         animation: pulse 1.5s ease-in-out infinite;
       }
 
+      .skeleton--end {
+        margin-left: auto;
+      }
+
       @keyframes pulse {
         0%,
         100% {
@@ -546,6 +550,12 @@
       }
 
       .deck__keys {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        overflow: hidden;
+        min-height: 2.9em;
         margin: auto 0 0;
         font-size: 12px;
         line-height: 1.45;
@@ -661,6 +671,7 @@
       }
 
       .deck-table__cell--deck {
+        white-space: nowrap;
         text-align: left;
         font-weight: 600;
       }
@@ -783,7 +794,8 @@
         if (status === 429) {
           return {
             kind: 'rateLimit',
-            message: 'Too many requests reached Endstep. The data is cached for five minutes, so this usually clears on its own.',
+            message:
+              "Endstep's rate limit was reached. The data is cached for five minutes, so a retry usually works.",
           }
         }
         if (status === 502 || status === 504) {
@@ -883,7 +895,30 @@
         return [value, select]
       }
 
-      function useMetagame(timeWindow) {
+      function fetchDecks(timeWindow, signal) {
+        return getJson(
+          `${FORMAT}/decks`,
+          {
+            window: timeWindow,
+            population: POPULATION,
+            sort: 'share',
+            dir: 'desc',
+            page: 1,
+            pageSize: PAGE_SIZE,
+          },
+          signal
+        )
+      }
+
+      function fetchSeries(timeWindow, signal) {
+        return getJson(
+          `${FORMAT}/share-series`,
+          { window: timeWindow, population: POPULATION },
+          signal
+        )
+      }
+
+      function useResource(load, timeWindow) {
         const [state, setState] = useState({ status: 'loading' })
         const [reloads, setReloads] = useState(0)
 
@@ -891,37 +926,19 @@
           const controller = new AbortController()
           setState({ status: 'loading' })
 
-          Promise.all([
-            getJson(
-              `${FORMAT}/decks`,
-              {
-                window: timeWindow,
-                population: POPULATION,
-                sort: 'share',
-                dir: 'desc',
-                page: 1,
-                pageSize: PAGE_SIZE,
-              },
-              controller.signal
-            ),
-            getJson(
-              `${FORMAT}/share-series`,
-              { window: timeWindow, population: POPULATION },
-              controller.signal
-            ),
-          ])
-            .then(([decks, series]) => setState({ status: 'ready', decks, series }))
+          load(timeWindow, controller.signal)
+            .then((data) => setState({ status: 'ready', data }))
             .catch((error) => {
               if (error.name === 'AbortError') return
               setState({ status: 'error', error })
             })
 
           return () => controller.abort()
-        }, [timeWindow, reloads])
+        }, [load, timeWindow, reloads])
 
-        const reload = useCallback(() => setReloads((count) => count + 1), [])
+        const retry = useCallback(() => setReloads((count) => count + 1), [])
 
-        return [state, reload]
+        return [state, retry]
       }
 
       const PIP_FILL = {
@@ -1013,8 +1030,14 @@
         )
       }
 
-      function Skeleton({ width, height }) {
-        return <div className="skeleton" style={{ width, height }} aria-hidden="true" />
+      function Skeleton({ className, width, height }) {
+        return (
+          <div
+            className={['skeleton', className].filter(Boolean).join(' ')}
+            style={{ width, height }}
+            aria-hidden="true"
+          />
+        )
       }
 
       function artSource(cardName) {
@@ -1117,6 +1140,55 @@
         )
       }
 
+      function DeckCardSkeleton() {
+        return (
+          <div className="deck">
+            <div className="skeleton deck__art" />
+            <div className="deck__body">
+              <div className="deck__top">
+                <h3 className="deck__name">
+                  <Skeleton width={140} height="1.3em" />
+                </h3>
+                <Skeleton width={57} height={17} />
+              </div>
+              <dl className="deck__stats">
+                {[0, 1, 2].map((index) => (
+                  <div key={index}>
+                    <dt>
+                      <Skeleton width="100%" height="2.6em" />
+                    </dt>
+                    <dd>
+                      <Skeleton width="76%" height="1.6em" />
+                    </dd>
+                  </div>
+                ))}
+                <div className="deck__change">
+                  <dt>
+                    <Skeleton width={72} height="1.3em" />
+                  </dt>
+                  <dd>
+                    <Skeleton width={86} height="1.6em" />
+                  </dd>
+                </div>
+              </dl>
+              <p className="deck__keys">
+                <Skeleton width="92%" height="2.9em" />
+              </p>
+            </div>
+          </div>
+        )
+      }
+
+      function DeckGridSkeleton() {
+        return (
+          <div className="deck-grid" aria-busy="true">
+            {Array.from({ length: PAGE_SIZE }, (ignored, index) => (
+              <DeckCardSkeleton key={index} />
+            ))}
+          </div>
+        )
+      }
+
       function StatePanel({ title, detail, action, busy }) {
         return (
           <div className="state-panel" aria-busy={busy || undefined}>
@@ -1124,6 +1196,44 @@
             {detail && <p className="state-panel__detail">{detail}</p>}
             {action}
           </div>
+        )
+      }
+
+      function Section({ state, skeleton, title, onRetry, children }) {
+        if (state.status === 'loading') return skeleton
+
+        if (state.status === 'error') {
+          return (
+            <StatePanel
+              title={title}
+              detail={state.error.message}
+              action={<Button onClick={onRetry}>Retry</Button>}
+            />
+          )
+        }
+
+        return children(state.data)
+      }
+
+      function EmptyWindow({ timeWindow, onSelect }) {
+        const longer = WINDOWS[WINDOWS.indexOf(timeWindow) + 1]
+
+        return (
+          <StatePanel
+            title="No decks in this window"
+            detail={
+              longer
+                ? `The ${timeWindow} window has no registrations yet. Try a longer window.`
+                : `The ${timeWindow} window has no registrations yet.`
+            }
+            action={
+              longer && (
+                <Button variant="secondary" onClick={() => onSelect(longer)}>
+                  Switch to {longer}
+                </Button>
+              )
+            }
+          />
         )
       }
 
@@ -1181,6 +1291,8 @@
 
       function DeckTable({ decks }) {
         const [sort, setSort] = useState({ key: 'share', direction: 'descending' })
+
+        if (decks.length === 0) return null
 
         const onSort = (key) =>
           setSort((current) => {
@@ -1251,6 +1363,65 @@
                     <td className="deck-table__cell deck-table__cell--numeric">
                       <ShareChange change={deck.shareChange} />
                     </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Panel>
+        )
+      }
+
+      const DECK_TABLE_COLUMNS = [
+        { label: '', width: 18 },
+        { label: 'Deck', width: 150 },
+        { label: 'Colours', width: 57 },
+        { label: 'Share', width: 44, numeric: true },
+        { label: 'Players', width: 40, numeric: true },
+        { label: 'Matches', width: 48, numeric: true },
+        { label: 'Match win rate', width: 44, numeric: true },
+        { label: 'Change', width: 52, numeric: true },
+      ]
+
+      function DeckTableSkeleton() {
+        return (
+          <Panel className="deck-table__scroll" aria-busy="true">
+            <table className="deck-table">
+              <thead>
+                <tr>
+                  {DECK_TABLE_COLUMNS.map((column) => (
+                    <th
+                      key={column.label}
+                      scope="col"
+                      className={
+                        column.numeric
+                          ? 'deck-table__header deck-table__header--numeric'
+                          : 'deck-table__header'
+                      }
+                    >
+                      {column.label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {Array.from({ length: PAGE_SIZE }, (ignored, row) => (
+                  <tr key={row}>
+                    {DECK_TABLE_COLUMNS.map((column) => (
+                      <td
+                        key={column.label}
+                        className={
+                          column.numeric
+                            ? 'deck-table__cell deck-table__cell--numeric'
+                            : 'deck-table__cell'
+                        }
+                      >
+                        <Skeleton
+                          className={column.numeric ? 'skeleton--end' : undefined}
+                          width={column.width}
+                          height={23.4}
+                        />
+                      </td>
+                    ))}
                   </tr>
                 ))}
               </tbody>
@@ -1453,8 +1624,32 @@
         )
       }
 
+      const SHARE_LEGEND_WIDTHS = [72, 124, 102, 54, 92, 86, 106, 96]
+
+      function ShareOverTimeSkeleton() {
+        return (
+          <section className="chart-section" aria-busy="true">
+            <h2 className="chart-section__title">Share over time</h2>
+
+            <Panel className="share-chart">
+              <div className="share-chart__scroll">
+                <div className="skeleton chart-frame" style={{ aspectRatio: '2.9' }} />
+              </div>
+
+              <div className="chart-legend">
+                {SHARE_LEGEND_WIDTHS.map((width) => (
+                  <Skeleton key={width} width={width} height={20.8} />
+                ))}
+              </div>
+            </Panel>
+          </section>
+        )
+      }
+
       function ShareOverTime({ series }) {
         const [hidden, setHidden] = useState(() => new Set())
+
+        if (series.length === 0) return null
 
         const colours = seriesColours(series.map((item) => item.deck.id))
         const rows = shareRows(series)
@@ -1555,10 +1750,25 @@
         ]
       }
 
+      const RANKED_BARS_NOTE =
+        'Other is a residual, not a deck. It covers every archetype outside the top 24 and the registrations Endstep did not classify.'
+
+      function RankedBarsSkeleton() {
+        return (
+          <section className="panel" aria-busy="true">
+            <h2 className="ranked-bars__title">Meta share by deck</h2>
+
+            <div className="ranked-bars__scroll">
+              <div className="skeleton chart-frame" style={{ height: 660 }} />
+            </div>
+
+            <p className="ranked-bars__note">{RANKED_BARS_NOTE}</p>
+          </section>
+        )
+      }
+
       function RankedBars({ decks }) {
-        if (decks.items.length === 0) {
-          return <StatePanel title="No decks" detail="This window returned no decks." />
-        }
+        if (decks.items.length === 0) return null
 
         const bars = shareBars(decks)
         const axisMax = Math.ceil(Math.max(...bars.map((bar) => bar.share)) / 5) * 5
@@ -1611,10 +1821,7 @@
               </ChartFrame>
             </div>
 
-            <p className="ranked-bars__note">
-              Other is a residual, not a deck. It covers every archetype outside the top 24 and the
-              registrations Endstep did not classify.
-            </p>
+            <p className="ranked-bars__note">{RANKED_BARS_NOTE}</p>
           </section>
         )
       }
@@ -1720,6 +1927,20 @@
         return ticks
       }
 
+      const WIN_RATE_NOTE =
+        'Bubble area is player count. Decks above the line win more than half their matches. The tooltip carries the confidence bounds, and small gaps between decks sit inside them.'
+
+      function WinRateScatterSkeleton() {
+        return (
+          <Panel className="chart-section" aria-busy="true">
+            <h2 className="chart-section__title">Win rate against share</h2>
+            <p className="chart-section__note">{WIN_RATE_NOTE}</p>
+
+            <div className="skeleton chart-frame" style={{ aspectRatio: '2.4' }} />
+          </Panel>
+        )
+      }
+
       function WinRateScatter({ decks }) {
         if (decks.length === 0) return null
 
@@ -1733,10 +1954,7 @@
         return (
           <Panel className="chart-section">
             <h2 className="chart-section__title">Win rate against share</h2>
-            <p className="chart-section__note">
-              Bubble area is player count. Decks above the line win more than half their matches. The
-              tooltip carries the confidence bounds, and small gaps between decks sit inside them.
-            </p>
+            <p className="chart-section__note">{WIN_RATE_NOTE}</p>
 
             <ChartFrame aspect={2.4}>
               <ScatterChart
@@ -1835,6 +2053,34 @@
         return population.charAt(0).toUpperCase() + population.slice(1)
       }
 
+      const SUMMARY_TILES = [
+        { label: 'Registrations', value: 177 },
+        { label: 'Players', value: 40 },
+        { label: 'Archetypes', value: 26 },
+        { label: 'Window', value: 167 },
+        { label: 'Population', value: 42 },
+      ]
+
+      function SummarySkeleton() {
+        return (
+          <Panel aria-busy="true">
+            <dl className="stat-list">
+              {SUMMARY_TILES.map((tile, index) => (
+                <div
+                  key={index}
+                  className={index === 0 ? 'stat-tile stat-tile--hero' : 'stat-tile'}
+                >
+                  <dt className="stat-tile__label">{tile.label}</dt>
+                  <dd className="stat-tile__value">
+                    <Skeleton width={tile.value} height={index === 0 ? '1.05em' : '1.6em'} />
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </Panel>
+        )
+      }
+
       function Summary({ decks }) {
         const { provenance, totals } = decks
 
@@ -1849,19 +2095,12 @@
         )
       }
 
-      function Failed({ error, onRetry }) {
-        return (
-          <StatePanel
-            title="The metagame could not be loaded"
-            detail={error.message}
-            action={<Button onClick={onRetry}>Retry</Button>}
-          />
-        )
-      }
-
       function App() {
         const [timeWindow, selectTimeWindow] = useTimeWindow()
-        const [state, reload] = useMetagame(timeWindow)
+        const [decks, retryDecks] = useResource(fetchDecks, timeWindow)
+        const [series, retrySeries] = useResource(fetchSeries, timeWindow)
+
+        const loading = decks.status === 'loading' || series.status === 'loading'
 
         return (
           <div className="page">
@@ -1875,30 +2114,78 @@
                 label="Time window"
                 options={WINDOWS}
                 value={timeWindow}
-                onChange={(next) => selectTimeWindow(next, state.status === 'loading')}
-                busy={state.status === 'loading'}
+                onChange={(next) => selectTimeWindow(next, loading)}
+                busy={loading}
               />
             </div>
 
-            <div role="status" aria-live="polite">
-              {state.status === 'loading' && (
-                <StatePanel busy title="Loading" detail={`Fetching the ${timeWindow} window.`} />
-              )}
-              {state.status === 'error' && <Failed error={state.error} onRetry={reload} />}
-            </div>
+            <p className="visually-hidden" role="status">
+              {loading ? `Loading the ${timeWindow} window.` : ''}
+            </p>
 
-            {state.status === 'ready' && (
-              <React.Fragment>
+            <Section
+              state={decks}
+              skeleton={<SummarySkeleton />}
+              title="The summary could not be loaded"
+              onRetry={retryDecks}
+            >
+              {(data) => (
                 <Panel>
-                  <Summary decks={state.decks} />
+                  <Summary decks={data} />
                 </Panel>
-                <DeckGrid decks={state.decks.decks.items} />
-                <DeckTable decks={state.decks.decks.items} />
-                <ShareOverTime series={state.series.series} />
-                <RankedBars decks={state.decks.decks} />
-                <WinRateScatter decks={state.decks.decks.items} />
-              </React.Fragment>
-            )}
+              )}
+            </Section>
+
+            <Section
+              state={decks}
+              skeleton={<DeckGridSkeleton />}
+              title="The deck grid could not be loaded"
+              onRetry={retryDecks}
+            >
+              {(data) =>
+                data.decks.items.length === 0 ? (
+                  <EmptyWindow timeWindow={timeWindow} onSelect={selectTimeWindow} />
+                ) : (
+                  <DeckGrid decks={data.decks.items} />
+                )
+              }
+            </Section>
+
+            <Section
+              state={decks}
+              skeleton={<DeckTableSkeleton />}
+              title="The deck table could not be loaded"
+              onRetry={retryDecks}
+            >
+              {(data) => <DeckTable decks={data.decks.items} />}
+            </Section>
+
+            <Section
+              state={series}
+              skeleton={<ShareOverTimeSkeleton />}
+              title="Share over time could not be loaded"
+              onRetry={retrySeries}
+            >
+              {(data) => <ShareOverTime series={data.series} />}
+            </Section>
+
+            <Section
+              state={decks}
+              skeleton={<RankedBarsSkeleton />}
+              title="Meta share by deck could not be loaded"
+              onRetry={retryDecks}
+            >
+              {(data) => <RankedBars decks={data.decks} />}
+            </Section>
+
+            <Section
+              state={decks}
+              skeleton={<WinRateScatterSkeleton />}
+              title="Win rate against share could not be loaded"
+              onRetry={retryDecks}
+            >
+              {(data) => <WinRateScatter decks={data.decks.items} />}
+            </Section>
 
             <footer>
               Data from <a href="https://endstep.cc/metagame">endstep.cc</a>. This is not an
