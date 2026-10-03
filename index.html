@@ -834,7 +834,9 @@
           try {
             response = await fetch(url, { signal })
           } catch (error) {
-            if (error.name === 'AbortError') throw error
+            if (error.name === 'AbortError') {
+              throw error
+            }
             if (attempt === MAX_RETRIES) {
               throw Object.assign(new Error('The server could not be reached.'), { kind: 'network' })
             }
@@ -846,7 +848,9 @@
             try {
               return await response.json()
             } catch (error) {
-              if (error.name === 'AbortError') throw error
+              if (error.name === 'AbortError') {
+                throw error
+              }
               throw Object.assign(new Error('The server returned a malformed response.'), {
                 kind: 'malformed',
               })
@@ -883,7 +887,9 @@
 
         const select = useCallback(
           (next, replace) => {
-            if (next === value) return
+            if (next === value) {
+              return
+            }
 
             const write = replace ? history.replaceState : history.pushState
             write.call(history, null, '', timeWindowUrl(next))
@@ -929,7 +935,9 @@
           load(timeWindow, controller.signal)
             .then((data) => setState({ status: 'ready', data }))
             .catch((error) => {
-              if (error.name === 'AbortError') return
+              if (error.name === 'AbortError') {
+                return
+              }
               setState({ status: 'error', error })
             })
 
@@ -1200,7 +1208,9 @@
       }
 
       function Section({ state, skeleton, title, onRetry, children }) {
-        if (state.status === 'loading') return skeleton
+        if (state.status === 'loading') {
+          return skeleton
+        }
 
         if (state.status === 'error') {
           return (
@@ -1292,7 +1302,9 @@
       function DeckTable({ decks }) {
         const [sort, setSort] = useState({ key: 'share', direction: 'descending' })
 
-        if (decks.length === 0) return null
+        if (decks.length === 0) {
+          return null
+        }
 
         const onSort = (key) =>
           setSort((current) => {
@@ -1455,8 +1467,11 @@
 
         keys.forEach((key) => {
           const slot = seriesSlots.get(key)
-          if (slot === undefined || taken.has(slot)) unplaced.push(key)
-          else taken.add(slot)
+          if (slot === undefined || taken.has(slot)) {
+            unplaced.push(key)
+          } else {
+            taken.add(slot)
+          }
         })
 
         let free = 0
@@ -1480,10 +1495,14 @@
       }
 
       function ChartTooltip({ active, payload, label, formatLabel = String, formatValue = String }) {
-        if (!active || !payload) return null
+        if (!active || !payload) {
+          return null
+        }
 
         const rows = payload.filter((row) => row.value !== null && row.value !== undefined)
-        if (rows.length === 0) return null
+        if (rows.length === 0) {
+          return null
+        }
 
         rows.sort((a, b) => b.value - a.value)
 
@@ -1565,7 +1584,9 @@
 
       function seriesEnd(item) {
         const last = item.points.findLast((point) => point.rate !== null)
-        if (!last) return null
+        if (!last) {
+          return null
+        }
 
         return { key: item.deck.id, name: item.deck.name, day: last.day, share: last.rate * 100 }
       }
@@ -1580,7 +1601,11 @@
         })
 
         const overflow = previous - bottom
-        if (overflow > 0) placed.forEach((end) => (end.labelY -= overflow))
+        if (overflow > 0) {
+          placed.forEach((end) => {
+            end.labelY -= overflow
+          })
+        }
 
         return placed
       }
@@ -1590,7 +1615,9 @@
         const yScale = useYAxisScale()
         const plot = usePlotArea()
 
-        if (!xScale || !yScale || !plot) return null
+        if (!xScale || !yScale || !plot) {
+          return null
+        }
 
         const centre = xScale.bandwidth ? xScale.bandwidth() / 2 : 0
         const placed = stackEnds(
@@ -1649,7 +1676,9 @@
       function ShareOverTime({ series }) {
         const [hidden, setHidden] = useState(() => new Set())
 
-        if (series.length === 0) return null
+        if (series.length === 0) {
+          return null
+        }
 
         const colours = seriesColours(series.map((item) => item.deck.id))
         const rows = shareRows(series)
@@ -1662,8 +1691,11 @@
         const toggle = (key) =>
           setHidden((current) => {
             const next = new Set(current)
-            if (next.has(key)) next.delete(key)
-            else next.add(key)
+            if (next.has(key)) {
+              next.delete(key)
+            } else {
+              next.add(key)
+            }
             return next
           })
 
@@ -1738,7 +1770,9 @@
         }))
 
         const other = 100 - bars.reduce((sum, bar) => sum + bar.share, 0)
-        if (other < 0.01) return bars
+        if (other < 0.01) {
+          return bars
+        }
 
         return [
           ...bars,
@@ -1768,7 +1802,9 @@
       }
 
       function RankedBars({ decks }) {
-        if (decks.items.length === 0) return null
+        if (decks.items.length === 0) {
+          return null
+        }
 
         const bars = shareBars(decks)
         const axisMax = Math.ceil(Math.max(...bars.map((bar) => bar.share)) / 5) * 5
@@ -1860,7 +1896,9 @@
               Math.abs(other.winRate - point.winRate) / spanY < LABEL_GAP_Y
             )
           })
-          if (!crowded) kept.push(point)
+          if (!crowded) {
+            kept.push(point)
+          }
         })
 
         return new Set(kept.map((point) => point.id))
@@ -1892,7 +1930,9 @@
       const winRateText = (value) => `${value.toFixed(1)}%`
 
       function WinRateTooltip({ active, payload }) {
-        if (!active || !payload || payload.length === 0) return null
+        if (!active || !payload || payload.length === 0) {
+          return null
+        }
 
         const point = payload[0].payload
 
@@ -1942,7 +1982,9 @@
       }
 
       function WinRateScatter({ decks }) {
-        if (decks.length === 0) return null
+        if (decks.length === 0) {
+          return null
+        }
 
         const points = winRatePoints(decks)
         const rates = points.map((point) => point.winRate)

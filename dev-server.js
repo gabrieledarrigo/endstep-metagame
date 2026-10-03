@@ -57,7 +57,9 @@ async function handle(req, res) {
 const server = http.createServer((req, res) => {
   handle(req, res).catch((error) => {
     console.error(error)
-    if (!res.headersSent) res.statusCode = 500
+    if (!res.headersSent) {
+      res.statusCode = 500
+    }
     res.end()
   })
 })
