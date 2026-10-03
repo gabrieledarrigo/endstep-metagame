@@ -534,6 +534,17 @@
         font-variant-numeric: tabular-nums;
       }
 
+      .deck__stats .deck__change {
+        grid-column: 1 / -1;
+        flex-direction: row;
+        align-items: baseline;
+        gap: 6px;
+      }
+
+      .deck__stats .deck__change dt {
+        min-height: 0;
+      }
+
       .deck__keys {
         margin: auto 0 0;
         font-size: 12px;
@@ -561,6 +572,7 @@
       }
 
       .share-chart__scroll {
+        position: relative;
         overflow-x: auto;
       }
 
@@ -585,6 +597,7 @@
       }
 
       .deck-table__scroll {
+        position: relative;
         overflow-x: auto;
       }
 
@@ -663,6 +676,33 @@
         font-variant-numeric: tabular-nums;
       }
 
+      .delta {
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
+        font-size: 13px;
+        white-space: nowrap;
+      }
+
+      .delta--up {
+        color: var(--up);
+      }
+
+      .delta--down {
+        color: var(--down);
+      }
+
+      .delta--unavailable {
+        color: var(--text-400);
+        font-weight: 400;
+        font-size: 12px;
+      }
+
+      .delta--unchanged {
+        color: var(--text-400);
+        font-weight: 400;
+        font-size: 12px;
+      }
+
       .ranked-bars__title {
         margin: 0 0 16px;
         font-size: 17px;
@@ -670,6 +710,7 @@
       }
 
       .ranked-bars__scroll {
+        position: relative;
         overflow-x: auto;
       }
 
@@ -983,6 +1024,38 @@
         })}`
       }
 
+      const NO_CHANGE = {
+        previous_window_empty: 'no earlier data',
+        no_previous_window: 'no earlier window',
+      }
+
+      function ShareChange({ change }) {
+        const points = change && change.points
+
+        if (typeof points !== 'number') {
+          return (
+            <span className="delta delta--unavailable">
+              {NO_CHANGE[change && change.reason] || 'not available'}
+            </span>
+          )
+        }
+
+        if (points === 0) {
+          return <span className="delta delta--unchanged">no change</span>
+        }
+
+        const size = Math.abs(points)
+
+        return (
+          <span className={points < 0 ? 'delta delta--down' : 'delta delta--up'}>
+            <span role="img" aria-label={points < 0 ? 'down' : 'up'}>
+              {points < 0 ? '\u25bc' : '\u25b2'}
+            </span>{' '}
+            {size < 0.005 ? '<0.01' : size.toFixed(2)} pts
+          </span>
+        )
+      }
+
       function DeckCard({ deck }) {
         return (
           <a
@@ -1017,6 +1090,12 @@
                 <div>
                   <dt>Match win rate</dt>
                   <dd>{(deck.matchWinRate.rate * 100).toFixed(1)}%</dd>
+                </div>
+                <div className="deck__change">
+                  <dt>Share change</dt>
+                  <dd>
+                    <ShareChange change={deck.shareChange} />
+                  </dd>
                 </div>
               </dl>
               <p className="deck__keys">{deck.keyCards.join(' · ')}</p>
@@ -1169,7 +1248,9 @@
                     <td className="deck-table__cell deck-table__cell--numeric">
                       {percent(deck.matchWinRate.rate)}
                     </td>
-                    <td className="deck-table__cell deck-table__cell--numeric" />
+                    <td className="deck-table__cell deck-table__cell--numeric">
+                      <ShareChange change={deck.shareChange} />
+                    </td>
                   </tr>
                 ))}
               </tbody>
