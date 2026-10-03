@@ -274,10 +274,11 @@ A deck with no matches in the selected window shows the empty state from FR-9, w
 An unknown slug shows a not-found state with a link to the overview. That covers both a 404 from Endstep and a 400 from the proxy for a slug it rejects, and neither offers a retry. A stale slug resolves to the current deck, and the page replaces the URL with `deck.slug` through the router, so back and forward stay correct. The data is keyed by slug, so the replacement costs one more fetch. Stale links are rare, and that is accepted. See §6.11.
 
 ### FR-12. Matchup table
-A page with one table: the top 24 decks by share, against each other. One call to `/api/matchups`, §4.4.
+A page with one table: the top 24 decks by share, against each other. One call to `/api/matchups`, §4.4. The design system's Matchup table section is the visual specification.
 
 - Rows and columns are the same 24 decks in share order. A cell is the row deck's match win rate against the column deck, as a whole percentage. The table reads by row.
-- **Colour only clear results.** A pair is clear when it has at least one range and every range present for it excludes 50%. Both cells of a clear pair get the diverging colour for their side of 50%. Every other cell stays neutral and still shows its number. Clear cells also use a heavier weight, so colour is never the only cue. Measured 2026-10-03 at 30d, 96 pairs qualify, 192 cells. See §6.10.
+- Row headers are the deck names. Column headers are the same names in full, rotated. Neither carries a rank number.
+- **Colour only clear results.** A pair is clear when it has at least one range and every range present for it excludes 50%. Both cells of a clear pair get the colour for their side of 50%: one shade of blue when the row deck is favoured, one shade of red when it is not. There is no intensity scale, because the number already carries the size. Every other cell stays neutral and still shows its number. Clear cells also use a heavier weight, so colour is never the only cue. Measured 2026-10-03 at 30d, 96 pairs qualify, 192 cells. See §6.10.
 - A gated cell shows no number. It reads as too few to call, with the decided count against the 20 required on hover. See §6.8.
 - A pair with no entry reads as no data. The diagonal is the mirror. It is muted and labelled for assistive technology.
 - Hover or keyboard focus on a cell shows both deck names, the match win rate to one decimal place, the range, wins, losses and matches.
@@ -285,7 +286,8 @@ A page with one table: the top 24 decks by share, against each other. One call t
 - The page does not retry `/api/matchups` on its own. A failed build already cost up to 25 upstream calls. The retry control is the only retry.
 - A legend states the colour rule in words.
 - Row and column headers link to the deck pages, FR-10.
-- The header row and the first column stay in view while the table scrolls inside its panel. The page itself does not scroll sideways, NFR-7.
+- The table sits in a full-width band that breaks out of the page column, centred, with no fixed height and no scrollbar. The header row stays at the top of the window while the page scrolls past the table.
+- Where the window is narrower than the table, about 1,010px, the band scrolls sideways and the first column stays in view. The page itself does not scroll sideways, NFR-7.
 - The page has the window selector and the resolved window dates.
 
 ---

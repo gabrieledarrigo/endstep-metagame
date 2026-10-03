@@ -412,7 +412,7 @@ Eight items. Five enablers, one design item, two user stories. The refactor come
 E5 vite ──► E6 modules ──► E7 typescript ──► E8 routing ─┬─► S10 deck page
                                                           └─► S11 matchup table
 E9 matchup function ──────────────────────────────────────────► S11
-D1 design ──► E8, S10, S11
+D1 design ──► E8, S10
 ```
 
 ---
@@ -534,25 +534,24 @@ Covers §4.4. Server side only, so it runs alongside the refactor.
 
 ---
 
-## D1. Design the deck page and the matchup table
+## D1. Design the deck page and the page header
 
-Covers the appearance of FR-10, FR-11 and FR-12. Changes `docs/design-system.html` only.
+Covers the appearance of FR-10 and FR-11. Changes `docs/design-system.html` only. The matchup table for FR-12 was designed with the owner on 2026-10-03 and is already in the design system.
 
 **Tasks**
 
 1. Page header with navigation.
-2. Deck page layout: header with art, stat tiles, share line, games table, toss, texture.
-3. A gated value, "too few to call", for tiles and table cells.
-4. Matchup table: the six cell states (clear above 50%, clear below, neutral, gated, no data, mirror), the diverging colours, the heavier weight for clear cells, sticky headers, column headers for 24 deck names, the hover detail and the legend.
-5. Check the new colours for contrast and colour-vision deficiency against the surface.
-6. Republish the artifact.
+2. Deck page layout: header with art, stat tiles, share line with its details table, games table, toss, texture.
+3. A gated value, "too few to call", for tiles and table cells. Reuse the hatch from the matchup table where it fits.
+4. Check any new colour for contrast and colour-vision deficiency against the surface.
+5. Republish the artifact.
 
 **Done when**
 
-- Every state in FR-11 and FR-12 has a specimen.
+- Every state in FR-10 and FR-11 has a specimen.
 - Every new colour has its contrast figure.
 
-**Blocked by** nothing. **Blocks** E8, S10, S11.
+**Blocked by** nothing. **Blocks** E8, S10.
 
 ---
 
@@ -596,7 +595,7 @@ Covers FR-12 and §6.10.
 3. The table and its cell states, as FR-12 describes.
 4. Detail on hover and on keyboard focus. One tab stop for the table, with arrow keys between cells, FR-12.
 5. The legend.
-6. Sticky header row and first column, scrolling inside the panel.
+6. The full-width band with no scrollbar, the header row that stays in view, and the sideways scroll below the table's width, as the design system shows.
 7. Headers link to the deck pages.
 8. The window selector and the resolved window dates.
 9. Loading, error and 429 states. No automatic retry, FR-12.
@@ -607,9 +606,9 @@ Covers FR-12 and §6.10.
 - The coloured cells are exactly the cells of clear pairs, as FR-12 defines them.
 - A gated pair reads as too few to call.
 - Tab enters the table once, arrow keys move between cells, and focus on a cell shows its detail.
-- At 360 px the page does not scroll sideways.
+- At 1280 px the table has no scrollbar. At 360 px the page does not scroll sideways.
 
-**Blocked by** E8, E9, D1. **Blocks** nothing.
+**Blocked by** E8, E9. **Blocks** nothing.
 
 ---
 
