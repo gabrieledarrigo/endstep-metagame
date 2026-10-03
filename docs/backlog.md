@@ -412,7 +412,7 @@ Eight items. Five enablers, one design item, two user stories. The refactor come
 E5 vite ──► E6 modules ──► E7 typescript ──► E8 routing ─┬─► S10 deck page
                                                           └─► S11 matchup table
 E9 matchup function ──────────────────────────────────────────► S11
-D1 design ──► S10, S11
+D1 design ──► E8, S10, S11
 ```
 
 ---
@@ -426,7 +426,7 @@ Covers NFR-1, §4.6 and §4.7. The riskiest item in the milestone.
 1. `package.json`, `vite.config.ts`, a root `tsconfig.json` and `tsconfig.app.json` as NFR-1 describes. React 19 and Recharts 3.10 from npm. The build script is `vite build` alone, since there is no TypeScript yet.
 2. Move the CSS to one stylesheet and the script to `src/main.jsx`. Change only the imports and the mount call.
 3. Remove the CDN script tags and Babel Standalone.
-4. A Vite plugin that serves `/api/metagame/*` through `api/metagame.ts`, with the same rewrite as `vercel.json`. Delete `dev-server.js`.
+4. A Vite plugin that serves `/api/metagame/*` through `api/metagame.ts`, with the same rewrite as `vercel.json` and a 5-minute memory cache for successful responses, §4.6. Delete `dev-server.js`.
 5. Pin `"framework": "vite"` in `vercel.json`. Keep the proxy rewrite.
 6. Remove `.vercelignore`, since only `dist/` is served.
 7. Deploy a preview and check it before opening the pull request.
@@ -497,6 +497,7 @@ Covers FR-1, FR-3, FR-4, FR-10 and §4.5.
 4. Page header with navigation, `aria-current` and the attribution, on every page.
 5. Deck cards and table rows link to `/decks/{slug}`.
 6. One window state shared by every page.
+7. On a route change, scroll to the top and move focus to the page's main heading.
 
 **Done when**
 
@@ -504,7 +505,7 @@ Covers FR-1, FR-3, FR-4, FR-10 and §4.5.
 - Back returns to the overview without a reload.
 - Reloading `/decks/affinity-e93f5f74` and `/matchups` on a Vercel preview loads the page.
 
-**Blocked by** E7. **Blocks** S10, S11.
+**Blocked by** E7, D1. D1 designs the page header. **Blocks** S10, S11.
 
 ---
 
@@ -514,18 +515,19 @@ Covers §4.4. Server side only, so it runs alongside the refactor.
 
 **Tasks**
 
-1. `api/matchups.ts`: accept exactly one `window` and no other parameter, fetch the top 24, fetch their matchups in parallel, keep the top-24 cells.
-2. Fill a pair recorded in one direction only from the other direction, §4.4.
+1. `api/matchups.ts`: accept only the exact query strings in §4.4, fetch the top 24, fetch their matchups in parallel, keep the top-24 cells.
+2. Fill a pair recorded in one direction only from the other direction, §4.4. A gated record gives a gated fill.
 3. The response shape in §4.4.
 4. Fail the whole request on any upstream failure. 429 returns 429, anything else 502. Timeout per call.
-5. `Cache-Control` by status, method rules and CORS headers as the proxy.
-6. Check coverage on all five windows, open item 4 in the requirements. Record the result there.
-7. Test the handler under Node 24 with a plain `Request`. The dev plugin comes in E5 and is wired up in S11.
+5. `Cache-Control` by status, method rules and CORS headers as the proxy. A 429 is held for 60 seconds, not 10.
+6. Put code shared with the proxy in `api/_shared.ts`. Vercel does not deploy a file in `api/` whose name starts with an underscore.
+7. Check coverage on all five windows, open item 4 in the requirements. Record the result there.
+8. Test the handler under Node 24 with a plain `Request`. The dev plugin comes in E5 and is wired up in S11.
 
 **Done when**
 
 - A preview returns 24 decks and a row of cells for each.
-- A bad `window`, a repeated `window` or an extra parameter returns 400. A `POST` returns 405.
+- A bad, repeated, encoded or padded `window`, or an extra parameter, returns 400. A `POST` returns 405.
 - A repeat request inside five minutes is an edge cache hit.
 
 **Blocked by** nothing. **Blocks** S11.
@@ -550,7 +552,7 @@ Covers the appearance of FR-10, FR-11 and FR-12. Changes `docs/design-system.htm
 - Every state in FR-11 and FR-12 has a specimen.
 - Every new colour has its contrast figure.
 
-**Blocked by** nothing. **Blocks** S10, S11.
+**Blocked by** nothing. **Blocks** E8, S10, S11.
 
 ---
 
@@ -563,9 +565,9 @@ Covers FR-11, §6.8 and §6.11.
 **Tasks**
 
 1. Fetch `/{format}/decks/{slug}` through the proxy, keyed by slug and window.
-2. Header, stat tiles, share line, games table, toss and texture, as FR-11 describes.
-3. Gated blocks read as too few to call.
-4. Not-found state for an unknown slug. Replace the URL through the router when `deck.slug` differs.
+2. Header, stat tiles, share line with its details table, games table, toss and texture, as FR-11 describes.
+3. A helper that applies the 20-match rule to any win and loss block, including `deck.matchWinRate`, §6.8. Use it on the overview too.
+4. Not-found state for an unknown slug, from a 404 or a proxy 400. Replace the URL through the router when `deck.slug` differs.
 5. Empty state for a deck with no matches in the window.
 6. Loading, error and 429 states.
 7. Confirm what the toss blocks count, open item 5, before labelling them.
@@ -589,10 +591,10 @@ Covers FR-12 and §6.10.
 
 **Tasks**
 
-1. Serve `/api/matchups` from the Vite dev plugin.
+1. Serve `/api/matchups` from the Vite dev plugin, behind its memory cache.
 2. Fetch the matrix, keyed by window.
 3. The table and its cell states, as FR-12 describes.
-4. Detail on hover and on keyboard focus.
+4. Detail on hover and on keyboard focus. One tab stop for the table, with arrow keys between cells, FR-12.
 5. The legend.
 6. Sticky header row and first column, scrolling inside the panel.
 7. Headers link to the deck pages.
@@ -604,7 +606,7 @@ Covers FR-12 and §6.10.
 - A 24 by 24 table renders at 30d.
 - The coloured cells are exactly the cells of clear pairs, as FR-12 defines them.
 - A gated pair reads as too few to call.
-- Keyboard focus on a cell shows its detail.
+- Tab enters the table once, arrow keys move between cells, and focus on a cell shows its detail.
 - At 360 px the page does not scroll sideways.
 
 **Blocked by** E8, E9, D1. **Blocks** nothing.
