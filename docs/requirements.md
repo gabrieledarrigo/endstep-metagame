@@ -30,6 +30,7 @@ The application is read-only. It stores nothing. It has no authentication and no
 | Charts on the overview | Share over time, share composition, win rate against share |
 | Deck page | Numbers section only. Matchups list, card usage, sample list and ratings are deferred |
 | Deck links | Our deck page. It links to the same deck on endstep.cc |
+| Order of work | The Vite refactor first, then the deck page and the matchup table, so the new pages are written once |
 | Matchup table | Its own page. Top 24 decks. Colour only where the range excludes 50% |
 
 ---
@@ -89,13 +90,15 @@ Measured 2026-09-20 against Pauper, `window=30d`, `population=rated`.
 
 Measured 2026-10-03. About 9.7 KB, 2.7 KB compressed. It honours `window` and `population` and ignores `ratingBand`.
 
-Every win and loss figure in this endpoint and in `/matchups` uses one block: `{wins, losses, required, gate, rate, low, high, deff}`. `required` is 20. Below 20 decided matches, `gate` is `"too_few"` and `rate`, `low`, `high` and `deff` are null. See §6.8.
+The response has `provenance` and `formatId` at the top level, then the fields below.
+
+The win and loss figures in `gameResults`, `games`, `playDraw` and every `/matchups` row use one block: `{wins, losses, required, gate, rate, low, high, deff}`. `required` is 20. Below 20 decided matches, `gate` is `"too_few"` and `rate`, `low`, `high` and `deff` are null. `deck.matchWinRate` is the exception: it has no `required` and no `gate`, only `{wins, losses, rate, low, high, deff}`. See §6.8.
 
 | Field | Contents | Used by |
 |---|---|---|
 | `deck` | The same object as a `/decks` row, including `art`, `colours`, `share`, `players`, `matchWinRate`, `shareChange` | FR-11 |
 | `gameResults` | `rows[3]` for games 1 to 3, each with `onPlay`, `onDraw` and `total` blocks, plus a `total` row and `unknownPositionGames`. Endstep's client treats it as nullable | FR-11 |
-| `games` | `game1`, `game2AfterWin`, `game2AfterLoss`, `game3` blocks | FR-11 |
+| `games` | `game1`, `game2AfterWin`, `game2AfterLoss`, `game3` blocks. Its game 2 rows do not reconcile with `gameResults`: for Affinity at 30d, after a win plus after a loss is 8,401 to 7,866, against 8,522 to 7,964 for game 2 | Not used |
 | `playDraw` | `tossWon`, `tossLost`, `onPlay`, `onDraw` blocks, and `choseToDraw {count, of, rate}` | FR-11 |
 | `texture` | `averageTurns`, `averageOpeningHand`, `mulliganRate {count, of, rate}` | FR-11 |
 | `shareSeries` | `points[{day, registrations, totalRegistrations, rate}]` for this deck only. Share only, no win rate history | FR-11 |
@@ -105,7 +108,7 @@ A UUID in place of the slug returns 404 `{"error": "Unknown deck"}`. A stale slu
 
 ### 3.7 Matchups
 
-Measured 2026-10-03. About 15 KB at `pageSize=50`. Each row is a win and loss block plus `matches` and `opponent {id, slug, name, machineNamed}`. Opponents carry no colours and no art. The response also has `neverMet`, the count of archetypes never faced. The mirror is not listed.
+Measured 2026-10-03. About 15 KB at `pageSize=50`. The response has `provenance`, `formatId`, `deck`, `query`, `neverMet` and `matchups {items, total, page, pageSize}`. Each item is a win and loss block plus `matches` and `opponent {id, slug, name, machineNamed}`. Opponents carry no colours and no art. `neverMet` is the count of archetypes never faced. The mirror is not listed.
 
 There is **no endpoint for a format-wide matrix**. Endstep's own client shows matchups only as a list on each deck's page. A 24 by 24 table therefore costs 24 calls. At 30d, every top-24 opponent of every top-24 deck was inside the first 50 rows sorted by `matches`.
 
@@ -128,7 +131,7 @@ Public CORS proxies were tested on 2026-09-20 and rejected. All six failed. allo
 ### 4.3 Proxy behaviour
 
 - The endpoint path reaches the function through the rewrite in `vercel.json`, as the `path` query parameter: `/api/metagame/Pauper/decks` becomes `/api/metagame?path=Pauper/decks`.
-- Accepts `GET` and `HEAD` only. Every other method returns 405.
+- Accepts `GET` and `HEAD`. `OPTIONS` answers the CORS preflight with 204. Every other method returns 405.
 - **Allow-lists** the upstream path prefix, so the function cannot be used as an open proxy to arbitrary hosts.
 - Sets `Cache-Control: public, s-maxage=300, stale-while-revalidate=600`. The Vercel edge then serves repeat requests without calling Endstep.
 - Passes upstream non-2xx status codes through unchanged, so the client can tell a rate limit from a server error.
@@ -136,11 +139,12 @@ Public CORS proxies were tested on 2026-09-20 and rejected. All six failed. allo
 
 ### 4.4 Matchup function
 
-`GET /api/matchups?window=30d`. `window` is the only parameter, checked against the five values in §3.3. The format is Pauper and the population is `rated`, both fixed.
+`GET /api/matchups?window=30d`. `window` is the only parameter, checked against the five values in §3.3. A missing or repeated `window`, or any other parameter, returns 400. The edge caches by the full query string, so an extra parameter would otherwise force a cold build of 25 calls. The format is Pauper and the population is `rated`, both fixed.
 
 1. Fetch the top 24 decks: `/Pauper/decks?window=…&population=rated&sort=share&dir=desc&pageSize=24`.
 2. Fetch `/Pauper/decks/{slug}/matchups?window=…&population=rated&sort=matches&dir=desc&pageSize=50` for each of the 24, in parallel.
 3. Keep only the rows whose opponent is one of the 24. Drop everything else.
+4. Where a pair has a record in one direction only, fill the other direction from it: wins and losses swap, `rate` becomes 1 minus `rate`, and the range becomes 1 minus `high` to 1 minus `low`. Counts are exact. The range is close, see §6.10.
 
 Response:
 
@@ -154,15 +158,15 @@ Response:
 
 - `window` is `provenance.window` from step 1, unchanged. §6.7 applies when it is displayed.
 - `decks` is in share order. `share` is `share.rate`.
-- `cells[a][b]` is deck `a`'s record against deck `b`. A pair absent from `a`'s first 50 rows has no entry. The mirror has no entry.
-- About 30 KB uncompressed.
+- `cells[a][b]` is deck `a`'s record against deck `b`. A pair absent from both decks' first 50 rows has no entry. The mirror has no entry.
+- About 88 KB uncompressed and 21 KB compressed, computed from the 30d data. Most of it is the slugs repeated as keys.
 
 Behaviour:
 
-- One cold build costs 25 upstream calls. The response carries the same `Cache-Control` as the proxy, so the edge holds one entry per window.
+- One cold build costs 25 upstream calls. `Cache-Control` follows the proxy's rules by status: 5 minutes for a success, 10 seconds for a 429, `no-store` for any other error. The edge then holds one entry per window, in each region that has served one.
 - If any upstream call fails, the whole request fails. No partial matrix. An upstream 429 returns 429. Anything else returns 502.
 - Each upstream call has the same 8 second timeout as the proxy.
-- Same method rules and CORS headers as the proxy.
+- Same method rules and CORS headers as the proxy, §4.3.
 
 ### 4.5 Routing
 
@@ -254,7 +258,7 @@ One call to `/{format}/decks/{slug}` feeds the whole page. See §3.6.
 
 **Share over time.** One line, from `shareSeries.points`. Days with `rate: null` are a gap, as in FR-5.
 
-**Games.** A table from `gameResults`. Rows are game 1, game 2, game 3 and all games. Columns are on the play, on the draw and total. Each cell shows a game win rate, with its range and decided count on hover. A note under the table gives `unknownPositionGames`. Two more rows come from `games`: game 2 after winning game 1, and game 2 after losing it. If `gameResults` is null, the table shows the unavailable state.
+**Games.** A table from `gameResults`. Rows are game 1, game 2, game 3 and all games. Columns are on the play, on the draw and total. Each cell shows a game win rate. Its range and decided count show on hover and on keyboard focus. A note under the table gives `unknownPositionGames`. If `gameResults` is null, the table shows the unavailable state. `games` is not used, §3.6.
 
 **Toss.** Win rate after winning the toss and after losing it, from `playDraw.tossWon` and `tossLost`. How often players chose to draw, from `choseToDraw`. Endstep presents these as game 1 results, open item 5.
 
@@ -264,16 +268,19 @@ Figures in the games and toss sections count games, not matches. Label them game
 
 A gated block renders as too few to call, never as a zero or a blank. See §6.8.
 
-An unknown slug shows a not-found state with a link to the overview. A stale slug resolves to the current deck, and the page replaces the URL with `deck.slug`. See §6.11.
+A deck with no matches in the selected window shows the empty state from FR-9, with the window selector to widen it.
+
+An unknown slug shows a not-found state with a link to the overview. A stale slug resolves to the current deck, and the page replaces the URL with `deck.slug` through the router, so back and forward stay correct. The data is keyed by slug, so the replacement costs one more fetch. Stale links are rare, and that is accepted. See §6.11.
 
 ### FR-12. Matchup table
 A page with one table: the top 24 decks by share, against each other. One call to `/api/matchups`, §4.4.
 
 - Rows and columns are the same 24 decks in share order. A cell is the row deck's match win rate against the column deck, as a whole percentage. The table reads by row.
-- **Colour only clear results.** A cell whose range excludes 50% gets the diverging colour for its side of 50%. Every other cell stays neutral and still shows its number. Clear cells also use a heavier weight, so colour is never the only cue. Measured 2026-10-03 at 30d, 97 of 275 cells qualify. See §6.10.
+- **Colour only clear results.** A pair is clear when every range present for it excludes 50%. Both cells of a clear pair get the diverging colour for their side of 50%. Every other cell stays neutral and still shows its number. Clear cells also use a heavier weight, so colour is never the only cue. Measured 2026-10-03 at 30d, 96 pairs qualify, 192 cells. See §6.10.
 - A gated cell shows no number. It reads as too few to call, with the decided count against the 20 required on hover. See §6.8.
 - A pair with no entry reads as no data. The diagonal is the mirror. It is muted and labelled for assistive technology.
 - Hover or keyboard focus on a cell shows both deck names, the match win rate to one decimal place, the range, wins, losses and matches.
+- The page does not retry `/api/matchups` on its own. A failed build already cost up to 25 upstream calls. The retry control is the only retry.
 - A legend states the colour rule in words.
 - Row and column headers link to the deck pages, FR-10.
 - The header row and the first column stay in view while the table scrolls inside its panel. The page itself does not scroll sideways, NFR-7.
@@ -313,7 +320,7 @@ Printing `to` as the end date names a day that has not happened, and makes the 1
 Subtracting one day does not make `1d` cover a single day. The API's `1d` preset returns a two-day span, `from` two days before `to`, and the fix takes the label from three days to two. That remainder is upstream behaviour, not a display problem.
 
 ### 6.8 Win rates below 20 decided matches are gated
-Every win and loss block carries `required: 20`. Below that, `gate` is `"too_few"` and `rate`, `low`, `high` and `deff` are null, while `wins` and `losses` are still present. Show it as too few to call, with the count against the 20 required. A null rate plotted or printed as 0% is a false statement.
+Win and loss blocks carry `required: 20`. Below that, `gate` is `"too_few"` and `rate`, `low`, `high` and `deff` are null, while `wins` and `losses` are still present. `deck.matchWinRate`, on `/decks` and on the deck detail, has no `gate` field. Treat a null `rate` there the same way. Show it as too few to call, with the count against the 20 required. A null rate plotted or printed as 0% is a false statement.
 
 No top-24 deck is gated at deck level today. The smallest on `1d` had 95 decided matches, measured 2026-10-03. Matchup cells and game splits are gated more often: one top-24 pair was gated at 30d.
 
@@ -321,9 +328,9 @@ No top-24 deck is gated at deck level today. The smallest on `1d` had 95 decided
 Measured 2026-10-03: Izzet Control's matchup rows sum to 1,976 matches against a deck total of 2,122. The mirror is not listed, and the gap splits 90 wins to 56 losses, so it is not only the mirror. It is most likely matches against unclassified decks. Do not present a matchup row as a share of the deck's matches, and do not derive a deck's win rate from its rows.
 
 ### 6.10 Most matchup cells are within noise
-Measured 2026-10-03 at 30d for the top 24: the median pair has 152 matches. 90 of 276 pairs have fewer than 100 and 25 have fewer than 50. The median range is 19 points wide, and 97 of 275 ungated cells have a range that excludes 50%. Colouring every cell by its rate would mostly display noise. That is why FR-12 colours only clear results.
+Measured 2026-10-03 at 30d for the top 24: the median pair has 152 matches. 90 of 276 pairs have fewer than 100 and 25 have fewer than 50. The median range is 19 points wide. 193 of the 550 ungated cells have a range that excludes 50%. Colouring every cell by its rate would mostly display noise. That is why FR-12 colours only clear results.
 
-The two directions of a pair agree exactly: equal match counts, wins and losses swapped, rates adding to 1. The ranges differ slightly, because each direction uses its own deck's `deff`.
+The two directions of a pair agree exactly: equal match counts, wins and losses swapped, rates adding to 1. The ranges differ slightly, because each direction uses its own deck's `deff`. That is enough to split one pair: Elves against Spy Combo excludes 50%, Spy Combo against Elves does not. FR-12 therefore decides per pair, not per cell. The same closeness is why §4.4 may fill a missing direction from the other one.
 
 ### 6.11 Slugs change
 A deck's slug is a name part and an 8-character suffix, such as `affinity-e93f5f74`. Any name part with the right suffix, such as `renamed-e93f5f74`, returns 307 with `canonicalSlug`. The proxy's `fetch` follows the redirect, so the page receives the current deck. Verified through the production proxy on 2026-10-03. A deck page linked under an old name therefore still loads, and FR-11 corrects the URL.
@@ -342,7 +349,7 @@ The front end is a Vite application in TypeScript with React 19. `npm run build`
 | Vite | 8 |
 | TypeScript | strict mode |
 
-- TypeScript runs in strict mode. A type error fails the build.
+- TypeScript runs in strict mode. Once the code is TypeScript, a type error fails the build. Until then, the build is `vite build` alone, because `tsc` fails on a project with no TypeScript files.
 - ESLint enforces the brace rule in `AGENTS.md` with `curly: all`.
 - The root `tsconfig.json` is read by Vercel's function build. Vite's client types belong in `tsconfig.app.json`. Putting them in the root config breaks the function build.
 
@@ -379,7 +386,7 @@ Recharts covers the overview's three charts: `LineChart` for FR-5, a horizontal 
 - Card art is lazy-loaded with `loading="lazy"` and sized to prevent layout shift.
 
 ### NFR-4. Respecting the upstream service
-The application must not put meaningful load on Endstep. Edge caching (§4.3) means repeat visits and repeated window switches cost no upstream requests. The client must not poll. It must not retry more than twice. It must back off on 429. Total upstream traffic should stay well below the limit of 300 per 60 seconds. The matchup function costs 25 upstream calls per cold window, so warming all five windows costs 125.
+The application must not put meaningful load on Endstep. Edge caching (§4.3) means repeat visits and repeated window switches cost no upstream requests. The client must not poll. It must not retry more than twice. It must back off on 429. Total upstream traffic should stay well below the limit of 300 per 60 seconds. The matchup function costs 25 upstream calls per cold window, so warming all five windows costs 125 in each edge region that serves a request.
 
 ### NFR-5. Attribution
 The page states that the data comes from Endstep and links to `https://endstep.cc/metagame`. It does not present itself as an official Endstep product.
