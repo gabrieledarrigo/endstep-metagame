@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/metagame/:path*",
+      "destination": "/api/metagame?path=:path*"
+    }
+  ]
+}
