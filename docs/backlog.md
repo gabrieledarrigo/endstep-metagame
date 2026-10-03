@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-26. Derived from [`requirements.md`](./requirements.md) and [`design-system.html`](./design-system.html).
 
-Sixteen items. Four enablers, nine user stories, three hardening items. Each one is meant to be a separate branch and a separate review. Nothing here assumes a single large implementation pass.
+Milestone 1 has sixteen items: four enablers, nine user stories, three hardening items. Milestone 2, at the end of this file, has eight. Each one is meant to be a separate branch and a separate review. Nothing here assumes a single large implementation pass.
 
 Every item lists what blocks it, what it blocks, and how to tell it is done.
 
@@ -391,3 +391,285 @@ Covers NFR-10 and NFR-5.
 **S7 is small but ordering-sensitive.** Adding the window selector after the charts means revisiting all three. Adding it before means they are written against a changing window from the start.
 
 **S8 is deliberately last among the stories.** It touches two surfaces that must exist first, and its most common state today is the unavailable one, which is easier to get right once there is something to put it next to.
+
+---
+
+# Milestone 2: deck page and matchup table
+
+**Date:** 2026-10-03. Derived from Draft v3 of the requirements.
+
+Ten items. Seven enablers, one design item, two user stories. The refactor comes first, so the new pages are written once, on the new structure. The quality gates come right after the move to Vite, so every later item is linted, formatted, tested and checked by CI.
+
+| Wave | Items | Runs in parallel |
+|---|---|---|
+| 7 | E5, D1 | Yes, two ways |
+| 8 | E10 | No |
+| 9 | E6, E9 | Yes, two ways |
+| 10 | E7 | No |
+| 11 | E8 | No |
+| 12 | E11, S10, S11 | Yes, three ways |
+
+```
+E5 vite ──► E10 checks and CI ─┬─► E6 modules ──► E7 typescript ──► E8 routing ─┬─► S10 deck page
+                               │                                                 ├─► S11 matchup table
+                               │                                                 └─► E11 component tests
+                               └─► E9 matchup function ─────────────────────────────► S11
+D1 design ──► E8, S10
+```
+
+---
+
+## E5. Build with Vite
+
+Covers NFR-1, §4.6 and §4.7. The riskiest item in the milestone.
+
+**Tasks**
+
+1. `package.json`, `vite.config.ts`, a root `tsconfig.json` and `tsconfig.app.json` as NFR-1 describes. React 19 and Recharts 3.10 from npm. The build script is `vite build` alone, since there is no TypeScript yet.
+2. Move the CSS to one stylesheet and the script to `src/main.jsx`. Change only the imports and the mount call.
+3. Remove the CDN script tags and Babel Standalone.
+4. A Vite plugin that serves `/api/metagame/*` through `api/metagame.ts`, with the same rewrite as `vercel.json` and a 5-minute memory cache for successful responses, §4.6. Delete `dev-server.js`.
+5. Pin `"framework": "vite"` in `vercel.json`. Keep the proxy rewrite.
+6. Deploy a preview and check it before opening the pull request.
+
+**Done when**
+
+- `npm run dev` serves the page with live data, and `npm run build` succeeds.
+- The Vercel preview shows what production shows today: 24 cards, 24 rows, three charts.
+- The proxy answers on the preview.
+- No CDN script tag and no `dev-server.js` remain.
+
+**Blocked by** nothing. **Blocks** E10.
+
+---
+
+## E10. Lint, format, test, and gate the release
+
+Covers NFR-1 and §4.7. Every later item runs against these checks.
+
+**Tasks**
+
+1. ESLint 10 with a flat config: `typescript-eslint` recommended rules, the React Hooks rules, `curly: all` and `eslint-config-prettier`. `npm run lint`.
+2. Prettier 3 with its defaults, and a `.prettierignore` for `dist/`, `docs/` and the lockfile. `npm run format` and `npm run format:check`. Reformat the code base in a commit with nothing else in it.
+3. Vitest 5, React Testing Library and jsdom. `npm test`.
+4. `api/metagame.spec.ts`: the allow-list, the methods, the path parsing and the cache header for each status, with `fetch` stubbed.
+5. A smoke spec that renders the app with `fetch` stubbed. The components still live in one module, so this is the only component spec until E11.
+6. `.vercelignore` with `api/**/*.spec.ts`, so the specs are not deployed as functions.
+7. `.github/workflows/ci.yml` with the `ci` job from NFR-1.
+8. Add to `AGENTS.md`: the spec rule, and that `format:check`, `lint`, `test` and `build` pass before every push.
+9. The owner adds `ci` as a Deployment Check in the Vercel project, and branch protection on `main` that requires it. Record the outcome in open item 6 of the requirements.
+
+**Done when**
+
+- `ci` passes on the pull request.
+- A push that breaks formatting, lint, a test or the build turns `ci` red. Show it once on a throwaway branch.
+- After the merge, the production deployment waits for `ci` before it takes the domain.
+
+**Blocked by** E5. **Blocks** E6, E9.
+
+---
+
+## E6. Split into modules
+
+Covers the layout agreed for the refactor. Still JavaScript. No behaviour change.
+
+**Tasks**
+
+1. One module per concern: `src/config`, `src/api`, `src/hooks`, `src/format`, `src/components`, `src/charts`, `src/pages/overview`, `src/App`.
+2. Move each component's CSS block to a stylesheet beside it, imported by the component. Tokens and base styles go to `src/styles/`.
+3. Move the shared helpers that sit in the wrong block to a module their callers import: `formatCount`, `MONTHS`, `axisShare`, `tooltipShare`.
+4. Remove the duplicate `.chart-section` declaration.
+
+**Done when**
+
+- The page renders and behaves as it does after E5.
+- `src/main.jsx` only mounts `App`.
+- No module holds more than one concern.
+
+**Blocked by** E10. **Blocks** E7.
+
+---
+
+## E7. Convert to TypeScript
+
+Covers NFR-1.
+
+**Tasks**
+
+1. Types for every response in `src/api/types.ts`, from §3.6, §3.7 and the `/decks` and `/share-series` shapes. Include the gated win and loss block from §6.8.
+2. Convert every module to `.ts` or `.tsx`, starting with the data layer.
+3. Strict mode. Add the type check to the build script, so a type error fails the build.
+4. Fix the `<div>` inside a `<p>` in the deck card skeleton. React's development build reports it.
+
+**Done when**
+
+- `npm run build` passes in strict mode with no explicit `any` and no `@ts-ignore`.
+- ESLint passes.
+- The page renders and behaves as it does after E6.
+
+**Blocked by** E6. **Blocks** E8.
+
+---
+
+## E8. Route between pages
+
+Covers FR-1, FR-3, FR-4, FR-10 and §4.5.
+
+**Tasks**
+
+1. React Router 8 in declarative mode, §4.5: `BrowserRouter`, `Routes`, `Link`, `useNavigate` with `replace` for corrected URLs, and `useSearchParams` for `?window=`. Links keep `?window=`.
+2. Routes for `/`, `/decks/{slug}` and `/matchups`. The two new pages render a placeholder heading.
+3. Rewrites for `/decks/:slug` and `/matchups` in `vercel.json`.
+4. Page header with navigation, `aria-current` and the attribution, on every page.
+5. Deck cards and table rows link to `/decks/{slug}`.
+6. One window state shared by every page.
+7. On a route change, scroll to the top and move focus to the page's main heading.
+8. A spec beside each component it adds: the page header and the two placeholder pages.
+
+**Done when**
+
+- Clicking a deck opens its placeholder page with the same window.
+- Back returns to the overview without a reload.
+- Reloading `/decks/affinity-e93f5f74` and `/matchups` on a Vercel preview loads the page.
+
+**Blocked by** E7, D1. D1 designs the page header. **Blocks** S10, S11, E11.
+
+---
+
+## E9. Aggregate the matchups
+
+Covers §4.4. Server side only, so it runs alongside the refactor.
+
+**Tasks**
+
+1. `api/matchups.ts`: accept only the exact query strings in §4.4, fetch the top 24, fetch their matchups in parallel, keep the top-24 cells.
+2. Fill a pair recorded in one direction only from the other direction, §4.4. A gated record gives a gated fill.
+3. The response shape in §4.4.
+4. Fail the whole request on any upstream failure. 429 returns 429, anything else 502. Timeout per call.
+5. `Cache-Control` by status, method rules and CORS headers as the proxy. A 429 is held for 60 seconds, not 10.
+6. Put code shared with the proxy in `api/_shared.ts`. Vercel does not deploy a file in `api/` whose name starts with an underscore.
+7. Check coverage on all five windows, open item 4 in the requirements. Record the result there.
+8. `api/matchups.spec.ts` beside the function: it calls the handler with a plain `Request` and stubbed `fetch`. The dev plugin comes in E5 and is wired up in S11.
+
+**Done when**
+
+- A preview returns 24 decks and a row of cells for each.
+- A bad, repeated, encoded or padded `window`, or an extra parameter, returns 400. A `POST` returns 405.
+- A repeat request inside five minutes is an edge cache hit.
+- The spec covers each rule in §4.4.
+
+**Blocked by** E10, for Vitest. **Blocks** S11.
+
+---
+
+## D1. Design the deck page and the page header
+
+Covers the appearance of FR-10 and FR-11. Changes `docs/design-system.html` only. The matchup table for FR-12 was designed with the owner on 2026-10-03 and is already in the design system.
+
+**Tasks**
+
+1. Page header with navigation.
+2. Deck page layout: header with art, stat tiles, share line with its details table, games table, toss, texture.
+3. A gated value, "too few to call", for tiles and table cells. Reuse the hatch from the matchup table where it fits.
+4. Check any new colour for contrast and colour-vision deficiency against the surface.
+5. Republish the artifact.
+
+**Done when**
+
+- Every state in FR-10 and FR-11 has a specimen.
+- Every new colour has its contrast figure.
+
+**Blocked by** nothing. **Blocks** E8, S10.
+
+---
+
+## S10. Read one deck's numbers
+
+As a Pauper player, I want one deck's numbers in one place, so I can judge it beyond its share and win rate.
+
+Covers FR-11, §6.8 and §6.11.
+
+**Tasks**
+
+1. Fetch `/{format}/decks/{slug}` through the proxy, keyed by slug and window.
+2. Header, stat tiles, share line with its details table, games table, toss and texture, as FR-11 describes.
+3. A helper that applies the 20-match rule to any win and loss block, including `deck.matchWinRate`, §6.8. Use it on the overview too.
+4. Not-found state for an unknown slug, from a 404 or a proxy 400. Replace the URL through the router when `deck.slug` differs.
+5. Empty state for a deck with no matches in the window.
+6. Loading, error and 429 states.
+7. Confirm what the toss blocks count, open item 5, before labelling them.
+8. A spec beside each component it adds.
+
+**Done when**
+
+- Affinity's page shows every section at 30d, and changing the window refetches it.
+- An unknown slug shows the not-found state.
+- `/decks/renamed-e93f5f74` lands on Affinity with the URL corrected.
+- No gated figure reads as 0%.
+
+**Blocked by** E8, D1. **Blocks** nothing.
+
+---
+
+## S11. See how the top decks do against each other
+
+As a Pauper player, I want to see which decks beat which, so I can pick a deck for the field I expect.
+
+Covers FR-12 and §6.10.
+
+**Tasks**
+
+1. Serve `/api/matchups` from the Vite dev plugin, behind its memory cache.
+2. Fetch the matrix, keyed by window.
+3. The table and its cell states, as FR-12 describes.
+4. Detail on hover and on keyboard focus. One tab stop for the table, with arrow keys between cells, FR-12.
+5. The legend.
+6. The full-width band with no scrollbar, the header row that stays in view, and the sideways scroll below the table's width, as the design system shows.
+7. Headers link to the deck pages.
+8. The window selector and the resolved window dates.
+9. Loading, error and 429 states. No automatic retry, FR-12.
+10. A spec beside each component it adds.
+
+**Done when**
+
+- A 24 by 24 table renders at 30d.
+- The coloured cells are exactly the cells of clear pairs, as FR-12 defines them.
+- A gated pair reads as too few to call.
+- Tab enters the table once, arrow keys move between cells, and focus on a cell shows its detail.
+- At 1280 px the table has no scrollbar. At 360 px the page does not scroll sideways.
+
+**Blocked by** E8, E9. **Blocks** nothing.
+
+---
+
+## E11. Test every component
+
+Covers NFR-1: every component has a spec beside it. E10 set up the tools, and S10 and S11 test what they add. This item covers everything that existed before them.
+
+**Tasks**
+
+1. A spec beside every component that exists after E8, in `src/components`, `src/charts`, `src/pages/overview` and the shell.
+2. Query by role and visible text. No snapshots.
+3. Cover the states each component has: loading, error, empty, and the 429 copy where it applies.
+4. Give the charts a size in jsdom. Recharts' `ResponsiveContainer` measures its parent, which is 0 by 0 there, so without a `ResizeObserver` stub and a sized container the charts render no marks.
+
+**Done when**
+
+- Every component file has a spec beside it.
+- `ci` passes.
+
+**Blocked by** E8. **Blocks** nothing.
+
+---
+
+## Notes on sequencing, milestone 2
+
+**E5 first, and check a preview.** If Vercel skips the build, it serves the source `index.html` and the site goes blank. The framework pin prevents that. The preview proves it.
+
+**E10 runs alone.** Prettier rewrites every file once, so anything running beside it conflicts everywhere. That is also why the reformat is a commit of its own.
+
+**E6 and E7 touch every file in `src/`.** E9 runs beside E6 because it touches only `api/`. D1 runs beside E5 because it touches only `docs/`.
+
+**E11 waits for E8.** E8 changes the deck card, the table and the shell, so specs written before it would be rewritten. After E8, E11 adds spec files only, so it runs beside S10 and S11, which add new components.
+
+**E8 gives the stories empty pages.** S10 and S11 then fill a page each and never touch the router, so they can run in parallel.
