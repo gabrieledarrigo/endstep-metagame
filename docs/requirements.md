@@ -104,6 +104,12 @@ Public CORS proxies were tested on 2026-09-20 and rejected. All six failed. allo
 - Passes upstream non-2xx status codes through unchanged, so the client can tell a rate limit from a server error.
 - Sends no cookies, credentials or client identifying headers upstream.
 
+### 4.4 What deploys
+
+Zero-config. Vercel serves the repository root statically and treats `api/` as serverless functions, so there is no `vercel.json`.
+
+`.vercelignore` keeps `dev-server.js`, `AGENTS.md`, `CLAUDE.md` and `.claude/` out of the deployment. They are development files and would otherwise be fetchable from the public site. The deployed set is `index.html`, the proxy function, `docs/` and `README.md`.
+
 ---
 
 ## 5. Functional requirements
@@ -262,7 +268,7 @@ Current versions of Chrome, Firefox, Safari and Edge. No IE, no polyfills.
 No analytics, no cookies, no local storage of personal data, no third-party requests beyond the pinned CDN and the card-art host.
 
 ### NFR-10. Deployment
-Deployed on Vercel from the Git repository. One static asset and one serverless function. No environment variables and no secrets.
+Deployed on Vercel from the Git repository. One static asset and one serverless function. No environment variables and no secrets. See §4.4 for what is excluded.
 
 ---
 
