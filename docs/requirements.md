@@ -383,10 +383,18 @@ The front end is a Vite application in TypeScript with React 19. `npm run build`
 
 **Tests.** Vitest 5 with React Testing Library 16 and jsdom. Vitest runs on the Vite configuration, so TypeScript, JSX, CSS imports and ES modules need no setup of their own. Its API matches Jest's.
 
-- Every component has a spec file beside it: `components/Card.tsx` and `components/Card.spec.tsx`. A component is any `.tsx` module that exports one.
-- Both functions in `api/` have one too: `api/metagame.spec.ts` and `api/matchups.spec.ts`. They are plain `Request` to `Response` handlers, so a spec calls them directly with `fetch` stubbed.
+- **The rule of thumb: an exported function with a consumer has a spec.** That covers components, hooks, helpers and the API functions.
+- The spec sits beside its module and is named after it: `components/Card.tsx` and `components/Card.spec.tsx`, `format.ts` and `format.spec.ts`.
+- The API functions are plain `Request` to `Response` handlers, so their specs, `api/metagame.spec.ts` and `api/matchups.spec.ts`, call them directly with `fetch` stubbed.
 - Specs query by role and by visible text, the way a user finds things. No snapshot tests.
 - Specs never call Endstep. Every request is stubbed.
+
+**Documentation.** Every API function and every helper has a JSDoc block. A helper is any exported function that is not a component: hooks, and the formatting and data functions.
+
+- One sentence on what it does, a `@param` for each parameter, `@returns`, and `@throws` when it throws.
+- TypeScript carries the types, so the tags do not repeat them.
+- Components and specs need no JSDoc.
+- A JSDoc block documents a contract. It is not one of the inline comments `AGENTS.md` rules out.
 
 **Continuous integration.** One GitHub Actions workflow, `.github/workflows/ci.yml`.
 
