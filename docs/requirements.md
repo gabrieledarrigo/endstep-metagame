@@ -189,7 +189,7 @@ The front end uses **React Router 8 in declarative mode**: `BrowserRouter`, `Rou
 
 ### 4.6 Local development
 
-`npm run dev` starts Vite. A small Vite plugin serves `/api/metagame/*` and `/api/matchups` by calling the real handlers, and applies the same rewrite as `vercel.json`. It keeps successful responses in memory for 5 minutes, as the edge would. Without that, every reload of the matchup page in development costs 25 upstream calls, and a dozen reloads in a minute reach the rate limit. It replaces `dev-server.js`, which is deleted. Vite's dev server already falls back to `index.html` for the page routes.
+`npm run dev` starts Vite. A small Vite plugin serves `/api/metagame/*` and `/api/matchups` by calling the real handlers, and applies the same rewrite as `vercel.json`. It keeps each response in memory for as long as its `Cache-Control` allows, as the edge would: 5 minutes for a success, and the short hold for a 429. Without that, every reload of the matchup page in development costs 25 upstream calls, and a dozen reloads in a minute reach the rate limit. It replaces `dev-server.js`, which is deleted. Vite's dev server already falls back to `index.html` for the page routes.
 
 ### 4.7 What deploys
 
