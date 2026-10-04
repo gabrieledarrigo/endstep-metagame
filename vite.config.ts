@@ -2,8 +2,8 @@ import { defineConfig, type Connect, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import metagame from "./api/metagame.ts";
 
-const PREFIX = "/api/metagame/";
-const CACHE_MS = 5 * 60 * 1000;
+const FUNCTION = "/api/metagame";
+const PREFIX = `${FUNCTION}/`;
 
 type Cached = {
   expires: number;
@@ -13,7 +13,7 @@ type Cached = {
 };
 
 /**
- * Serves the Vercel functions during development, with the rewrite from `vercel.json` and a 5-minute cache.
+ * Serves the Vercel functions during development, with the rewrite from `vercel.json` and the cache lifetime each response declares.
  *
  * @returns A Vite plugin that answers `/api/metagame/*` for both `vite` and `vite preview`.
  */
@@ -23,7 +23,7 @@ function api(): Plugin {
   const middleware: Connect.NextHandleFunction = async (req, res, next) => {
     const url = new URL(req.url ?? "/", "http://localhost");
 
-    if (!url.pathname.startsWith(PREFIX)) {
+    if (url.pathname !== FUNCTION && !url.pathname.startsWith(PREFIX)) {
       next();
       return;
     }
@@ -33,19 +33,22 @@ function api(): Plugin {
 
     try {
       if (!entry || entry.expires < Date.now()) {
-        url.searchParams.set("path", url.pathname.slice(PREFIX.length));
+        if (url.pathname.startsWith(PREFIX)) {
+          url.searchParams.set("path", url.pathname.slice(PREFIX.length));
+        }
         const response = await metagame.fetch(
-          new Request(`http://localhost/api/metagame?${url.searchParams}`, { method: req.method }),
+          new Request(`http://localhost${FUNCTION}?${url.searchParams}`, { method: req.method }),
         );
+        const maxAge = Number(/s-maxage=(\d+)/.exec(response.headers.get("cache-control") ?? "")?.[1] ?? 0);
 
         entry = {
-          expires: Date.now() + CACHE_MS,
+          expires: Date.now() + maxAge * 1000,
           status: response.status,
           headers: [...response.headers],
           body: Buffer.from(await response.arrayBuffer()),
         };
 
-        if (response.status < 400) {
+        if (maxAge > 0) {
           cache.set(key, entry);
         }
       }
