@@ -11,6 +11,8 @@ Write simple, readable code. Prefer the clean solution over the clever one.
 - Every `if`, `else`, `for` and `while` has braces, with its body on its own line. This includes a single `return`.
 - No inline comments explaining what the code does. If a line needs a comment to be understood, rewrite the line.
 - Comments are for the rare case where the reason is not visible in the code, such as a workaround for an external API.
+- CSS follows NFR-11 in the requirements: every rule in a cascade layer, one stylesheet per component named after it, and each stylesheet styles only the elements its component renders.
+- Every API function and every exported helper has a JSDoc block, as NFR-1 describes. That is documentation of a contract, not an inline comment.
 
 ## Prose
 
@@ -89,8 +91,8 @@ Never merge. That decision belongs to the human reviewer.
 |---|---|
 | `docs/requirements.md` | Functional and non-functional requirements. The authority on behaviour |
 | `docs/design-system.html` | Tokens and components. The authority on appearance |
-| `docs/backlog.md` | The sixteen items, their tasks and their dependencies |
+| `docs/backlog.md` | Both milestones' items, their tasks and their dependencies |
 
-Issues #1 to #16 mirror `docs/backlog.md`. Labels carry type (`enabler`, `story`, `hardening`) and wave (`wave-0` to `wave-6`). Items in the same wave have no dependency on each other and can run in parallel.
+Issues #1 to #16 mirror milestone 1 of `docs/backlog.md`. Milestone 2's issues mirror the rest. Labels carry type (`enabler`, `story`, `hardening`) and wave (`wave-0` onwards). Items in the same wave have no dependency on each other and can run in parallel.
 
 The data source is the public Endstep API. It refuses cross-origin requests, which is why the app proxies it. Read section 4.1 of the requirements before changing anything about data access.
