@@ -10,6 +10,7 @@ Write simple, readable code. Prefer the clean solution over the clever one.
 - Keep abstractions few. Do not add a layer until there are two real callers.
 - No inline comments explaining what the code does. If a line needs a comment to be understood, rewrite the line.
 - Comments are for the rare case where the reason is not visible in the code, such as a workaround for an external API.
+- CSS follows NFR-11 in the requirements: every rule in a cascade layer, one stylesheet per component named after it, and each stylesheet styles only the elements its component renders.
 
 ## Prose
 

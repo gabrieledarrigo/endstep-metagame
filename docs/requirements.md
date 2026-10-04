@@ -22,7 +22,7 @@ The application is read-only. It stores nothing. It has no authentication and no
 | Data access | Two Vercel functions: a proxy and a matchup aggregator. CORS workaround, see §4.1 |
 | Cache policy | 5 minutes at the edge, with stale-while-revalidate |
 | Front end | React 19 and TypeScript, built with Vite. See NFR-1 |
-| Styling | Hand-written CSS, no framework. Light-only theme |
+| Styling | Hand-written CSS in cascade layers, BEM, one stylesheet per component. No framework. Light-only theme. See NFR-11 |
 | Charting | Recharts 3.x from npm |
 | Pages | Overview, deck page, matchup table. React Router in declarative mode, see §4.5 |
 | Quality gates | ESLint, Prettier and Vitest with React Testing Library, run by GitHub Actions on every pull request and every push to `main`. See NFR-1 |
@@ -452,6 +452,49 @@ No analytics, no cookies, no local storage of personal data, no third-party requ
 
 ### NFR-10. Deployment
 Deployed on Vercel from the Git repository. A Vite build and two serverless functions. No environment variables and no secrets. Production waits until CI passes, §4.7.
+
+### NFR-11. CSS architecture
+Plain CSS files, processed by Vite. No CSS Modules, no CSS-in-JS and no framework, so class names ship exactly as the design system documents them.
+
+**Cascade layers.** `src/styles/index.css` is the one global entry. `main.tsx` imports it first. It declares the layer order once:
+
+```css
+@layer tokens, base, layout, components;
+```
+
+A later layer overrides an earlier one, whatever the selectors' specificity and whatever order Vite emits the files in.
+
+| Layer | Owns | Example |
+|---|---|---|
+| `tokens` | The design system's tokens: custom properties on `:root`, from part three of `design-system.html`. Nothing else | `--text-900`, `--win` |
+| `base` | The browser reset and the default rules for elements: text, headings, links, lists, tables, the focus ring. The one shared class, `.visually-hidden` | `body`, `h1`, `a`, `:focus-visible` |
+| `layout` | The layout primitives the pages are built from: the page wrapper, the full-width band that breaks out of it, the spacing between sections | `.page`, `.bleed` |
+| `components` | The UI components, one BEM block each | `.stat-tile`, `.deck`, `.matchup__cell` |
+
+- Every rule sits in a layer. A rule outside any layer overrides every layer, so an unlayered rule is a defect.
+- No `!important`. It reverses the layer order.
+- Element selectors appear only in `base`.
+
+**Component stylesheets.** Each component imports its own stylesheet, named after it: `StatTile.tsx` imports `./StatTile.css`, and the file wraps its rules in `@layer components`.
+
+- BEM is the naming convention: `.stat-tile`, `.stat-tile__label`, `.stat-tile--hero`.
+- A component's stylesheet styles only the elements that component renders. It does not reach into a child component, and it does not style anything outside its own markup. `.stat-list` belongs to `Summary.css`, because the summary renders the list. `.stat-tile` belongs to `StatTile.css`.
+- A parent changes a child only through a modifier the child defines, such as `--hero`. It never selects into the child's classes.
+- A rule that more than one component needs belongs in `base` or `layout`, not in a component's file.
+
+**Breakpoints.** Three ranges, and only their two boundaries appear in media queries.
+
+| Range | Width |
+|---|---|
+| Mobile | Below 640px |
+| Tablet | 640px to 1,099px |
+| Large desktop | 1,100px and up |
+
+- Styles are written for mobile first. `@media (min-width: 640px)` and `@media (min-width: 1100px)` add to them.
+- 640px is where the design system already switches. 1,100px is where the matchup table fits without scrolling, FR-12.
+- Custom properties do not work in media queries, so the two values are written as numbers. This section is their reference.
+
+**No CSS linter for now.** Prettier formats the CSS. Review enforces the rules above.
 
 ---
 
