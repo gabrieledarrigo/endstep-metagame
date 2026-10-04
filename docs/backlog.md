@@ -398,7 +398,7 @@ Covers NFR-10 and NFR-5.
 
 **Date:** 2026-10-03. Derived from Draft v3 of the requirements.
 
-Ten items. Seven enablers, one design item, two user stories. The refactor comes first, so the new pages are written once, on the new structure. The quality gates come right after the move to Vite, so every later item is linted, formatted, tested and checked by CI.
+Eleven items. Seven enablers, one design item, three user stories. The refactor comes first, so the new pages are written once, on the new structure. The quality gates come right after the move to Vite, so every later item is linted, formatted, tested and checked by CI.
 
 | Wave | Items | Runs in parallel |
 |---|---|---|
@@ -408,13 +408,15 @@ Ten items. Seven enablers, one design item, two user stories. The refactor comes
 | 10 | E7 | No |
 | 11 | E8 | No |
 | 12 | E11, S10, S11 | Yes, three ways |
+| 13 | S12 | No |
 
 ```
 E5 vite ──► E10 checks and CI ─┬─► E6 modules ──► E7 typescript ──► E8 routing ─┬─► S10 deck page
                                │                                                 ├─► S11 matchup table
                                │                                                 └─► E11 tests
                                └─► E9 matchup function ─────────────────────────────► S11
-D1 design ──► E8, S10
+D1 design ──► E8, S10, S12
+S10, S11 ──► S12 deck matchups
 ```
 
 ---
@@ -576,17 +578,19 @@ Covers the appearance of FR-10 and FR-11. Changes `docs/design-system.html` only
 **Tasks**
 
 1. Page header with navigation.
-2. Deck page layout: header with art, stat tiles, share line with its details table, games table, toss, texture.
-3. A gated value, "too few to call", for tiles and table cells. Reuse the hatch from the matchup table where it fits.
-4. Check any new colour for contrast and colour-vision deficiency against the surface.
-5. Republish the artifact.
+2. Deck page layout: header with art, stat tiles, share line with its details table, games table, toss, texture, sample list.
+3. The sample list: main deck and sideboard with counts, the line on where it comes from, the copy control, and the `mainOnly` and `withheld` states.
+4. The matchups row: the deck's row of the matchup table, below the numbers and the sample list, with its gated cell, loading, and outside-the-top-24 states.
+5. A gated value, "too few to call", for tiles and table cells. Reuse the hatch from the matchup table where it fits.
+6. Check any new colour for contrast and colour-vision deficiency against the surface.
+7. Republish the artifact.
 
 **Done when**
 
 - Every state in FR-10 and FR-11 has a specimen.
 - Every new colour has its contrast figure.
 
-**Blocked by** nothing. **Blocks** E8, S10.
+**Blocked by** nothing. **Blocks** E8, S10, S12.
 
 ---
 
@@ -599,7 +603,7 @@ Covers FR-11, §6.8 and §6.11.
 **Tasks**
 
 1. Fetch `/{format}/decks/{slug}` through the proxy, keyed by slug and window.
-2. Header, stat tiles, share line with its details table, games table, toss and texture, as FR-11 describes.
+2. Header, stat tiles, share line with its details table, games table, toss, texture and the sample list with its copy control, as FR-11 describes.
 3. A helper that applies the 20-match rule to any win and loss block, including `deck.matchWinRate`, §6.8. Use it on the overview too.
 4. Not-found state for an unknown slug, from a 404 or a proxy 400. Replace the URL through the router when `deck.slug` differs.
 5. Empty state for a deck with no matches in the window.
@@ -609,12 +613,13 @@ Covers FR-11, §6.8 and §6.11.
 
 **Done when**
 
-- Affinity's page shows every section at 30d, and changing the window refetches it.
+- Affinity's page shows every section at 30d, the sample list included, and changing the window refetches it.
+- The copy control puts a list on the clipboard that MTGO imports.
 - An unknown slug shows the not-found state.
 - `/decks/renamed-e93f5f74` lands on Affinity with the URL corrected.
 - No gated figure reads as 0%.
 
-**Blocked by** E8, D1. **Blocks** nothing.
+**Blocked by** E8, D1. **Blocks** S12.
 
 ---
 
@@ -645,7 +650,37 @@ Covers FR-12 and §6.10.
 - Tab enters the table once, arrow keys move between cells, and focus on a cell shows its detail.
 - At 1280 px the table has no scrollbar. At 360 px the page does not scroll sideways.
 
-**Blocked by** E8, E9. **Blocks** nothing.
+**Blocked by** E8, E9. **Blocks** S12.
+
+---
+
+## S12. See how one deck does against the top 24
+
+As a Pauper player, I want a deck's results against each top deck on its own page, so I can judge it without reading the whole table.
+
+Covers the matchups row in FR-11, and §4.4.
+
+**Tasks**
+
+1. Read `/api/matchups` on the deck page through the hook S11 uses, keyed by window.
+2. Render the deck's row with the matchup table's own components: the rotated names, the cells, the legend and the detail. Share them with S11 where they are not shared yet.
+3. Find the row by `deck.id` from the deck detail, not by the slug in the address. Leave the deck itself out and keep share order.
+4. Print the row's own dates when its window differs from the detail's.
+5. Scroll sideways below the row's width, with the deck's name in view.
+6. One tab stop, with arrow keys between cells and to the headers, as in FR-12.
+7. Loading, error and 429 inside the section only. No automatic retry.
+8. The note and link for a deck outside the top 24 in the selected window.
+9. A spec beside each component and helper it adds or changes. A JSDoc block on each helper.
+
+**Done when**
+
+- Affinity's page shows 23 cells that match its row on the matchup page, also when opened through a stale slug.
+- Changing the window refetches the row.
+- A deck outside the top 24 in the selected window shows the note and the link.
+- A failed `/api/matchups` request leaves the numbers and the sample list in place.
+- At 360 px the page does not scroll sideways.
+
+**Blocked by** S10, S11, D1. **Blocks** nothing.
 
 ---
 
@@ -677,6 +712,8 @@ Covers NFR-1: an exported function with a consumer has a spec beside it. E10 set
 **E10 runs alone.** Prettier rewrites every file once, so anything running beside it conflicts everywhere. That is also why the reformat is a commit of its own.
 
 **E6 and E7 touch every file in `src/`.** E9 runs beside E6 because it touches only `api/`. D1 runs beside E5 because it touches only `docs/`.
+
+**S12 comes last.** It needs S10's page and the matchup table's components from S11, so it waits for both.
 
 **E11 waits for E8.** E8 changes the deck card, the table and the shell, so specs written before it would be rewritten. After E8, E11 adds spec files only, so it runs beside S10 and S11, which add new components.
 

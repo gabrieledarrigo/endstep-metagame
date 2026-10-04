@@ -1,14 +1,14 @@
 # Endstep Pauper Metagame Viewer: Requirements
 
 **Status:** Draft v3 · **Date:** 2026-10-03
-**Scope:** three pages. The overview, a deck page with its Numbers section, and a matchup table. Other deck page sections are out of scope, see §8.
+**Scope:** three pages. The overview, a deck page with its numbers, a sample list and its matchups against the top 24, and a matchup table. Other deck page sections are out of scope, see §8.
 **Visual design** is specified in [`design-system.html`](./design-system.html). This document covers structure, content and behaviour.
 
 ---
 
 ## 1. Purpose
 
-A browser application that reads the public Endstep metagame API and shows the **Pauper** metagame. The overview reports which decks are played, how much of the field each one holds, how they perform, and how that has changed over time. A deck page gives one deck's numbers. A matchup table shows how the top decks do against each other.
+A browser application that reads the public Endstep metagame API and shows the **Pauper** metagame. The overview reports which decks are played, how much of the field each one holds, how they perform, and how that has changed over time. A deck page gives one deck's numbers, a sample list, and its results against the rest of the top 24. A matchup table shows how the top decks do against each other.
 
 The application is read-only. It stores nothing. It has no authentication and no user accounts. It is not affiliated with Endstep.
 
@@ -30,7 +30,7 @@ The application is read-only. It stores nothing. It has no authentication and no
 | Grid size | Top 24 decks by share. The rest rolls into a single `Other` |
 | Filters exposed | Time window only |
 | Charts on the overview | Share over time, share composition, win rate against share |
-| Deck page | Numbers section only. Matchups list, card usage, sample list and ratings are deferred |
+| Deck page | Numbers, the sample list, and the deck's row of the matchup table. The full opponent list, card usage and ratings are deferred |
 | Deck links | Our deck page. It links to the same deck on endstep.cc |
 | Order of work | The Vite refactor first, then the deck page and the matchup table, so the new pages are written once |
 | Matchup table | Its own page. Top 24 decks. Colour only clear pairs, FR-12 |
@@ -104,7 +104,8 @@ The win and loss figures in `gameResults`, `games`, `playDraw` and every `/match
 | `playDraw` | `tossWon`, `tossLost`, `onPlay`, `onDraw` blocks, and `choseToDraw {count, of, rate}` | FR-11 |
 | `texture` | `averageTurns`, `averageOpeningHand`, `mulliganRate {count, of, rate}` | FR-11 |
 | `shareSeries` | `days {from, to}`, `markedDay`, and `points[{day, registrations, totalRegistrations, rate}]` for this deck only. Share only, no win rate history | FR-11 |
-| `sampleList`, `cardTableWithheld` | Sample decklist and its withheld states | Deferred |
+| `sampleList` | The most common exact list for the deck. `state` is `shown`, `mainOnly` or `withheld`, with `minPlayers: 3` and a `reason`: `sideboard_below_player_floor`, `main_below_player_floor` or `no_registrations`. `players` brought this exact list. `similarity` measures it against the deck's average list. `distinctLists` counts the lists it was picked from. `main` and `side` are `{name, count, setCode, collectorNumber}`, and the set and number can be null | FR-11 |
+| `cardTableWithheld` | Whether the card table is withheld | Deferred |
 
 A UUID in place of the slug returns 404 `{"error": "Unknown deck"}`. A stale slug with the right 8-character suffix returns 307 with `canonicalSlug`. See §6.11.
 
@@ -141,7 +142,7 @@ Public CORS proxies were tested on 2026-09-20 and rejected. All six failed. allo
 
 ### 4.4 Matchup function
 
-`GET /api/matchups?window=30d`. `window` is the only parameter, checked against the five values in §3.3. The raw query string must be exactly `?window=` followed by one of the five values, byte for byte. Anything else returns 400: a missing or repeated `window`, another parameter, an encoded or padded value. The edge caches by the raw query string, so any variant would otherwise force a cold build of 25 calls. The format is Pauper and the population is `rated`, both fixed.
+`GET /api/matchups?window=30d`. Two pages read it: the matchup table, and the deck page for one row, FR-11. Both request the same URL, so they share one edge cache entry per window. `window` is the only parameter, checked against the five values in §3.3. The raw query string must be exactly `?window=` followed by one of the five values, byte for byte. Anything else returns 400: a missing or repeated `window`, another parameter, an encoded or padded value. The edge caches by the raw query string, so any variant would otherwise force a cold build of 25 calls. The format is Pauper and the population is `rated`, both fixed.
 
 1. Fetch the top 24 decks: `/Pauper/decks?window=…&population=rated&sort=share&dir=desc&pageSize=24`.
 2. Fetch `/Pauper/decks/{slug}/matchups?window=…&population=rated&sort=matches&dir=desc&pageSize=50` for each of the 24, in parallel.
@@ -254,8 +255,8 @@ Every page has a header with links to the overview and the matchup table. The cu
 
 Deck names link to `/decks/{slug}` wherever a deck is listed: grid cards, table rows, matrix headers. Links keep the current `?window=`.
 
-### FR-11. Deck page: Numbers
-One call to `/{format}/decks/{slug}` feeds the whole page. See §3.6.
+### FR-11. Deck page
+Two calls. `/{format}/decks/{slug}` feeds every section except the matchups row, see §3.6. `/api/matchups` feeds the matchups row, §4.4.
 
 **Header.** Deck name, colour pips, key card art and the three key cards. The window selector and the resolved window dates (§6.7). A link to the same deck on endstep.cc, in a new tab.
 
@@ -268,6 +269,25 @@ One call to `/{format}/decks/{slug}` feeds the whole page. See §3.6.
 **Toss.** Win rate after winning the toss and after losing it, from `playDraw.tossWon` and `tossLost`. How often players chose to draw, from `choseToDraw`. Endstep presents these as game 1 results, open item 5.
 
 **Texture.** Average turns, average opening hand, mulligan rate.
+
+**Sample list.** From `sampleList`, in the same response. It is the most common exact list registered for the deck, not a recommended one.
+
+- The main deck and the sideboard as two lists, each with its card count. Each card shows its count and name, sorted by count and then by name.
+- One line says where the list comes from: how many players brought it, how close it is to the deck's average list, and how many distinct lists it was the most common of.
+- A copy control puts the list on the clipboard as plain text: one `count name` line per card, and a blank line before the sideboard. That is the format MTGO imports. If the clipboard is refused or missing, the control says so and shows the same text, selected, ready to copy by keyboard.
+- `mainOnly` shows the main deck. The sideboard is replaced by a note: fewer than `minPlayers` players, 3 today, brought this exact 75. The control copies the main deck only.
+- When `side` is empty, the sideboard heading and the blank line before it are left out.
+- `withheld` shows no list and no control. A note gives the reason: no main deck was brought by `minPlayers` or more players, or no list was registered in this window. Never an empty list.
+
+**Matchups against the top 24.** The deck's own row of the matchup table, from `/api/matchups`.
+
+- The other 23 decks of the top 24, in share order. The deck itself is left out. The rotated names, cells, colour rule, gated and no-data states, legend and detail are the ones FR-12 defines.
+- It spans the page width below the numbers and the sample list. Where the window is narrower than the row, about 870px, it scrolls sideways and the deck's name stays in view. The page itself does not scroll sideways, NFR-7.
+- One tab stop, with arrow keys between cells, as in FR-12.
+- It loads and fails on its own. A failed request shows the error panel inside this section, and the rest of the page stays. As in FR-12, there is no automatic retry.
+- The page finds its row by `deck.id` from the deck detail, matched against `decks[].id` in the response, never by the slug in the address. A stale slug therefore still finds its row.
+- When the deck is not in the top 24 for the selected window, the section says so in place of the row and links to the matchup table. The note takes the deck's name from the detail.
+- The two responses are cached apart, so near the daily rollover they can cover different windows. When the row's window differs from the detail's, the section prints the row's own dates.
 
 Figures in the games and toss sections count games, not matches. Label them game win rate, never match win rate. §6.6 covers the match-level figures.
 
@@ -290,6 +310,7 @@ A page with one table: the top 24 decks by share, against each other. One call t
 - The page does not retry `/api/matchups` on its own. A failed build already cost up to 25 upstream calls. The retry control is the only retry.
 - A legend states the colour rule in words.
 - Row and column headers link to the deck pages, FR-10.
+- Each deck page shows its own row of this table, FR-11.
 - The table sits in a full-width band that breaks out of the page column, centred, with no fixed height and no scrollbar. The header row stays at the top of the window while the page scrolls past the table.
 - Where the window is narrower than the table, about 1,010px, the band scrolls sideways and the first column stays in view. The page itself does not scroll sideways, NFR-7.
 - The page has the window selector and the resolved window dates.
@@ -433,12 +454,12 @@ Recharts covers the overview's three charts: `LineChart` for FR-5, a horizontal 
 
 ### NFR-3. Performance
 - Page interactive within 3 seconds on a normal broadband connection.
-- Initial render API calls: exactly **two** on the overview, `decks` at `pageSize=24` and `share-series`. **One** on the deck page. **One** on the matchup table.
+- Initial render API calls: exactly **two** on the overview, `decks` at `pageSize=24` and `share-series`. **Two** on the deck page: the deck detail and `/api/matchups`. The second is the matchup table's own request, so it shares that page's edge cache entry. **One** on the matchup table.
 - Script payload is a reference, not a gate. Draft v2 shipped about 743 KB brotli, 544 KB of it Babel Standalone. The mechanical Vite port measured 156 KB of script and 2 KB of CSS, brotli, on 2026-10-03.
 - Card art is lazy-loaded with `loading="lazy"` and sized to prevent layout shift.
 
 ### NFR-4. Respecting the upstream service
-The application must not put meaningful load on Endstep. Edge caching (§4.3) means repeat visits and repeated window switches cost no upstream requests. The client must not poll. It must not retry more than twice. It must back off on 429. Total upstream traffic should stay well below the limit of 300 per 60 seconds. The matchup function costs 25 upstream calls per cold window, so warming all five windows costs 125 in each edge region that serves a request. Several regions warming every window inside one minute would pass the limit. At this site's traffic that is unlikely, and §4.4 holds a 429 at the edge for the full minute when it happens.
+The application must not put meaningful load on Endstep. Edge caching (§4.3) means repeat visits and repeated window switches cost no upstream requests. The client must not poll. It must not retry more than twice. It must back off on 429. Total upstream traffic should stay well below the limit of 300 per 60 seconds. The matchup function costs 25 upstream calls per cold window, so warming all five windows costs 125 in each edge region that serves a request. The deck page's matchups row requests the same URL, so it adds no upstream calls once a window is warm. Several regions warming every window inside one minute would pass the limit. At this site's traffic that is unlikely, and §4.4 holds a 429 at the edge for the full minute when it happens.
 
 ### NFR-5. Attribution
 The page states that the data comes from Endstep and links to `https://endstep.cc/metagame`. It does not present itself as an official Endstep product.
@@ -508,7 +529,7 @@ A later layer overrides an earlier one, whatever the selectors' specificity and 
 
 ## 8. Out of scope
 
-- Deck page sections beyond Numbers: the matchups list, card usage, the rating distribution and the sample decklist.
+- Deck page sections beyond the numbers, the sample list and the matchups row: the deck's full list of opponents, card usage and the rating distribution.
 - A matchup table beyond the top 24 decks.
 - Formats other than Pauper.
 - The `casual` population and rating-band filtering.
