@@ -471,20 +471,24 @@ Covers NFR-1 and §4.7. Every later item runs against these checks.
 
 ## E6. Split into modules
 
-Covers the layout agreed for the refactor. Still JavaScript. No behaviour change.
+Covers the layout agreed for the refactor and NFR-11. Still JavaScript. No behaviour change beyond the breakpoints.
 
 **Tasks**
 
 1. One module per concern: `src/config`, `src/api`, `src/hooks`, `src/format`, `src/components`, `src/charts`, `src/pages/overview`, `src/App`.
-2. Move each component's CSS block to a stylesheet beside it, imported by the component. Tokens and base styles go to `src/styles/`.
-3. Move the shared helpers that sit in the wrong block to a module their callers import: `formatCount`, `MONTHS`, `axisShare`, `tooltipShare`.
-4. Remove the duplicate `.chart-section` declaration.
+2. `src/styles/index.css` with the layer order from NFR-11, importing `tokens.css`, `base.css` and `layout.css` into their layers. `main.jsx` imports it first.
+3. A stylesheet beside each component, named after it, wrapped in `@layer components`, covering only the elements that component renders. Move every rule that more than one component needs to `base` or `layout`.
+4. The page wrapper in `layout.css`. The full-width band arrives with its first user, S11.
+5. Reduce the media queries to the two boundaries in NFR-11, mobile first. Today's two queries move: the window selector's sideways scroll at 400px, and the scatter labels hidden below 760px. Check each one at its new boundary and record where it landed.
+6. Move the shared helpers that sit in the wrong block to a module their callers import: `formatCount`, `MONTHS`, `axisShare`, `tooltipShare`.
+7. Remove the duplicate `.chart-section` declaration.
 
 **Done when**
 
-- The page renders and behaves as it does after E5.
+- The page renders and behaves as it does after E5 at 360px, 800px and 1280px, apart from the two moved queries.
 - `src/main.jsx` only mounts `App`.
 - No module holds more than one concern.
+- No rule sits outside a layer, there is no `!important`, element selectors appear only in `base.css`, and media queries use only 640px and 1,100px.
 
 **Blocked by** E10. **Blocks** E7.
 
@@ -624,7 +628,7 @@ Covers FR-12 and §6.10.
 3. The table and its cell states, as FR-12 describes.
 4. Detail on hover and on keyboard focus. One tab stop for the table, with arrow keys between cells, FR-12.
 5. The legend.
-6. The full-width band with no scrollbar, the header row that stays in view, and the sideways scroll below the table's width, as the design system shows.
+6. The full-width band with no scrollbar, the header row that stays in view, and the sideways scroll below the table's width, as the design system shows. The band is a layout primitive, so it goes in `layout.css`, NFR-11.
 7. Headers link to the deck pages.
 8. The window selector and the resolved window dates.
 9. Loading, error and 429 states. No automatic retry, FR-12.
