@@ -412,7 +412,7 @@ Ten items. Seven enablers, one design item, two user stories. The refactor comes
 ```
 E5 vite ──► E10 checks and CI ─┬─► E6 modules ──► E7 typescript ──► E8 routing ─┬─► S10 deck page
                                │                                                 ├─► S11 matchup table
-                               │                                                 └─► E11 component tests
+                               │                                                 └─► E11 tests
                                └─► E9 matchup function ─────────────────────────────► S11
 D1 design ──► E8, S10
 ```
@@ -504,11 +504,13 @@ Covers NFR-1.
 2. Convert every module to `.ts` or `.tsx`, starting with the data layer.
 3. Strict mode. Add the type check to the build script, so a type error fails the build.
 4. Fix the `<div>` inside a `<p>` in the deck card skeleton. React's development build reports it.
+5. A JSDoc block on every helper as it is typed: hooks, and the formatting and data functions, NFR-1.
 
 **Done when**
 
 - `npm run build` passes in strict mode with no explicit `any` and no `@ts-ignore`.
 - ESLint passes.
+- Every helper has a JSDoc block.
 - The page renders and behaves as it does after E6.
 
 **Blocked by** E6. **Blocks** E8.
@@ -528,7 +530,7 @@ Covers FR-1, FR-3, FR-4, FR-10 and §4.5.
 5. Deck cards and table rows link to `/decks/{slug}`.
 6. One window state shared by every page.
 7. On a route change, scroll to the top and move focus to the page's main heading.
-8. A spec beside each component it adds: the page header and the two placeholder pages.
+8. A spec beside each component and helper it adds: the page header, the two placeholder pages, and any routing helper. A JSDoc block on each helper.
 
 **Done when**
 
@@ -551,9 +553,10 @@ Covers §4.4. Server side only, so it runs alongside the refactor.
 3. The response shape in §4.4.
 4. Fail the whole request on any upstream failure. 429 returns 429, anything else 502. Timeout per call.
 5. `Cache-Control` by status, method rules and CORS headers as the proxy. A 429 is held for 60 seconds, not 10.
-6. Put code shared with the proxy in `api/_shared.ts`. Vercel does not deploy a file in `api/` whose name starts with an underscore.
+6. Put code shared with the proxy in `api/_shared.ts`. Vercel does not deploy a file in `api/` whose name starts with an underscore. Each helper there gets a JSDoc block and a spec in `api/_shared.spec.ts`.
 7. Check coverage on all five windows, open item 4 in the requirements. Record the result there.
 8. `api/matchups.spec.ts` beside the function: it calls the handler with a plain `Request` and stubbed `fetch`. The dev plugin comes in E5 and is wired up in S11.
+9. A JSDoc block on the handler, as `api/metagame.ts` has.
 
 **Done when**
 
@@ -602,7 +605,7 @@ Covers FR-11, §6.8 and §6.11.
 5. Empty state for a deck with no matches in the window.
 6. Loading, error and 429 states.
 7. Confirm what the toss blocks count, open item 5, before labelling them.
-8. A spec beside each component it adds.
+8. A spec beside each component and helper it adds, including the 20-match helper. A JSDoc block on each helper.
 
 **Done when**
 
@@ -632,7 +635,7 @@ Covers FR-12 and §6.10.
 7. Headers link to the deck pages.
 8. The window selector and the resolved window dates.
 9. Loading, error and 429 states. No automatic retry, FR-12.
-10. A spec beside each component it adds.
+10. A spec beside each component and helper it adds. A JSDoc block on each helper.
 
 **Done when**
 
@@ -646,20 +649,21 @@ Covers FR-12 and §6.10.
 
 ---
 
-## E11. Test every component
+## E11. Test every exported function
 
-Covers NFR-1: every component has a spec beside it. E10 set up the tools, and S10 and S11 test what they add. This item covers everything that existed before them.
+Covers NFR-1: an exported function with a consumer has a spec beside it. E10 set up the tools, and E8, E9, S10 and S11 test what they add. This item covers everything that existed before them.
 
 **Tasks**
 
 1. A spec beside every component that exists after E8, in `src/components`, `src/charts`, `src/pages/overview` and the shell.
-2. Query by role and visible text. No snapshots.
-3. Cover the states each component has: loading, error, empty, and the 429 copy where it applies.
-4. Give the charts a size in jsdom. Recharts' `ResponsiveContainer` measures its parent, which is 0 by 0 there, so without a `ResizeObserver` stub and a sized container the charts render no marks.
+2. A spec beside every helper module: the hooks, with `renderHook`, and the formatting and data functions.
+3. Query by role and visible text. No snapshots.
+4. Cover the states each component has: loading, error, empty, and the 429 copy where it applies.
+5. Give the charts a size in jsdom. Recharts' `ResponsiveContainer` measures its parent, which is 0 by 0 there, so without a `ResizeObserver` stub and a sized container the charts render no marks.
 
 **Done when**
 
-- Every component file has a spec beside it.
+- Every module that exports a function with a consumer has a spec beside it.
 - `ci` passes.
 
 **Blocked by** E8. **Blocks** nothing.
