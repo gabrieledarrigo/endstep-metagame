@@ -104,7 +104,7 @@ The win and loss figures in `gameResults`, `games`, `playDraw` and every `/match
 | `playDraw` | `tossWon`, `tossLost`, `onPlay`, `onDraw` blocks, and `choseToDraw {count, of, rate}` | FR-11 |
 | `texture` | `averageTurns`, `averageOpeningHand`, `mulliganRate {count, of, rate}` | FR-11 |
 | `shareSeries` | `days {from, to}`, `markedDay`, and `points[{day, registrations, totalRegistrations, rate}]` for this deck only. Share only, no win rate history | FR-11 |
-| `sampleList` | The most common exact list for the deck. `state` is `shown`, `mainOnly` or `withheld`, with a `reason` and `minPlayers: 3`. `players` brought this exact list. `similarity` measures it against the deck's average list. `distinctLists` counts the lists it was picked from. `main` and `side` are `{name, count, setCode, collectorNumber}`, and the set and number can be null | FR-11 |
+| `sampleList` | The most common exact list for the deck. `state` is `shown`, `mainOnly` or `withheld`, with `minPlayers: 3` and a `reason`: `sideboard_below_player_floor`, `main_below_player_floor` or `no_registrations`. `players` brought this exact list. `similarity` measures it against the deck's average list. `distinctLists` counts the lists it was picked from. `main` and `side` are `{name, count, setCode, collectorNumber}`, and the set and number can be null | FR-11 |
 | `cardTableWithheld` | Whether the card table is withheld | Deferred |
 
 A UUID in place of the slug returns 404 `{"error": "Unknown deck"}`. A stale slug with the right 8-character suffix returns 307 with `canonicalSlug`. See §6.11.
@@ -274,9 +274,9 @@ Two calls. `/{format}/decks/{slug}` feeds every section except the matchups row,
 
 - The main deck and the sideboard as two lists, each with its card count. Each card shows its count and name, sorted by count and then by name.
 - One line says where the list comes from: how many players brought it, how close it is to the deck's average list, and how many distinct lists it was the most common of.
-- A copy control puts the list on the clipboard as plain text: one `count name` line per card, and a blank line before the sideboard. That is the format MTGO imports. If the clipboard is refused, the control says so and the list stays selectable.
-- `mainOnly` shows the main deck. The sideboard is replaced by a note: fewer than 3 players brought this exact 75. The control copies the main deck only.
-- `withheld` shows no list and no control. A note gives the reason: no main deck was brought by 3 or more players, or no list was registered in this window. Never an empty list.
+- A copy control puts the list on the clipboard as plain text: one `count name` line per card, and a blank line before the sideboard. That is the format MTGO imports. If the clipboard is refused or missing, the control says so and shows the same text, selected, ready to copy by keyboard.
+- `mainOnly` shows the main deck. The sideboard is replaced by a note: fewer than `minPlayers` players, 3 today, brought this exact 75. The control copies the main deck only.
+- `withheld` shows no list and no control. A note gives the reason: no main deck was brought by `minPlayers` or more players, or no list was registered in this window. Never an empty list.
 
 **Matchups against the top 24.** The deck's own row of the matchup table, from `/api/matchups`.
 
