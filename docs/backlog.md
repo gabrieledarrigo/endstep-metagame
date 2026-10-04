@@ -664,16 +664,17 @@ Covers the matchups row in FR-11, and §4.4.
 
 1. Read `/api/matchups` on the deck page through the hook S11 uses, keyed by window.
 2. Render the deck's row with the matchup table's own components: the rotated names, the cells, the legend and the detail. Share them with S11 where they are not shared yet.
-3. Leave the deck itself out and keep share order.
-4. Scroll sideways below the row's width, with the deck's name in view.
-5. One tab stop, with arrow keys between cells, as in FR-12.
-6. Loading, error and 429 inside the section only. No automatic retry.
-7. The note and link for a deck outside the top 24 in the selected window.
-8. A spec beside each component and helper it adds or changes. A JSDoc block on each helper.
+3. Find the row by `deck.id` from the deck detail, not by the slug in the address. Leave the deck itself out and keep share order.
+4. Print the row's own dates when its window differs from the detail's.
+5. Scroll sideways below the row's width, with the deck's name in view.
+6. One tab stop, with arrow keys between cells and to the headers, as in FR-12.
+7. Loading, error and 429 inside the section only. No automatic retry.
+8. The note and link for a deck outside the top 24 in the selected window.
+9. A spec beside each component and helper it adds or changes. A JSDoc block on each helper.
 
 **Done when**
 
-- Affinity's page shows 23 cells that match its row on the matchup page.
+- Affinity's page shows 23 cells that match its row on the matchup page, also when opened through a stale slug.
 - Changing the window refetches the row.
 - A deck outside the top 24 in the selected window shows the note and the link.
 - A failed `/api/matchups` request leaves the numbers and the sample list in place.

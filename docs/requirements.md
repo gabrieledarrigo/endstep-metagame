@@ -276,6 +276,7 @@ Two calls. `/{format}/decks/{slug}` feeds every section except the matchups row,
 - One line says where the list comes from: how many players brought it, how close it is to the deck's average list, and how many distinct lists it was the most common of.
 - A copy control puts the list on the clipboard as plain text: one `count name` line per card, and a blank line before the sideboard. That is the format MTGO imports. If the clipboard is refused or missing, the control says so and shows the same text, selected, ready to copy by keyboard.
 - `mainOnly` shows the main deck. The sideboard is replaced by a note: fewer than `minPlayers` players, 3 today, brought this exact 75. The control copies the main deck only.
+- When `side` is empty, the sideboard heading and the blank line before it are left out.
 - `withheld` shows no list and no control. A note gives the reason: no main deck was brought by `minPlayers` or more players, or no list was registered in this window. Never an empty list.
 
 **Matchups against the top 24.** The deck's own row of the matchup table, from `/api/matchups`.
@@ -284,7 +285,9 @@ Two calls. `/{format}/decks/{slug}` feeds every section except the matchups row,
 - It spans the page width below the numbers and the sample list. Where the window is narrower than the row, about 870px, it scrolls sideways and the deck's name stays in view. The page itself does not scroll sideways, NFR-7.
 - One tab stop, with arrow keys between cells, as in FR-12.
 - It loads and fails on its own. A failed request shows the error panel inside this section, and the rest of the page stays. As in FR-12, there is no automatic retry.
-- When the deck is not in the top 24 for the selected window, the section says so in place of the row and links to the matchup table.
+- The page finds its row by `deck.id` from the deck detail, matched against `decks[].id` in the response, never by the slug in the address. A stale slug therefore still finds its row.
+- When the deck is not in the top 24 for the selected window, the section says so in place of the row and links to the matchup table. The note takes the deck's name from the detail.
+- The two responses are cached apart, so near the daily rollover they can cover different windows. When the row's window differs from the detail's, the section prints the row's own dates.
 
 Figures in the games and toss sections count games, not matches. Label them game win rate, never match win rate. §6.6 covers the match-level figures.
 
