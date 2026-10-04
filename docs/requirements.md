@@ -1,14 +1,14 @@
 # Endstep Pauper Metagame Viewer: Requirements
 
 **Status:** Draft v3 · **Date:** 2026-10-03
-**Scope:** three pages. The overview, a deck page with its Numbers section, and a matchup table. Other deck page sections are out of scope, see §8.
+**Scope:** three pages. The overview, a deck page with its numbers and a sample list, and a matchup table. Other deck page sections are out of scope, see §8.
 **Visual design** is specified in [`design-system.html`](./design-system.html). This document covers structure, content and behaviour.
 
 ---
 
 ## 1. Purpose
 
-A browser application that reads the public Endstep metagame API and shows the **Pauper** metagame. The overview reports which decks are played, how much of the field each one holds, how they perform, and how that has changed over time. A deck page gives one deck's numbers. A matchup table shows how the top decks do against each other.
+A browser application that reads the public Endstep metagame API and shows the **Pauper** metagame. The overview reports which decks are played, how much of the field each one holds, how they perform, and how that has changed over time. A deck page gives one deck's numbers and a sample list. A matchup table shows how the top decks do against each other.
 
 The application is read-only. It stores nothing. It has no authentication and no user accounts. It is not affiliated with Endstep.
 
@@ -30,7 +30,7 @@ The application is read-only. It stores nothing. It has no authentication and no
 | Grid size | Top 24 decks by share. The rest rolls into a single `Other` |
 | Filters exposed | Time window only |
 | Charts on the overview | Share over time, share composition, win rate against share |
-| Deck page | Numbers section only. Matchups list, card usage, sample list and ratings are deferred |
+| Deck page | Numbers and the sample list. Matchups list, card usage and ratings are deferred |
 | Deck links | Our deck page. It links to the same deck on endstep.cc |
 | Order of work | The Vite refactor first, then the deck page and the matchup table, so the new pages are written once |
 | Matchup table | Its own page. Top 24 decks. Colour only clear pairs, FR-12 |
@@ -104,7 +104,8 @@ The win and loss figures in `gameResults`, `games`, `playDraw` and every `/match
 | `playDraw` | `tossWon`, `tossLost`, `onPlay`, `onDraw` blocks, and `choseToDraw {count, of, rate}` | FR-11 |
 | `texture` | `averageTurns`, `averageOpeningHand`, `mulliganRate {count, of, rate}` | FR-11 |
 | `shareSeries` | `days {from, to}`, `markedDay`, and `points[{day, registrations, totalRegistrations, rate}]` for this deck only. Share only, no win rate history | FR-11 |
-| `sampleList`, `cardTableWithheld` | Sample decklist and its withheld states | Deferred |
+| `sampleList` | The most common exact list for the deck. `state` is `shown`, `mainOnly` or `withheld`, with a `reason` and `minPlayers: 3`. `players` brought this exact list. `similarity` measures it against the deck's average list. `distinctLists` counts the lists it was picked from. `main` and `side` are `{name, count, setCode, collectorNumber}`, and the set and number can be null | FR-11 |
+| `cardTableWithheld` | Whether the card table is withheld | Deferred |
 
 A UUID in place of the slug returns 404 `{"error": "Unknown deck"}`. A stale slug with the right 8-character suffix returns 307 with `canonicalSlug`. See §6.11.
 
@@ -254,7 +255,7 @@ Every page has a header with links to the overview and the matchup table. The cu
 
 Deck names link to `/decks/{slug}` wherever a deck is listed: grid cards, table rows, matrix headers. Links keep the current `?window=`.
 
-### FR-11. Deck page: Numbers
+### FR-11. Deck page
 One call to `/{format}/decks/{slug}` feeds the whole page. See §3.6.
 
 **Header.** Deck name, colour pips, key card art and the three key cards. The window selector and the resolved window dates (§6.7). A link to the same deck on endstep.cc, in a new tab.
@@ -268,6 +269,14 @@ One call to `/{format}/decks/{slug}` feeds the whole page. See §3.6.
 **Toss.** Win rate after winning the toss and after losing it, from `playDraw.tossWon` and `tossLost`. How often players chose to draw, from `choseToDraw`. Endstep presents these as game 1 results, open item 5.
 
 **Texture.** Average turns, average opening hand, mulligan rate.
+
+**Sample list.** From `sampleList`, in the same response. It is the most common exact list registered for the deck, not a recommended one.
+
+- The main deck and the sideboard as two lists, each with its card count. Each card shows its count and name, sorted by count and then by name.
+- One line says where the list comes from: how many players brought it, how close it is to the deck's average list, and how many distinct lists it was the most common of.
+- A copy control puts the list on the clipboard as plain text: one `count name` line per card, and a blank line before the sideboard. That is the format MTGO imports. If the clipboard is refused, the control says so and the list stays selectable.
+- `mainOnly` shows the main deck. The sideboard is replaced by a note: fewer than 3 players brought this exact 75. The control copies the main deck only.
+- `withheld` shows no list and no control. A note gives the reason: no main deck was brought by 3 or more players, or no list was registered in this window. Never an empty list.
 
 Figures in the games and toss sections count games, not matches. Label them game win rate, never match win rate. §6.6 covers the match-level figures.
 
@@ -508,7 +517,7 @@ A later layer overrides an earlier one, whatever the selectors' specificity and 
 
 ## 8. Out of scope
 
-- Deck page sections beyond Numbers: the matchups list, card usage, the rating distribution and the sample decklist.
+- Deck page sections beyond the numbers and the sample list: the matchups list, card usage and the rating distribution.
 - A matchup table beyond the top 24 decks.
 - Formats other than Pauper.
 - The `casual` population and rating-band filtering.

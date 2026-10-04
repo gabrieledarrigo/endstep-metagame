@@ -576,10 +576,11 @@ Covers the appearance of FR-10 and FR-11. Changes `docs/design-system.html` only
 **Tasks**
 
 1. Page header with navigation.
-2. Deck page layout: header with art, stat tiles, share line with its details table, games table, toss, texture.
-3. A gated value, "too few to call", for tiles and table cells. Reuse the hatch from the matchup table where it fits.
-4. Check any new colour for contrast and colour-vision deficiency against the surface.
-5. Republish the artifact.
+2. Deck page layout: header with art, stat tiles, share line with its details table, games table, toss, texture, sample list.
+3. The sample list: main deck and sideboard with counts, the line on where it comes from, the copy control, and the `mainOnly` and `withheld` states.
+4. A gated value, "too few to call", for tiles and table cells. Reuse the hatch from the matchup table where it fits.
+5. Check any new colour for contrast and colour-vision deficiency against the surface.
+6. Republish the artifact.
 
 **Done when**
 
@@ -599,7 +600,7 @@ Covers FR-11, §6.8 and §6.11.
 **Tasks**
 
 1. Fetch `/{format}/decks/{slug}` through the proxy, keyed by slug and window.
-2. Header, stat tiles, share line with its details table, games table, toss and texture, as FR-11 describes.
+2. Header, stat tiles, share line with its details table, games table, toss, texture and the sample list with its copy control, as FR-11 describes.
 3. A helper that applies the 20-match rule to any win and loss block, including `deck.matchWinRate`, §6.8. Use it on the overview too.
 4. Not-found state for an unknown slug, from a 404 or a proxy 400. Replace the URL through the router when `deck.slug` differs.
 5. Empty state for a deck with no matches in the window.
@@ -609,7 +610,8 @@ Covers FR-11, §6.8 and §6.11.
 
 **Done when**
 
-- Affinity's page shows every section at 30d, and changing the window refetches it.
+- Affinity's page shows every section at 30d, the sample list included, and changing the window refetches it.
+- The copy control puts a list on the clipboard that MTGO imports.
 - An unknown slug shows the not-found state.
 - `/decks/renamed-e93f5f74` lands on Affinity with the URL corrected.
 - No gated figure reads as 0%.
