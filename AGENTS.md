@@ -13,6 +13,7 @@ Write simple, readable code. Prefer the clean solution over the clever one.
 - Comments are for the rare case where the reason is not visible in the code, such as a workaround for an external API.
 - CSS follows NFR-11 in the requirements: every rule in a cascade layer, one stylesheet per component named after it, and each stylesheet styles only the elements its component renders.
 - Every API function and every exported helper has a JSDoc block, as NFR-1 describes. That is documentation of a contract, not an inline comment.
+- An exported function with a consumer has a spec beside its module, named after it: `Card.tsx` and `Card.spec.tsx`. Specs query by role and visible text and never call Endstep.
 
 ## Prose
 
@@ -53,6 +54,7 @@ Set the edge cache headers
 
 Open one when an issue is done.
 
+- Before every push, `npm run format:check`, `npm run lint`, `npm test` and `npm run build` pass. CI runs the same four checks on every pull request and on `main`.
 - Title is the issue title, verbatim.
 - Description is a short bullet list of what was done. Nothing else.
 - **No attribution footer.**
