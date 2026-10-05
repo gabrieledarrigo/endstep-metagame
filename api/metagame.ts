@@ -30,6 +30,7 @@ const QUERY_PARAMS = [
 ];
 
 const SEGMENT = /^[A-Za-z0-9_-]+$/;
+const NO_BODY = [204, 205, 304];
 
 /**
  * Checks whether the path segments match one of the allow-listed Endstep endpoints.
@@ -185,7 +186,7 @@ export default {
       );
     }
 
-    return new Response(body, {
+    return new Response(NO_BODY.includes(status) ? null : body, {
       headers: {
         ...baseHeaders,
         "Content-Type": contentType ?? "application/json",

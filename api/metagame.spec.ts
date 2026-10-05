@@ -1,5 +1,6 @@
+// @vitest-environment node
 import { afterEach, describe, expect, it, vi } from "vitest";
-import metagame from "./metagame.ts";
+import metagame from "./metagame";
 
 const UPSTREAM = "https://endstep.cc/api/metagame/v1";
 
@@ -8,7 +9,7 @@ function request(query: string, method = "GET") {
 }
 
 function upstream(status = 200, contentType = "application/json") {
-  const fetchMock = vi.fn(
+  const fetchMock = vi.fn<typeof fetch>(
     async () =>
       new Response('{"ok":true}', {
         status,
@@ -64,7 +65,9 @@ describe("the metagame proxy", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("answers the CORS preflight", async () => {
+  it("answers the CORS preflight without calling Endstep", async () => {
+    const fetchMock = upstream();
+
     const response = await metagame.fetch(request("path=formats", "OPTIONS"));
 
     expect(response.status).toBe(204);
@@ -72,7 +75,24 @@ describe("the metagame proxy", () => {
     expect(response.headers.get("access-control-allow-methods")).toBe(
       "GET, HEAD, OPTIONS",
     );
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(fetchMock).not.toHaveBeenCalled();
   });
+
+  it.each([204, 304])(
+    "passes an empty %i through without a body",
+    async (status) => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn<typeof fetch>(async () => new Response(null, { status })),
+      );
+
+      const response = await metagame.fetch(request("path=formats"));
+
+      expect(response.status).toBe(status);
+      expect(response.body).toBeNull();
+    },
+  );
 
   it("refuses methods other than GET, HEAD and OPTIONS", async () => {
     const fetchMock = upstream();
