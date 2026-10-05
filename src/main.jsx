@@ -170,29 +170,31 @@ function fetchSeries(timeWindow, signal) {
   )
 }
 
+const LOADING = { status: 'loading' }
+
 function useResource(load, timeWindow) {
-  const [state, setState] = useState({ status: 'loading' })
   const [reloads, setReloads] = useState(0)
+  const key = `${timeWindow} ${reloads}`
+  const [state, setState] = useState({ key: null, ...LOADING })
 
   useEffect(() => {
     const controller = new AbortController()
-    setState({ status: 'loading' })
 
     load(timeWindow, controller.signal)
-      .then((data) => setState({ status: 'ready', data }))
+      .then((data) => setState({ key, status: 'ready', data }))
       .catch((error) => {
         if (error.name === 'AbortError') {
           return
         }
-        setState({ status: 'error', error })
+        setState({ key, status: 'error', error })
       })
 
     return () => controller.abort()
-  }, [load, timeWindow, reloads])
+  }, [load, timeWindow, key])
 
   const retry = useCallback(() => setReloads((count) => count + 1), [])
 
-  return [state, retry]
+  return [state.key === key ? state : LOADING, retry]
 }
 
 const PIP_FILL = {
