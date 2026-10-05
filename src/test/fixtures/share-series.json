@@ -1,0 +1,402 @@
+{
+  "provenance": {
+    "schemaVersion": 1,
+    "derivationVersion": 53,
+    "window": {
+      "preset": "30d",
+      "from": "2026-09-06",
+      "to": "2026-10-06",
+      "since": null,
+      "until": null
+    },
+    "population": "rated"
+  },
+  "formatId": "Pauper",
+  "days": {
+    "from": "2026-09-06",
+    "to": "2026-10-06"
+  },
+  "markedDay": null,
+  "series": [
+    {
+      "deck": {
+        "id": "e93f5f74-2e3d-403e-ba56-1fde5b168692",
+        "slug": "affinity-e93f5f74",
+        "name": "Affinity",
+        "machineNamed": false
+      },
+      "points": [
+        {
+          "day": "2026-09-06",
+          "registrations": 245,
+          "totalRegistrations": 2892,
+          "rate": 0.084716459197787
+        },
+        {
+          "day": "2026-09-07",
+          "registrations": 378,
+          "totalRegistrations": 3958,
+          "rate": 0.09550277918140475
+        },
+        {
+          "day": "2026-09-08",
+          "registrations": 515,
+          "totalRegistrations": 5110,
+          "rate": 0.10078277886497064
+        },
+        {
+          "day": "2026-09-09",
+          "registrations": 403,
+          "totalRegistrations": 4794,
+          "rate": 0.08406341259908219
+        },
+        {
+          "day": "2026-09-10",
+          "registrations": 378,
+          "totalRegistrations": 4352,
+          "rate": 0.08685661764705882
+        },
+        {
+          "day": "2026-09-11",
+          "registrations": 589,
+          "totalRegistrations": 5722,
+          "rate": 0.10293603635092625
+        },
+        {
+          "day": "2026-09-12",
+          "registrations": 628,
+          "totalRegistrations": 5802,
+          "rate": 0.1082385384350224
+        },
+        {
+          "day": "2026-09-13",
+          "registrations": 732,
+          "totalRegistrations": 6838,
+          "rate": 0.10704884469143024
+        },
+        {
+          "day": "2026-09-14",
+          "registrations": 947,
+          "totalRegistrations": 7532,
+          "rate": 0.1257302177376527
+        },
+        {
+          "day": "2026-09-15",
+          "registrations": 992,
+          "totalRegistrations": 7714,
+          "rate": 0.12859735545760953
+        },
+        {
+          "day": "2026-09-16",
+          "registrations": 1061,
+          "totalRegistrations": 8058,
+          "rate": 0.13167038967485728
+        },
+        {
+          "day": "2026-09-17",
+          "registrations": 915,
+          "totalRegistrations": 7764,
+          "rate": 0.1178516228748068
+        },
+        {
+          "day": "2026-09-18",
+          "registrations": 934,
+          "totalRegistrations": 8112,
+          "rate": 0.11513806706114399
+        },
+        {
+          "day": "2026-09-19",
+          "registrations": 812,
+          "totalRegistrations": 7220,
+          "rate": 0.11246537396121883
+        },
+        {
+          "day": "2026-09-20",
+          "registrations": 769,
+          "totalRegistrations": 7780,
+          "rate": 0.09884318766066838
+        },
+        {
+          "day": "2026-09-21",
+          "registrations": 875,
+          "totalRegistrations": 9240,
+          "rate": 0.0946969696969697
+        },
+        {
+          "day": "2026-09-22",
+          "registrations": 855,
+          "totalRegistrations": 9506,
+          "rate": 0.0899431937723543
+        },
+        {
+          "day": "2026-09-23",
+          "registrations": 794,
+          "totalRegistrations": 9270,
+          "rate": 0.08565264293419633
+        },
+        {
+          "day": "2026-09-24",
+          "registrations": 773,
+          "totalRegistrations": 8720,
+          "rate": 0.08864678899082569
+        },
+        {
+          "day": "2026-09-25",
+          "registrations": 812,
+          "totalRegistrations": 8520,
+          "rate": 0.09530516431924882
+        },
+        {
+          "day": "2026-09-26",
+          "registrations": 769,
+          "totalRegistrations": 8624,
+          "rate": 0.08916975881261596
+        },
+        {
+          "day": "2026-09-27",
+          "registrations": 818,
+          "totalRegistrations": 9094,
+          "rate": 0.08994941719815262
+        },
+        {
+          "day": "2026-09-28",
+          "registrations": 935,
+          "totalRegistrations": 11180,
+          "rate": 0.0836314847942755
+        },
+        {
+          "day": "2026-09-29",
+          "registrations": 944,
+          "totalRegistrations": 11076,
+          "rate": 0.08522932466594438
+        },
+        {
+          "day": "2026-09-30",
+          "registrations": 848,
+          "totalRegistrations": 10578,
+          "rate": 0.08016638305917943
+        },
+        {
+          "day": "2026-10-01",
+          "registrations": 986,
+          "totalRegistrations": 10660,
+          "rate": 0.0924953095684803
+        },
+        {
+          "day": "2026-10-02",
+          "registrations": 795,
+          "totalRegistrations": 10148,
+          "rate": 0.07834055971620024
+        },
+        {
+          "day": "2026-10-03",
+          "registrations": 774,
+          "totalRegistrations": 9072,
+          "rate": 0.08531746031746032
+        },
+        {
+          "day": "2026-10-04",
+          "registrations": 843,
+          "totalRegistrations": 9724,
+          "rate": 0.08669271904566023
+        },
+        {
+          "day": "2026-10-05",
+          "registrations": 510,
+          "totalRegistrations": 7668,
+          "rate": 0.06651017214397496
+        }
+      ]
+    },
+    {
+      "deck": {
+        "id": "60596e8a-4df8-49ed-aaf9-99c02e648058",
+        "slug": "mono-red-madness-60596e8a",
+        "name": "Mono Red Madness",
+        "machineNamed": false
+      },
+      "points": [
+        {
+          "day": "2026-09-06",
+          "registrations": 217,
+          "totalRegistrations": 2892,
+          "rate": 0.07503457814661134
+        },
+        {
+          "day": "2026-09-07",
+          "registrations": 275,
+          "totalRegistrations": 3958,
+          "rate": 0.06947953511874684
+        },
+        {
+          "day": "2026-09-08",
+          "registrations": 281,
+          "totalRegistrations": 5110,
+          "rate": 0.05499021526418787
+        },
+        {
+          "day": "2026-09-09",
+          "registrations": 283,
+          "totalRegistrations": 4794,
+          "rate": 0.05903212348769295
+        },
+        {
+          "day": "2026-09-10",
+          "registrations": 284,
+          "totalRegistrations": 4352,
+          "rate": 0.06525735294117647
+        },
+        {
+          "day": "2026-09-11",
+          "registrations": 384,
+          "totalRegistrations": 5722,
+          "rate": 0.06710940230688571
+        },
+        {
+          "day": "2026-09-12",
+          "registrations": 423,
+          "totalRegistrations": 5802,
+          "rate": 0.07290589451913133
+        },
+        {
+          "day": "2026-09-13",
+          "registrations": 484,
+          "totalRegistrations": 6838,
+          "rate": 0.07078093009651945
+        },
+        {
+          "day": "2026-09-14",
+          "registrations": 508,
+          "totalRegistrations": 7532,
+          "rate": 0.06744556558682953
+        },
+        {
+          "day": "2026-09-15",
+          "registrations": 525,
+          "totalRegistrations": 7714,
+          "rate": 0.06805807622504537
+        },
+        {
+          "day": "2026-09-16",
+          "registrations": 543,
+          "totalRegistrations": 8058,
+          "rate": 0.06738644825018615
+        },
+        {
+          "day": "2026-09-17",
+          "registrations": 568,
+          "totalRegistrations": 7764,
+          "rate": 0.07315816589386914
+        },
+        {
+          "day": "2026-09-18",
+          "registrations": 524,
+          "totalRegistrations": 8112,
+          "rate": 0.0645956607495069
+        },
+        {
+          "day": "2026-09-19",
+          "registrations": 408,
+          "totalRegistrations": 7220,
+          "rate": 0.056509695290858725
+        },
+        {
+          "day": "2026-09-20",
+          "registrations": 472,
+          "totalRegistrations": 7780,
+          "rate": 0.060668380462724936
+        },
+        {
+          "day": "2026-09-21",
+          "registrations": 627,
+          "totalRegistrations": 9240,
+          "rate": 0.06785714285714285
+        },
+        {
+          "day": "2026-09-22",
+          "registrations": 626,
+          "totalRegistrations": 9506,
+          "rate": 0.06585314538186408
+        },
+        {
+          "day": "2026-09-23",
+          "registrations": 678,
+          "totalRegistrations": 9270,
+          "rate": 0.07313915857605179
+        },
+        {
+          "day": "2026-09-24",
+          "registrations": 565,
+          "totalRegistrations": 8720,
+          "rate": 0.06479357798165138
+        },
+        {
+          "day": "2026-09-25",
+          "registrations": 540,
+          "totalRegistrations": 8520,
+          "rate": 0.06338028169014084
+        },
+        {
+          "day": "2026-09-26",
+          "registrations": 627,
+          "totalRegistrations": 8624,
+          "rate": 0.07270408163265306
+        },
+        {
+          "day": "2026-09-27",
+          "registrations": 722,
+          "totalRegistrations": 9094,
+          "rate": 0.07939300637783153
+        },
+        {
+          "day": "2026-09-28",
+          "registrations": 911,
+          "totalRegistrations": 11180,
+          "rate": 0.08148479427549195
+        },
+        {
+          "day": "2026-09-29",
+          "registrations": 812,
+          "totalRegistrations": 11076,
+          "rate": 0.07331166486096063
+        },
+        {
+          "day": "2026-09-30",
+          "registrations": 721,
+          "totalRegistrations": 10578,
+          "rate": 0.06816033276611835
+        },
+        {
+          "day": "2026-10-01",
+          "registrations": 744,
+          "totalRegistrations": 10660,
+          "rate": 0.0697936210131332
+        },
+        {
+          "day": "2026-10-02",
+          "registrations": 671,
+          "totalRegistrations": 10148,
+          "rate": 0.06612140323216398
+        },
+        {
+          "day": "2026-10-03",
+          "registrations": 583,
+          "totalRegistrations": 9072,
+          "rate": 0.0642636684303351
+        },
+        {
+          "day": "2026-10-04",
+          "registrations": 583,
+          "totalRegistrations": 9724,
+          "rate": 0.05995475113122172
+        },
+        {
+          "day": "2026-10-05",
+          "registrations": 523,
+          "totalRegistrations": 7668,
+          "rate": 0.0682055294731351
+        }
+      ]
+    }
+  ]
+}
