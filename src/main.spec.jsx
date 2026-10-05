@@ -8,7 +8,7 @@ function stubApi() {
   const held = new Set();
   const waiting = [];
 
-  const fetchMock = vi.fn((input, init) => {
+  const fetchMock = vi.fn((input) => {
     const url = new URL(String(input), "http://localhost");
     const body = url.pathname === "/api/metagame/Pauper/decks" ? decks : series;
 
@@ -21,13 +21,10 @@ function stubApi() {
     if (!held.has(url.searchParams.get("window"))) {
       return Promise.resolve(Response.json(body));
     }
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       waiting.push({
         window: url.searchParams.get("window"),
         resolve: () => resolve(Response.json(body)),
-      });
-      init.signal.addEventListener("abort", () => {
-        reject(new DOMException("Aborted", "AbortError"));
       });
     });
   });
@@ -51,7 +48,7 @@ afterEach(() => {
 });
 
 describe("the overview page", () => {
-  it("loads through the proxy, recovers on retry, and never shows stale data while a window loads", async () => {
+  it("loads through the proxy, recovers on retry, and never shows stale or late data while a window loads", async () => {
     const api = stubApi();
     document.body.innerHTML = '<div id="root"></div>';
 
@@ -77,7 +74,7 @@ describe("the overview page", () => {
     fireEvent.click(screen.getByRole("button", { name: "7d" }));
     fireEvent.click(await screen.findByRole("button", { name: "30d" }));
 
-    expect(screen.queryByText("Monster Tron")).toBeNull();
+    expect(screen.queryAllByText("Monster Tron")).toHaveLength(0);
 
     api.release("30d");
 
@@ -85,12 +82,16 @@ describe("the overview page", () => {
       1,
     );
 
-    const urls = api.fetchMock.mock.calls.map(
-      ([input]) => new URL(String(input), "http://localhost"),
-    );
-    expect(urls.every((url) => url.pathname.startsWith("/api/metagame/"))).toBe(
+    api.release("7d");
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(screen.getAllByText("Monster Tron").length).toBeGreaterThan(1);
+
+    const requested = api.fetchMock.mock.calls.map(([input]) => String(input));
+    expect(requested.every((url) => url.startsWith("/api/metagame/"))).toBe(
       true,
     );
+    const urls = requested.map((url) => new URL(url, "http://localhost"));
     expect(urls[0].searchParams.get("window")).toBe("30d");
     expect(urls[0].searchParams.get("pageSize")).toBe("24");
   });

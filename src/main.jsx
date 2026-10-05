@@ -208,7 +208,7 @@ function useResource(load, timeWindow) {
 
   const retry = useCallback(() => setReloads((count) => count + 1), []);
 
-  return [state.key === key ? state : LOADING, retry];
+  return [state, retry];
 }
 
 const PIP_FILL = {
