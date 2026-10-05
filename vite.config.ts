@@ -37,9 +37,15 @@ function api(): Plugin {
           url.searchParams.set("path", url.pathname.slice(PREFIX.length));
         }
         const response = await metagame.fetch(
-          new Request(`http://localhost${FUNCTION}?${url.searchParams}`, { method: req.method }),
+          new Request(`http://localhost${FUNCTION}?${url.searchParams}`, {
+            method: req.method,
+          }),
         );
-        const maxAge = Number(/s-maxage=(\d+)/.exec(response.headers.get("cache-control") ?? "")?.[1] ?? 0);
+        const maxAge = Number(
+          /s-maxage=(\d+)/.exec(
+            response.headers.get("cache-control") ?? "",
+          )?.[1] ?? 0,
+        );
 
         entry = {
           expires: Date.now() + maxAge * 1000,

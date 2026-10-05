@@ -88,11 +88,11 @@ Never merge. That decision belongs to the human reviewer.
 
 ## Project context
 
-| File | What it holds |
-|---|---|
-| `docs/requirements.md` | Functional and non-functional requirements. The authority on behaviour |
-| `docs/design-system.html` | Tokens and components. The authority on appearance |
-| `docs/backlog.md` | Both milestones' items, their tasks and their dependencies |
+| File                      | What it holds                                                          |
+| ------------------------- | ---------------------------------------------------------------------- |
+| `docs/requirements.md`    | Functional and non-functional requirements. The authority on behaviour |
+| `docs/design-system.html` | Tokens and components. The authority on appearance                     |
+| `docs/backlog.md`         | Both milestones' items, their tasks and their dependencies             |
 
 Issues #1 to #16 mirror milestone 1 of `docs/backlog.md`. Milestone 2's issues mirror the rest. Labels carry type (`enabler`, `story`, `hardening`) and wave (`wave-0` onwards). Items in the same wave have no dependency on each other and can run in parallel.
 

@@ -36,7 +36,7 @@
   --seq-600: #184f95;
   --seq-700: #0d366b;
 
-  --sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 
 * {
@@ -240,12 +240,12 @@ button:disabled {
   color: var(--text-900);
 }
 
-.segmented__option[aria-pressed='true'] {
+.segmented__option[aria-pressed="true"] {
   background: var(--primary);
   color: var(--text-inverse);
 }
 
-.segmented__option[aria-pressed='true']:hover {
+.segmented__option[aria-pressed="true"]:hover {
   background: #184f95;
 }
 
