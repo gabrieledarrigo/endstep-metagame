@@ -182,18 +182,25 @@ const LOADING = { status: "loading" };
 function useResource(load, timeWindow) {
   const [reloads, setReloads] = useState(0);
   const key = `${timeWindow} ${reloads}`;
-  const [state, setState] = useState({ key: null, ...LOADING });
+  const [state, setState] = useState({ key, ...LOADING });
+
+  if (state.key !== key) {
+    setState({ key, ...LOADING });
+  }
 
   useEffect(() => {
     const controller = new AbortController();
+    const settle = (next) => {
+      setState((current) => (current.key === key ? { key, ...next } : current));
+    };
 
     load(timeWindow, controller.signal)
-      .then((data) => setState({ key, status: "ready", data }))
+      .then((data) => settle({ status: "ready", data }))
       .catch((error) => {
         if (error.name === "AbortError") {
           return;
         }
-        setState({ key, status: "error", error });
+        settle({ status: "error", error });
       });
 
     return () => controller.abort();

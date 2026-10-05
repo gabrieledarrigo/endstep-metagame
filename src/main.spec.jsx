@@ -4,25 +4,46 @@ import decks from "./test/fixtures/decks.json";
 import series from "./test/fixtures/share-series.json";
 
 function stubApi() {
-  let deckRequests = 0;
-  const fetchMock = vi.fn(async (input) => {
-    const url = new URL(String(input), "http://localhost");
+  let failNextDecks = true;
+  const held = new Set();
+  const waiting = [];
 
-    if (url.pathname === "/api/metagame/Pauper/decks") {
-      deckRequests += 1;
-      if (deckRequests === 1) {
-        return Response.json({ error: "Not found" }, { status: 404 });
-      }
-      return Response.json(decks);
+  const fetchMock = vi.fn((input, init) => {
+    const url = new URL(String(input), "http://localhost");
+    const body = url.pathname === "/api/metagame/Pauper/decks" ? decks : series;
+
+    if (url.pathname.endsWith("/decks") && failNextDecks) {
+      failNextDecks = false;
+      return Promise.resolve(
+        Response.json({ error: "Not found" }, { status: 404 }),
+      );
     }
-    if (url.pathname === "/api/metagame/Pauper/share-series") {
-      return Response.json(series);
+    if (!held.has(url.searchParams.get("window"))) {
+      return Promise.resolve(Response.json(body));
     }
-    return Response.json({ error: "Unexpected request" }, { status: 500 });
+    return new Promise((resolve, reject) => {
+      waiting.push({
+        window: url.searchParams.get("window"),
+        resolve: () => resolve(Response.json(body)),
+      });
+      init.signal.addEventListener("abort", () => {
+        reject(new DOMException("Aborted", "AbortError"));
+      });
+    });
   });
 
   vi.stubGlobal("fetch", fetchMock);
-  return fetchMock;
+
+  return {
+    fetchMock,
+    hold: (...windows) => windows.forEach((window) => held.add(window)),
+    release: (window) => {
+      held.delete(window);
+      waiting
+        .filter((request) => request.window === window)
+        .forEach((request) => request.resolve());
+    },
+  };
 }
 
 afterEach(() => {
@@ -30,20 +51,16 @@ afterEach(() => {
 });
 
 describe("the overview page", () => {
-  it("loads through the proxy, shows a failed section, and recovers on retry", async () => {
-    const fetchMock = stubApi();
+  it("loads through the proxy, recovers on retry, and never shows stale data while a window loads", async () => {
+    const api = stubApi();
     document.body.innerHTML = '<div id="root"></div>';
 
     await import("./main.jsx");
 
-    expect(
-      await screen.findByRole("heading", {
-        name: "The deck grid could not be loaded",
-      }),
-    ).toBeTruthy();
-    expect(
-      screen.getByRole("heading", { name: "Share over time" }),
-    ).toBeTruthy();
+    await screen.findByRole("heading", {
+      name: "The deck grid could not be loaded",
+    });
+    await screen.findByRole("button", { name: "Affinity", pressed: true });
 
     fireEvent.click(screen.getAllByRole("button", { name: "Retry" })[0]);
 
@@ -56,7 +73,19 @@ describe("the overview page", () => {
       }),
     ).toBeNull();
 
-    const urls = fetchMock.mock.calls.map(
+    api.hold("7d", "30d");
+    fireEvent.click(screen.getByRole("button", { name: "7d" }));
+    fireEvent.click(await screen.findByRole("button", { name: "30d" }));
+
+    expect(screen.queryByText("Monster Tron")).toBeNull();
+
+    api.release("30d");
+
+    expect((await screen.findAllByText("Monster Tron")).length).toBeGreaterThan(
+      1,
+    );
+
+    const urls = api.fetchMock.mock.calls.map(
       ([input]) => new URL(String(input), "http://localhost"),
     );
     expect(urls.every((url) => url.pathname.startsWith("/api/metagame/"))).toBe(
