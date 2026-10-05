@@ -80,7 +80,7 @@ describe("the metagame proxy", () => {
   });
 
   it.each([204, 304])(
-    "passes an empty %i through without a body",
+    "passes an empty %i through without a body or a cache lifetime",
     async (status) => {
       vi.stubGlobal(
         "fetch",
@@ -91,6 +91,7 @@ describe("the metagame proxy", () => {
 
       expect(response.status).toBe(status);
       expect(response.body).toBeNull();
+      expect(response.headers.get("cache-control")).toBe("no-store");
     },
   );
 

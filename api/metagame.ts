@@ -85,7 +85,7 @@ function forwardedQuery(query: URLSearchParams) {
  * @returns Five minutes at the edge for a success, ten seconds for a rate limit, and no caching for any other error.
  */
 function cacheControl(status: number) {
-  if (status < 400) {
+  if (status < 400 && !NO_BODY.includes(status)) {
     return "public, s-maxage=300, stale-while-revalidate=600";
   }
 
