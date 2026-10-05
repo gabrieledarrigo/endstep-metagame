@@ -6,7 +6,7 @@ import globals from "globals";
 import tseslint from "typescript-eslint";
 
 export default defineConfig([
-  globalIgnores(["dist", "docs", ".claude"]),
+  globalIgnores(["dist", "docs", ".claude", ".vercel"]),
   js.configs.recommended,
   tseslint.configs.recommended,
   reactHooks.configs.flat.recommended,
@@ -15,9 +15,6 @@ export default defineConfig([
     languageOptions: {
       ecmaVersion: "latest",
       parserOptions: { ecmaFeatures: { jsx: true } },
-    },
-    rules: {
-      curly: ["error", "all"],
     },
   },
   {
@@ -29,4 +26,9 @@ export default defineConfig([
     languageOptions: { globals: globals.node },
   },
   prettier,
+  {
+    rules: {
+      curly: ["error", "all"],
+    },
+  },
 ]);
