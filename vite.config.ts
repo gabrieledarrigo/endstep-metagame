@@ -1,5 +1,5 @@
-import { type Connect, type Plugin } from "vite";
-import { defineConfig } from "vitest/config";
+/// <reference types="vitest/config" />
+import { defineConfig, type Connect, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import metagame from "./api/metagame.ts";
 
@@ -87,5 +87,6 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     setupFiles: ["./src/test/setup.js"],
+    exclude: ["**/node_modules/**", "**/dist/**", ".claude/**"],
   },
 });
