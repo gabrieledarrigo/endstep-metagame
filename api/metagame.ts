@@ -109,6 +109,7 @@ export default {
   fetch: async function handler(req: Request) {
     const baseHeaders: HeadersInit = {
       "Access-Control-Allow-Origin": "*",
+      "Cache-Control": "no-store",
       "Content-Type": "application/json",
     };
 
