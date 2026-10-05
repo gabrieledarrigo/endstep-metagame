@@ -10,3 +10,4 @@ globalThis.ResizeObserver = class {
 afterEach(() => {
   cleanup();
 });
+const   notFormatted = 1
