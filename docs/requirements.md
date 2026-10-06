@@ -377,8 +377,9 @@ The front end is a Vite application in TypeScript with React 19. `npm run build`
 | React Router | 8, declarative mode |
 | Recharts | 3.10 |
 | Vite | 8 |
-| TypeScript | 5.9, strict mode. typescript-eslint supports TypeScript below 6.1, and Vercel's function build uses the project's version |
+| TypeScript | 6.0, strict mode. See below |
 
+- TypeScript stays on 6.0, the last release with the JavaScript compiler API. TypeScript 7.0 ships without one, so typescript-eslint refuses it and Vercel's install fails on the peer conflict. Measured on this repo on 2026-10-06. typescript-eslint tracks support for 7.1 in issue #10940. When it lands, move to 7, either outright or with TypeScript's documented side-by-side setup. 6.0 already warns about everything 7 removes.
 - TypeScript runs in strict mode. Once the code is TypeScript, a type error fails the build. Until then, the build is `vite build` alone, because `tsc` fails on a project with no TypeScript files.
 - The root `tsconfig.json` is read by Vercel's function build. Vite's client types belong in `tsconfig.app.json`. Putting them in the root config breaks the function build.
 

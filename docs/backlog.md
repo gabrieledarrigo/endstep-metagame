@@ -504,7 +504,7 @@ Covers NFR-1.
 
 1. Types for every response in `src/api/types.ts`, from §3.6, §3.7 and the `/decks` and `/share-series` shapes. Include the gated win and loss block from §6.8.
 2. Convert every module to `.ts` or `.tsx`, starting with the data layer.
-3. Strict mode. Add the type check to the build script, so a type error fails the build. TypeScript stays on 5.9, NFR-1. Give `vite.config.ts` a tsconfig of its own, since the root one covers `api/` only.
+3. Strict mode. Add the type check to the build script, so a type error fails the build. TypeScript stays on 6.0, NFR-1. Give `vite.config.ts` a tsconfig of its own, since the root one covers `api/` only.
 4. Fix the `<div>` inside a `<p>` in the deck card skeleton. React's development build reports it.
 5. A JSDoc block on every helper as it is typed: hooks, and the formatting and data functions, NFR-1.
 
