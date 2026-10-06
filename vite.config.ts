@@ -85,8 +85,24 @@ function api(): Plugin {
 export default defineConfig({
   plugins: [react(), api()],
   test: {
-    environment: "jsdom",
-    setupFiles: ["./src/test/setup.js"],
-    exclude: ["**/node_modules/**", "**/.git/**", "**/dist/**", ".claude/**"],
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: "api",
+          environment: "node",
+          include: ["api/**/*.spec.ts"],
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: "app",
+          environment: "jsdom",
+          include: ["src/**/*.spec.{js,jsx,ts,tsx}"],
+          setupFiles: ["./test/setup.js"],
+        },
+      },
+    ],
   },
 });

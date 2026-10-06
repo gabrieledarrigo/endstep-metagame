@@ -407,6 +407,7 @@ The front end is a Vite application in TypeScript with React 19. `npm run build`
 - **The rule of thumb: an exported function with a consumer has a spec.** That covers components, hooks, helpers and the API functions.
 - The spec sits beside its module and is named after it: `components/Card.tsx` and `components/Card.spec.tsx`, `format.ts` and `format.spec.ts`.
 - The API functions are plain `Request` to `Response` handlers, so their specs, `api/metagame.spec.ts` and `api/matchups.spec.ts`, call them directly with `fetch` stubbed.
+- Vitest runs two projects: `api` in Node for the specs in `api/`, and `app` in jsdom with the Testing Library setup for the specs in `src/`. A spec needs no per-file setup. Shared test helpers and fixtures live in `test/`, outside `src/`.
 - Specs query by role and by visible text, the way a user finds things. No snapshot tests.
 - Specs never call Endstep. Every request is stubbed.
 

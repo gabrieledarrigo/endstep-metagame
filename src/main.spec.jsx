@@ -1,7 +1,7 @@
 import { fireEvent, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import decks from "./test/fixtures/decks.json";
-import series from "./test/fixtures/share-series.json";
+import decks from "../test/fixtures/decks.json";
+import series from "../test/fixtures/share-series.json";
 
 function stubApi() {
   let failNextDecks = true;
