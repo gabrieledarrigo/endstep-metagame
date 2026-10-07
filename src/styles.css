@@ -360,19 +360,6 @@ button:disabled {
   flex-shrink: 0;
 }
 
-.chart-section {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.chart-section__title {
-  margin: 0;
-  font-size: 22px;
-  font-weight: 600;
-  letter-spacing: -0.01em;
-}
-
 .chart-section__note {
   margin: 0 0 4px;
   font-size: 14px;
