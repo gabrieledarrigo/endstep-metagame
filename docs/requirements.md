@@ -524,8 +524,8 @@ A later layer overrides an earlier one, whatever the selectors' specificity and 
 - Styles are written for mobile first. `@media (min-width: 640px)` and `@media (min-width: 1100px)` add to them.
 - 640px is where the design system already switches. 1,100px is where the matchup table fits without scrolling, FR-12.
 - Custom properties do not work in media queries, so the two values are written as numbers. This section is their reference.
-- The window selector scrolls sideways below 640px. It used to below 400px. It is 307px wide, so it only scrolls below about 347px. Between 400px and 639px the one visible change is that the scroll box clips the outer pixel of the focus ring, as it already did below 400px.
-- The win rate scatter shows its point labels from 640px. It used to from 761px. The label spacing assumes a 590px plot, which the chart reaches at about 770px, so narrower plots can crowd the labels. With the data of 7 October 2026, no label overlapped another at 640px, 700px or 759px, and a bubble covered part of one label, as it did at 761px.
+- The window selector scrolls sideways below 640px. It used to scroll below 400px. It is 307px wide, so it only scrolls below about 347px. Between 400px and 639px the one visible change is that the scroll box clips the outer pixel of the focus ring, as it already did below 400px.
+- The win rate scatter shows its point labels from 640px. It used to show them from 761px. The label spacing assumes a 590px plot, which the chart reaches at about 770px, so narrower plots can crowd the labels. With the data of 7 October 2026, no label overlapped another at 640px, 700px or 759px, and a bubble covered part of one label, as it did at 761px.
 
 **No CSS linter for now.** Prettier formats the CSS. Review enforces the rules above.
 
