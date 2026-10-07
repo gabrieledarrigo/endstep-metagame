@@ -1,5 +1,6 @@
 import { PAGE_SIZE } from "../../config";
 import { DeckCard, DeckCardSkeleton } from "./DeckCard";
+import "./DeckGrid.css";
 
 export function DeckGrid({ decks }) {
   return (

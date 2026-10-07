@@ -1,3 +1,5 @@
+import "./StatePanel.css";
+
 export function StatePanel({ title, detail, action, busy }) {
   return (
     <div className="state-panel" aria-busy={busy || undefined}>

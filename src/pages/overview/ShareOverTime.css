@@ -1,0 +1,24 @@
+@layer components {
+  .share-chart {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .share-chart__scroll {
+    position: relative;
+    overflow-x: auto;
+  }
+
+  .share-chart__frame {
+    aspect-ratio: 2.9;
+    min-width: 620px;
+    min-height: 300px;
+  }
+
+  .share-chart__end {
+    font-size: 12px;
+    font-weight: 500;
+    fill: var(--text-600);
+  }
+}

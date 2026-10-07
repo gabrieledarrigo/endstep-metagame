@@ -2,6 +2,7 @@ import { ColourPips } from "../../components/ColourPips";
 import { ShareChange } from "../../components/ShareChange";
 import { Skeleton } from "../../components/Skeleton";
 import { FORMAT } from "../../config";
+import "./DeckCard.css";
 
 function artSource(cardName) {
   return `https://endstep.cc/api/cards/image?${new URLSearchParams({

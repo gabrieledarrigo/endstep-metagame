@@ -1,3 +1,5 @@
+import "./ShareChange.css";
+
 const NO_CHANGE = {
   previous_window_empty: "no earlier data",
   no_previous_window: "no earlier window",

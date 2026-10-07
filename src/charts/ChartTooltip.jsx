@@ -1,3 +1,5 @@
+import "./ChartTooltip.css";
+
 export function ChartTooltip({ day, title, rows }) {
   return (
     <div className="chart-tooltip">

@@ -5,6 +5,7 @@ import { ShareChange } from "../../components/ShareChange";
 import { Skeleton } from "../../components/Skeleton";
 import { PAGE_SIZE } from "../../config";
 import { formatCount, percent } from "../../format";
+import "./DeckTable.css";
 
 function matchesOf(deck) {
   return deck.matchWinRate.wins + deck.matchWinRate.losses;

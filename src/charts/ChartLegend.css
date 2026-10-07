@@ -1,0 +1,36 @@
+@layer components {
+  .chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+  }
+
+  .chart-legend__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-size: 13px;
+    color: var(--text-600);
+    cursor: pointer;
+  }
+
+  .chart-legend__item:hover {
+    color: var(--text-900);
+  }
+
+  .chart-legend__item--off {
+    opacity: 0.4;
+    text-decoration: line-through;
+  }
+
+  .chart-legend__swatch {
+    width: 12px;
+    height: 3px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+}

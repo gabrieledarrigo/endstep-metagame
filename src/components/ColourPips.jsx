@@ -1,3 +1,5 @@
+import "./ColourPips.css";
+
 const PIP_FILL = {
   W: "#fffbd5",
   U: "#aae0fa",

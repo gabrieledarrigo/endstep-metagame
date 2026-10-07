@@ -1,0 +1,23 @@
+@layer components {
+  .ranked-bars__title {
+    margin: 0 0 16px;
+    font-size: 17px;
+    font-weight: 600;
+  }
+
+  .ranked-bars__scroll {
+    position: relative;
+    overflow-x: auto;
+  }
+
+  .ranked-bars__frame {
+    height: 660px;
+    min-width: 620px;
+  }
+
+  .ranked-bars__note {
+    margin: 12px 0 0;
+    font-size: 13px;
+    color: var(--text-600);
+  }
+}

@@ -1,0 +1,27 @@
+@layer components {
+  .skeleton {
+    background: var(--rule);
+    border-radius: 5px;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  .skeleton--end {
+    margin-left: auto;
+  }
+
+  @keyframes pulse {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.55;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton {
+      animation: none;
+    }
+  }
+}

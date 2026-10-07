@@ -1,4 +1,5 @@
 import { Skeleton } from "../components/Skeleton";
+import "./ChartLegend.css";
 
 export function ChartLegend({ items, hidden, onToggle }) {
   return (

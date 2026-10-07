@@ -26,6 +26,7 @@ import {
   tooltipShare,
   winRateText,
 } from "../../format";
+import "./WinRateScatter.css";
 
 const WIN_RATE_MARK = token("--s1");
 const SCATTER_LABEL = token("--text-600");

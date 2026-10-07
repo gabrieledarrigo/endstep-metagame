@@ -1,0 +1,50 @@
+@layer components {
+  .chart-tooltip {
+    background: var(--surface);
+    border: 1px solid var(--edge);
+    border-radius: 8px;
+    padding: 11px 13px;
+    box-shadow: 0 4px 14px rgba(11, 11, 11, 0.09);
+    display: inline-flex;
+    flex-direction: column;
+    gap: 7px;
+    min-width: 196px;
+  }
+
+  .chart-tooltip__day {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-400);
+  }
+
+  .chart-tooltip__title {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .chart-tooltip__row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+  }
+
+  .chart-tooltip__swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .chart-tooltip__name {
+    color: var(--text-600);
+    flex: 1;
+  }
+
+  .chart-tooltip__value {
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+}

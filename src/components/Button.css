@@ -1,0 +1,56 @@
+@layer components {
+  .button {
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 9px 17px;
+    border-radius: 7px;
+    border: 1px solid transparent;
+    cursor: pointer;
+  }
+
+  .button--primary {
+    background: var(--primary);
+    color: var(--text-inverse);
+  }
+
+  .button--primary:hover {
+    background: #184f95;
+  }
+
+  .button--secondary {
+    background: var(--surface);
+    color: var(--secondary);
+    border-color: var(--edge);
+  }
+
+  .button--secondary:hover {
+    background: #f1f0ec;
+  }
+
+  .button--ghost {
+    background: transparent;
+    color: var(--primary);
+  }
+
+  .button--ghost:hover {
+    background: var(--primary-wash);
+  }
+
+  .button:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+
+  .button--primary:disabled:hover {
+    background: var(--primary);
+  }
+
+  .button--secondary:disabled:hover {
+    background: var(--surface);
+  }
+
+  .button--ghost:disabled:hover {
+    background: transparent;
+  }
+}

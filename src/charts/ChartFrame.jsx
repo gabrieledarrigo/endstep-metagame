@@ -1,4 +1,5 @@
 import { ResponsiveContainer } from "recharts";
+import "./ChartFrame.css";
 
 export function ChartFrame({ className, children }) {
   return (

@@ -1,0 +1,41 @@
+.page {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding-inline: 20px;
+  padding-block: 40px 72px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.page__eyebrow {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-400);
+}
+
+.page__controls {
+  display: flex;
+}
+
+.chart-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.chart-section__title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.chart-section__note {
+  margin: 0 0 4px;
+  font-size: 14px;
+  color: var(--text-600);
+  max-width: 76ch;
+}

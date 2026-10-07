@@ -1,3 +1,5 @@
+import "./StatTile.css";
+
 export function StatTile({ label, value, hero }) {
   return (
     <div className={hero ? "stat-tile stat-tile--hero" : "stat-tile"}>

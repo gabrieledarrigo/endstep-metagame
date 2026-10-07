@@ -1,0 +1,18 @@
+@layer components {
+  .win-rate__frame {
+    aspect-ratio: 2.4;
+    min-height: 300px;
+  }
+
+  .win-rate__label {
+    font-size: 12px;
+    font-weight: 500;
+    fill: var(--text-900);
+  }
+
+  @media (max-width: 760px) {
+    .win-rate__label {
+      display: none;
+    }
+  }
+}

@@ -1,3 +1,5 @@
+import "./Skeleton.css";
+
 export function Skeleton({ className, width, height }) {
   return (
     <div

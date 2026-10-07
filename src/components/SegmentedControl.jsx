@@ -1,3 +1,5 @@
+import "./SegmentedControl.css";
+
 export function SegmentedControl({ label, options, value, onChange, busy }) {
   return (
     <div

@@ -1,3 +1,5 @@
+import "./Button.css";
+
 export function Button({ variant = "primary", className, children, ...rest }) {
   return (
     <button

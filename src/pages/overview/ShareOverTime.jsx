@@ -24,6 +24,7 @@ import {
 import { Panel } from "../../components/Panel";
 import { Skeleton } from "../../components/Skeleton";
 import { axisShare, longDay, shortDay, tooltipShare } from "../../format";
+import "./ShareOverTime.css";
 
 function shareRows(series) {
   const byDay = new Map();

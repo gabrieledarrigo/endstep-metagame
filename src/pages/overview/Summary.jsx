@@ -2,6 +2,7 @@ import { Panel } from "../../components/Panel";
 import { Skeleton } from "../../components/Skeleton";
 import { StatTile } from "../../components/StatTile";
 import { formatCount, formatPopulation, formatWindow } from "../../format";
+import "./Summary.css";
 
 const SUMMARY_TILES = [
   { label: "Registrations", value: 177 },
