@@ -1,5 +1,4 @@
 import { fetchDecks, fetchSeries } from "../../api/endpoints";
-import { Panel } from "../../components/Panel";
 import { Section } from "../../components/Section";
 import { SegmentedControl } from "../../components/SegmentedControl";
 import { WINDOWS } from "../../config";
@@ -42,11 +41,7 @@ export function OverviewPage() {
         title="The summary could not be loaded"
         onRetry={retryDecks}
       >
-        {(data) => (
-          <Panel>
-            <Summary decks={data} />
-          </Panel>
-        )}
+        {(data) => <Summary decks={data} />}
       </Section>
 
       <Section

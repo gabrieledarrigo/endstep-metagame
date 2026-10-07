@@ -38,19 +38,21 @@ export function Summary({ decks }) {
   const { provenance, totals } = decks;
 
   return (
-    <dl className="stat-list">
-      <StatTile
-        hero
-        label="Registrations"
-        value={formatCount(totals.registrations)}
-      />
-      <StatTile label="Players" value={formatCount(totals.players)} />
-      <StatTile label="Archetypes" value={formatCount(decks.decks.total)} />
-      <StatTile label="Window" value={formatWindow(provenance.window)} />
-      <StatTile
-        label="Population"
-        value={formatPopulation(provenance.population)}
-      />
-    </dl>
+    <Panel>
+      <dl className="stat-list">
+        <StatTile
+          hero
+          label="Registrations"
+          value={formatCount(totals.registrations)}
+        />
+        <StatTile label="Players" value={formatCount(totals.players)} />
+        <StatTile label="Archetypes" value={formatCount(decks.decks.total)} />
+        <StatTile label="Window" value={formatWindow(provenance.window)} />
+        <StatTile
+          label="Population"
+          value={formatPopulation(provenance.population)}
+        />
+      </dl>
+    </Panel>
   );
 }
