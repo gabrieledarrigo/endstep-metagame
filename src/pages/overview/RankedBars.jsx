@@ -11,6 +11,7 @@ import { ChartFrame } from "../../charts/ChartFrame";
 import { CHART_AXIS, CHART_CARTESIAN_GRID, token } from "../../charts/theme";
 import { Panel } from "../../components/Panel";
 import { Skeleton } from "../../components/Skeleton";
+import { PAGE_SIZE } from "../../config";
 import { axisShare, tooltipShare } from "../../format";
 import "./RankedBars.css";
 
@@ -41,8 +42,7 @@ function shareBars({ items, total }) {
   ];
 }
 
-const RANKED_BARS_NOTE =
-  "Other is a residual, not a deck. It covers every archetype outside the top 24 and the registrations Endstep did not classify.";
+const RANKED_BARS_NOTE = `Other is a residual, not a deck. It covers every archetype outside the top ${PAGE_SIZE} and the registrations Endstep did not classify.`;
 
 export function RankedBarsSkeleton() {
   return (
