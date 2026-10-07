@@ -124,7 +124,7 @@ button:disabled { opacity:.45; cursor:not-allowed; }
 
 .segmented { display:inline-flex; background:var(--surface); border:1px solid var(--edge);
   border-radius:8px; padding:3px; gap:2px; max-width:100%; }
-@media (max-width:400px) { .segmented { overflow-x:auto; } }
+@media (max-width:639px) { .segmented { overflow-x:auto; } }
 .segmented__option { flex:0 0 auto; font-family:inherit; cursor:pointer; border:0; background:transparent; color:var(--text-600); font-size:13px;
   font-weight:600; padding:7px 15px; border-radius:6px; font-variant-numeric:tabular-nums; }
 .segmented__option:hover { background:#f1f0ec; color:var(--text-900); }
@@ -785,7 +785,7 @@ a.button { display:inline-block; text-decoration:none; }
   <b>Selected</b> fills with <span class="mono">--primary</span> and uses
   <span class="mono">--text-inverse</span>. State is carried by <span class="mono">aria-pressed</span>,
   so it reaches assistive technology rather than only showing as a fill. Labels use tabular numerals so
-  the segments do not resize between windows. Below 400px the control scrolls horizontally rather than
+  the segments do not resize between windows. Below 640px the control scrolls horizontally rather than
   wrapping to two rows.</p>
 </section>
 <section id="pips">
