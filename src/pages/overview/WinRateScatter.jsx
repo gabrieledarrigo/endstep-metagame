@@ -113,10 +113,23 @@ function WinRateTooltip({ active, payload }) {
     <ChartTooltip
       title={point.name}
       rows={[
-        { name: "Meta share", value: tooltipShare(point.share) },
-        { name: "Players", value: formatCount(point.players) },
-        { name: "Match win rate", value: winRateText(point.winRate) },
         {
+          key: "share",
+          name: "Meta share",
+          value: tooltipShare(point.share),
+        },
+        {
+          key: "players",
+          name: "Players",
+          value: formatCount(point.players),
+        },
+        {
+          key: "winRate",
+          name: "Match win rate",
+          value: winRateText(point.winRate),
+        },
+        {
+          key: "bounds",
           name: "Confidence bounds",
           value: `${winRateText(point.low)} to ${winRateText(point.high)}`,
         },

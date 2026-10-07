@@ -6,7 +6,7 @@ export function ChartTooltip({ day, title, rows }) {
       {day && <div className="chart-tooltip__day">{day}</div>}
       {title && <div className="chart-tooltip__title">{title}</div>}
       {rows.map((row) => (
-        <div className="chart-tooltip__row" key={row.name}>
+        <div className="chart-tooltip__row" key={row.key}>
           {row.colour && (
             <span
               className="chart-tooltip__swatch"

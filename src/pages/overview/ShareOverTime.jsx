@@ -149,6 +149,7 @@ function ShareTooltip({ active, payload, label }) {
     <ChartTooltip
       day={longDay(label)}
       rows={rows.map((row) => ({
+        key: row.dataKey,
         name: row.name,
         value: tooltipShare(row.value),
         colour: row.color,
