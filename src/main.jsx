@@ -1,5 +1,5 @@
 import "./styles.css";
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import { createRoot } from "react-dom/client";
 import {
   ResponsiveContainer,
@@ -22,194 +22,21 @@ import {
   ZAxis,
   ReferenceLine,
 } from "recharts";
-
-const FORMAT = "Pauper";
-const POPULATION = "rated";
-const WINDOWS = ["1d", "7d", "14d", "30d", "season"];
-const DEFAULT_WINDOW = "30d";
-const PAGE_SIZE = 24;
-const MAX_RETRIES = 2;
-const RETRY_BASE_MS = 400;
-
-function readTimeWindow() {
-  const value = new URLSearchParams(location.search).get("window");
-  return WINDOWS.includes(value) ? value : DEFAULT_WINDOW;
-}
-
-function failure(status) {
-  if (status === 429) {
-    return {
-      kind: "rateLimit",
-      message:
-        "Endstep's rate limit was reached. The data is cached for five minutes, so a retry usually works.",
-    };
-  }
-  if (status === 502 || status === 504) {
-    return { kind: "upstream", message: "Endstep did not respond." };
-  }
-  return { kind: "http", message: `The request failed with status ${status}.` };
-}
-
-function wait(ms, signal) {
-  return new Promise((resolve, reject) => {
-    if (signal.aborted) {
-      reject(new DOMException("Aborted", "AbortError"));
-      return;
-    }
-
-    const onAbort = () => {
-      clearTimeout(timer);
-      reject(new DOMException("Aborted", "AbortError"));
-    };
-
-    const timer = setTimeout(() => {
-      signal.removeEventListener("abort", onAbort);
-      resolve();
-    }, ms);
-
-    signal.addEventListener("abort", onAbort, { once: true });
-  });
-}
-
-async function getJson(path, params, signal) {
-  const url = `/api/metagame/${path}?${new URLSearchParams(params)}`;
-
-  for (let attempt = 0; ; attempt += 1) {
-    let response;
-
-    try {
-      response = await fetch(url, { signal });
-    } catch (error) {
-      if (error.name === "AbortError") {
-        throw error;
-      }
-      if (attempt === MAX_RETRIES) {
-        throw Object.assign(new Error("The server could not be reached."), {
-          kind: "network",
-        });
-      }
-      await wait(RETRY_BASE_MS * 2 ** attempt, signal);
-      continue;
-    }
-
-    if (response.ok) {
-      try {
-        return await response.json();
-      } catch (error) {
-        if (error.name === "AbortError") {
-          throw error;
-        }
-        throw Object.assign(
-          new Error("The server returned a malformed response."),
-          {
-            kind: "malformed",
-          },
-        );
-      }
-    }
-
-    const detail = failure(response.status);
-    const retryable = response.status === 429 || response.status >= 500;
-
-    if (!retryable || attempt === MAX_RETRIES) {
-      throw Object.assign(new Error(detail.message), detail, {
-        status: response.status,
-      });
-    }
-
-    await wait(RETRY_BASE_MS * 2 ** attempt, signal);
-  }
-}
-
-function timeWindowUrl(value) {
-  const url = new URL(location.href);
-  url.searchParams.set("window", value);
-  return url;
-}
-
-function useTimeWindow() {
-  const [value, setValue] = useState(readTimeWindow);
-
-  useEffect(() => {
-    history.replaceState(null, "", timeWindowUrl(readTimeWindow()));
-
-    const sync = () => setValue(readTimeWindow());
-    window.addEventListener("popstate", sync);
-    return () => window.removeEventListener("popstate", sync);
-  }, []);
-
-  const select = useCallback(
-    (next, replace) => {
-      if (next === value) {
-        return;
-      }
-
-      const write = replace ? history.replaceState : history.pushState;
-      write.call(history, null, "", timeWindowUrl(next));
-      setValue(next);
-    },
-    [value],
-  );
-
-  return [value, select];
-}
-
-function fetchDecks(timeWindow, signal) {
-  return getJson(
-    `${FORMAT}/decks`,
-    {
-      window: timeWindow,
-      population: POPULATION,
-      sort: "share",
-      dir: "desc",
-      page: 1,
-      pageSize: PAGE_SIZE,
-    },
-    signal,
-  );
-}
-
-function fetchSeries(timeWindow, signal) {
-  return getJson(
-    `${FORMAT}/share-series`,
-    { window: timeWindow, population: POPULATION },
-    signal,
-  );
-}
-
-const LOADING = { status: "loading" };
-
-function useResource(load, timeWindow) {
-  const [reloads, setReloads] = useState(0);
-  const key = `${timeWindow} ${reloads}`;
-  const [state, setState] = useState({ key, ...LOADING });
-
-  if (state.key !== key) {
-    setState({ key, ...LOADING });
-  }
-
-  useEffect(() => {
-    const controller = new AbortController();
-    const settle = (next) => {
-      setState((current) => (current.key === key ? { key, ...next } : current));
-    };
-
-    load(timeWindow, controller.signal)
-      .then((data) => settle({ status: "ready", data }))
-      .catch((error) => {
-        if (error.name === "AbortError") {
-          return;
-        }
-        settle({ status: "error", error });
-      });
-
-    return () => controller.abort();
-  }, [load, timeWindow, key]);
-
-  const retry = useCallback(() => setReloads((count) => count + 1), []);
-
-  return [state, retry];
-}
+import { fetchDecks, fetchSeries } from "./api/endpoints";
+import { FORMAT, PAGE_SIZE, WINDOWS } from "./config";
+import {
+  axisShare,
+  formatCount,
+  formatPopulation,
+  formatWindow,
+  longDay,
+  percent,
+  shortDay,
+  tooltipShare,
+  winRateText,
+} from "./format";
+import { useResource } from "./hooks/useResource";
+import { useTimeWindow } from "./hooks/useTimeWindow";
 
 const PIP_FILL = {
   W: "#fffbd5",
@@ -525,27 +352,8 @@ function EmptyWindow({ timeWindow, onSelect }) {
   );
 }
 
-const MONTHS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
-
 function matchesOf(deck) {
   return deck.matchWinRate.wins + deck.matchWinRate.losses;
-}
-
-function percent(rate) {
-  return `${(rate * 100).toFixed(1)}%`;
 }
 
 const SORT_VALUES = {
@@ -915,10 +723,6 @@ function ChartLegend({ items, hidden, onToggle }) {
   );
 }
 
-function formatCount(value) {
-  return value.toLocaleString("en-GB");
-}
-
 function shareRows(series) {
   const byDay = new Map();
 
@@ -932,17 +736,6 @@ function shareRows(series) {
 
   return [...byDay.values()].sort((a, b) => a.day.localeCompare(b.day));
 }
-
-const shortDay = (day) => day.slice(5);
-const axisShare = (share) => `${share}%`;
-const tooltipShare = (share) => `${share.toFixed(2)}%`;
-const longDay = (day) =>
-  new Date(`${day}T00:00:00Z`).toLocaleDateString("en-GB", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    timeZone: "UTC",
-  });
 
 const END_LABEL_OFFSET = 10;
 const END_LABEL_GAP = 16;
@@ -1354,8 +1147,6 @@ function WinRateMark({ cx, cy, size, payload, labelled }) {
   );
 }
 
-const winRateText = (value) => `${value.toFixed(1)}%`;
-
 function WinRateTooltip({ active, payload }) {
   if (!active || !payload || payload.length === 0) {
     return null;
@@ -1510,31 +1301,6 @@ function WinRateScatter({ decks }) {
       </ChartFrame>
     </Panel>
   );
-}
-
-function formatDate(value, withYear) {
-  const [year, month, day] = value.split("-").map(Number);
-  const head = `${day} ${MONTHS[month - 1]}`;
-
-  return withYear ? `${head} ${year}` : head;
-}
-
-function lastCoveredDay(to) {
-  const day = new Date(`${to}T00:00:00Z`);
-  day.setUTCDate(day.getUTCDate() - 1);
-
-  return day.toISOString().slice(0, 10);
-}
-
-function formatWindow({ from, to }) {
-  const last = lastCoveredDay(to);
-  const sameYear = from.slice(0, 4) === last.slice(0, 4);
-
-  return `${formatDate(from, !sameYear)} to ${formatDate(last, true)}`;
-}
-
-function formatPopulation(population) {
-  return population.charAt(0).toUpperCase() + population.slice(1);
 }
 
 const SUMMARY_TILES = [
