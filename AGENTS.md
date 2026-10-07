@@ -13,6 +13,7 @@ Write simple, readable code. Prefer the clean solution over the clever one.
 - Comments are for the rare case where the reason is not visible in the code, such as a workaround for an external API.
 - CSS follows NFR-11 in the requirements: every rule in a cascade layer, one stylesheet per component named after it, and each stylesheet styles only the elements its component renders.
 - Every API function and every exported helper has a JSDoc block, as NFR-1 describes. That is documentation of a contract, not an inline comment.
+- An exported function with a consumer has a spec beside its module, named after it: `Card.tsx` and `Card.spec.tsx`. Specs query by role and visible text and never call Endstep.
 
 ## Prose
 
@@ -53,6 +54,7 @@ Set the edge cache headers
 
 Open one when an issue is done.
 
+- Before every push, `npm run format:check`, `npm run lint`, `npm test` and `npm run build` pass. CI runs the same four checks on every pull request and on `main`.
 - Title is the issue title, verbatim.
 - Description is a short bullet list of what was done. Nothing else.
 - **No attribution footer.**
@@ -71,7 +73,8 @@ Every pull request gets an independent review before it reaches the human review
 4. To fix: change the code, commit, and push to the same branch. Then reply on the thread with `Fixed by <sha>` and resolve it.
 5. To decline: reply on the thread with a one sentence reason and leave the thread unresolved, so the human reviewer sees it as an open item.
 
-Only a thread that is actually fixed gets resolved. If a later round reverses an earlier fix, say so on the original thread and leave it open. An open thread is the record that something is unsettled.
+   Only a thread that is actually fixed gets resolved. If a later round reverses an earlier fix, say so on the original thread and leave it open. An open thread is the record that something is unsettled.
+
 6. Run the review once more after the fixes.
 7. Stop there. Two rounds is the cap, whatever the second round returns.
 
@@ -87,11 +90,11 @@ Never merge. That decision belongs to the human reviewer.
 
 ## Project context
 
-| File | What it holds |
-|---|---|
-| `docs/requirements.md` | Functional and non-functional requirements. The authority on behaviour |
-| `docs/design-system.html` | Tokens and components. The authority on appearance |
-| `docs/backlog.md` | Both milestones' items, their tasks and their dependencies |
+| File                      | What it holds                                                          |
+| ------------------------- | ---------------------------------------------------------------------- |
+| `docs/requirements.md`    | Functional and non-functional requirements. The authority on behaviour |
+| `docs/design-system.html` | Tokens and components. The authority on appearance                     |
+| `docs/backlog.md`         | Both milestones' items, their tasks and their dependencies             |
 
 Issues #1 to #16 mirror milestone 1 of `docs/backlog.md`. Milestone 2's issues mirror the rest. Labels carry type (`enabler`, `story`, `hardening`) and wave (`wave-0` onwards). Items in the same wave have no dependency on each other and can run in parallel.
 

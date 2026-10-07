@@ -1,0 +1,138 @@
+{
+  "provenance": {
+    "schemaVersion": 1,
+    "derivationVersion": 53,
+    "window": {
+      "preset": "30d",
+      "from": "2026-09-06",
+      "to": "2026-10-06",
+      "since": null,
+      "until": null
+    },
+    "population": "rated"
+  },
+  "formatId": "Pauper",
+  "totals": {
+    "registrations": 236728,
+    "players": 8355
+  },
+  "ratingCohorts": {
+    "date": "2026-10-04",
+    "cuts": [1425, 1500, 1550]
+  },
+  "query": {
+    "q": null,
+    "sort": "share",
+    "dir": "desc"
+  },
+  "decks": {
+    "items": [
+      {
+        "id": "e93f5f74-2e3d-403e-ba56-1fde5b168692",
+        "slug": "affinity-e93f5f74",
+        "name": "Affinity",
+        "machineNamed": false,
+        "colours": ["W", "U", "B"],
+        "art": {
+          "cardName": "Reckoner's Bargain",
+          "setCode": null,
+          "collectorNumber": null,
+          "pinned": false
+        },
+        "keyCards": ["Reckoner's Bargain", "Myr Enforcer", "Utrom Monitor"],
+        "share": {
+          "registrations": 22629,
+          "totalRegistrations": 236728,
+          "rate": 0.09559072015139738
+        },
+        "players": 1954,
+        "matchWinRate": {
+          "wins": 11823,
+          "losses": 10806,
+          "rate": 0.5224711653188386,
+          "low": 0.5141718141412656,
+          "high": 0.5307581275844854,
+          "deff": 1.624300921187308
+        },
+        "shareChange": {
+          "points": 3.78617125178096,
+          "previousRate": 0.057729007633587785,
+          "reason": null
+        }
+      },
+      {
+        "id": "60596e8a-4df8-49ed-aaf9-99c02e648058",
+        "slug": "mono-red-madness-60596e8a",
+        "name": "Mono Red Madness",
+        "machineNamed": false,
+        "colours": ["U", "B", "R"],
+        "art": {
+          "cardName": "Guttersnipe",
+          "setCode": null,
+          "collectorNumber": null,
+          "pinned": false
+        },
+        "keyCards": ["Guttersnipe", "Kessig Flamebreather", "Lava Dart"],
+        "share": {
+          "registrations": 16112,
+          "totalRegistrations": 236728,
+          "rate": 0.06806123483491602
+        },
+        "players": 1562,
+        "matchWinRate": {
+          "wins": 8295,
+          "losses": 7817,
+          "rate": 0.5148336643495531,
+          "low": 0.5052235797601417,
+          "high": 0.5244327922373233,
+          "deff": 1.5495838668373878
+        },
+        "shareChange": {
+          "points": -2.497311631012214,
+          "previousRate": 0.09303435114503816,
+          "reason": null
+        }
+      },
+      {
+        "id": "1bc68613-2c5b-4b8e-84d3-e6658580eeaf",
+        "slug": "monster-tron-1bc68613",
+        "name": "Monster Tron",
+        "machineNamed": false,
+        "colours": ["U", "B", "G"],
+        "art": {
+          "cardName": "Ancient Stirrings",
+          "setCode": null,
+          "collectorNumber": null,
+          "pinned": false
+        },
+        "keyCards": [
+          "Ancient Stirrings",
+          "Boulderbranch Golem",
+          "Pinnacle Kill-Ship"
+        ],
+        "share": {
+          "registrations": 11128,
+          "totalRegistrations": 236728,
+          "rate": 0.04700753607515799
+        },
+        "players": 1175,
+        "matchWinRate": {
+          "wins": 5223,
+          "losses": 5905,
+          "rate": 0.4693565780014378,
+          "low": 0.45801991152966837,
+          "high": 0.48072495807130833,
+          "deff": 1.4997676595744682
+        },
+        "shareChange": {
+          "points": -1.3584066978277125,
+          "previousRate": 0.06059160305343511,
+          "reason": null
+        }
+      }
+    ],
+    "total": 252,
+    "page": 1,
+    "pageSize": 24
+  }
+}

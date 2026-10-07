@@ -1,3 +1,4 @@
+api/**/*.spec.ts
 AGENTS.md
 CLAUDE.md
 .claude

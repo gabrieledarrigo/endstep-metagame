@@ -1,3 +1,4 @@
+/// <reference types="vitest/config" />
 import { defineConfig, type Connect, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import metagame from "./api/metagame.ts";
@@ -37,9 +38,15 @@ function api(): Plugin {
           url.searchParams.set("path", url.pathname.slice(PREFIX.length));
         }
         const response = await metagame.fetch(
-          new Request(`http://localhost${FUNCTION}?${url.searchParams}`, { method: req.method }),
+          new Request(`http://localhost${FUNCTION}?${url.searchParams}`, {
+            method: req.method,
+          }),
         );
-        const maxAge = Number(/s-maxage=(\d+)/.exec(response.headers.get("cache-control") ?? "")?.[1] ?? 0);
+        const maxAge = Number(
+          /s-maxage=(\d+)/.exec(
+            response.headers.get("cache-control") ?? "",
+          )?.[1] ?? 0,
+        );
 
         entry = {
           expires: Date.now() + maxAge * 1000,
@@ -77,4 +84,25 @@ function api(): Plugin {
 
 export default defineConfig({
   plugins: [react(), api()],
+  test: {
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: "api",
+          environment: "node",
+          include: ["api/**/*.spec.ts"],
+        },
+      },
+      {
+        extends: true,
+        test: {
+          name: "app",
+          environment: "jsdom",
+          include: ["src/**/*.spec.{js,jsx,ts,tsx}"],
+          setupFiles: ["./test/setup.js"],
+        },
+      },
+    ],
+  },
 });

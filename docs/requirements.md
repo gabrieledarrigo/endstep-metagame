@@ -189,7 +189,7 @@ The front end uses **React Router 8 in declarative mode**: `BrowserRouter`, `Rou
 
 ### 4.6 Local development
 
-`npm run dev` starts Vite. A small Vite plugin serves `/api/metagame/*` and `/api/matchups` by calling the real handlers, and applies the same rewrite as `vercel.json`. It keeps each response in memory for as long as its `Cache-Control` allows, as the edge would: 5 minutes for a success, and the short hold for a 429. Without that, every reload of the matchup page in development costs 25 upstream calls, and a dozen reloads in a minute reach the rate limit. It replaces `dev-server.js`, which is deleted. Vite's dev server already falls back to `index.html` for the page routes.
+`npm run dev` starts Vite. A small Vite plugin serves `/api/metagame/*` and `/api/matchups` by calling the real handlers, and applies the same rewrite as `vercel.json`. It serves each response from memory for its `s-maxage`, the lifetime the edge uses too. It does not serve stale responses and does not evict expired entries, so it is simpler than the edge. Without that, every reload of the matchup page in development costs 25 upstream calls, and a dozen reloads in a minute reach the rate limit. It replaces `dev-server.js`, which is deleted. Vite's dev server already falls back to `index.html` for the page routes.
 
 ### 4.7 What deploys
 
@@ -377,8 +377,9 @@ The front end is a Vite application in TypeScript with React 19. `npm run build`
 | React Router | 8, declarative mode |
 | Recharts | 3.10 |
 | Vite | 8 |
-| TypeScript | strict mode |
+| TypeScript | 6.0, strict mode. See below |
 
+- TypeScript stays on 6.0, the last release with the JavaScript compiler API. TypeScript 7.0 ships without one, so typescript-eslint refuses it and Vercel's install fails on the peer conflict. Measured on this repo on 2026-10-06. typescript-eslint tracks support for 7.1 in issue #10940. When it lands, move to 7, either outright or with TypeScript's documented side-by-side setup. 6.0 already warns about everything 7 removes.
 - TypeScript runs in strict mode. Once the code is TypeScript, a type error fails the build. Until then, the build is `vite build` alone, because `tsc` fails on a project with no TypeScript files.
 - The root `tsconfig.json` is read by Vercel's function build. Vite's client types belong in `tsconfig.app.json`. Putting them in the root config breaks the function build.
 
@@ -407,6 +408,7 @@ The front end is a Vite application in TypeScript with React 19. `npm run build`
 - **The rule of thumb: an exported function with a consumer has a spec.** That covers components, hooks, helpers and the API functions.
 - The spec sits beside its module and is named after it: `components/Card.tsx` and `components/Card.spec.tsx`, `format.ts` and `format.spec.ts`.
 - The API functions are plain `Request` to `Response` handlers, so their specs, `api/metagame.spec.ts` and `api/matchups.spec.ts`, call them directly with `fetch` stubbed.
+- Vitest runs two projects: `api` in Node for the specs in `api/`, and `app` in jsdom with the Testing Library setup for the specs in `src/`. A spec needs no per-file setup. Shared test helpers and fixtures live in `test/`, outside `src/`.
 - Specs query by role and by visible text, the way a user finds things. No snapshot tests.
 - Specs never call Endstep. Every request is stubbed.
 

@@ -504,7 +504,7 @@ Covers NFR-1.
 
 1. Types for every response in `src/api/types.ts`, from §3.6, §3.7 and the `/decks` and `/share-series` shapes. Include the gated win and loss block from §6.8.
 2. Convert every module to `.ts` or `.tsx`, starting with the data layer.
-3. Strict mode. Add the type check to the build script, so a type error fails the build.
+3. Strict mode. Add the type check to the build script, so a type error fails the build. TypeScript stays on 6.0, NFR-1. Give `vite.config.ts` a tsconfig of its own, since the root one covers `api/` only.
 4. Fix the `<div>` inside a `<p>` in the deck card skeleton. React's development build reports it.
 5. A JSDoc block on every helper as it is typed: hooks, and the formatting and data functions, NFR-1.
 
@@ -631,7 +631,7 @@ Covers FR-12 and §6.10.
 
 **Tasks**
 
-1. Serve `/api/matchups` from the Vite dev plugin, behind its memory cache.
+1. Serve `/api/matchups` from the Vite dev plugin, behind its memory cache. Forward the raw query string unchanged, because §4.4 matches it byte for byte.
 2. Fetch the matrix, keyed by window.
 3. The table and its cell states, as FR-12 describes.
 4. Detail on hover and on keyboard focus. One tab stop for the table, with arrow keys between cells, FR-12.

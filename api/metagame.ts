@@ -30,6 +30,7 @@ const QUERY_PARAMS = [
 ];
 
 const SEGMENT = /^[A-Za-z0-9_-]+$/;
+const NO_BODY = [204, 205, 304];
 
 /**
  * Checks whether the path segments match one of the allow-listed Endstep endpoints.
@@ -84,7 +85,7 @@ function forwardedQuery(query: URLSearchParams) {
  * @returns Five minutes at the edge for a success, ten seconds for a rate limit, and no caching for any other error.
  */
 function cacheControl(status: number) {
-  if (status < 400) {
+  if (status < 400 && !NO_BODY.includes(status)) {
     return "public, s-maxage=300, stale-while-revalidate=600";
   }
 
@@ -109,6 +110,7 @@ export default {
   fetch: async function handler(req: Request) {
     const baseHeaders: HeadersInit = {
       "Access-Control-Allow-Origin": "*",
+      "Cache-Control": "no-store",
       "Content-Type": "application/json",
     };
 
@@ -184,7 +186,7 @@ export default {
       );
     }
 
-    return new Response(body, {
+    return new Response(NO_BODY.includes(status) ? null : body, {
       headers: {
         ...baseHeaders,
         "Content-Type": contentType ?? "application/json",
