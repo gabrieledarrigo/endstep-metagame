@@ -16,18 +16,17 @@ export function SummarySkeleton() {
     <Panel aria-busy="true">
       <dl className="stat-list">
         {SUMMARY_TILES.map((tile, index) => (
-          <div
-            key={index}
-            className={index === 0 ? "stat-tile stat-tile--hero" : "stat-tile"}
-          >
-            <dt className="stat-tile__label">{tile.label}</dt>
-            <dd className="stat-tile__value">
+          <StatTile
+            key={tile.label}
+            hero={index === 0}
+            label={tile.label}
+            value={
               <Skeleton
                 width={tile.value}
                 height={index === 0 ? "1.05em" : "1.6em"}
               />
-            </dd>
-          </div>
+            }
+          />
         ))}
       </dl>
     </Panel>

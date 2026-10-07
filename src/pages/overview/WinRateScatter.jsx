@@ -9,6 +9,7 @@ import {
   ZAxis,
 } from "recharts";
 import { ChartFrame } from "../../charts/ChartFrame";
+import { ChartTooltip } from "../../charts/ChartTooltip";
 import {
   CHART_AXIS,
   CHART_BASELINE,
@@ -18,6 +19,7 @@ import {
   token,
 } from "../../charts/theme";
 import { Panel } from "../../components/Panel";
+import { Skeleton } from "../../components/Skeleton";
 import {
   axisShare,
   formatCount,
@@ -87,7 +89,7 @@ function WinRateMark({ cx, cy, size, payload, labelled }) {
       />
       {labelled.has(payload.id) && (
         <text
-          className="chart-mark__label"
+          className="win-rate__label"
           x={cx}
           y={cy - radius - 7}
           textAnchor="middle"
@@ -107,33 +109,18 @@ function WinRateTooltip({ active, payload }) {
   const point = payload[0].payload;
 
   return (
-    <div className="chart-tooltip">
-      <div className="chart-tooltip__title">{point.name}</div>
-      <div className="chart-tooltip__row">
-        <span className="chart-tooltip__name">Meta share</span>
-        <span className="chart-tooltip__value">
-          {tooltipShare(point.share)}
-        </span>
-      </div>
-      <div className="chart-tooltip__row">
-        <span className="chart-tooltip__name">Players</span>
-        <span className="chart-tooltip__value">
-          {formatCount(point.players)}
-        </span>
-      </div>
-      <div className="chart-tooltip__row">
-        <span className="chart-tooltip__name">Match win rate</span>
-        <span className="chart-tooltip__value">
-          {winRateText(point.winRate)}
-        </span>
-      </div>
-      <div className="chart-tooltip__row">
-        <span className="chart-tooltip__name">Confidence bounds</span>
-        <span className="chart-tooltip__value">
-          {winRateText(point.low)} to {winRateText(point.high)}
-        </span>
-      </div>
-    </div>
+    <ChartTooltip
+      title={point.name}
+      rows={[
+        { name: "Meta share", value: tooltipShare(point.share) },
+        { name: "Players", value: formatCount(point.players) },
+        { name: "Match win rate", value: winRateText(point.winRate) },
+        {
+          name: "Confidence bounds",
+          value: `${winRateText(point.low)} to ${winRateText(point.high)}`,
+        },
+      ]}
+    />
   );
 }
 
@@ -154,7 +141,7 @@ export function WinRateScatterSkeleton() {
       <h2 className="chart-section__title">Win rate against share</h2>
       <p className="chart-section__note">{WIN_RATE_NOTE}</p>
 
-      <div className="skeleton chart-frame" style={{ aspectRatio: "2.4" }} />
+      <Skeleton className="win-rate__frame" width="100%" />
     </Panel>
   );
 }
@@ -183,7 +170,7 @@ export function WinRateScatter({ decks }) {
       <h2 className="chart-section__title">Win rate against share</h2>
       <p className="chart-section__note">{WIN_RATE_NOTE}</p>
 
-      <ChartFrame aspect={2.4}>
+      <ChartFrame className="win-rate__frame">
         <ScatterChart
           margin={{ top: 28, right: 24, bottom: 20, left: 24 }}
           aria-label="Match win rate against meta share"

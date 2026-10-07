@@ -40,7 +40,12 @@ export function ColourPips({ colours }) {
             stroke="rgba(11,11,11,.22)"
             strokeWidth="1"
           />
-          <text x="10" y="14.3" textAnchor="middle">
+          <text
+            className="colour-pips__letter"
+            x="10"
+            y="14.3"
+            textAnchor="middle"
+          >
             {letter}
           </text>
         </svg>

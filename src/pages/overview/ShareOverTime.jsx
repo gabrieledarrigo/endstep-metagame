@@ -12,7 +12,7 @@ import {
   useYAxisScale,
 } from "recharts";
 import { ChartFrame } from "../../charts/ChartFrame";
-import { ChartLegend } from "../../charts/ChartLegend";
+import { ChartLegend, ChartLegendSkeleton } from "../../charts/ChartLegend";
 import { ChartTooltip } from "../../charts/ChartTooltip";
 import { seriesColours } from "../../charts/seriesColours";
 import {
@@ -130,6 +130,32 @@ function SeriesEnds({ ends }) {
   );
 }
 
+function ShareTooltip({ active, payload, label }) {
+  if (!active || !payload) {
+    return null;
+  }
+
+  const rows = payload.filter(
+    (row) => row.value !== null && row.value !== undefined,
+  );
+  if (rows.length === 0) {
+    return null;
+  }
+
+  rows.sort((a, b) => b.value - a.value);
+
+  return (
+    <ChartTooltip
+      day={longDay(label)}
+      rows={rows.map((row) => ({
+        name: row.name,
+        value: tooltipShare(row.value),
+        colour: row.color,
+      }))}
+    />
+  );
+}
+
 const SHARE_LEGEND_WIDTHS = [72, 124, 102, 54, 92, 86, 106, 96];
 
 export function ShareOverTimeSkeleton() {
@@ -139,17 +165,10 @@ export function ShareOverTimeSkeleton() {
 
       <Panel className="share-chart">
         <div className="share-chart__scroll">
-          <div
-            className="skeleton chart-frame"
-            style={{ aspectRatio: "2.9" }}
-          />
+          <Skeleton className="share-chart__frame" width="100%" />
         </div>
 
-        <div className="chart-legend">
-          {SHARE_LEGEND_WIDTHS.map((width) => (
-            <Skeleton key={width} width={width} height={20.8} />
-          ))}
-        </div>
+        <ChartLegendSkeleton widths={SHARE_LEGEND_WIDTHS} />
       </Panel>
     </section>
   );
@@ -194,7 +213,7 @@ export function ShareOverTime({ series }) {
           role="region"
           aria-label="Daily meta share, top eight decks"
         >
-          <ChartFrame>
+          <ChartFrame className="share-chart__frame">
             <LineChart
               data={rows}
               margin={{
@@ -215,12 +234,7 @@ export function ShareOverTime({ series }) {
               <YAxis tickFormatter={axisShare} width={46} {...CHART_AXIS} />
               <Tooltip
                 cursor={{ stroke: CHART_BASELINE }}
-                content={
-                  <ChartTooltip
-                    formatLabel={longDay}
-                    formatValue={tooltipShare}
-                  />
-                }
+                content={<ShareTooltip />}
               />
               {shown.map((item) => (
                 <Line

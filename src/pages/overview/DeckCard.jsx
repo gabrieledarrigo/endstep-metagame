@@ -33,21 +33,27 @@ export function DeckCard({ deck }) {
           <ColourPips colours={deck.colours} />
         </div>
         <dl className="deck__stats">
-          <div>
-            <dt>Share</dt>
-            <dd>{(deck.share.rate * 100).toFixed(2)}%</dd>
+          <div className="deck__stat">
+            <dt className="deck__label">Share</dt>
+            <dd className="deck__value">
+              {(deck.share.rate * 100).toFixed(2)}%
+            </dd>
           </div>
-          <div>
-            <dt>Players</dt>
-            <dd>{deck.players.toLocaleString("en-GB")}</dd>
+          <div className="deck__stat">
+            <dt className="deck__label">Players</dt>
+            <dd className="deck__value">
+              {deck.players.toLocaleString("en-GB")}
+            </dd>
           </div>
-          <div>
-            <dt>Match win rate</dt>
-            <dd>{(deck.matchWinRate.rate * 100).toFixed(1)}%</dd>
+          <div className="deck__stat">
+            <dt className="deck__label">Match win rate</dt>
+            <dd className="deck__value">
+              {(deck.matchWinRate.rate * 100).toFixed(1)}%
+            </dd>
           </div>
-          <div className="deck__change">
-            <dt>Share change</dt>
-            <dd>
+          <div className="deck__stat deck__stat--change">
+            <dt className="deck__label">Share change</dt>
+            <dd className="deck__value">
               <ShareChange change={deck.shareChange} />
             </dd>
           </div>
@@ -61,7 +67,7 @@ export function DeckCard({ deck }) {
 export function DeckCardSkeleton() {
   return (
     <div className="deck">
-      <div className="skeleton deck__art" />
+      <Skeleton className="deck__art" />
       <div className="deck__body">
         <div className="deck__top">
           <h3 className="deck__name">
@@ -71,20 +77,20 @@ export function DeckCardSkeleton() {
         </div>
         <dl className="deck__stats">
           {[0, 1, 2].map((index) => (
-            <div key={index}>
-              <dt>
+            <div key={index} className="deck__stat">
+              <dt className="deck__label">
                 <Skeleton width="100%" height="2.6em" />
               </dt>
-              <dd>
+              <dd className="deck__value">
                 <Skeleton width="76%" height="1.6em" />
               </dd>
             </div>
           ))}
-          <div className="deck__change">
-            <dt>
+          <div className="deck__stat deck__stat--change">
+            <dt className="deck__label">
               <Skeleton width={72} height="1.3em" />
             </dt>
-            <dd>
+            <dd className="deck__value">
               <Skeleton width={86} height="1.6em" />
             </dd>
           </div>

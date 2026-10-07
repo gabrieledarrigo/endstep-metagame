@@ -9,6 +9,8 @@ import {
 } from "recharts";
 import { ChartFrame } from "../../charts/ChartFrame";
 import { CHART_AXIS, CHART_CARTESIAN_GRID, token } from "../../charts/theme";
+import { Panel } from "../../components/Panel";
+import { Skeleton } from "../../components/Skeleton";
 import { axisShare, tooltipShare } from "../../format";
 
 const CHART_BAR = token("--seq-500");
@@ -43,14 +45,16 @@ const RANKED_BARS_NOTE =
 
 export function RankedBarsSkeleton() {
   return (
-    <section className="panel" aria-busy="true">
-      <h2 className="ranked-bars__title">Meta share by deck</h2>
+    <section aria-busy="true">
+      <Panel>
+        <h2 className="ranked-bars__title">Meta share by deck</h2>
 
-      <div className="ranked-bars__scroll">
-        <div className="skeleton chart-frame" style={{ height: 660 }} />
-      </div>
+        <div className="ranked-bars__scroll">
+          <Skeleton className="ranked-bars__frame" width="100%" />
+        </div>
 
-      <p className="ranked-bars__note">{RANKED_BARS_NOTE}</p>
+        <p className="ranked-bars__note">{RANKED_BARS_NOTE}</p>
+      </Panel>
     </section>
   );
 }
@@ -64,70 +68,72 @@ export function RankedBars({ decks }) {
   const axisMax = Math.ceil(Math.max(...bars.map((bar) => bar.share)) / 5) * 5;
 
   return (
-    <section className="panel" aria-labelledby="ranked-bars-heading">
-      <h2 className="ranked-bars__title" id="ranked-bars-heading">
-        Meta share by deck
-      </h2>
+    <section aria-labelledby="ranked-bars-heading">
+      <Panel>
+        <h2 className="ranked-bars__title" id="ranked-bars-heading">
+          Meta share by deck
+        </h2>
 
-      <div
-        className="ranked-bars__scroll"
-        tabIndex="0"
-        role="region"
-        aria-label="Meta share by deck, chart"
-      >
-        <ChartFrame height={660}>
-          <BarChart
-            data={bars}
-            layout="vertical"
-            margin={{ top: 4, right: 58, bottom: 0, left: 0 }}
-          >
-            <CartesianGrid
-              {...CHART_CARTESIAN_GRID}
-              horizontal={false}
-              vertical
-            />
-            <XAxis
-              type="number"
-              orientation="top"
-              domain={[0, axisMax]}
-              tickCount={axisMax / 5 + 1}
-              tickFormatter={axisShare}
-              height={22}
-              {...CHART_AXIS}
-            />
-            <YAxis
-              type="category"
-              dataKey="name"
-              width={210}
-              interval={0}
-              {...CHART_AXIS}
-              tick={{ ...CHART_AXIS.tick, fill: CHART_NAME }}
-            />
-            <Bar
-              dataKey="share"
-              radius={[0, 3, 3, 0]}
-              barSize={17}
-              isAnimationActive={false}
+        <div
+          className="ranked-bars__scroll"
+          tabIndex="0"
+          role="region"
+          aria-label="Meta share by deck, chart"
+        >
+          <ChartFrame className="ranked-bars__frame">
+            <BarChart
+              data={bars}
+              layout="vertical"
+              margin={{ top: 4, right: 58, bottom: 0, left: 0 }}
             >
-              {bars.map((bar) => (
-                <Cell
-                  key={bar.name}
-                  fill={bar.residual ? CHART_RESIDUAL : CHART_BAR}
-                />
-              ))}
-              <LabelList
-                dataKey="share"
-                position="right"
-                formatter={tooltipShare}
-                fill={CHART_LABEL}
-                fontSize={12}
+              <CartesianGrid
+                {...CHART_CARTESIAN_GRID}
+                horizontal={false}
+                vertical
               />
-            </Bar>
-          </BarChart>
-        </ChartFrame>
-      </div>
+              <XAxis
+                type="number"
+                orientation="top"
+                domain={[0, axisMax]}
+                tickCount={axisMax / 5 + 1}
+                tickFormatter={axisShare}
+                height={22}
+                {...CHART_AXIS}
+              />
+              <YAxis
+                type="category"
+                dataKey="name"
+                width={210}
+                interval={0}
+                {...CHART_AXIS}
+                tick={{ ...CHART_AXIS.tick, fill: CHART_NAME }}
+              />
+              <Bar
+                dataKey="share"
+                radius={[0, 3, 3, 0]}
+                barSize={17}
+                isAnimationActive={false}
+              >
+                {bars.map((bar) => (
+                  <Cell
+                    key={bar.name}
+                    fill={bar.residual ? CHART_RESIDUAL : CHART_BAR}
+                  />
+                ))}
+                <LabelList
+                  dataKey="share"
+                  position="right"
+                  formatter={tooltipShare}
+                  fill={CHART_LABEL}
+                  fontSize={12}
+                />
+              </Bar>
+            </BarChart>
+          </ChartFrame>
+        </div>
 
-      <p className="ranked-bars__note">{RANKED_BARS_NOTE}</p>
+        <p className="ranked-bars__note">{RANKED_BARS_NOTE}</p>
+      </Panel>
     </section>
   );
 }

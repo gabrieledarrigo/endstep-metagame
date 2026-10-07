@@ -1,3 +1,5 @@
+import { Skeleton } from "../components/Skeleton";
+
 export function ChartLegend({ items, hidden, onToggle }) {
   return (
     <div className="chart-legend">
@@ -24,6 +26,16 @@ export function ChartLegend({ items, hidden, onToggle }) {
           </button>
         );
       })}
+    </div>
+  );
+}
+
+export function ChartLegendSkeleton({ widths }) {
+  return (
+    <div className="chart-legend">
+      {widths.map((width) => (
+        <Skeleton key={width} width={width} height={20.8} />
+      ))}
     </div>
   );
 }

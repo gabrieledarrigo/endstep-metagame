@@ -1,34 +1,18 @@
-export function ChartTooltip({
-  active,
-  payload,
-  label,
-  formatLabel = String,
-  formatValue = String,
-}) {
-  if (!active || !payload) {
-    return null;
-  }
-
-  const rows = payload.filter(
-    (row) => row.value !== null && row.value !== undefined,
-  );
-  if (rows.length === 0) {
-    return null;
-  }
-
-  rows.sort((a, b) => b.value - a.value);
-
+export function ChartTooltip({ day, title, rows }) {
   return (
     <div className="chart-tooltip">
-      <div className="chart-tooltip__day">{formatLabel(label)}</div>
+      {day && <div className="chart-tooltip__day">{day}</div>}
+      {title && <div className="chart-tooltip__title">{title}</div>}
       {rows.map((row) => (
-        <div className="chart-tooltip__row" key={row.dataKey}>
-          <span
-            className="chart-tooltip__swatch"
-            style={{ background: row.color }}
-          />
+        <div className="chart-tooltip__row" key={row.name}>
+          {row.colour && (
+            <span
+              className="chart-tooltip__swatch"
+              style={{ background: row.colour }}
+            />
+          )}
           <span className="chart-tooltip__name">{row.name}</span>
-          <span className="chart-tooltip__value">{formatValue(row.value)}</span>
+          <span className="chart-tooltip__value">{row.value}</span>
         </div>
       ))}
     </div>
