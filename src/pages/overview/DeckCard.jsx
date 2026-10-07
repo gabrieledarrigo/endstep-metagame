@@ -2,6 +2,7 @@ import { ColourPips } from "../../components/ColourPips";
 import { ShareChange } from "../../components/ShareChange";
 import { Skeleton } from "../../components/Skeleton";
 import { FORMAT } from "../../config";
+import { formatCount, percent, tooltipShare } from "../../format";
 import "./DeckCard.css";
 
 function artSource(cardName) {
@@ -37,20 +38,16 @@ export function DeckCard({ deck }) {
           <div className="deck__stat">
             <dt className="deck__label">Share</dt>
             <dd className="deck__value">
-              {(deck.share.rate * 100).toFixed(2)}%
+              {tooltipShare(deck.share.rate * 100)}
             </dd>
           </div>
           <div className="deck__stat">
             <dt className="deck__label">Players</dt>
-            <dd className="deck__value">
-              {deck.players.toLocaleString("en-GB")}
-            </dd>
+            <dd className="deck__value">{formatCount(deck.players)}</dd>
           </div>
           <div className="deck__stat">
             <dt className="deck__label">Match win rate</dt>
-            <dd className="deck__value">
-              {(deck.matchWinRate.rate * 100).toFixed(1)}%
-            </dd>
+            <dd className="deck__value">{percent(deck.matchWinRate.rate)}</dd>
           </div>
           <div className="deck__stat deck__stat--change">
             <dt className="deck__label">Share change</dt>
