@@ -7,11 +7,12 @@
     padding: 3px;
     gap: 2px;
     max-width: 100%;
+    overflow-x: auto;
   }
 
-  @media (max-width: 400px) {
+  @media (min-width: 640px) {
     .segmented {
-      overflow-x: auto;
+      overflow-x: visible;
     }
   }
 

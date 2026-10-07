@@ -5,14 +5,15 @@
   }
 
   .win-rate__label {
+    display: none;
     font-size: 12px;
     font-weight: 500;
     fill: var(--text-900);
   }
 
-  @media (max-width: 760px) {
+  @media (min-width: 640px) {
     .win-rate__label {
-      display: none;
+      display: inline;
     }
   }
 }
