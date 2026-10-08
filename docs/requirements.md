@@ -509,6 +509,7 @@ A later layer overrides an earlier one, whatever the selectors' specificity and 
 **Component stylesheets.** Each component imports its own stylesheet, named after it: `StatTile.tsx` imports `./StatTile.css`, and the file wraps its rules in `@layer components`.
 
 - BEM is the naming convention: `.stat-tile`, `.stat-tile__label`, `.stat-tile--hero`.
+- An element's block class sits on the component's root, even when the block has no rules of its own. `.win-rate__frame` sits inside `.win-rate`.
 - A component's stylesheet styles only the elements that component renders. It does not reach into a child component, and it does not style anything outside its own markup. `.stat-list` belongs to `Summary.css`, because the summary renders the list. `.stat-tile` belongs to `StatTile.css`.
 - A parent changes a child in two ways only. It sets a modifier the child defines, such as `--hero`. Or it adds one of its own classes to the child's root, a BEM mix: `<Panel className="deck-table__scroll">`. The parent's stylesheet styles that class. It never selects into the child's classes.
 - A rule that more than one component needs belongs in `base` or `layout`, not in a component's file.
