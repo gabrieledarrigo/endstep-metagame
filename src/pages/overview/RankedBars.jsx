@@ -46,7 +46,7 @@ const RANKED_BARS_NOTE = `Other is a residual, not a deck. It covers every arche
 
 export function RankedBarsSkeleton() {
   return (
-    <section aria-busy="true">
+    <section className="ranked-bars" aria-busy="true">
       <Panel>
         <h2 className="ranked-bars__title">Meta share by deck</h2>
 
@@ -69,7 +69,7 @@ export function RankedBars({ decks }) {
   const axisMax = Math.ceil(Math.max(...bars.map((bar) => bar.share)) / 5) * 5;
 
   return (
-    <section aria-labelledby="ranked-bars-heading">
+    <section className="ranked-bars" aria-labelledby="ranked-bars-heading">
       <Panel>
         <h2 className="ranked-bars__title" id="ranked-bars-heading">
           Meta share by deck

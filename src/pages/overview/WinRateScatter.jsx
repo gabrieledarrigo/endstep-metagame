@@ -151,7 +151,7 @@ const WIN_RATE_NOTE =
 
 export function WinRateScatterSkeleton() {
   return (
-    <Panel className="chart-section" aria-busy="true">
+    <Panel className="chart-section win-rate" aria-busy="true">
       <h2 className="chart-section__title">Win rate against share</h2>
       <p className="chart-section__note">{WIN_RATE_NOTE}</p>
 
@@ -180,7 +180,7 @@ export function WinRateScatter({ decks }) {
   const labelled = labelledPoints(points, shareMax, rateMax - rateMin);
 
   return (
-    <Panel className="chart-section">
+    <Panel className="chart-section win-rate">
       <h2 className="chart-section__title">Win rate against share</h2>
       <p className="chart-section__note">{WIN_RATE_NOTE}</p>
 
