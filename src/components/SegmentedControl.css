@@ -1,0 +1,54 @@
+@layer components {
+  .segmented {
+    display: inline-flex;
+    background: var(--surface);
+    border: 1px solid var(--edge);
+    border-radius: 8px;
+    padding: 3px;
+    gap: 2px;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  @media (min-width: 640px) {
+    .segmented {
+      overflow-x: visible;
+    }
+  }
+
+  .segmented__option {
+    flex: 0 0 auto;
+    font-family: inherit;
+    cursor: pointer;
+    border: 0;
+    background: transparent;
+    color: var(--text-600);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 7px 15px;
+    border-radius: 6px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .segmented__option:hover {
+    background: #f1f0ec;
+    color: var(--text-900);
+  }
+
+  .segmented__option[aria-pressed="true"] {
+    background: var(--primary);
+    color: var(--text-inverse);
+  }
+
+  .segmented__option[aria-pressed="true"]:hover {
+    background: #184f95;
+  }
+
+  .segmented[data-busy] {
+    background: var(--rule);
+  }
+
+  .segmented[data-busy] .segmented__option {
+    cursor: progress;
+  }
+}

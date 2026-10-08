@@ -1,0 +1,7 @@
+@layer components {
+  .deck-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(228px, 1fr));
+    gap: 16px;
+  }
+}

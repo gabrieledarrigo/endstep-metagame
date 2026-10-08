@@ -509,8 +509,9 @@ A later layer overrides an earlier one, whatever the selectors' specificity and 
 **Component stylesheets.** Each component imports its own stylesheet, named after it: `StatTile.tsx` imports `./StatTile.css`, and the file wraps its rules in `@layer components`.
 
 - BEM is the naming convention: `.stat-tile`, `.stat-tile__label`, `.stat-tile--hero`.
+- An element's block class sits on the component's root, even when the block has no rules of its own. `.win-rate__frame` sits inside `.win-rate`.
 - A component's stylesheet styles only the elements that component renders. It does not reach into a child component, and it does not style anything outside its own markup. `.stat-list` belongs to `Summary.css`, because the summary renders the list. `.stat-tile` belongs to `StatTile.css`.
-- A parent changes a child only through a modifier the child defines, such as `--hero`. It never selects into the child's classes.
+- A parent changes a child in two ways only. It sets a modifier the child defines, such as `--hero`. Or it adds one of its own classes to the child's root, a BEM mix: `<Panel className="deck-table__scroll">`. The parent's stylesheet styles that class. It never selects into the child's classes.
 - A rule that more than one component needs belongs in `base` or `layout`, not in a component's file.
 
 **Breakpoints.** Three ranges, and only their two boundaries appear in media queries.
@@ -524,6 +525,8 @@ A later layer overrides an earlier one, whatever the selectors' specificity and 
 - Styles are written for mobile first. `@media (min-width: 640px)` and `@media (min-width: 1100px)` add to them.
 - 640px is where the design system already switches. 1,100px is where the matchup table fits without scrolling, FR-12.
 - Custom properties do not work in media queries, so the two values are written as numbers. This section is their reference.
+- The window selector scrolls sideways below 640px. It used to scroll below 400px. It is 307px wide, so it only scrolls below about 347px. Between 400px and 639px the one visible change is that the scroll box clips the outer pixel of the focus ring, as it already did below 400px.
+- The win rate scatter shows its point labels from 640px. It used to show them from 761px. The label spacing assumes a 590px plot, which the chart reaches at about 770px, so narrower plots can crowd the labels. With the data of 7 October 2026, no label overlapped another at 640px, 700px or 759px, and a bubble covered part of one label, as it did at 761px.
 
 **No CSS linter for now.** Prettier formats the CSS. Review enforces the rules above.
 

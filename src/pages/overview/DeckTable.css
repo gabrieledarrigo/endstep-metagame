@@ -1,0 +1,82 @@
+@layer components {
+  .deck-table__scroll {
+    position: relative;
+    overflow-x: auto;
+  }
+
+  .deck-table {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 640px;
+    font-size: 14px;
+  }
+
+  .deck-table__header {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-400);
+    padding: 0 12px 9px 0;
+    border-bottom: 1px solid var(--baseline);
+    white-space: nowrap;
+  }
+
+  .deck-table__header--numeric {
+    text-align: right;
+  }
+
+  .deck-table__sort {
+    font: inherit;
+    color: inherit;
+    text-transform: inherit;
+    letter-spacing: inherit;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .deck-table__sort:hover {
+    color: var(--text-900);
+  }
+
+  .deck-table__mark {
+    color: var(--primary);
+  }
+
+  .deck-table__row:hover {
+    background: #f5f4f0;
+  }
+
+  .deck-table__cell {
+    padding: 9px 12px 9px 0;
+    border-bottom: 1px solid var(--rule);
+    vertical-align: middle;
+  }
+
+  .deck-table__row:last-child .deck-table__cell {
+    border-bottom: 0;
+  }
+
+  .deck-table__cell--deck {
+    white-space: nowrap;
+    text-align: left;
+    font-weight: 600;
+  }
+
+  .deck-table__cell--numeric {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .deck-table__cell--rank {
+    width: 26px;
+    color: var(--text-600);
+    font-variant-numeric: tabular-nums;
+  }
+}

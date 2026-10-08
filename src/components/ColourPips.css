@@ -1,0 +1,19 @@
+@layer components {
+  .colour-pips {
+    display: inline-flex;
+    gap: 3px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .colour-pips__pip {
+    width: 17px;
+    height: 17px;
+    display: block;
+  }
+
+  .colour-pips__letter {
+    font: 700 11px var(--sans);
+    fill: #1a1714;
+  }
+}
