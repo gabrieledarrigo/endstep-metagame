@@ -46,7 +46,7 @@ function wait(ms: number, signal: AbortSignal) {
  * @param error - The value a promise rejected with, or that a `catch` block caught.
  * @returns `true` for the `AbortError` that `fetch` and the retry wait raise when their signal aborts.
  */
-export function isAbortError(error: unknown) {
+function isAbortError(error: unknown) {
   return (
     typeof error === "object" &&
     error !== null &&

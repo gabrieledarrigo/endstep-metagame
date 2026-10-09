@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from "react";
-import { isAbortError } from "../api/client";
 import type { TimeWindow } from "../api/types";
 
 export type ResourceState<Data> =
@@ -40,7 +39,7 @@ export function useResource<Data>(
     load(timeWindow, controller.signal)
       .then((data) => settle({ key, status: "ready", data }))
       .catch((error: Error) => {
-        if (isAbortError(error)) {
+        if (controller.signal.aborted) {
           return;
         }
         settle({ key, status: "error", error });
