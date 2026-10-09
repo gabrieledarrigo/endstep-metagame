@@ -1,0 +1,25 @@
+import { useEffect, useRef } from "react";
+import { NavigationType, useLocation, useNavigationType } from "react-router";
+
+/**
+ * Moves focus to the page's main heading when the path changes, so keyboard and screen reader users know the page changed.
+ *
+ * A link scrolls the new page to the top. Back and forward keep the position the browser restores. The first page keeps the browser's scroll position and focus, and a change to the query string alone, such as another window, moves neither.
+ */
+export function useRouteFocus() {
+  const { pathname } = useLocation();
+  const navigationType = useNavigationType();
+  const previous = useRef(pathname);
+
+  useEffect(() => {
+    if (previous.current === pathname) {
+      return;
+    }
+
+    previous.current = pathname;
+    if (navigationType !== NavigationType.Pop) {
+      window.scrollTo(0, 0);
+    }
+    document.querySelector("h1")?.focus({ preventScroll: true });
+  }, [pathname, navigationType]);
+}
