@@ -385,11 +385,12 @@ The front end is a Vite application in TypeScript with React 19. `npm run build`
 
   | Config | Covers |
   |---|---|
-  | `tsconfig.json` | `api/`. Vercel's function build reads it |
+  | `api/tsconfig.json` | `api/`. It is the config nearest the function, so Vercel's function build reads it |
   | `tsconfig.app.json` | `src/` and `test/`, with Vite's client types |
   | `tsconfig.node.json` | `vite.config.ts` and `eslint.config.ts`, with Node's types |
 
-- Vite's client types stay out of the root config. Putting them there breaks the function build.
+- The root `tsconfig.json` lists the three as references and covers no file itself. An editor opens a file, finds the root config, and follows the references to the config that covers the file. Without them, an editor checks `src/` with default options and reports false errors.
+- Vite's client types stay out of `api/tsconfig.json`. Putting them there breaks the function build. Moving the config from the root to `api/` left the compiled function byte for byte the same, measured with an offline `vercel build` on 2026-10-09.
 - The response types live in `src/api/types.ts`, one per endpoint in §3.1. They are written from measured responses, not from a published schema.
 
 **Scripts.**
