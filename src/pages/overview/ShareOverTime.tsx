@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   CartesianGrid,
   Customized,
@@ -12,6 +11,7 @@ import {
   useYAxisScale,
   type TooltipContentProps,
 } from "recharts";
+import { useSearchParams } from "react-router";
 import type { ShareSeries } from "../../api/types";
 import { ChartFrame } from "../../charts/ChartFrame";
 import { ChartLegend, ChartLegendSkeleton } from "../../charts/ChartLegend";
@@ -191,7 +191,8 @@ export function ShareOverTimeSkeleton() {
 }
 
 export function ShareOverTime({ series }: { series: ShareSeries[] }) {
-  const [hidden, setHidden] = useState(() => new Set<string>());
+  const [searchParams, setSearchParams] = useSearchParams();
+  const hidden = new Set(searchParams.getAll("hide"));
 
   if (series.length === 0) {
     return null;
@@ -199,22 +200,24 @@ export function ShareOverTime({ series }: { series: ShareSeries[] }) {
 
   const colours = seriesColours(series.map((item) => item.deck.id));
   const rows = shareRows(series);
-  const shown = series.filter((item) => !hidden.has(item.deck.id));
+  const shown = series.filter((item) => !hidden.has(item.deck.slug));
   const ends = shown.flatMap((item) => {
     const end = seriesEnd(item);
     return end ? [{ ...end, colour: colours.get(end.key) }] : [];
   });
 
-  const toggle = (key: string) =>
-    setHidden((current) => {
-      const next = new Set(current);
-      if (next.has(key)) {
-        next.delete(key);
-      } else {
-        next.add(key);
-      }
-      return next;
-    });
+  const toggle = (slug: string) =>
+    setSearchParams(
+      (params) => {
+        if (params.has("hide", slug)) {
+          params.delete("hide", slug);
+        } else {
+          params.append("hide", slug);
+        }
+        return params;
+      },
+      { replace: true },
+    );
 
   return (
     <section className="chart-section" aria-labelledby="share-over-time">
@@ -272,7 +275,7 @@ export function ShareOverTime({ series }: { series: ShareSeries[] }) {
 
         <ChartLegend
           items={series.map((item) => ({
-            key: item.deck.id,
+            key: item.deck.slug,
             name: item.deck.name,
             colour: colours.get(item.deck.id),
           }))}

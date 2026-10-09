@@ -1,5 +1,6 @@
 @layer components {
   .skeleton {
+    display: block;
     background: var(--rule);
     border-radius: 5px;
     animation: pulse 1.5s ease-in-out infinite;

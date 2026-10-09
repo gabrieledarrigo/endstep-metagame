@@ -49,7 +49,7 @@ afterEach(() => {
 });
 
 describe("the overview page", () => {
-  it("loads through the proxy, recovers on retry, and never shows stale or late data while a window loads", async () => {
+  it("loads through the proxy, recovers on retry, shows a window it has seen at once, and ignores a late response for a window the reader left", async () => {
     const api = stubApi();
     document.body.innerHTML = '<div id="root"></div>';
 
@@ -71,21 +71,31 @@ describe("the overview page", () => {
       }),
     ).toBeNull();
 
-    api.hold("7d", "30d");
+    const decksRequests = (window: string) =>
+      api.fetchMock.mock.calls.filter(([input]) => {
+        const url = new URL(String(input), "http://localhost");
+        return (
+          url.pathname === "/api/metagame/Pauper/decks" &&
+          url.searchParams.get("window") === window
+        );
+      }).length;
+
+    api.hold("7d");
     fireEvent.click(screen.getByRole("button", { name: "7d" }));
-    fireEvent.click(await screen.findByRole("button", { name: "30d" }));
 
     expect(screen.queryAllByText("Monster Tron")).toHaveLength(0);
 
-    api.release("30d");
+    fireEvent.click(await screen.findByRole("button", { name: "30d" }));
 
-    expect((await screen.findAllByText("Monster Tron")).length).toBeGreaterThan(
-      1,
-    );
+    expect(screen.getAllByText("Monster Tron").length).toBeGreaterThan(1);
+    expect(decksRequests("30d")).toBe(2);
 
     api.release("7d");
     await new Promise((resolve) => setTimeout(resolve, 50));
 
+    expect(
+      screen.getByRole("button", { name: "30d", pressed: true }),
+    ).toBeTruthy();
     expect(screen.getAllByText("Monster Tron").length).toBeGreaterThan(1);
 
     const requested = api.fetchMock.mock.calls.map(([input]) => String(input));

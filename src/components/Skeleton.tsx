@@ -8,7 +8,7 @@ type SkeletonProps = {
 
 export function Skeleton({ className, width, height }: SkeletonProps) {
   return (
-    <div
+    <span
       className={["skeleton", className].filter(Boolean).join(" ")}
       style={{ width, height }}
       aria-hidden="true"

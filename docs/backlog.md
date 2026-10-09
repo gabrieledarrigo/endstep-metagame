@@ -398,7 +398,7 @@ Covers NFR-10 and NFR-5.
 
 **Date:** 2026-10-03. Derived from Draft v3 of the requirements.
 
-Eleven items. Seven enablers, one design item, three user stories. The refactor comes first, so the new pages are written once, on the new structure. The quality gates come right after the move to Vite, so every later item is linted, formatted, tested and checked by CI.
+Twelve items. Eight enablers, one design item, three user stories. The refactor comes first, so the new pages are written once, on the new structure. The quality gates come right after the move to Vite, so every later item is linted, formatted, tested and checked by CI.
 
 | Wave | Items | Runs in parallel |
 |---|---|---|
@@ -407,14 +407,15 @@ Eleven items. Seven enablers, one design item, three user stories. The refactor 
 | 9 | E6, E9 | Yes, two ways |
 | 10 | E7 | No |
 | 11 | E8 | No |
-| 12 | E11, S10, S11 | Yes, three ways |
-| 13 | S12 | No |
+| 12 | E12 | No |
+| 13 | E11, S10, S11 | Yes, three ways |
+| 14 | S12 | No |
 
 ```
-E5 vite ──► E10 checks and CI ─┬─► E6 modules ──► E7 typescript ──► E8 routing ─┬─► S10 deck page
-                               │                                                 ├─► S11 matchup table
-                               │                                                 └─► E11 tests
-                               └─► E9 matchup function ─────────────────────────────► S11
+E5 vite ──► E10 checks and CI ─┬─► E6 modules ──► E7 typescript ──► E8 routing ──► E12 data and view ─┬─► S10 deck page
+                               │                                                                       ├─► S11 matchup table
+                               │                                                                       └─► E11 tests
+                               └─► E9 matchup function ───────────────────────────────────────────────────► S11
 D1 design ──► E8, S10, S12
 S10, S11 ──► S12 deck matchups
 ```
@@ -540,7 +541,33 @@ Covers FR-1, FR-3, FR-4, FR-10 and §4.5.
 - Back returns to the overview without a reload.
 - Reloading `/decks/affinity-e93f5f74` and `/matchups` on a Vercel preview loads the page.
 
-**Blocked by** E7, D1. D1 designs the page header. **Blocks** S10, S11, E11.
+**Blocked by** E7, D1. D1 designs the page header. **Blocks** E12.
+
+---
+
+## E12. Cache the data and keep the view in the address
+
+Covers §4.5, §4.8, FR-4, FR-5, NFR-3 and NFR-4.
+
+Back should return to a page as the reader left it, and a link should open it fresh. E8 already restores the scroll position and the window. This item restores the rest: the data, without a loading state, and the view.
+
+**Tasks**
+
+1. Add TanStack Query 5. One query client for the app, with the policy in §4.8: a response stays fresh for five minutes, nothing refetches when the browser window regains focus, and a network error, a 429 or a 5xx is retried at most twice, after 400 ms and then 800 ms.
+2. Replace `useResource` with `useQuery`, keyed by what each request reads: `["decks", window]`, `["series", window]`, `["deck", slug, window]`. Pass the query's signal to `fetch`, so a request the page no longer needs is cancelled. Delete `useResource`.
+3. Reduce `getJson` to one request. It turns a failed status into an `ApiError` with its kind and status, and leaves the retries to the query client.
+4. `Section` reads the query result. A retry after an error shows the skeleton again.
+5. The deck table's sort in `sort` and `dir`, and the share chart's hidden series in `hide`, one deck slug per parameter. A change replaces the history entry. The default view leaves the parameters out.
+6. A test helper that renders with a fresh query client. Specs for the retry rule, and for the sort and the hidden series in the address. Update the smoke spec, since a window seen in the last five minutes now renders at once.
+
+**Done when**
+
+- Back from a deck page shows the overview at once, with no skeleton and no request, and with the sort and the hidden series the reader left.
+- The header's Overview link opens the overview sorted by share, descending, with every series shown.
+- Reloading keeps the sort and the hidden series.
+- Sorting the table and then pressing Back leaves the page, rather than undoing the sort.
+
+**Blocked by** E8. **Blocks** E11, S10, S11.
 
 ---
 
@@ -602,7 +629,7 @@ Covers FR-11, §6.8 and §6.11.
 
 **Tasks**
 
-1. Fetch `/{format}/decks/{slug}` through the proxy, keyed by slug and window.
+1. Read the deck detail through the deck page's query, which E8 added and E12 keys by slug and window.
 2. Header, stat tiles, share line with its details table, games table, toss, texture and the sample list with its copy control, as FR-11 describes.
 3. A helper that applies the 20-match rule to any win and loss block, including `deck.matchWinRate`, §6.8. Use it on the overview too.
 4. Not-found state for an unknown slug, from a 404 or a proxy 400. Replace the URL through the router when `deck.slug` differs.
@@ -619,7 +646,7 @@ Covers FR-11, §6.8 and §6.11.
 - `/decks/renamed-e93f5f74` lands on Affinity with the URL corrected.
 - No gated figure reads as 0%.
 
-**Blocked by** E8, D1. **Blocks** S12.
+**Blocked by** E12, D1. **Blocks** S12.
 
 ---
 
@@ -632,7 +659,7 @@ Covers FR-12 and §6.10.
 **Tasks**
 
 1. Serve `/api/matchups` from the Vite dev plugin, behind its memory cache. Forward the raw query string unchanged, because §4.4 matches it byte for byte.
-2. Fetch the matrix, keyed by window.
+2. Fetch the matrix with a query keyed by window, with its retries turned off, FR-12.
 3. The table and its cell states, as FR-12 describes.
 4. Detail on hover and on keyboard focus. One tab stop for the table, with arrow keys between cells, FR-12.
 5. The legend.
@@ -650,7 +677,7 @@ Covers FR-12 and §6.10.
 - Tab enters the table once, arrow keys move between cells, and focus on a cell shows its detail.
 - At 1280 px the table has no scrollbar. At 360 px the page does not scroll sideways.
 
-**Blocked by** E8, E9. **Blocks** S12.
+**Blocked by** E12, E9. **Blocks** S12.
 
 ---
 
@@ -662,7 +689,7 @@ Covers the matchups row in FR-11, and §4.4.
 
 **Tasks**
 
-1. Read `/api/matchups` on the deck page through the hook S11 uses, keyed by window.
+1. Read `/api/matchups` on the deck page through the query S11 uses, keyed by window.
 2. Render the deck's row with the matchup table's own components: the rotated names, the cells, the legend and the detail. Share them with S11 where they are not shared yet.
 3. Find the row by `deck.id` from the deck detail, not by the slug in the address. Leave the deck itself out and keep share order.
 4. Print the row's own dates when its window differs from the detail's.
@@ -686,11 +713,11 @@ Covers the matchups row in FR-11, and §4.4.
 
 ## E11. Test every exported function
 
-Covers NFR-1: an exported function with a consumer has a spec beside it. E10 set up the tools, and E8, E9, S10 and S11 test what they add. This item covers everything that existed before them.
+Covers NFR-1: an exported function with a consumer has a spec beside it. E10 set up the tools, and E8, E9, E12, S10 and S11 test what they add. This item covers everything that existed before them.
 
 **Tasks**
 
-1. A spec beside every component that exists after E8, in `src/components`, `src/charts`, `src/pages/overview` and the shell.
+1. A spec beside every component that exists after E12, in `src/components`, `src/charts`, `src/pages/overview` and the shell.
 2. A spec beside every helper module: the hooks, with `renderHook`, and the formatting and data functions.
 3. Query by role and visible text. No snapshots.
 4. Cover the states each component has: loading, error, empty, and the 429 copy where it applies.
@@ -701,7 +728,7 @@ Covers NFR-1: an exported function with a consumer has a spec beside it. E10 set
 - Every module that exports a function with a consumer has a spec beside it.
 - `ci` passes.
 
-**Blocked by** E8. **Blocks** nothing.
+**Blocked by** E12. **Blocks** nothing.
 
 ---
 
@@ -715,6 +742,8 @@ Covers NFR-1: an exported function with a consumer has a spec beside it. E10 set
 
 **S12 comes last.** It needs S10's page and the matchup table's components from S11, so it waits for both.
 
-**E11 waits for E8.** E8 changes the deck card, the table and the shell, so specs written before it would be rewritten. After E8, E11 adds spec files only, so it runs beside S10 and S11, which add new components.
+**E11 waits for E8 and E12.** E8 changes the deck card, the table and the shell, and E12 replaces the data hook, so specs written before them would be rewritten. After E12, E11 adds spec files only, so it runs beside S10 and S11, which add new components.
+
+**E12 comes before the pages.** S10, S11 and S12 read their data through the queries it sets up, so they are written once, on the final data layer.
 
 **E8 gives the stories empty pages.** S10 and S11 then fill a page each and never touch the router, so they can run in parallel.

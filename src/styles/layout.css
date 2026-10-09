@@ -8,12 +8,10 @@
   gap: 28px;
 }
 
-.page__eyebrow {
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--text-400);
+.page__main {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
 }
 
 .page__controls {
