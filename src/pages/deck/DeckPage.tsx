@@ -1,42 +1,35 @@
-import { useCallback } from "react";
+import { type UseQueryResult, useQuery } from "@tanstack/react-query";
 import { useParams } from "react-router";
 import { fetchDeck } from "../../api/endpoints";
-import type { DeckDetail, TimeWindow } from "../../api/types";
+import type { DeckDetail } from "../../api/types";
 import { PageTitle } from "../../components/PageTitle";
 import { Section } from "../../components/Section";
-import { type ResourceState, useResource } from "../../hooks/useResource";
 import { useTimeWindow } from "../../hooks/useTimeWindow";
 
-function deckTitle(deck: ResourceState<DeckDetail>) {
-  if (deck.status === "ready") {
+function deckTitle(deck: UseQueryResult<DeckDetail>, loading: boolean) {
+  if (deck.isSuccess) {
     return deck.data.deck.name;
   }
 
-  if (deck.status === "loading") {
-    return "Loading the deck";
-  }
-
-  return "Deck";
+  return loading ? "Loading the deck" : "Deck";
 }
 
 export function DeckPage() {
   const { slug = "" } = useParams();
   const [timeWindow] = useTimeWindow();
-  const load = useCallback(
-    (preset: TimeWindow, signal: AbortSignal) =>
-      fetchDeck(slug, preset, signal),
-    [slug],
-  );
-  const [deck, retry] = useResource(load, timeWindow);
+  const deck = useQuery({
+    queryKey: ["deck", slug, timeWindow],
+    queryFn: ({ signal }) => fetchDeck(slug, timeWindow, signal),
+  });
+  const loading = deck.isPending || (deck.isError && deck.isFetching);
 
   return (
     <>
-      <PageTitle title={deckTitle(deck)} loading={deck.status === "loading"} />
+      <PageTitle title={deckTitle(deck, loading)} loading={loading} />
       <Section
-        state={deck}
+        query={deck}
         skeleton={null}
         title="The deck could not be loaded"
-        onRetry={retry}
       >
         {() => <p>The rest of the deck page is not built yet.</p>}
       </Section>

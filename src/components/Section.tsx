@@ -1,36 +1,34 @@
+import type { UseQueryResult } from "@tanstack/react-query";
 import type { ReactNode } from "react";
-import type { ResourceState } from "../hooks/useResource";
 import { Button } from "./Button";
 import { StatePanel } from "./StatePanel";
 
 type SectionProps<Data> = {
-  state: ResourceState<Data>;
+  query: UseQueryResult<Data>;
   skeleton: ReactNode;
   title: string;
-  onRetry: () => void;
   children: (data: Data) => ReactNode;
 };
 
 export function Section<Data>({
-  state,
+  query,
   skeleton,
   title,
-  onRetry,
   children,
 }: SectionProps<Data>) {
-  if (state.status === "loading") {
+  if (query.isPending || (query.isError && query.isFetching)) {
     return skeleton;
   }
 
-  if (state.status === "error") {
+  if (query.isError) {
     return (
       <StatePanel
         title={title}
-        detail={state.error.message}
-        action={<Button onClick={onRetry}>Retry</Button>}
+        detail={query.error.message}
+        action={<Button onClick={() => query.refetch()}>Retry</Button>}
       />
     );
   }
 
-  return children(state.data);
+  return children(query.data);
 }

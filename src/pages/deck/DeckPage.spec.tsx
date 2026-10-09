@@ -1,13 +1,14 @@
-import { render, screen } from "@testing-library/react";
+import { screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { renderWithQueries } from "../../../test/renderWithQueries";
 import { DeckPage } from "./DeckPage";
 
 function renderWith(response: Response) {
   const fetchMock = vi.fn<typeof fetch>(() => Promise.resolve(response));
   vi.stubGlobal("fetch", fetchMock);
 
-  render(
+  renderWithQueries(
     <MemoryRouter initialEntries={["/decks/affinity-e93f5f74?window=7d"]}>
       <Routes>
         <Route path="/decks/:slug" element={<DeckPage />} />

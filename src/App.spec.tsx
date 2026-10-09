@@ -31,11 +31,12 @@ describe("App", () => {
     vi.restoreAllMocks();
   });
 
-  it("opens a deck's page from a card or a table name with the same window, and back returns to the overview", async () => {
+  it("opens a deck's page from a card or a table name with the same window, and back returns to the overview without a request", async () => {
     history.replaceState(null, "", "/?window=7d");
     render(<App />);
 
     const [card] = await screen.findAllByRole("link", { name: "Monster Tron" });
+    const requestsOnOverview = vi.mocked(fetch).mock.calls.length;
     fireEvent.click(card);
 
     expect(
@@ -60,8 +61,9 @@ describe("App", () => {
     expect(
       screen.getByRole("button", { name: "7d", pressed: true }),
     ).toBeTruthy();
+    expect(vi.mocked(fetch).mock.calls.length).toBe(requestsOnOverview + 1);
 
-    const [, tableName] = await screen.findAllByRole("link", {
+    const [, tableName] = screen.getAllByRole("link", {
       name: "Monster Tron",
     });
     fireEvent.click(tableName);
