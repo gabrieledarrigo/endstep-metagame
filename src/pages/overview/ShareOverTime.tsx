@@ -209,7 +209,7 @@ export function ShareOverTime({ series }: { series: ShareSeries[] }) {
   const toggle = (slug: string) =>
     setSearchParams(
       (params) => {
-        if (params.getAll("hide").includes(slug)) {
+        if (params.has("hide", slug)) {
           params.delete("hide", slug);
         } else {
           params.append("hide", slug);
