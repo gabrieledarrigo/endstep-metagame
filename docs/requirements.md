@@ -215,7 +215,7 @@ The pages read the API through **TanStack Query 5**. It was chosen over SWR on t
 - A section shows its data whenever it has some. A failed refetch keeps the data on screen. The error panel appears only when there is nothing to show, FR-9.
 - Requests run whether or not the browser reports itself online, so a reader without a connection sees the network error, not a page that waits.
 - Nothing refetches when the browser window regains focus, NFR-4.
-- A network error, a 429 or a 5xx is retried at most twice, after 400 ms and then 800 ms, NFR-4. Any other failure shows at once. A query can turn retries off: the matchup table and the deck's matchups row do, FR-11 and FR-12.
+- A network error, a 429 or a 5xx is retried at most twice, after 400 ms and then 800 ms, NFR-4. Any other failure shows at once. In a background tab the retries wait until the tab is shown again. A query can turn retries off: the matchup table and the deck's matchups row do, FR-11 and FR-12.
 - The query passes an abort signal to `fetch`, so a request for a window the reader has left is cancelled.
 - `getJson` makes one request. It turns a failed status into an error that carries its kind and status, and the query client decides whether to retry.
 
