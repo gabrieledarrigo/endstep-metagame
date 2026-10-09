@@ -1,9 +1,7 @@
 const MAX_RETRIES = 2;
 const RETRY_BASE_MS = 400;
 
-type FailureKind = "rateLimit" | "upstream" | "http" | "network" | "malformed";
-
-function failure(status: number): { kind: FailureKind; message: string } {
+function failure(status: number) {
   if (status === 429) {
     return {
       kind: "rateLimit",
