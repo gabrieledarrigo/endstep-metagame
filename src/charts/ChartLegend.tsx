@@ -1,7 +1,17 @@
 import { Skeleton } from "../components/Skeleton";
 import "./ChartLegend.css";
 
-export function ChartLegend({ items, hidden, onToggle }) {
+type ChartLegendProps = {
+  items: {
+    key: string;
+    name: string;
+    colour: string | undefined;
+  }[];
+  hidden: Set<string>;
+  onToggle: (key: string) => void;
+};
+
+export function ChartLegend({ items, hidden, onToggle }: ChartLegendProps) {
   return (
     <div className="chart-legend">
       {items.map((item) => {
@@ -31,7 +41,7 @@ export function ChartLegend({ items, hidden, onToggle }) {
   );
 }
 
-export function ChartLegendSkeleton({ widths }) {
+export function ChartLegendSkeleton({ widths }: { widths: number[] }) {
   return (
     <div className="chart-legend">
       {widths.map((width) => (

@@ -1,6 +1,17 @@
 import "./ChartTooltip.css";
 
-export function ChartTooltip({ day, title, rows }) {
+type ChartTooltipProps = {
+  day?: string;
+  title?: string;
+  rows: {
+    key: string;
+    name: string;
+    value: string;
+    colour?: string;
+  }[];
+};
+
+export function ChartTooltip({ day, title, rows }: ChartTooltipProps) {
   return (
     <div className="chart-tooltip">
       {day && <div className="chart-tooltip__day">{day}</div>}
