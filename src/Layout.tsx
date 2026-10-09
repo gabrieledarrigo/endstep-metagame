@@ -5,14 +5,15 @@ import { useRouteFocus } from "./hooks/useRouteFocus";
 import { useTimeWindow } from "./hooks/useTimeWindow";
 
 export function Layout() {
-  const { pathname, search } = useLocation();
+  const { pathname, search, hash } = useLocation();
   const [timeWindow] = useTimeWindow();
-  const canonical = `?window=${timeWindow}`;
+  const params = new URLSearchParams(search);
 
   useRouteFocus();
 
-  if (search !== canonical) {
-    return <Navigate replace to={{ pathname, search: canonical }} />;
+  if (params.get("window") !== timeWindow) {
+    params.set("window", timeWindow);
+    return <Navigate replace to={{ pathname, search: `?${params}`, hash }} />;
   }
 
   return (
