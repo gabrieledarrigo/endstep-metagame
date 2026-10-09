@@ -541,7 +541,7 @@ Covers FR-1, FR-3, FR-4, FR-10 and §4.5.
 - Back returns to the overview without a reload.
 - Reloading `/decks/affinity-e93f5f74` and `/matchups` on a Vercel preview loads the page.
 
-**Blocked by** E7, D1. D1 designs the page header. **Blocks** S10, S11, E11.
+**Blocked by** E7, D1. D1 designs the page header. **Blocks** E12.
 
 ---
 
