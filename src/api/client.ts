@@ -1,7 +1,21 @@
-const MAX_RETRIES = 2;
-const RETRY_BASE_MS = 400;
+type FailureKind = "network" | "malformed" | "rateLimit" | "upstream" | "http";
 
-function failure(status: number) {
+/**
+ * A failed API request, with a message the page can show.
+ */
+export class ApiError extends Error {
+  readonly kind: FailureKind;
+  readonly status?: number;
+
+  constructor(message: string, kind: FailureKind, status?: number) {
+    super(message);
+    this.name = "ApiError";
+    this.kind = kind;
+    this.status = status;
+  }
+}
+
+function failure(status: number): { kind: FailureKind; message: string } {
   if (status === 429) {
     return {
       kind: "rateLimit",
@@ -15,55 +29,30 @@ function failure(status: number) {
   return { kind: "http", message: `The request failed with status ${status}.` };
 }
 
-function wait(ms: number, signal: AbortSignal) {
-  return new Promise<void>((resolve, reject) => {
-    if (signal.aborted) {
-      reject(new DOMException("Aborted", "AbortError"));
-      return;
-    }
-
-    const onAbort = () => {
-      clearTimeout(timer);
-      reject(new DOMException("Aborted", "AbortError"));
-    };
-
-    const timer = setTimeout(() => {
-      signal.removeEventListener("abort", onAbort);
-      resolve();
-    }, ms);
-
-    signal.addEventListener("abort", onAbort, { once: true });
-  });
-}
-
 /**
- * Checks whether an error comes from an aborted request.
+ * Decides whether a failed request is worth repeating, §4.8.
  *
- * It reads the name, not the class, because the error can be a `DOMException` from another realm, as it is under jsdom in the specs.
- *
- * @param error - The value a promise rejected with, or that a `catch` block caught.
- * @returns `true` for the `AbortError` that `fetch` and the retry wait raise when their signal aborts.
+ * @param error - The error a request failed with.
+ * @returns `true` for a network error, a 429 or a 5xx.
  */
-function isAbortError(error: unknown) {
+export function isRetryable(error: Error) {
   return (
-    typeof error === "object" &&
-    error !== null &&
-    "name" in error &&
-    error.name === "AbortError"
+    error instanceof ApiError &&
+    (error.kind === "network" ||
+      error.status === 429 ||
+      (error.status ?? 0) >= 500)
   );
 }
 
 /**
- * Fetches a metagame endpoint through the proxy and parses its JSON body.
- *
- * A network failure, a 429 and any 5xx response are retried up to twice, after 400ms and then 800ms.
+ * Fetches a metagame endpoint through the proxy and parses its JSON body, in one request. The query client decides whether to retry it, §4.8.
  *
  * @param path - The endpoint path after `/api/metagame/`, such as `Pauper/decks`.
  * @param params - The query parameters.
- * @param signal - Aborts the request and any wait between attempts.
+ * @param signal - Aborts the request.
  * @returns A Promise resolving to the parsed body.
- * @throws An `AbortError` when the signal aborts.
- * @throws An `Error` with a user-facing `message` and a `kind` when the request fails: `network`, `malformed`, `rateLimit`, `upstream` or `http`. The last three also carry the `status`.
+ * @throws The `AbortError` when the signal aborts.
+ * @throws An `ApiError` when the request fails, of kind `network`, `malformed`, `rateLimit`, `upstream` or `http`. The last three carry the status.
  */
 export async function getJson<Body>(
   path: string,
@@ -71,50 +60,31 @@ export async function getJson<Body>(
   signal: AbortSignal,
 ): Promise<Body> {
   const url = `/api/metagame/${path}?${new URLSearchParams(params)}`;
+  let response;
 
-  for (let attempt = 0; ; attempt += 1) {
-    let response;
-
-    try {
-      response = await fetch(url, { signal });
-    } catch (error) {
-      if (isAbortError(error)) {
-        throw error;
-      }
-      if (attempt === MAX_RETRIES) {
-        throw Object.assign(new Error("The server could not be reached."), {
-          kind: "network",
-        });
-      }
-      await wait(RETRY_BASE_MS * 2 ** attempt, signal);
-      continue;
+  try {
+    response = await fetch(url, { signal });
+  } catch (error) {
+    if (signal.aborted) {
+      throw error;
     }
+    throw new ApiError("The server could not be reached.", "network");
+  }
 
-    if (response.ok) {
-      try {
-        return await response.json();
-      } catch (error) {
-        if (isAbortError(error)) {
-          throw error;
-        }
-        throw Object.assign(
-          new Error("The server returned a malformed response."),
-          {
-            kind: "malformed",
-          },
-        );
-      }
+  if (!response.ok) {
+    const { kind, message } = failure(response.status);
+    throw new ApiError(message, kind, response.status);
+  }
+
+  try {
+    return await response.json();
+  } catch (error) {
+    if (signal.aborted) {
+      throw error;
     }
-
-    const detail = failure(response.status);
-    const retryable = response.status === 429 || response.status >= 500;
-
-    if (!retryable || attempt === MAX_RETRIES) {
-      throw Object.assign(new Error(detail.message), detail, {
-        status: response.status,
-      });
-    }
-
-    await wait(RETRY_BASE_MS * 2 ** attempt, signal);
+    throw new ApiError(
+      "The server returned a malformed response.",
+      "malformed",
+    );
   }
 }
