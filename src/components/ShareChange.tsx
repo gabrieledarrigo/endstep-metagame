@@ -1,7 +1,7 @@
 import type { Deck } from "../api/types";
 import "./ShareChange.css";
 
-const NO_CHANGE: Record<string, string> = {
+const NO_CHANGE: Record<NonNullable<Deck["shareChange"]["reason"]>, string> = {
   previous_window_empty: "no earlier data",
   no_previous_window: "no earlier window",
 };
