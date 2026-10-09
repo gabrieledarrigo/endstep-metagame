@@ -4,6 +4,14 @@
     {
       "source": "/api/metagame/:path*",
       "destination": "/api/metagame?path=:path*"
+    },
+    {
+      "source": "/decks/:slug",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/matchups",
+      "destination": "/index.html"
     }
   ]
 }
