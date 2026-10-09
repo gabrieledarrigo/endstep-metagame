@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { Deck } from "../../api/types";
 import { ColourPips } from "../../components/ColourPips";
 import { Panel } from "../../components/Panel";
 import { ShareChange } from "../../components/ShareChange";
@@ -7,30 +8,40 @@ import { PAGE_SIZE } from "../../config";
 import { formatCount, percent } from "../../format";
 import "./DeckTable.css";
 
-function matchesOf(deck) {
+type SortKey = "name" | "share" | "players" | "matches" | "winRate";
+
+type Sort = {
+  key: SortKey;
+  direction: "ascending" | "descending";
+};
+
+function matchesOf(deck: Deck) {
   return deck.matchWinRate.wins + deck.matchWinRate.losses;
 }
 
-const SORT_VALUES = {
-  name: (deck) => deck.name,
-  share: (deck) => deck.share.rate,
-  players: (deck) => deck.players,
-  matches: matchesOf,
-  winRate: (deck) => deck.matchWinRate.rate,
+const COMPARE: Record<SortKey, (left: Deck, right: Deck) => number> = {
+  name: (left, right) => left.name.localeCompare(right.name, "en-GB"),
+  share: (left, right) => left.share.rate - right.share.rate,
+  players: (left, right) => left.players - right.players,
+  matches: (left, right) => matchesOf(left) - matchesOf(right),
+  winRate: (left, right) => left.matchWinRate.rate - right.matchWinRate.rate,
 };
 
-function sortDecks(decks, key, direction) {
-  const read = SORT_VALUES[key];
+function sortDecks(decks: Deck[], { key, direction }: Sort) {
   const sign = direction === "ascending" ? 1 : -1;
 
-  return [...decks].sort((left, right) => {
-    const a = read(left);
-    const b = read(right);
-    return sign * (typeof a === "string" ? a.localeCompare(b, "en-GB") : a - b);
-  });
+  return [...decks].sort((left, right) => sign * COMPARE[key](left, right));
 }
 
-function SortHeader({ column, label, numeric, sort, onSort }) {
+type SortHeaderProps = {
+  column: SortKey;
+  label: string;
+  numeric?: boolean;
+  sort: Sort;
+  onSort: (key: SortKey) => void;
+};
+
+function SortHeader({ column, label, numeric, sort, onSort }: SortHeaderProps) {
   const active = sort.key === column;
 
   return (
@@ -59,14 +70,17 @@ function SortHeader({ column, label, numeric, sort, onSort }) {
   );
 }
 
-export function DeckTable({ decks }) {
-  const [sort, setSort] = useState({ key: "share", direction: "descending" });
+export function DeckTable({ decks }: { decks: Deck[] }) {
+  const [sort, setSort] = useState<Sort>({
+    key: "share",
+    direction: "descending",
+  });
 
   if (decks.length === 0) {
     return null;
   }
 
-  const onSort = (key) =>
+  const onSort = (key: SortKey) =>
     setSort((current) => {
       if (current.key !== key) {
         return { key, direction: key === "name" ? "ascending" : "descending" };
@@ -79,12 +93,12 @@ export function DeckTable({ decks }) {
     });
 
   const ranks = new Map(decks.map((deck, index) => [deck.id, index + 1]));
-  const rows = sortDecks(decks, sort.key, sort.direction);
+  const rows = sortDecks(decks, sort);
 
   return (
     <Panel
       className="deck-table__scroll"
-      tabIndex="0"
+      tabIndex={0}
       role="region"
       aria-label="Deck table"
     >

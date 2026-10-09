@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "typecheck": "tsc -p api && tsc -p tsconfig.app.json && tsc -p tsconfig.node.json",
+    "build": "npm run typecheck && vite build",
     "preview": "vite preview",
     "lint": "eslint . --max-warnings 0",
     "format": "prettier --write .",
@@ -22,6 +23,8 @@
     "@testing-library/dom": "^10.4.2",
     "@testing-library/react": "^16.3.3",
     "@types/node": "^24.19.1",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
     "eslint": "^10.12.0",
     "eslint-config-prettier": "^10.1.8",

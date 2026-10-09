@@ -84,6 +84,9 @@ function api(): Plugin {
 
 export default defineConfig({
   plugins: [react(), api()],
+  build: {
+    target: "es2025",
+  },
   test: {
     projects: [
       {
@@ -100,7 +103,7 @@ export default defineConfig({
           name: "app",
           environment: "jsdom",
           include: ["src/**/*.spec.{js,jsx,ts,tsx}"],
-          setupFiles: ["./test/setup.js"],
+          setupFiles: ["./test/setup.ts"],
         },
       },
     ],

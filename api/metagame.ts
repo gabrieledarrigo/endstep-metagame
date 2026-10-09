@@ -108,7 +108,7 @@ export default {
    * @see https://vercel.com/docs/functions/functions-api-reference#fetch-web-standard
    */
   fetch: async function handler(req: Request) {
-    const baseHeaders: HeadersInit = {
+    const baseHeaders: Record<string, string> = {
       "Access-Control-Allow-Origin": "*",
       "Cache-Control": "no-store",
       "Content-Type": "application/json",

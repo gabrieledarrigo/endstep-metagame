@@ -1,9 +1,16 @@
+import type { TimeWindow } from "../../api/types";
 import { Button } from "../../components/Button";
 import { StatePanel } from "../../components/StatePanel";
 import { WINDOWS } from "../../config";
 
-export function EmptyWindow({ timeWindow, onSelect }) {
-  const longer = WINDOWS[WINDOWS.indexOf(timeWindow) + 1];
+type EmptyWindowProps = {
+  timeWindow: TimeWindow;
+  onSelect: (next: TimeWindow) => void;
+};
+
+export function EmptyWindow({ timeWindow, onSelect }: EmptyWindowProps) {
+  const longer: TimeWindow | undefined =
+    WINDOWS[WINDOWS.indexOf(timeWindow) + 1];
 
   return (
     <StatePanel

@@ -1,3 +1,4 @@
+import type { Deck } from "../../api/types";
 import { ColourPips } from "../../components/ColourPips";
 import { ShareChange } from "../../components/ShareChange";
 import { Skeleton } from "../../components/Skeleton";
@@ -5,14 +6,14 @@ import { FORMAT } from "../../config";
 import { formatCount, percent, tooltipShare } from "../../format";
 import "./DeckCard.css";
 
-function artSource(cardName) {
+function artSource(cardName: string) {
   return `https://endstep.cc/api/cards/image?${new URLSearchParams({
     name: cardName,
     version: "art_crop",
   })}`;
 }
 
-export function DeckCard({ deck }) {
+export function DeckCard({ deck }: { deck: Deck }) {
   return (
     <a
       className="deck"
@@ -68,9 +69,9 @@ export function DeckCardSkeleton() {
       <Skeleton className="deck__art" />
       <div className="deck__body">
         <div className="deck__top">
-          <h3 className="deck__name">
+          <div className="deck__name">
             <Skeleton width={140} height="1.3em" />
-          </h3>
+          </div>
           <Skeleton width={57} height={17} />
         </div>
         <dl className="deck__stats">
@@ -93,9 +94,9 @@ export function DeckCardSkeleton() {
             </dd>
           </div>
         </dl>
-        <p className="deck__keys">
+        <div className="deck__keys">
           <Skeleton width="92%" height="2.9em" />
-        </p>
+        </div>
       </div>
     </div>
   );

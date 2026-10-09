@@ -7,6 +7,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import type { Deck, Page } from "../../api/types";
 import { ChartFrame } from "../../charts/ChartFrame";
 import { CHART_AXIS, CHART_CARTESIAN_GRID, token } from "../../charts/theme";
 import { Panel } from "../../components/Panel";
@@ -20,7 +21,7 @@ const CHART_RESIDUAL = token("--text-400");
 const CHART_LABEL = token("--text-900");
 const CHART_NAME = token("--text-600");
 
-function shareBars({ items, total }) {
+function shareBars({ items, total }: Page<Deck>) {
   const bars = items.map((deck) => ({
     name: deck.name,
     share: deck.share.rate * 100,
@@ -60,7 +61,7 @@ export function RankedBarsSkeleton() {
   );
 }
 
-export function RankedBars({ decks }) {
+export function RankedBars({ decks }: { decks: Page<Deck> }) {
   if (decks.items.length === 0) {
     return null;
   }
@@ -77,7 +78,7 @@ export function RankedBars({ decks }) {
 
         <div
           className="ranked-bars__scroll"
-          tabIndex="0"
+          tabIndex={0}
           role="region"
           aria-label="Meta share by deck, chart"
         >
@@ -124,7 +125,7 @@ export function RankedBars({ decks }) {
                 <LabelList
                   dataKey="share"
                   position="right"
-                  formatter={tooltipShare}
+                  formatter={(share) => tooltipShare(Number(share))}
                   fill={CHART_LABEL}
                   fontSize={12}
                 />

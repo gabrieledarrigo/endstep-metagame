@@ -1,6 +1,14 @@
 const rootTokens = getComputedStyle(document.documentElement);
 
-export const token = (name) => rootTokens.getPropertyValue(name).trim();
+/**
+ * Reads a design token from the root element, for chart props that cannot take a CSS variable.
+ *
+ * @param name - The custom property, such as `--s1`.
+ * @returns The token's value, or an empty string when the property is not set.
+ */
+export function token(name: string) {
+  return rootTokens.getPropertyValue(name).trim();
+}
 
 const CHART_GRID = token("--rule");
 export const CHART_BASELINE = token("--baseline");

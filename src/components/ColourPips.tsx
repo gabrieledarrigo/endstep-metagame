@@ -1,6 +1,6 @@
 import "./ColourPips.css";
 
-const PIP_FILL = {
+const PIP_FILL: Record<string, string> = {
   W: "#fffbd5",
   U: "#aae0fa",
   B: "#cbc2bf",
@@ -9,7 +9,7 @@ const PIP_FILL = {
   C: "#cac5c0",
 };
 
-const PIP_NAME = {
+const PIP_NAME: Record<string, string> = {
   W: "white",
   U: "blue",
   B: "black",
@@ -18,8 +18,8 @@ const PIP_NAME = {
   C: "colourless",
 };
 
-export function ColourPips({ colours }) {
-  const known = (colours || []).filter((letter) => letter in PIP_FILL);
+export function ColourPips({ colours }: { colours: string[] }) {
+  const known = colours.filter((letter) => letter in PIP_FILL);
   const letters = known.length > 0 ? known : ["C"];
 
   return (

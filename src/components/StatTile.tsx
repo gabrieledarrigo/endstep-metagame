@@ -1,6 +1,13 @@
+import type { ReactNode } from "react";
 import "./StatTile.css";
 
-export function StatTile({ label, value, hero }) {
+type StatTileProps = {
+  label: string;
+  value: ReactNode;
+  hero?: boolean;
+};
+
+export function StatTile({ label, value, hero }: StatTileProps) {
   return (
     <div className={hero ? "stat-tile stat-tile--hero" : "stat-tile"}>
       <dt className="stat-tile__label">{label}</dt>

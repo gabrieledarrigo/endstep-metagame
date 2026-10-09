@@ -10,7 +10,9 @@ import {
   usePlotArea,
   useXAxisScale,
   useYAxisScale,
+  type TooltipContentProps,
 } from "recharts";
+import type { ShareSeries } from "../../api/types";
 import { ChartFrame } from "../../charts/ChartFrame";
 import { ChartLegend, ChartLegendSkeleton } from "../../charts/ChartLegend";
 import { ChartTooltip } from "../../charts/ChartTooltip";
@@ -26,8 +28,18 @@ import { Skeleton } from "../../components/Skeleton";
 import { axisShare, longDay, shortDay, tooltipShare } from "../../format";
 import "./ShareOverTime.css";
 
-function shareRows(series) {
-  const byDay = new Map();
+type ShareRow = Record<string, string | number | null>;
+
+type SeriesEnd = {
+  key: string;
+  name: string;
+  day: string;
+  share: number;
+  colour: string | undefined;
+};
+
+function shareRows(series: ShareSeries[]) {
+  const byDay = new Map<string, ShareRow>();
 
   series.forEach((item) => {
     item.points.forEach((point) => {
@@ -37,14 +49,16 @@ function shareRows(series) {
     });
   });
 
-  return [...byDay.values()].sort((a, b) => a.day.localeCompare(b.day));
+  return [...byDay.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([, row]) => row);
 }
 
 const END_LABEL_OFFSET = 10;
 const END_LABEL_GAP = 16;
 const END_LABEL_CHAR_WIDTH = 8;
 
-function endLabelGutter(series) {
+function endLabelGutter(series: ShareSeries[]) {
   const longest = series.reduce(
     (width, item) => Math.max(width, item.deck.name.length),
     0,
@@ -53,9 +67,9 @@ function endLabelGutter(series) {
   return END_LABEL_OFFSET + longest * END_LABEL_CHAR_WIDTH;
 }
 
-function seriesEnd(item) {
+function seriesEnd(item: ShareSeries) {
   const last = item.points.findLast((point) => point.rate !== null);
-  if (!last) {
+  if (!last || last.rate === null) {
     return null;
   }
 
@@ -67,8 +81,10 @@ function seriesEnd(item) {
   };
 }
 
-function stackEnds(ends, bottom) {
-  const placed = [...ends].sort((a, b) => a.y - b.y);
+function stackEnds<End extends { y: number }>(ends: End[], bottom: number) {
+  const placed = [...ends]
+    .sort((a, b) => a.y - b.y)
+    .map((end) => ({ ...end, labelY: end.y }));
 
   let previous = -Infinity;
   placed.forEach((end) => {
@@ -86,7 +102,7 @@ function stackEnds(ends, bottom) {
   return placed;
 }
 
-function SeriesEnds({ ends }) {
+function SeriesEnds({ ends }: { ends: SeriesEnd[] }) {
   const xScale = useXAxisScale();
   const yScale = useYAxisScale();
   const plot = usePlotArea();
@@ -95,13 +111,13 @@ function SeriesEnds({ ends }) {
     return null;
   }
 
-  const centre = xScale.bandwidth ? xScale.bandwidth() / 2 : 0;
   const placed = stackEnds(
-    ends.map((end) => ({
-      ...end,
-      x: xScale(end.day) + centre,
-      y: yScale(end.share),
-    })),
+    ends.flatMap((end) => {
+      const x = xScale(end.day, { position: "middle" });
+      const y = yScale(end.share);
+
+      return x === undefined || y === undefined ? [] : [{ ...end, x, y }];
+    }),
     plot.y + plot.height,
   );
 
@@ -131,27 +147,25 @@ function SeriesEnds({ ends }) {
   );
 }
 
-function ShareTooltip({ active, payload, label }) {
-  if (!active || !payload) {
+function ShareTooltip({ active, payload, label }: TooltipContentProps) {
+  if (!active) {
     return null;
   }
 
-  const rows = payload.filter(
-    (row) => row.value !== null && row.value !== undefined,
-  );
+  const rows = payload.filter((row) => typeof row.value === "number");
   if (rows.length === 0) {
     return null;
   }
 
-  rows.sort((a, b) => b.value - a.value);
+  rows.sort((a, b) => Number(b.value) - Number(a.value));
 
   return (
     <ChartTooltip
-      day={longDay(label)}
+      day={longDay(String(label))}
       rows={rows.map((row) => ({
-        key: row.dataKey,
-        name: row.name,
-        value: tooltipShare(row.value),
+        key: String(row.dataKey),
+        name: String(row.name),
+        value: tooltipShare(Number(row.value)),
         colour: row.color,
       }))}
     />
@@ -176,8 +190,8 @@ export function ShareOverTimeSkeleton() {
   );
 }
 
-export function ShareOverTime({ series }) {
-  const [hidden, setHidden] = useState(() => new Set());
+export function ShareOverTime({ series }: { series: ShareSeries[] }) {
+  const [hidden, setHidden] = useState(() => new Set<string>());
 
   if (series.length === 0) {
     return null;
@@ -186,12 +200,12 @@ export function ShareOverTime({ series }) {
   const colours = seriesColours(series.map((item) => item.deck.id));
   const rows = shareRows(series);
   const shown = series.filter((item) => !hidden.has(item.deck.id));
-  const ends = shown
-    .map(seriesEnd)
-    .filter(Boolean)
-    .map((end) => ({ ...end, colour: colours.get(end.key) }));
+  const ends = shown.flatMap((item) => {
+    const end = seriesEnd(item);
+    return end ? [{ ...end, colour: colours.get(end.key) }] : [];
+  });
 
-  const toggle = (key) =>
+  const toggle = (key: string) =>
     setHidden((current) => {
       const next = new Set(current);
       if (next.has(key)) {
@@ -211,7 +225,7 @@ export function ShareOverTime({ series }) {
       <Panel className="share-chart">
         <div
           className="share-chart__scroll"
-          tabIndex="0"
+          tabIndex={0}
           role="region"
           aria-label="Daily meta share, top eight decks"
         >
@@ -236,7 +250,7 @@ export function ShareOverTime({ series }) {
               <YAxis tickFormatter={axisShare} width={46} {...CHART_AXIS} />
               <Tooltip
                 cursor={{ stroke: CHART_BASELINE }}
-                content={<ShareTooltip />}
+                content={ShareTooltip}
               />
               {shown.map((item) => (
                 <Line
