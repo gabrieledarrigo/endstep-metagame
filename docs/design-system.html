@@ -269,7 +269,8 @@ body { container-type:inline-size; }
 
 .site-header { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:10px 24px;
   padding-block:14px; border-bottom:1px solid var(--rule); }
-.site-header__brand { font-size:15px; font-weight:700; color:var(--text-900); text-decoration:none; }
+.site-header__brand { font-size:22px; font-weight:700; letter-spacing:-.015em; color:var(--text-900); text-decoration:none; }
+@media (min-width:640px) { .site-header__brand { font-size:30px; } }
 .site-nav { display:flex; gap:22px; }
 .site-nav__link { font-size:14px; font-weight:600; color:var(--text-600); text-decoration:none; padding-bottom:4px;
   border-bottom:2px solid transparent; }
@@ -392,7 +393,7 @@ a.button { display:inline-block; text-decoration:none; }
   </div>
   <div class="panel scale">
     <div class="srow"><div class="meta">Hero<br>44 / 700</div><div class="d-hero">89,314</div></div>
-    <div class="srow"><div class="meta">H1<br>30 / 700</div><div class="d-h1">Pauper metagame</div></div>
+    <div class="srow"><div class="meta">Brand<br>30 / 700</div><div class="d-h1">Pauper Endstep metagame</div></div>
     <div class="srow"><div class="meta">H2<br>22 / 600</div><div class="d-h2">Share over time</div></div>
     <div class="srow"><div class="meta">H3<br>17 / 600</div><div class="d-h3">Esper Affinity</div></div>
     <div class="srow"><div class="meta">Body<br>15 / 400</div><div class="d-body">Shares total 94.1% of registrations. The rest is unclassified.</div></div>
@@ -1058,7 +1059,7 @@ a.button { display:inline-block; text-decoration:none; }
   between. The deck page is reached from a deck, not from the header. The attribution stays in the footer.</p></div>
   <div class="demo col">
     <header class="site-header">
-      <a class="site-header__brand" href="#pageheader">Pauper metagame</a>
+      <a class="site-header__brand" href="#pageheader">Pauper Endstep metagame</a>
       <nav class="site-nav" aria-label="Pages">
         <a class="site-nav__link" href="#pageheader" aria-current="page">Overview</a>
         <a class="site-nav__link" href="#pageheader">Matchups</a>
@@ -1067,7 +1068,9 @@ a.button { display:inline-block; text-decoration:none; }
     <footer class="site-footer">Data from <a href="https://endstep.cc/metagame">endstep.cc</a>. This is not an
     official Endstep product.</footer>
   </div>
-  <p class="spec"><b>Brand</b> 15px 700 in <span class="mono">--text-900</span>, a link to the overview.
+  <p class="spec"><b>Brand</b> 22px 700 in <span class="mono">--text-900</span>, 30px from 640px, a link to the overview.
+  It names the site and is not a heading. <b>Page title</b> Each page's h1 names the page: Overview, Matchups
+  or the deck's name, in 22px 600 <span class="mono">--text-600</span>. The document title repeats it.
   <b>Links</b> 14px 600 in <span class="mono">--text-600</span>. The current page is
   <span class="mono">--text-900</span> with a 2px <span class="mono">--primary</span> underline and
   <span class="mono">aria-current="page"</span>, so the state does not rest on colour. On a deck page neither

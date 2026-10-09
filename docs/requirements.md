@@ -185,7 +185,7 @@ The front end uses **React Router 8 in declarative mode**: `BrowserRouter`, `Rou
 - `?window=` belongs to every page and carries across links. Pages read and write it with `useSearchParams`. See FR-1.
 - The layout route replaces a missing or unknown window with the default, with a replace navigation, so the address always names the window on screen.
 - Back and forward work. A route change does not reload the page.
-- Any other path is a Vercel 404.
+- Any other path is a Vercel 404. A path that reaches the app without a route, such as `/index.html`, shows a Not found page.
 - A route change moves focus to the new page's main heading, so keyboard and screen reader users know the page changed. A link scrolls the new page to the top. Back and forward keep the scroll position the browser restores. Declarative mode does none of this, because `ScrollRestoration` exists only in data mode, so the app does it when the path changes. A change to the query string alone is not a route change.
 
 ### 4.6 Local development
@@ -254,7 +254,7 @@ Every data-backed section has its own loading state. A failed fetch shows a read
 ### FR-10. Navigation
 Every page has a header with links to the overview and the matchup table. The current page is marked with `aria-current`. Every page carries the attribution required by NFR-5.
 
-Every page opens with its main heading, "Endstep Pauper metagame", with the page's name as an eyebrow inside it: "Overview", "Matchups" or "Deck". The heading therefore names the page when focus moves to it, §4.5.
+The header names the site, "Pauper Endstep metagame", in a link to the overview. It is not a heading. Every page opens with its main heading, which names the page: "Overview", "Matchups", or the deck's name on a deck page. The document title repeats it, such as "Overview · Pauper Endstep metagame". The heading therefore names the page when focus moves to it, §4.5.
 
 Deck names link to `/decks/{slug}` wherever a deck is listed: grid cards, table rows, matrix headers. Links keep the current `?window=`.
 
