@@ -4,6 +4,7 @@ import { ColourPips } from "../../components/ColourPips";
 import { Panel } from "../../components/Panel";
 import { ShareChange } from "../../components/ShareChange";
 import { Skeleton } from "../../components/Skeleton";
+import { WindowLink } from "../../components/WindowLink";
 import { PAGE_SIZE } from "../../config";
 import { formatCount, percent } from "../../format";
 import "./DeckTable.css";
@@ -166,7 +167,12 @@ export function DeckTable({ decks }: { decks: Deck[] }) {
                 scope="row"
                 className="deck-table__cell deck-table__cell--deck"
               >
-                {deck.name}
+                <WindowLink
+                  className="deck-table__link"
+                  to={`/decks/${deck.slug}`}
+                >
+                  {deck.name}
+                </WindowLink>
               </th>
               <td className="deck-table__cell">
                 <ColourPips colours={deck.colours} />

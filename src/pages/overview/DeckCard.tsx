@@ -2,7 +2,7 @@ import type { Deck } from "../../api/types";
 import { ColourPips } from "../../components/ColourPips";
 import { ShareChange } from "../../components/ShareChange";
 import { Skeleton } from "../../components/Skeleton";
-import { FORMAT } from "../../config";
+import { WindowLink } from "../../components/WindowLink";
 import { formatCount, percent, tooltipShare } from "../../format";
 import "./DeckCard.css";
 
@@ -15,12 +15,10 @@ function artSource(cardName: string) {
 
 export function DeckCard({ deck }: { deck: Deck }) {
   return (
-    <a
+    <WindowLink
       className="deck"
-      href={`https://endstep.cc/metagame/${FORMAT}/${deck.slug}`}
-      target="_blank"
-      rel="noreferrer"
-      aria-label={`${deck.name}, on endstep.cc in a new tab`}
+      to={`/decks/${deck.slug}`}
+      aria-label={deck.name}
     >
       <img
         className="deck__art"
@@ -59,7 +57,7 @@ export function DeckCard({ deck }: { deck: Deck }) {
         </dl>
         <p className="deck__keys">{deck.keyCards.join("\u00a0· ")}</p>
       </div>
-    </a>
+    </WindowLink>
   );
 }
 

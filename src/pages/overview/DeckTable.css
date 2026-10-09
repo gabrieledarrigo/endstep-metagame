@@ -69,6 +69,16 @@
     font-weight: 600;
   }
 
+  .deck-table__link {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .deck-table__link:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
   .deck-table__cell--numeric {
     text-align: right;
     font-variant-numeric: tabular-nums;
