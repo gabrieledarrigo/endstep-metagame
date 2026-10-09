@@ -15,6 +15,7 @@ function Probe({ load }: { load: () => Promise<string> }) {
       <button type="button" onClick={() => query.refetch()}>
         Refresh
       </button>
+      <p>Status: {query.status}</p>
     </>
   );
 }
@@ -60,7 +61,7 @@ describe("Section", () => {
     await screen.findByText("Data: decks");
 
     fireEvent.click(screen.getByRole("button", { name: "Refresh" }));
-    await vi.waitFor(() => expect(load).toHaveBeenCalledTimes(2));
+    await screen.findByText("Status: error");
 
     expect(screen.getByText("Data: decks")).toBeTruthy();
     expect(screen.queryByRole("heading", { name: "It failed" })).toBeNull();
