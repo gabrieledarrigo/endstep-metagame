@@ -52,7 +52,7 @@ describe("the overview page", () => {
     const api = stubApi();
     document.body.innerHTML = '<div id="root"></div>';
 
-    await import("./main.jsx");
+    await import("./main");
 
     await screen.findByRole("heading", {
       name: "The deck grid could not be loaded",
