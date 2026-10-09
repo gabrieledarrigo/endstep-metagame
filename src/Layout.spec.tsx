@@ -22,11 +22,13 @@ function renderAt(path: string) {
 }
 
 describe("Layout", () => {
-  it("frames the page with the site header and the attribution", () => {
+  it("frames the page with the site header, the main content and the attribution", () => {
     renderAt("/matchups?window=7d");
 
     expect(screen.getByRole("navigation", { name: "Pages" })).toBeTruthy();
-    expect(screen.getByText("Address: /matchups?window=7d")).toBeTruthy();
+    expect(screen.getByRole("main").textContent).toContain(
+      "Address: /matchups?window=7d",
+    );
     expect(screen.getByRole("contentinfo")).toBeTruthy();
   });
 

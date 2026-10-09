@@ -18,7 +18,9 @@ export function Layout() {
   return (
     <div className="page">
       <SiteHeader />
-      <Outlet />
+      <main className="page__main">
+        <Outlet />
+      </main>
       <SiteFooter />
     </div>
   );
