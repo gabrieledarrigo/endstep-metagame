@@ -41,11 +41,18 @@ function wait(ms: number, signal: AbortSignal) {
 /**
  * Checks whether an error comes from an aborted request.
  *
+ * It reads the name, not the class, because the error can be a `DOMException` from another realm, as it is under jsdom in the specs.
+ *
  * @param error - The value a promise rejected with, or that a `catch` block caught.
  * @returns `true` for the `AbortError` that `fetch` and the retry wait raise when their signal aborts.
  */
 export function isAbortError(error: unknown) {
-  return error instanceof DOMException && error.name === "AbortError";
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "name" in error &&
+    error.name === "AbortError"
+  );
 }
 
 /**
