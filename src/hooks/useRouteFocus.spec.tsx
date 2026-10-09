@@ -1,30 +1,47 @@
 import { fireEvent, render, screen } from "@testing-library/react";
-import { Link, MemoryRouter, Route, Routes, useNavigate } from "react-router";
+import {
+  Link,
+  MemoryRouter,
+  Outlet,
+  Route,
+  Routes,
+  useNavigate,
+} from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useRouteFocus } from "./useRouteFocus";
 
-function Page({ title }: { title: string }) {
+function Shell() {
   const navigate = useNavigate();
   useRouteFocus();
 
   return (
     <>
-      <h1 tabIndex={-1}>{title}</h1>
       <Link to="/matchups">Matchups</Link>
       <Link to="/?window=7d">Same page, another window</Link>
       <button type="button" onClick={() => navigate(-1)}>
         Back
       </button>
+      <Outlet />
     </>
   );
+}
+
+function Overview() {
+  return <h1 tabIndex={-1}>Overview</h1>;
+}
+
+function Matchups() {
+  return <h1 tabIndex={-1}>Matchups</h1>;
 }
 
 function renderAt(path: string) {
   render(
     <MemoryRouter initialEntries={[path]}>
       <Routes>
-        <Route path="/" element={<Page title="Overview" />} />
-        <Route path="/matchups" element={<Page title="Matchups" />} />
+        <Route element={<Shell />}>
+          <Route path="/" element={<Overview />} />
+          <Route path="/matchups" element={<Matchups />} />
+        </Route>
       </Routes>
     </MemoryRouter>,
   );
