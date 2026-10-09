@@ -211,7 +211,9 @@ Vercel runs `npm run build` and serves `dist/`. The functions in `api/` are buil
 The pages read the API through **TanStack Query 5**. It was chosen over SWR on the criteria in NFR-2. It is the most used, and it has the two behaviours this application needs: a time a response stays fresh, and the cancellation of a request a page no longer needs. Measured on 2026-10-09: 67 million weekly downloads against 18.6 million for SWR, and 10.3 KB against 6.7 KB, minified and gzipped.
 
 - One query client for the app. Each request is a query keyed by what it reads, such as `["decks", window]` or `["deck", slug, window]`.
-- A response stays fresh for five minutes, the edge cache's `s-maxage`, §4.3. Within that time a page renders it from memory, with no request and no loading state. After it, the page shows it and refetches it in the background.
+- A response stays fresh for five minutes, the edge cache's `s-maxage`, §4.3. Within that time a page renders it from memory, with no request and no loading state. After it, the page shows it and refetches it in the background. Responses stay in memory for the rest of the visit, so that holds however long the reader was away.
+- A section shows its data whenever it has some. A failed refetch keeps the data on screen. The error panel appears only when there is nothing to show, FR-9.
+- Requests run whether or not the browser reports itself online, so a reader without a connection sees the network error, not a page that waits.
 - Nothing refetches when the browser window regains focus, NFR-4.
 - A network error, a 429 or a 5xx is retried at most twice, after 400 ms and then 800 ms, NFR-4. Any other failure shows at once. A query can turn retries off: the matchup table and the deck's matchups row do, FR-11 and FR-12.
 - The query passes an abort signal to `fetch`, so a request for a window the reader has left is cancelled.
