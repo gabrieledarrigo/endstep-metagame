@@ -1,0 +1,18 @@
+@layer components {
+  .site-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px 24px;
+    padding-block: 14px;
+    border-bottom: 1px solid var(--rule);
+  }
+
+  .site-header__brand {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-900);
+    text-decoration: none;
+  }
+}

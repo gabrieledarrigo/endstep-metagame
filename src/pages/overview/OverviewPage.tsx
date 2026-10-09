@@ -1,4 +1,5 @@
 import { fetchDecks, fetchSeries } from "../../api/endpoints";
+import { PageTitle } from "../../components/PageTitle";
 import { Section } from "../../components/Section";
 import { SegmentedControl } from "../../components/SegmentedControl";
 import { WINDOWS } from "../../config";
@@ -21,6 +22,8 @@ export function OverviewPage() {
 
   return (
     <>
+      <PageTitle title="Overview" />
+
       <div className="page__controls">
         <SegmentedControl
           label="Time window"

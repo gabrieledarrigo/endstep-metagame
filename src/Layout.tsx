@@ -1,4 +1,6 @@
 import { Navigate, Outlet, useLocation } from "react-router";
+import { SiteFooter } from "./components/SiteFooter";
+import { SiteHeader } from "./components/SiteHeader";
 import { useTimeWindow } from "./hooks/useTimeWindow";
 
 export function Layout() {
@@ -12,17 +14,9 @@ export function Layout() {
 
   return (
     <div className="page">
-      <header>
-        <div className="page__eyebrow">Endstep</div>
-        <h1>Pauper metagame</h1>
-      </header>
-
+      <SiteHeader />
       <Outlet />
-
-      <footer>
-        Data from <a href="https://endstep.cc/metagame">endstep.cc</a>. This is
-        not an official Endstep product.
-      </footer>
+      <SiteFooter />
     </div>
   );
 }
