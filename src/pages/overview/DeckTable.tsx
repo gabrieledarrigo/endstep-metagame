@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useSearchParams } from "react-router";
 import type { Deck } from "../../api/types";
 import { ColourPips } from "../../components/ColourPips";
 import { Panel } from "../../components/Panel";
@@ -27,6 +27,47 @@ const COMPARE: Record<SortKey, (left: Deck, right: Deck) => number> = {
   matches: (left, right) => matchesOf(left) - matchesOf(right),
   winRate: (left, right) => left.matchWinRate.rate - right.matchWinRate.rate,
 };
+
+const DEFAULT_SORT: Sort = { key: "share", direction: "descending" };
+
+function isSortKey(value: string | null): value is SortKey {
+  return value !== null && Object.hasOwn(COMPARE, value);
+}
+
+function firstDirection(key: SortKey): Sort["direction"] {
+  return key === "name" ? "ascending" : "descending";
+}
+
+function readSort(params: URLSearchParams): Sort {
+  const key = params.get("sort");
+  if (!isSortKey(key)) {
+    return DEFAULT_SORT;
+  }
+
+  const dir = params.get("dir");
+  if (dir === "asc") {
+    return { key, direction: "ascending" };
+  }
+  if (dir === "desc") {
+    return { key, direction: "descending" };
+  }
+  return { key, direction: firstDirection(key) };
+}
+
+function writeSort(params: URLSearchParams, sort: Sort) {
+  if (
+    sort.key === DEFAULT_SORT.key &&
+    sort.direction === DEFAULT_SORT.direction
+  ) {
+    params.delete("sort");
+    params.delete("dir");
+  } else {
+    params.set("sort", sort.key);
+    params.set("dir", sort.direction === "ascending" ? "asc" : "desc");
+  }
+
+  return params;
+}
 
 function sortDecks(decks: Deck[], { key, direction }: Sort) {
   const sign = direction === "ascending" ? 1 : -1;
@@ -72,26 +113,25 @@ function SortHeader({ column, label, numeric, sort, onSort }: SortHeaderProps) {
 }
 
 export function DeckTable({ decks }: { decks: Deck[] }) {
-  const [sort, setSort] = useState<Sort>({
-    key: "share",
-    direction: "descending",
-  });
+  const [searchParams, setSearchParams] = useSearchParams();
+  const sort = readSort(searchParams);
 
   if (decks.length === 0) {
     return null;
   }
 
-  const onSort = (key: SortKey) =>
-    setSort((current) => {
-      if (current.key !== key) {
-        return { key, direction: key === "name" ? "ascending" : "descending" };
-      }
-      return {
-        key,
-        direction:
-          current.direction === "ascending" ? "descending" : "ascending",
-      };
-    });
+  const onSort = (key: SortKey) => {
+    const next: Sort =
+      key === sort.key
+        ? {
+            key,
+            direction:
+              sort.direction === "ascending" ? "descending" : "ascending",
+          }
+        : { key, direction: firstDirection(key) };
+
+    setSearchParams((params) => writeSort(params, next), { replace: true });
+  };
 
   const ranks = new Map(decks.map((deck, index) => [deck.id, index + 1]));
   const rows = sortDecks(decks, sort);
