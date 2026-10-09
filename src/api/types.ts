@@ -8,7 +8,6 @@ export type Provenance = {
   window: {
     preset: TimeWindow;
     from: string;
-    /** The day after the last day the window covers, §6.7. */
     to: string;
     since: string | null;
     until: string | null;
@@ -36,9 +35,6 @@ export type Query = {
   dir: "asc" | "desc";
 };
 
-/**
- * A win and loss block. Below `required` decided matches it is gated: `gate` is `"too_few"` and the rate and its bounds are null, §6.8.
- */
 export type WinLoss =
   | {
       wins: number;
@@ -61,9 +57,6 @@ export type WinLoss =
       deff: null;
     };
 
-/**
- * A deck's match win rate. It is never gated and returns a rate from any number of matches, so the caller applies the threshold, §6.8.
- */
 export type MatchWinRate = {
   wins: number;
   losses: number;
@@ -117,7 +110,6 @@ export type SharePoint = {
   day: string;
   registrations: number;
   totalRegistrations: number;
-  /** Null on the days before Endstep's data begins, §6.2. */
   rate: number | null;
 };
 
