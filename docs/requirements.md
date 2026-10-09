@@ -22,6 +22,8 @@ The application is read-only. It stores nothing. It has no authentication and no
 | Data access | Two Vercel functions: a proxy and a matchup aggregator. CORS workaround, see §4.1 |
 | Cache policy | 5 minutes at the edge, with stale-while-revalidate |
 | Front end | React 19 and TypeScript, built with Vite. See NFR-1 |
+| Data fetching | TanStack Query 5. A response stays fresh for five minutes. See §4.8 |
+| Page state | The window and the view state live in the address. A link opens a page in its default view. See §4.5 |
 | Styling | Hand-written CSS in cascade layers, BEM, one stylesheet per component. No framework. Light-only theme. See NFR-11 |
 | Charting | Recharts 3.x from npm |
 | Pages | Overview, deck page, matchup table. React Router in declarative mode, see §4.5 |
@@ -184,6 +186,8 @@ The front end uses **React Router 8 in declarative mode**: `BrowserRouter`, `Rou
 - `vercel.json` rewrites `/decks/:slug` and `/matchups` to `/index.html`. Vercel applies rewrites after it checks for real files, so built assets are not affected.
 - `?window=` belongs to every page and carries across links. Pages read and write it with `useSearchParams`. See FR-1.
 - The layout route replaces a missing or unknown window with the default, with a replace navigation, so the address always names the window on screen.
+- The view state lives in the address too: the deck table's sort in `sort` and `dir`, FR-4, and the share chart's hidden series in `hide`, one deck slug per parameter, FR-5. A change replaces the history entry, so Back leaves the page rather than undoing a sort. The default view leaves the parameters out.
+- Back, forward and reload therefore return to a page as the reader left it. A link carries only `?window=`, so it opens a page in its default view. This is the browser's own rule: history returns to a page, a link is a new visit.
 - Back and forward work. A route change does not reload the page.
 - Any other path is a Vercel 404. A path that reaches the app without a route, such as `/index.html`, shows a Not found page.
 - A route change moves focus to the new page's main heading, so keyboard and screen reader users know the page changed. A link scrolls the new page to the top. Back and forward keep the scroll position the browser restores. Declarative mode does none of this, because `ScrollRestoration` exists only in data mode, so the app does it when the path changes. A change to the query string alone is not a route change.
@@ -201,6 +205,17 @@ Vercel runs `npm run build` and serves `dist/`. The functions in `api/` are buil
 - Only `dist/` is served. Source files, `docs/` and the development files are no longer reachable from the public site.
 - Vercel deploys every file in `api/` as a function. `.vercelignore` therefore excludes `api/**/*.spec.ts`, so the specs beside the functions are never deployed.
 - **Production waits for CI.** The project's Deployment Checks require the `ci` job from NFR-1. Vercel still builds every push to `main`, but assigns the production domain only after `ci` passes on that commit. Preview deployments do not wait. The setting lives in the Vercel dashboard, not in `vercel.json`. See open item 6.
+
+### 4.8 Data fetching
+
+The pages read the API through **TanStack Query 5**. It was chosen over SWR on the criteria in NFR-2. It is the most used, and it has the two behaviours this application needs: a time a response stays fresh, and the cancellation of a request a page no longer needs. Measured on 2026-10-09: 67 million weekly downloads against 18.6 million for SWR, and 10.3 KB against 6.7 KB, minified and gzipped.
+
+- One query client for the app. Each request is a query keyed by what it reads, such as `["decks", window]` or `["deck", slug, window]`.
+- A response stays fresh for five minutes, the edge cache's `s-maxage`, §4.3. Within that time a page renders it from memory, with no request and no loading state. After it, the page shows it and refetches it in the background.
+- Nothing refetches when the browser window regains focus, NFR-4.
+- A network error, a 429 or a 5xx is retried at most twice, after 400 ms and then 800 ms, NFR-4. Any other failure shows at once. A query can turn retries off: the matchup table and the deck's matchups row do, FR-11 and FR-12.
+- The query passes an abort signal to `fetch`, so a request for a window the reader has left is cancelled.
+- `getJson` makes one request. It turns a failed status into an error that carries its kind and status, and the query client decides whether to retry.
 
 ---
 
@@ -226,12 +241,12 @@ The top 24 decks by share, each as a card showing:
 Each card links to the deck's page, FR-11.
 
 ### FR-4. Deck table
-The same 24 decks in tabular form: rank, name, colours, share, players, matches, win rate, share change. Columns sort client-side. Numbers use consistent precision: share and win rate to one decimal place, counts as integers with thousands separators.
+The same 24 decks in tabular form: rank, name, colours, share, players, matches, win rate, share change. Columns sort client-side, and the sort is kept in the address, so Back and reload restore it, §4.5. Numbers use consistent precision: share and win rate to one decimal place, counts as integers with thousands separators.
 
 The table is a peer of the grid, not a replacement. Both are visible on the page. Each deck name links to the deck's page, FR-11.
 
 ### FR-5. Share over time
-A multi-series line chart of daily meta share. It uses the API's default top 8 series. Each series toggles from the legend. The x-axis covers the full date range of the window.
+A multi-series line chart of daily meta share. It uses the API's default top 8 series. Each series toggles from the legend, and the hidden series are kept in the address, §4.5. The x-axis covers the full date range of the window.
 
 Days before 2026-09-05 return `rate: null`. **Render them as a gap, not as zero.** See §6.2.
 
@@ -378,6 +393,7 @@ The front end is a Vite application in TypeScript with React 19. `npm run build`
 |---|---|
 | React, ReactDOM | 19 |
 | React Router | 8, declarative mode |
+| TanStack Query | 5. See §4.8 |
 | Recharts | 3.10 |
 | Vite | 8 |
 | TypeScript | 6.0, strict mode. See below |
@@ -473,9 +489,10 @@ Recharts covers the overview's three charts: `LineChart` for FR-5, a horizontal 
 - Initial render API calls: exactly **two** on the overview, `decks` at `pageSize=24` and `share-series`. **Two** on the deck page: the deck detail and `/api/matchups`. The second is the matchup table's own request, so it shares that page's edge cache entry. **One** on the matchup table.
 - Script payload is a reference, not a gate. Draft v2 shipped about 743 KB brotli, 544 KB of it Babel Standalone. The mechanical Vite port measured 156 KB of script and 2 KB of CSS, brotli, on 2026-10-03.
 - Card art is lazy-loaded with `loading="lazy"` and sized to prevent layout shift.
+- Back, forward or a window switch to data fetched in the last five minutes renders from memory, with no request and no loading state, §4.8.
 
 ### NFR-4. Respecting the upstream service
-The application must not put meaningful load on Endstep. Edge caching (§4.3) means repeat visits and repeated window switches cost no upstream requests. The client must not poll. It must not retry more than twice. It must back off on 429. Total upstream traffic should stay well below the limit of 300 per 60 seconds. The matchup function costs 25 upstream calls per cold window, so warming all five windows costs 125 in each edge region that serves a request. The deck page's matchups row requests the same URL, so it adds no upstream calls once a window is warm. Several regions warming every window inside one minute would pass the limit. At this site's traffic that is unlikely, and §4.4 holds a 429 at the edge for the full minute when it happens.
+The application must not put meaningful load on Endstep. Edge caching (§4.3) means repeat visits and repeated window switches cost no upstream requests. Within five minutes, the client's own cache (§4.8) sends no request at all. The client must not poll. It must not retry more than twice. It must back off on 429. Total upstream traffic should stay well below the limit of 300 per 60 seconds. The matchup function costs 25 upstream calls per cold window, so warming all five windows costs 125 in each edge region that serves a request. The deck page's matchups row requests the same URL, so it adds no upstream calls once a window is warm. Several regions warming every window inside one minute would pass the limit. At this site's traffic that is unlikely, and §4.4 holds a 429 at the edge for the full minute when it happens.
 
 ### NFR-5. Attribution
 The page states that the data comes from Endstep and links to `https://endstep.cc/metagame`. It does not present itself as an official Endstep product.
