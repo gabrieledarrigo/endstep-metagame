@@ -1,3 +1,4 @@
+import type { Deck } from "../../api/types";
 import { ColourPips } from "../../components/ColourPips";
 import { ShareChange } from "../../components/ShareChange";
 import { Skeleton } from "../../components/Skeleton";
@@ -5,14 +6,14 @@ import { FORMAT } from "../../config";
 import { formatCount, percent, tooltipShare } from "../../format";
 import "./DeckCard.css";
 
-function artSource(cardName) {
+function artSource(cardName: string) {
   return `https://endstep.cc/api/cards/image?${new URLSearchParams({
     name: cardName,
     version: "art_crop",
   })}`;
 }
 
-export function DeckCard({ deck }) {
+export function DeckCard({ deck }: { deck: Deck }) {
   return (
     <a
       className="deck"

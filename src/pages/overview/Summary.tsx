@@ -1,3 +1,4 @@
+import type { DecksResponse } from "../../api/types";
 import { Panel } from "../../components/Panel";
 import { Skeleton } from "../../components/Skeleton";
 import { StatTile } from "../../components/StatTile";
@@ -34,7 +35,7 @@ export function SummarySkeleton() {
   );
 }
 
-export function Summary({ decks }) {
+export function Summary({ decks }: { decks: DecksResponse }) {
   const { provenance, totals } = decks;
 
   return (

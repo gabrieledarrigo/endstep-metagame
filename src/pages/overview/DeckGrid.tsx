@@ -1,8 +1,9 @@
+import type { Deck } from "../../api/types";
 import { PAGE_SIZE } from "../../config";
 import { DeckCard, DeckCardSkeleton } from "./DeckCard";
 import "./DeckGrid.css";
 
-export function DeckGrid({ decks }) {
+export function DeckGrid({ decks }: { decks: Deck[] }) {
   return (
     <section className="deck-grid" aria-labelledby="deck-grid-heading">
       <h2 className="visually-hidden" id="deck-grid-heading">
