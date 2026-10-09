@@ -84,6 +84,9 @@ function api(): Plugin {
 
 export default defineConfig({
   plugins: [react(), api()],
+  build: {
+    target: "es2025",
+  },
   test: {
     projects: [
       {

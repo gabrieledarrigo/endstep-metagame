@@ -489,6 +489,8 @@ Usable from 360 px to wide desktop. The table scrolls horizontally rather than r
 ### NFR-8. Browser support
 Current versions of Chrome, Firefox, Safari and Edge. No IE, no polyfills.
 
+The code targets ES2025: `target` and `lib` in the three TypeScript configs, and Vite's `build.target`. Older browser versions are not supported.
+
 ### NFR-9. Privacy
 No analytics, no cookies, no local storage of personal data, no third-party requests beyond the card-art host.
 
