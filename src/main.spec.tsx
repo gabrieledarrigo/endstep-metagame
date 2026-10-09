@@ -5,10 +5,10 @@ import series from "../test/fixtures/share-series.json";
 
 function stubApi() {
   let failNextDecks = true;
-  const held = new Set();
-  const waiting = [];
+  const held = new Set<string | null>();
+  const waiting: { window: string | null; resolve: () => void }[] = [];
 
-  const fetchMock = vi.fn((input) => {
+  const fetchMock = vi.fn((input: RequestInfo | URL) => {
     const url = new URL(String(input), "http://localhost");
     const body = url.pathname === "/api/metagame/Pauper/decks" ? decks : series;
 
@@ -21,7 +21,7 @@ function stubApi() {
     if (!held.has(url.searchParams.get("window"))) {
       return Promise.resolve(Response.json(body));
     }
-    return new Promise((resolve) => {
+    return new Promise<Response>((resolve) => {
       waiting.push({
         window: url.searchParams.get("window"),
         resolve: () => resolve(Response.json(body)),
@@ -33,8 +33,9 @@ function stubApi() {
 
   return {
     fetchMock,
-    hold: (...windows) => windows.forEach((window) => held.add(window)),
-    release: (window) => {
+    hold: (...windows: string[]) =>
+      windows.forEach((window) => held.add(window)),
+    release: (window: string) => {
       held.delete(window);
       waiting
         .filter((request) => request.window === window)
