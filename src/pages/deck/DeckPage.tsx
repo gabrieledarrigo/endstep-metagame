@@ -6,12 +6,16 @@ import { PageTitle } from "../../components/PageTitle";
 import { Section } from "../../components/Section";
 import { useTimeWindow } from "../../hooks/useTimeWindow";
 
-function deckTitle(deck: UseQueryResult<DeckDetail>, loading: boolean) {
-  if (deck.isSuccess) {
+function deckTitle(deck: UseQueryResult<DeckDetail>) {
+  if (deck.data !== undefined) {
     return deck.data.deck.name;
   }
 
-  return loading ? "Loading the deck" : "Deck";
+  if (deck.isError) {
+    return "Deck";
+  }
+
+  return "Loading the deck";
 }
 
 export function DeckPage() {
@@ -21,11 +25,10 @@ export function DeckPage() {
     queryKey: ["deck", slug, timeWindow],
     queryFn: ({ signal }) => fetchDeck(slug, timeWindow, signal),
   });
-  const loading = deck.isPending || (deck.isError && deck.isFetching);
 
   return (
     <>
-      <PageTitle title={deckTitle(deck, loading)} loading={loading} />
+      <PageTitle title={deckTitle(deck)} loading={deck.isPending} />
       <Section
         query={deck}
         skeleton={null}

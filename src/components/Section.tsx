@@ -16,8 +16,8 @@ export function Section<Data>({
   title,
   children,
 }: SectionProps<Data>) {
-  if (query.isPending || (query.isError && query.isFetching)) {
-    return skeleton;
+  if (query.data !== undefined) {
+    return children(query.data);
   }
 
   if (query.isError) {
@@ -30,5 +30,5 @@ export function Section<Data>({
     );
   }
 
-  return children(query.data);
+  return skeleton;
 }
