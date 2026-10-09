@@ -104,8 +104,8 @@ The win and loss figures in `gameResults`, `games`, `playDraw` and every `/match
 | `playDraw` | `tossWon`, `tossLost`, `onPlay`, `onDraw` blocks, and `choseToDraw {count, of, rate}` | FR-11 |
 | `texture` | `averageTurns`, `averageOpeningHand`, `mulliganRate {count, of, rate}` | FR-11 |
 | `shareSeries` | `days {from, to}`, `markedDay`, and `points[{day, registrations, totalRegistrations, rate}]` for this deck only. Share only, no win rate history | FR-11 |
-| `sampleList` | The most common exact list for the deck. `state` is `shown`, `mainOnly` or `withheld`, with `minPlayers: 3` and a `reason`: `sideboard_below_player_floor`, `main_below_player_floor` or `no_registrations`. `players` brought this exact list. `similarity` measures it against the deck's average list. `distinctLists` counts the lists it was picked from. `main` and `side` are `{name, count, setCode, collectorNumber}`, and the set and number can be null | FR-11 |
-| `cardTableWithheld` | Whether the card table is withheld | Deferred |
+| `sampleList` | The most common exact list for the deck. `state` is `shown`, `mainOnly` or `withheld`, with `minPlayers: 3` and a `reason`: `sideboard_below_player_floor`, `main_below_player_floor` or `no_registrations`. `players` brought this exact list. `similarity` measures it against the deck's average list. Both are null when the list is withheld. `distinctLists` counts the lists it was picked from. `main` and `side` are `{name, count, setCode, collectorNumber}`, and the set and number can be null | FR-11 |
+| `cardTableWithheld` | `{reason, minPlayers}` when the card table is withheld, such as `below_player_floor` with 3, otherwise null | Deferred |
 
 A UUID in place of the slug returns 404 `{"error": "Unknown deck"}`. A stale slug with the right 8-character suffix returns 307 with `canonicalSlug`. See §6.11.
 
@@ -380,14 +380,24 @@ The front end is a Vite application in TypeScript with React 19. `npm run build`
 | TypeScript | 6.0, strict mode. See below |
 
 - TypeScript stays on 6.0, the last release with the JavaScript compiler API. TypeScript 7.0 ships without one, so typescript-eslint refuses it and Vercel's install fails on the peer conflict. Measured on this repo on 2026-10-06. typescript-eslint tracks support for 7.1 in issue #10940. When it lands, move to 7, either outright or with TypeScript's documented side-by-side setup. 6.0 already warns about everything 7 removes.
-- TypeScript runs in strict mode. Once the code is TypeScript, a type error fails the build. Until then, the build is `vite build` alone, because `tsc` fails on a project with no TypeScript files.
-- The root `tsconfig.json` is read by Vercel's function build. Vite's client types belong in `tsconfig.app.json`. Putting them in the root config breaks the function build.
+- TypeScript runs in strict mode, and a type error fails the build.
+- Three configs cover the repository. The type check runs `tsc` on each.
+
+  | Config | Covers |
+  |---|---|
+  | `tsconfig.json` | `api/`. Vercel's function build reads it |
+  | `tsconfig.app.json` | `src/` and `test/`, with Vite's client types |
+  | `tsconfig.node.json` | `vite.config.ts` and `eslint.config.ts`, with Node's types |
+
+- Vite's client types stay out of the root config. Putting them there breaks the function build.
+- The response types live in `src/api/types.ts`, one per endpoint in §3.1. They are written from measured responses, not from a published schema.
 
 **Scripts.**
 
 | Script | What it does |
 |---|---|
 | `npm run dev` | Vite with the API plugin, §4.6 |
+| `npm run typecheck` | `tsc` on each of the three configs |
 | `npm run build` | The type check, then `vite build` |
 | `npm run lint` | ESLint over the repository |
 | `npm run format` | Prettier rewrites every covered file |
