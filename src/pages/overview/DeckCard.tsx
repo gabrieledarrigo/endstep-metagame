@@ -69,9 +69,9 @@ export function DeckCardSkeleton() {
       <Skeleton className="deck__art" />
       <div className="deck__body">
         <div className="deck__top">
-          <h3 className="deck__name">
+          <div className="deck__name">
             <Skeleton width={140} height="1.3em" />
-          </h3>
+          </div>
           <Skeleton width={57} height={17} />
         </div>
         <dl className="deck__stats">
@@ -94,9 +94,9 @@ export function DeckCardSkeleton() {
             </dd>
           </div>
         </dl>
-        <p className="deck__keys">
+        <div className="deck__keys">
           <Skeleton width="92%" height="2.9em" />
-        </p>
+        </div>
       </div>
     </div>
   );
