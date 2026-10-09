@@ -1,6 +1,20 @@
 import "./SegmentedControl.css";
 
-export function SegmentedControl({ label, options, value, onChange, busy }) {
+type SegmentedControlProps<Option extends string> = {
+  label: string;
+  options: readonly Option[];
+  value: Option;
+  onChange: (option: Option) => void;
+  busy?: boolean;
+};
+
+export function SegmentedControl<Option extends string>({
+  label,
+  options,
+  value,
+  onChange,
+  busy,
+}: SegmentedControlProps<Option>) {
   return (
     <div
       className="segmented"

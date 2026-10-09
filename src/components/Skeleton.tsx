@@ -1,6 +1,12 @@
 import "./Skeleton.css";
 
-export function Skeleton({ className, width, height }) {
+type SkeletonProps = {
+  className?: string;
+  width?: number | string;
+  height?: number | string;
+};
+
+export function Skeleton({ className, width, height }: SkeletonProps) {
   return (
     <div
       className={["skeleton", className].filter(Boolean).join(" ")}
