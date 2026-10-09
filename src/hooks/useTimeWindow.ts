@@ -20,7 +20,13 @@ export function useTimeWindow() {
         return;
       }
 
-      setSearchParams({ window: next }, { replace });
+      setSearchParams(
+        (params) => {
+          params.set("window", next);
+          return params;
+        },
+        { replace },
+      );
     },
     [value, setSearchParams],
   );

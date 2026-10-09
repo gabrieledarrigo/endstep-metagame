@@ -47,6 +47,14 @@ describe("useTimeWindow", () => {
     expect(result.current.navigationType).toBe("PUSH");
   });
 
+  it("keeps the other query parameters", () => {
+    const { result } = renderAt("/?window=30d&deck=affinity");
+
+    act(() => result.current.select("7d"));
+
+    expect(result.current.address).toBe("/?window=7d&deck=affinity");
+  });
+
   it("replaces the history entry when asked", () => {
     const { result } = renderAt("/?window=30d");
 
