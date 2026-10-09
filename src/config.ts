@@ -1,5 +1,6 @@
 import type { Population, TimeWindow } from "./api/types";
 
+export const SITE_NAME = "Pauper Endstep metagame";
 export const FORMAT = "Pauper";
 export const POPULATION: Population = "rated";
 export const WINDOWS: readonly TimeWindow[] = [

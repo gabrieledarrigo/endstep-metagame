@@ -13,7 +13,7 @@ describe("SiteHeader", () => {
 
     expect(
       screen
-        .getByRole("link", { name: "Pauper metagame" })
+        .getByRole("link", { name: "Pauper Endstep metagame" })
         .getAttribute("href"),
     ).toBe("/?window=14d");
     expect(screen.getByRole("navigation", { name: "Pages" })).toBeTruthy();
