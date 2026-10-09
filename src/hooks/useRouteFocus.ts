@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useLayoutEffect, useRef } from "react";
 import { NavigationType, useLocation, useNavigationType } from "react-router";
 
 /**
@@ -11,8 +11,9 @@ export function useRouteFocus() {
   const navigationType = useNavigationType();
   const previous = useRef(pathname);
 
-  useEffect(() => {
-    if (previous.current === pathname) {
+  useLayoutEffect(() => {
+    const heading = document.querySelector("h1");
+    if (previous.current === pathname || !heading) {
       return;
     }
 
@@ -20,6 +21,6 @@ export function useRouteFocus() {
     if (navigationType !== NavigationType.Pop) {
       window.scrollTo(0, 0);
     }
-    document.querySelector("h1")?.focus({ preventScroll: true });
+    heading.focus({ preventScroll: true });
   }, [pathname, navigationType]);
 }

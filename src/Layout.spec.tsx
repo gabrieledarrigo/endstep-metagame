@@ -1,12 +1,13 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
 import {
+  Link,
   MemoryRouter,
   Route,
   Routes,
   useLocation,
   useNavigationType,
 } from "react-router";
-import { describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Layout } from "./Layout";
 
 function Address() {
@@ -15,8 +16,10 @@ function Address() {
 
   return (
     <>
+      <h1 tabIndex={-1}>{pathname}</h1>
       <p>Address: {pathname + search + hash}</p>
       <p>Navigation: {navigationType}</p>
+      <Link to="/matchups">Matchups without a window</Link>
     </>
   );
 }
@@ -34,6 +37,14 @@ function renderAt(path: string) {
 }
 
 describe("Layout", () => {
+  beforeEach(() => {
+    vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it("frames the page with the site header, the main content and the attribution", () => {
     renderAt("/matchups?window=7d");
 
@@ -59,5 +70,20 @@ describe("Layout", () => {
     expect(
       await screen.findByText("Address: /?window=30d&deck=affinity#grid"),
     ).toBeTruthy();
+  });
+
+  it("focuses the new page's heading after correcting the window of a new path", async () => {
+    renderAt("/?window=7d");
+
+    fireEvent.click(
+      screen.getByRole("link", { name: "Matchups without a window" }),
+    );
+
+    expect(
+      await screen.findByText("Address: /matchups?window=30d"),
+    ).toBeTruthy();
+    expect(document.activeElement).toBe(
+      screen.getByRole("heading", { name: "/matchups" }),
+    );
   });
 });
