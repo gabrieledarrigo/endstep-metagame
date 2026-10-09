@@ -1,26 +1,54 @@
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { DeckPage } from "./DeckPage";
 
+function renderWith(response: Response) {
+  const fetchMock = vi.fn<typeof fetch>(() => Promise.resolve(response));
+  vi.stubGlobal("fetch", fetchMock);
+
+  render(
+    <MemoryRouter initialEntries={["/decks/affinity-e93f5f74?window=7d"]}>
+      <Routes>
+        <Route path="/decks/:slug" element={<DeckPage />} />
+      </Routes>
+    </MemoryRouter>,
+  );
+
+  return fetchMock;
+}
+
 describe("DeckPage", () => {
-  it("names the deck from the address", () => {
-    render(
-      <MemoryRouter initialEntries={["/decks/affinity-e93f5f74?window=7d"]}>
-        <Routes>
-          <Route path="/decks/:slug" element={<DeckPage />} />
-        </Routes>
-      </MemoryRouter>,
-    );
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("titles the page with the name of the deck in the address, for its window", async () => {
+    const fetchMock = renderWith(Response.json({ deck: { name: "Affinity" } }));
 
     expect(
-      screen.getByRole("heading", {
-        level: 1,
-        name: "Deck Endstep Pauper metagame",
+      screen.getByRole("heading", { level: 1, name: "Loading the deck" }),
+    ).toBeTruthy();
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Affinity" }),
+    ).toBeTruthy();
+    expect(String(fetchMock.mock.calls[0][0])).toBe(
+      "/api/metagame/Pauper/decks/affinity-e93f5f74?window=7d&population=rated",
+    );
+  });
+
+  it("offers a retry when the deck cannot be loaded", async () => {
+    renderWith(Response.json({ error: "Unknown deck" }, { status: 404 }));
+
+    expect(
+      await screen.findByRole("heading", {
+        level: 2,
+        name: "The deck could not be loaded",
       }),
     ).toBeTruthy();
     expect(
-      screen.getByText("The page for affinity-e93f5f74 is not built yet."),
+      screen.getByRole("heading", { level: 1, name: "Deck" }),
     ).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Retry" })).toBeTruthy();
   });
 });

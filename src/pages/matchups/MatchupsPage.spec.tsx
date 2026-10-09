@@ -9,7 +9,7 @@ describe("MatchupsPage", () => {
     expect(
       screen.getByRole("heading", {
         level: 1,
-        name: "Matchups Endstep Pauper metagame",
+        name: "Matchups",
       }),
     ).toBeTruthy();
   });

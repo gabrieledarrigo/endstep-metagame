@@ -8,13 +8,20 @@ describe("App", () => {
   beforeEach(() => {
     vi.stubGlobal(
       "fetch",
-      vi.fn((input: RequestInfo | URL) =>
-        Promise.resolve(
-          Response.json(
-            String(input).includes("share-series") ? series : decks,
-          ),
-        ),
-      ),
+      vi.fn((input: RequestInfo | URL) => {
+        const url = String(input);
+        const deck = decks.decks.items.find((item) =>
+          url.includes(`/decks/${item.slug}`),
+        );
+
+        if (deck) {
+          return Promise.resolve(Response.json({ deck }));
+        }
+
+        return Promise.resolve(
+          Response.json(url.includes("share-series") ? series : decks),
+        );
+      }),
     );
     vi.spyOn(window, "scrollTo").mockImplementation(() => {});
   });
@@ -34,7 +41,7 @@ describe("App", () => {
     expect(
       await screen.findByRole("heading", {
         level: 1,
-        name: "Deck Endstep Pauper metagame",
+        name: "Monster Tron",
       }),
     ).toBeTruthy();
     expect(location.pathname + location.search).toBe(
@@ -46,7 +53,7 @@ describe("App", () => {
     expect(
       await screen.findByRole("heading", {
         level: 1,
-        name: "Overview Endstep Pauper metagame",
+        name: "Overview",
       }),
     ).toBeTruthy();
     expect(location.pathname + location.search).toBe("/?window=7d");
@@ -62,7 +69,7 @@ describe("App", () => {
     expect(
       await screen.findByRole("heading", {
         level: 1,
-        name: "Deck Endstep Pauper metagame",
+        name: "Monster Tron",
       }),
     ).toBeTruthy();
     expect(location.pathname + location.search).toBe(
