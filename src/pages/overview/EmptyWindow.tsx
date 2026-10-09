@@ -9,7 +9,8 @@ type EmptyWindowProps = {
 };
 
 export function EmptyWindow({ timeWindow, onSelect }: EmptyWindowProps) {
-  const longer = WINDOWS[WINDOWS.indexOf(timeWindow) + 1];
+  const longer: TimeWindow | undefined =
+    WINDOWS[WINDOWS.indexOf(timeWindow) + 1];
 
   return (
     <StatePanel
