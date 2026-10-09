@@ -7,7 +7,9 @@ import {
   XAxis,
   YAxis,
   ZAxis,
+  type TooltipContentProps,
 } from "recharts";
+import type { Deck } from "../../api/types";
 import { ChartFrame } from "../../charts/ChartFrame";
 import { ChartTooltip } from "../../charts/ChartTooltip";
 import {
@@ -34,7 +36,17 @@ const LABEL_PLOT_WIDTH = 590;
 const LABEL_CHAR_WIDTH = 6.6;
 const LABEL_GAP_Y = 0.18;
 
-function winRatePoints(decks) {
+type WinRatePoint = {
+  id: string;
+  name: string;
+  share: number;
+  winRate: number;
+  low: number;
+  high: number;
+  players: number;
+};
+
+function winRatePoints(decks: Deck[]): WinRatePoint[] {
   return decks.map((deck) => ({
     id: deck.id,
     name: deck.name,
@@ -46,7 +58,7 @@ function winRatePoints(decks) {
   }));
 }
 
-function labelledPoints(points, spanX, spanY) {
+function labelledPoints(points: WinRatePoint[], spanX: number, spanY: number) {
   const byShare = [...points].sort((a, b) => b.share - a.share);
   const byWinRate = [...points].sort((a, b) => b.winRate - a.winRate);
   const wanted = [
@@ -55,7 +67,7 @@ function labelledPoints(points, spanX, spanY) {
     ...byWinRate.slice(-2),
   ];
 
-  const kept = [];
+  const kept: WinRatePoint[] = [];
   wanted.forEach((point) => {
     const crowded = kept.some((other) => {
       const names = (point.name.length + other.name.length) / 2;
@@ -74,7 +86,19 @@ function labelledPoints(points, spanX, spanY) {
   return new Set(kept.map((point) => point.id));
 }
 
-function WinRateMark({ cx, cy, size, payload, labelled }) {
+type WinRateMarkProps = {
+  cx: number | undefined;
+  cy: number | undefined;
+  size: number;
+  payload: WinRatePoint;
+  labelled: Set<string>;
+};
+
+function WinRateMark({ cx, cy, size, payload, labelled }: WinRateMarkProps) {
+  if (cx === undefined || cy === undefined) {
+    return null;
+  }
+
   const radius = Math.sqrt(size / Math.PI);
 
   return (
@@ -102,12 +126,12 @@ function WinRateMark({ cx, cy, size, payload, labelled }) {
   );
 }
 
-function WinRateTooltip({ active, payload }) {
-  if (!active || !payload || payload.length === 0) {
+function WinRateTooltip({ active, payload }: TooltipContentProps) {
+  if (!active || payload.length === 0) {
     return null;
   }
 
-  const point = payload[0].payload;
+  const point: WinRatePoint = payload[0].payload;
 
   return (
     <ChartTooltip
@@ -138,8 +162,8 @@ function WinRateTooltip({ active, payload }) {
   );
 }
 
-function axisTicks(min, max, step) {
-  const ticks = [];
+function axisTicks(min: number, max: number, step: number) {
+  const ticks: number[] = [];
   for (let tick = min; tick <= max; tick += step) {
     ticks.push(tick);
   }
@@ -160,7 +184,7 @@ export function WinRateScatterSkeleton() {
   );
 }
 
-export function WinRateScatter({ decks }) {
+export function WinRateScatter({ decks }: { decks: Deck[] }) {
   if (decks.length === 0) {
     return null;
   }
@@ -243,11 +267,19 @@ export function WinRateScatter({ decks }) {
           />
           <Tooltip
             cursor={{ stroke: CHART_BASELINE, strokeDasharray: "3 3" }}
-            content={<WinRateTooltip />}
+            content={WinRateTooltip}
           />
           <Scatter
             data={points}
-            shape={(props) => <WinRateMark {...props} labelled={labelled} />}
+            shape={({ cx, cy, size, payload }) => (
+              <WinRateMark
+                cx={cx}
+                cy={cy}
+                size={size}
+                payload={payload}
+                labelled={labelled}
+              />
+            )}
             isAnimationActive={false}
           />
         </ScatterChart>
