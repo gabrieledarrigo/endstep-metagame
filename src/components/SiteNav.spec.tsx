@@ -40,6 +40,12 @@ describe("SiteNav", () => {
     expect(matchups.getAttribute("aria-current")).toBe("page");
   });
 
+  it("marks the matchup table as the current page under a trailing slash", () => {
+    const { matchups } = renderAt("/matchups/?window=30d");
+
+    expect(matchups.getAttribute("aria-current")).toBe("page");
+  });
+
   it("marks no page on a deck page", () => {
     const { overview, matchups } = renderAt(
       "/decks/affinity-e93f5f74?window=30d",

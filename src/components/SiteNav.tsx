@@ -17,7 +17,7 @@ export function SiteNav() {
           key={page.path}
           className="site-nav__link"
           to={{ pathname: page.path, search: `?window=${timeWindow}` }}
-          end
+          end={page.path === "/"}
         >
           {page.label}
         </NavLink>
