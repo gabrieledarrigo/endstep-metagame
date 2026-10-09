@@ -24,7 +24,7 @@ describe("App", () => {
     vi.restoreAllMocks();
   });
 
-  it("opens a deck's page with the same window, and back returns to the overview", async () => {
+  it("opens a deck's page from a card or a table name with the same window, and back returns to the overview", async () => {
     history.replaceState(null, "", "/?window=7d");
     render(<App />);
 
@@ -53,5 +53,20 @@ describe("App", () => {
     expect(
       screen.getByRole("button", { name: "7d", pressed: true }),
     ).toBeTruthy();
+
+    const [, tableName] = await screen.findAllByRole("link", {
+      name: "Monster Tron",
+    });
+    fireEvent.click(tableName);
+
+    expect(
+      await screen.findByRole("heading", {
+        level: 1,
+        name: "Deck Endstep Pauper metagame",
+      }),
+    ).toBeTruthy();
+    expect(location.pathname + location.search).toBe(
+      "/decks/monster-tron-1bc68613?window=7d",
+    );
   });
 });
