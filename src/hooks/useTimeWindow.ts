@@ -1,17 +1,25 @@
 import { useCallback, useEffect, useState } from "react";
+import type { TimeWindow } from "../api/types";
 import { DEFAULT_WINDOW, WINDOWS } from "../config";
 
 function readTimeWindow() {
   const value = new URLSearchParams(location.search).get("window");
-  return WINDOWS.includes(value) ? value : DEFAULT_WINDOW;
+  return WINDOWS.find((preset) => preset === value) ?? DEFAULT_WINDOW;
 }
 
-function timeWindowUrl(value) {
+function timeWindowUrl(value: TimeWindow) {
   const url = new URL(location.href);
   url.searchParams.set("window", value);
   return url;
 }
 
+/**
+ * Keeps the selected time window in the `window` query parameter.
+ *
+ * On mount it writes the window it read back to the address, so a missing or unknown value becomes the default. Back and forward restore the window from the address.
+ *
+ * @returns The selected window, and a function that selects another one. The function pushes a history entry, or replaces the current one when its second argument is `true`.
+ */
 export function useTimeWindow() {
   const [value, setValue] = useState(readTimeWindow);
 
@@ -24,7 +32,7 @@ export function useTimeWindow() {
   }, []);
 
   const select = useCallback(
-    (next, replace) => {
+    (next: TimeWindow, replace?: boolean) => {
       if (next === value) {
         return;
       }
@@ -36,5 +44,5 @@ export function useTimeWindow() {
     [value],
   );
 
-  return [value, select];
+  return [value, select] as const;
 }
