@@ -1,7 +1,7 @@
 import type { Deck } from "../api/types";
 import "./ShareChange.css";
 
-const NO_CHANGE: Record<NonNullable<Deck["shareChange"]["reason"]>, string> = {
+const NO_CHANGE: Record<string, string> = {
   previous_window_empty: "no earlier data",
   no_previous_window: "no earlier window",
 };
@@ -9,10 +9,10 @@ const NO_CHANGE: Record<NonNullable<Deck["shareChange"]["reason"]>, string> = {
 export function ShareChange({ change }: { change: Deck["shareChange"] }) {
   const { points, reason } = change;
 
-  if (points === null) {
+  if (typeof points !== "number") {
     return (
       <span className="delta delta--unavailable">
-        {reason ? NO_CHANGE[reason] : "not available"}
+        {(reason && NO_CHANGE[reason]) || "not available"}
       </span>
     );
   }
