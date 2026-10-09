@@ -49,7 +49,7 @@ afterEach(() => {
 });
 
 describe("the overview page", () => {
-  it("loads through the proxy, recovers on retry, shows a window it has seen at once, and never shows late data while a window loads", async () => {
+  it("loads through the proxy, recovers on retry, shows a window it has seen at once, and ignores a late response for a window the reader left", async () => {
     const api = stubApi();
     document.body.innerHTML = '<div id="root"></div>';
 
