@@ -1,5 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import detail from "../test/fixtures/deck.json";
 import decks from "../test/fixtures/decks.json";
 import series from "../test/fixtures/share-series.json";
 import { App } from "./App";
@@ -15,7 +16,7 @@ describe("App", () => {
         );
 
         if (deck) {
-          return Promise.resolve(Response.json({ deck }));
+          return Promise.resolve(Response.json({ ...detail, deck }));
         }
 
         return Promise.resolve(
