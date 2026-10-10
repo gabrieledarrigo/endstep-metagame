@@ -1,10 +1,17 @@
 /// <reference types="vitest/config" />
 import { defineConfig, type Connect, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
+import matchups from "./api/matchups.ts";
 import metagame from "./api/metagame.ts";
 
-const FUNCTION = "/api/metagame";
-const PREFIX = `${FUNCTION}/`;
+const METAGAME = "/api/metagame";
+const METAGAME_PREFIX = `${METAGAME}/`;
+const MATCHUPS = "/api/matchups";
+
+type FunctionTarget = {
+  handler: { fetch: (req: Request) => Promise<Response> };
+  request: Request;
+};
 
 type Cached = {
   expires: number;
@@ -14,17 +21,59 @@ type Cached = {
 };
 
 /**
+ * Builds the request a Vercel function would receive for a development request, with the rewrite from `vercel.json`.
+ *
+ * @param url - The request's URL, as the dev server received it.
+ * @param method - The request's method.
+ * @returns The function and its request, or `null` when the URL is not a function's. The matchup function gets the raw query string unchanged, because it matches it byte for byte, §4.4.
+ */
+function functionRequest(
+  url: string,
+  method: string | undefined,
+): FunctionTarget | null {
+  const parsed = new URL(url, "http://localhost");
+
+  if (parsed.pathname === MATCHUPS) {
+    return {
+      handler: matchups,
+      request: new Request(`http://localhost${url}`, { method }),
+    };
+  }
+
+  if (
+    parsed.pathname !== METAGAME &&
+    !parsed.pathname.startsWith(METAGAME_PREFIX)
+  ) {
+    return null;
+  }
+
+  if (parsed.pathname.startsWith(METAGAME_PREFIX)) {
+    parsed.searchParams.set(
+      "path",
+      parsed.pathname.slice(METAGAME_PREFIX.length),
+    );
+  }
+
+  return {
+    handler: metagame,
+    request: new Request(`http://localhost${METAGAME}?${parsed.searchParams}`, {
+      method,
+    }),
+  };
+}
+
+/**
  * Serves the Vercel functions during development, with the rewrite from `vercel.json` and the cache lifetime each response declares.
  *
- * @returns A Vite plugin that answers `/api/metagame/*` for both `vite` and `vite preview`.
+ * @returns A Vite plugin that answers `/api/metagame/*` and `/api/matchups` for both `vite` and `vite preview`.
  */
 function api(): Plugin {
   const cache = new Map<string, Cached>();
 
   const middleware: Connect.NextHandleFunction = async (req, res, next) => {
-    const url = new URL(req.url ?? "/", "http://localhost");
+    const target = functionRequest(req.url ?? "/", req.method);
 
-    if (url.pathname !== FUNCTION && !url.pathname.startsWith(PREFIX)) {
+    if (!target) {
       next();
       return;
     }
@@ -34,14 +83,7 @@ function api(): Plugin {
 
     try {
       if (!entry || entry.expires < Date.now()) {
-        if (url.pathname.startsWith(PREFIX)) {
-          url.searchParams.set("path", url.pathname.slice(PREFIX.length));
-        }
-        const response = await metagame.fetch(
-          new Request(`http://localhost${FUNCTION}?${url.searchParams}`, {
-            method: req.method,
-          }),
-        );
+        const response = await target.handler.fetch(target.request);
         const maxAge = Number(
           /s-maxage=(\d+)/.exec(
             response.headers.get("cache-control") ?? "",
