@@ -6,7 +6,7 @@ const rootTokens = getComputedStyle(document.documentElement);
  * @param name - The custom property, such as `--s1`.
  * @returns The token's value, or an empty string when the property is not set.
  */
-export function token(name: string) {
+export function token(name: string): string {
   return rootTokens.getPropertyValue(name).trim();
 }
 

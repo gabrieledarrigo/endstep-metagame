@@ -21,7 +21,13 @@ const CHART_RESIDUAL = token("--text-400");
 const CHART_LABEL = token("--text-900");
 const CHART_NAME = token("--text-600");
 
-function shareBars({ items, total }: Page<Deck>) {
+type ShareBar = {
+  name: string;
+  share: number;
+  residual: boolean;
+};
+
+function shareBars({ items, total }: Page<Deck>): ShareBar[] {
   const bars = items.map((deck) => ({
     name: deck.name,
     share: deck.share.rate * 100,

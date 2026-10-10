@@ -73,10 +73,10 @@ function api(): Plugin {
 
   return {
     name: "endstep-api",
-    configureServer(server) {
+    configureServer(server): void {
       server.middlewares.use(middleware);
     },
-    configurePreviewServer(server) {
+    configurePreviewServer(server): void {
       server.middlewares.use(middleware);
     },
   };

@@ -24,7 +24,7 @@ function Address() {
   );
 }
 
-function renderAt(path: string) {
+function renderAt(path: string): void {
   render(
     <MemoryRouter initialEntries={[path]}>
       <Routes>

@@ -1,10 +1,10 @@
 import { screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { type Mock, afterEach, describe, expect, it, vi } from "vitest";
 import { renderWithQueries } from "../../../test/renderWithQueries";
 import { DeckPage } from "./DeckPage";
 
-function renderWith(response: Response) {
+function renderWith(response: Response): Mock<typeof fetch> {
   const fetchMock = vi.fn<typeof fetch>(() => Promise.resolve(response));
   vi.stubGlobal("fetch", fetchMock);
 

@@ -1,13 +1,16 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { type Mock, afterEach, describe, expect, it, vi } from "vitest";
 import metagame from "./metagame";
 
 const UPSTREAM = "https://endstep.cc/api/metagame/v1";
 
-function request(query: string, method = "GET") {
+function request(query: string, method = "GET"): Request {
   return new Request(`http://localhost/api/metagame?${query}`, { method });
 }
 
-function upstream(status = 200, contentType = "application/json") {
+function upstream(
+  status = 200,
+  contentType = "application/json",
+): Mock<typeof fetch> {
   const fetchMock = vi.fn<typeof fetch>(
     async () =>
       new Response('{"ok":true}', {

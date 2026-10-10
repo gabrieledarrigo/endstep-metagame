@@ -1,14 +1,14 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { type Mock, afterEach, describe, expect, it, vi } from "vitest";
 import { ApiError, getJson, isRetryable } from "./client";
 
-function stubFetch(response: () => Promise<Response>) {
+function stubFetch(response: () => Promise<Response>): Mock<typeof fetch> {
   const fetchMock = vi.fn<typeof fetch>(response);
   vi.stubGlobal("fetch", fetchMock);
 
   return fetchMock;
 }
 
-function request() {
+function request(): Promise<{ ok: boolean }> {
   return getJson<{ ok: boolean }>(
     "Pauper/decks",
     { window: "7d" },

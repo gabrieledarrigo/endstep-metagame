@@ -1,8 +1,15 @@
+import type { DefaultOptions } from "@tanstack/react-query";
 import { describe, expect, it } from "vitest";
 import { ApiError } from "./client";
 import { createQueryClient } from "./queryClient";
 
-function policy() {
+type Policy = {
+  queries: NonNullable<DefaultOptions["queries"]>;
+  retry: (failureCount: number, error: Error) => boolean;
+  retryDelay: (failureCount: number, error: Error) => number;
+};
+
+function policy(): Policy {
   const queries = createQueryClient().getDefaultOptions().queries ?? {};
   const { retry, retryDelay } = queries;
 

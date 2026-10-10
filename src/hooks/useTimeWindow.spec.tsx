@@ -1,11 +1,24 @@
-import { act, renderHook } from "@testing-library/react";
+import { type RenderHookResult, act, renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { MemoryRouter, useLocation, useNavigationType } from "react-router";
+import {
+  MemoryRouter,
+  type NavigationType,
+  useLocation,
+  useNavigationType,
+} from "react-router";
+import type { TimeWindow } from "../api/types";
 import { describe, expect, it } from "vitest";
 import { useTimeWindow } from "./useTimeWindow";
 
-function renderAt(path: string) {
-  const wrapper = ({ children }: { children: ReactNode }) => (
+type HookState = {
+  timeWindow: TimeWindow;
+  select: (next: TimeWindow, replace?: boolean) => void;
+  address: string;
+  navigationType: NavigationType;
+};
+
+function renderAt(path: string): RenderHookResult<HookState, unknown> {
+  const Wrapper = ({ children }: { children: ReactNode }) => (
     <MemoryRouter initialEntries={[path]}>{children}</MemoryRouter>
   );
 
@@ -21,7 +34,7 @@ function renderAt(path: string) {
         navigationType: useNavigationType(),
       };
     },
-    { wrapper },
+    { wrapper: Wrapper },
   );
 }
 

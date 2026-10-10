@@ -34,7 +34,7 @@ function Matchups() {
   return <h1 tabIndex={-1}>Matchups</h1>;
 }
 
-function renderAt(path: string) {
+function renderAt(path: string): void {
   render(
     <MemoryRouter initialEntries={[path]}>
       <Routes>

@@ -3,7 +3,7 @@ import { MemoryRouter } from "react-router";
 import { describe, expect, it } from "vitest";
 import { WindowLink } from "./WindowLink";
 
-function renderAt(path: string) {
+function renderAt(path: string): HTMLElement {
   render(
     <MemoryRouter initialEntries={[path]}>
       <WindowLink to="/decks/affinity-e93f5f74" className="deck">

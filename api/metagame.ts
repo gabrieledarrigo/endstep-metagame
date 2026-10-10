@@ -1,5 +1,14 @@
-const UPSTREAM = "https://endstep.cc/api/metagame/v1";
-const TIMEOUT_MS = 8000;
+import {
+  BASE_HEADERS,
+  TIMEOUT_MS,
+  UPSTREAM,
+  cacheControl,
+  errorResponse,
+  hasNoBody,
+  methodResponse,
+} from "./_shared.js";
+
+const RATE_LIMIT_SECONDS = 10;
 
 const ENDPOINTS = [
   ["formats"],
@@ -30,7 +39,6 @@ const QUERY_PARAMS = [
 ];
 
 const SEGMENT = /^[A-Za-z0-9_-]+$/;
-const NO_BODY = [204, 205, 304];
 
 /**
  * Checks whether the path segments match one of the allow-listed Endstep endpoints.
@@ -40,7 +48,7 @@ const NO_BODY = [204, 205, 304];
  * @param segments - The path segments that follow `/api/metagame/`.
  * @returns `true` when every segment is safe and the sequence matches an endpoint shape.
  */
-function isAllowed(segments: string[]) {
+function isAllowed(segments: string[]): boolean {
   if (segments.length === 0) {
     return false;
   }
@@ -62,7 +70,7 @@ function isAllowed(segments: string[]) {
  * @param query - The query parameters of the incoming request.
  * @returns The filtered query string with a leading `?`, or an empty string when no parameter is left.
  */
-function forwardedQuery(query: URLSearchParams) {
+function forwardedQuery(query: URLSearchParams): string {
   const params = new URLSearchParams();
 
   for (const name of QUERY_PARAMS) {
@@ -78,24 +86,6 @@ function forwardedQuery(query: URLSearchParams) {
   return search ? `?${search}` : "";
 }
 
-/**
- * Selects the `Cache-Control` header for a response with the given upstream status.
- *
- * @param status - The HTTP status returned by Endstep.
- * @returns Five minutes at the edge for a success, ten seconds for a rate limit, and no caching for any other error.
- */
-function cacheControl(status: number) {
-  if (status < 400 && !NO_BODY.includes(status)) {
-    return "public, s-maxage=300, stale-while-revalidate=600";
-  }
-
-  if (status === 429) {
-    return "public, s-maxage=10";
-  }
-
-  return "no-store";
-}
-
 export default {
   /**
    * Proxies a metagame request to the Endstep API and returns the response with CORS headers.
@@ -107,53 +97,18 @@ export default {
    * @returns A Promise resolving to the upstream response, or to a JSON error: 400 for a path outside the allow-list, 405 for any other method, 502 when Endstep is unreachable.
    * @see https://vercel.com/docs/functions/functions-api-reference#fetch-web-standard
    */
-  fetch: async function handler(req: Request) {
-    const baseHeaders: Record<string, string> = {
-      "Access-Control-Allow-Origin": "*",
-      "Cache-Control": "no-store",
-      "Content-Type": "application/json",
-    };
+  fetch: async function handler(req: Request): Promise<Response> {
+    const refused = methodResponse(req);
 
-    if (req.method === "OPTIONS") {
-      return new Response(null, {
-        headers: {
-          ...baseHeaders,
-          "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
-          "Access-Control-Allow-Headers": "*",
-          "Access-Control-Max-Age": "86400",
-        },
-        status: 204,
-      });
-    }
-
-    if (req.method !== "GET" && req.method !== "HEAD") {
-      return new Response(
-        JSON.stringify({
-          error: "Method not allowed",
-        }),
-        {
-          headers: {
-            ...baseHeaders,
-            Allow: "GET, HEAD, OPTIONS",
-          },
-          status: 405,
-        },
-      );
+    if (refused) {
+      return refused;
     }
 
     const query = new URL(req.url).searchParams;
     const segments = query.getAll("path").join("/").split("/").filter(Boolean);
 
     if (!isAllowed(segments)) {
-      return new Response(
-        JSON.stringify({
-          error: "Unsupported metagame path",
-        }),
-        {
-          headers: baseHeaders,
-          status: 400,
-        },
-      );
+      return errorResponse(400, "Unsupported metagame path");
     }
 
     const target = `${UPSTREAM}/${segments.join("/")}${forwardedQuery(query)}`;
@@ -175,22 +130,14 @@ export default {
       contentType = upstream.headers.get("content-type");
       body = await upstream.text();
     } catch {
-      return new Response(
-        JSON.stringify({
-          error: "Endstep is unreachable",
-        }),
-        {
-          headers: baseHeaders,
-          status: 502,
-        },
-      );
+      return errorResponse(502, "Endstep is unreachable");
     }
 
-    return new Response(NO_BODY.includes(status) ? null : body, {
+    return new Response(hasNoBody(status) ? null : body, {
       headers: {
-        ...baseHeaders,
+        ...BASE_HEADERS,
         "Content-Type": contentType ?? "application/json",
-        "Cache-Control": cacheControl(status),
+        "Cache-Control": cacheControl(status, RATE_LIMIT_SECONDS),
       },
       status,
     });

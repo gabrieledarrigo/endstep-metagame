@@ -15,7 +15,10 @@ import type {
  * @returns A Promise resolving to the first page of `PAGE_SIZE` decks, with the window's totals and provenance.
  * @throws The errors `getJson` throws.
  */
-export function fetchDecks(timeWindow: TimeWindow, signal: AbortSignal) {
+export function fetchDecks(
+  timeWindow: TimeWindow,
+  signal: AbortSignal,
+): Promise<DecksResponse> {
   return getJson<DecksResponse>(
     `${FORMAT}/decks`,
     {
@@ -38,7 +41,10 @@ export function fetchDecks(timeWindow: TimeWindow, signal: AbortSignal) {
  * @returns A Promise resolving to one series per deck, with a point for every day of the window.
  * @throws The errors `getJson` throws.
  */
-export function fetchSeries(timeWindow: TimeWindow, signal: AbortSignal) {
+export function fetchSeries(
+  timeWindow: TimeWindow,
+  signal: AbortSignal,
+): Promise<ShareSeriesResponse> {
   return getJson<ShareSeriesResponse>(
     `${FORMAT}/share-series`,
     { window: timeWindow, population: POPULATION },
@@ -59,7 +65,7 @@ export function fetchDeck(
   slug: string,
   timeWindow: TimeWindow,
   signal: AbortSignal,
-) {
+): Promise<DeckDetail> {
   return getJson<DeckDetail>(
     `${FORMAT}/decks/${slug}`,
     { window: timeWindow, population: POPULATION },

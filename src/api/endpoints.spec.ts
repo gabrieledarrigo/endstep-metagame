@@ -1,8 +1,8 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { type Mock, afterEach, describe, expect, it, vi } from "vitest";
 import { fetchDeck, fetchDecks, fetchSeries } from "./endpoints";
 
-function stubFetch() {
-  const fetchMock = vi.fn((input: RequestInfo | URL) =>
+function stubFetch(): Mock<typeof fetch> {
+  const fetchMock = vi.fn<typeof fetch>((input) =>
     Promise.resolve(Response.json({ requested: String(input) })),
   );
   vi.stubGlobal("fetch", fetchMock);

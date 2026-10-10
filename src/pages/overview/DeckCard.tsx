@@ -6,7 +6,7 @@ import { WindowLink } from "../../components/WindowLink";
 import { formatCount, percent, tooltipShare } from "../../format";
 import "./DeckCard.css";
 
-function artSource(cardName: string) {
+function artSource(cardName: string): string {
   return `https://endstep.cc/api/cards/image?${new URLSearchParams({
     name: cardName,
     version: "art_crop",

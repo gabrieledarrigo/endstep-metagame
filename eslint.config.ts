@@ -1,9 +1,43 @@
 import js from "@eslint/js";
+import type { ESLint, Rule } from "eslint";
 import prettier from "eslint-config-prettier";
 import reactHooks from "eslint-plugin-react-hooks";
 import { defineConfig, globalIgnores } from "eslint/config";
 import globals from "globals";
 import tseslint from "typescript-eslint";
+
+const returnTypes = (tseslint.plugin as ESLint.Plugin).rules?.[
+  "explicit-function-return-type"
+] as Rule.RuleModule;
+
+function isComponent(node: Rule.Node): boolean {
+  const parent = node.parent;
+  const name =
+    node.type === "FunctionDeclaration"
+      ? node.id?.name
+      : parent?.type === "VariableDeclarator" && parent.id.type === "Identifier"
+        ? parent.id.name
+        : undefined;
+
+  return name !== undefined && /^[A-Z]/.test(name);
+}
+
+const plainFunctionReturnTypes: Rule.RuleModule = {
+  ...returnTypes,
+  create(context) {
+    return returnTypes.create(
+      Object.create(context, {
+        report: {
+          value: (descriptor: Rule.ReportDescriptor & { node: Rule.Node }) => {
+            if (!isComponent(descriptor.node)) {
+              context.report(descriptor);
+            }
+          },
+        },
+      }),
+    );
+  },
+};
 
 export default defineConfig([
   globalIgnores(["dist", "docs", ".claude", ".vercel"]),
@@ -24,6 +58,23 @@ export default defineConfig([
   {
     files: ["api/**", "*.config.{js,ts}"],
     languageOptions: { globals: globals.node },
+  },
+  {
+    files: ["**/*.ts"],
+    rules: {
+      "@typescript-eslint/explicit-function-return-type": "error",
+    },
+  },
+  {
+    files: ["**/*.tsx"],
+    plugins: {
+      local: {
+        rules: { "explicit-function-return-type": plainFunctionReturnTypes },
+      },
+    },
+    rules: {
+      "local/explicit-function-return-type": "error",
+    },
   },
   prettier,
   {

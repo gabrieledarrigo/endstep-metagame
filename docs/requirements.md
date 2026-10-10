@@ -132,6 +132,7 @@ Public CORS proxies were tested on 2026-09-20 and rejected. All six failed. allo
 1. **The front end**. A Vite application in `src/`, built to `dist/` on Vercel. It serves all three pages from one `index.html`.
 2. **`api/metagame.ts`**. The proxy. It forwards `GET` requests to `https://endstep.cc/api/metagame/v1/...`, keeps the allow-listed query parameters, and returns the upstream body with CORS headers.
 3. **`api/matchups.ts`**. The matchup aggregator. It builds the top-24 matrix on the server and returns it in one response. See §4.4. It is a separate function so the proxy stays a pass-through.
+4. **`api/_shared.ts`**. The code both functions share: the upstream address and timeout, the CORS headers, the method rules, the error responses and the cache rules. Vercel does not deploy a file in `api/` whose name starts with an underscore, so it is not a function of its own.
 
 ### 4.3 Proxy behaviour
 
@@ -161,7 +162,7 @@ Response:
 }
 ```
 
-- `window` is `provenance.window` from step 1, unchanged. §6.7 applies when it is displayed.
+- `window` holds `from` and `to` of `provenance.window` from step 1, unchanged. §6.7 applies when it is displayed.
 - `decks` is in share order. `share` is `share.rate`.
 - `cells[a][b]` is deck `a`'s record against deck `b`. A pair absent from both decks' first 50 rows has no entry. The mirror has no entry.
 - About 88 KB uncompressed and 21 KB compressed, computed from the 30d data.
@@ -430,10 +431,12 @@ The front end is a Vite application in TypeScript with React 19. `npm run build`
 
 | Tool | Version | Configuration |
 |---|---|---|
-| ESLint | 10 | Flat config. `typescript-eslint` recommended rules, the React Hooks rules, `curly: all`, and `eslint-config-prettier`, so ESLint never disputes a formatting choice |
+| ESLint | 10 | Flat config. `typescript-eslint` recommended rules, the React Hooks rules, `curly: all`, explicit return types on functions and methods, and `eslint-config-prettier`, so ESLint never disputes a formatting choice |
 | Prettier | 3 | Its defaults. `.prettierignore` excludes `dist/`, `docs/` and the lockfile. The documents in `docs/` are written by hand |
 
 `curly: all` requires the braces. Prettier always puts a block's body on its own line. Together they enforce the brace rule in `AGENTS.md`.
+
+`explicit-function-return-type` applies to the TypeScript files, with its default options. A callback whose type is already known, such as an argument to a typed function, needs no return type. In `.tsx` files, a wrapper in `eslint.config.ts` skips React components: a function declaration whose name starts with a capital letter, or a function assigned to a variable whose name does. JavaScript files are left out, since they cannot declare a return type.
 
 **Tests.** Vitest 5 with React Testing Library 16 and jsdom. Vitest runs on the Vite configuration, so TypeScript, JSX, CSS imports and ES modules need no setup of their own. Its API matches Jest's.
 
@@ -583,6 +586,6 @@ A later layer overrides an earlier one, whatever the selectors' specificity and 
 1. ~~Deck card link target.~~ Settled: our deck page, which links to endstep.cc. FR-10.
 2. ~~Share composition chart form.~~ Settled: ranked horizontal bars, FR-6.
 3. **Series count on the time chart.** Currently the API default of 8. Charting more than 8 of the 24 grid decks is possible by passing deck UUIDs to `share-series`, at no extra request cost.
-4. **Matchup coverage on other windows.** At 30d, every top-24 opponent was inside the first 50 matchup rows. Not yet checked on `1d`, `7d`, `14d` and `season`. §4.4 fills a pair found in one direction only. A pair outside both decks' first 50 rows reads as no data.
+4. ~~Matchup coverage on other windows.~~ Settled: checked on all five windows on 2026-10-10. At `7d`, `14d`, `30d` and `season`, all 276 pairs of the top 24 appear in both directions. At `1d`, 270 appear in both directions and 3 in one direction only, which §4.4 fills. The other 3 never met: one deck of each pair has all its opponents inside its first 50 rows. No pair was lost to the 50-row limit.
 5. **What the toss blocks count.** Endstep presents `playDraw` as game 1 results. Confirm against the numbers before FR-11 labels them.
 6. **Deployment Checks on this plan.** Vercel's documentation does not say which plans offer Deployment Checks. If this project's plan lacks them, the fallback is to turn off Vercel's Git deploys and deploy from the `ci` workflow with the Vercel CLI, which needs a `VERCEL_TOKEN` secret and the project IDs in GitHub.

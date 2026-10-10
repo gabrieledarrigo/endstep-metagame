@@ -16,7 +16,7 @@ type Sort = {
   direction: "ascending" | "descending";
 };
 
-function matchesOf(deck: Deck) {
+function matchesOf(deck: Deck): number {
   return deck.matchWinRate.wins + deck.matchWinRate.losses;
 }
 
@@ -54,7 +54,7 @@ function readSort(params: URLSearchParams): Sort {
   return { key, direction: firstDirection(key) };
 }
 
-function writeSort(params: URLSearchParams, sort: Sort) {
+function writeSort(params: URLSearchParams, sort: Sort): URLSearchParams {
   if (
     sort.key === DEFAULT_SORT.key &&
     sort.direction === DEFAULT_SORT.direction
@@ -69,7 +69,7 @@ function writeSort(params: URLSearchParams, sort: Sort) {
   return params;
 }
 
-function sortDecks(decks: Deck[], { key, direction }: Sort) {
+function sortDecks(decks: Deck[], { key, direction }: Sort): Deck[] {
   const sign = direction === "ascending" ? 1 : -1;
 
   return [...decks].sort((left, right) => sign * COMPARE[key](left, right));
@@ -120,7 +120,7 @@ export function DeckTable({ decks }: { decks: Deck[] }) {
     return null;
   }
 
-  const onSort = (key: SortKey) => {
+  const onSort = (key: SortKey): void => {
     const next: Sort =
       key === sort.key
         ? {
