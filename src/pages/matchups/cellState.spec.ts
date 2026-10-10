@@ -122,10 +122,12 @@ describe("cellSummary", () => {
     ).toBe("Affinity against Monster Tron: 48%, within the range of chance");
   });
 
-  it("gives only the verdict of a cell without a rate", () => {
+  it("gives the verdict of a cell without a rate, with the decided matches of a gated one", () => {
     expect(
       cellSummary("Affinity", "Naya Gates", "gated", CELLS.affinity.gates),
-    ).toBe("Affinity against Naya Gates: too few to call");
+    ).toBe(
+      "Affinity against Naya Gates: too few to call, 18 of the 20 matches needed",
+    );
     expect(cellSummary("Affinity", "Elves", "none", undefined)).toBe(
       "Affinity against Elves: no data",
     );

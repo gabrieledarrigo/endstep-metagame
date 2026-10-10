@@ -108,9 +108,15 @@ describe("MatchupTable", () => {
     renderTable();
 
     expect(
-      cell("Affinity against Naya Gates: too few to call").textContent,
+      cell(
+        "Affinity against Naya Gates: too few to call, 18 of the 20 matches needed",
+      ).textContent,
     ).toBe("");
-    expect(cell("Naya Gates against Affinity: too few to call")).toBeTruthy();
+    expect(
+      cell(
+        "Naya Gates against Affinity: too few to call, 18 of the 20 matches needed",
+      ),
+    ).toBeTruthy();
     expect(
       cell("Mono Red Madness against Naya Gates: no data").textContent,
     ).toBe("·");
@@ -148,7 +154,9 @@ describe("MatchupTable", () => {
     expect(focused()).toBe("Affinity");
 
     press("End");
-    expect(focused()).toBe("Affinity against Naya Gates: too few to call");
+    expect(focused()).toBe(
+      "Affinity against Naya Gates: too few to call, 18 of the 20 matches needed",
+    );
 
     press("ArrowUp");
     expect(focused()).toBe("Naya Gates");
@@ -186,7 +194,11 @@ describe("MatchupTable", () => {
     press("Escape");
     expect(screen.queryByRole("tooltip")).toBeNull();
 
-    focus(cell("Affinity against Naya Gates: too few to call"));
+    focus(
+      cell(
+        "Affinity against Naya Gates: too few to call, 18 of the 20 matches needed",
+      ),
+    );
     expect(screen.getByRole("tooltip").textContent).toBe(
       "Affinity against Naya GatesWins8Losses10Too few to call: 18 of the 20 matches needed.",
     );

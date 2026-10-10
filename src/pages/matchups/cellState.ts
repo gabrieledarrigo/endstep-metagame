@@ -92,7 +92,7 @@ export function cellState(
  * @param columnName - The column deck's name.
  * @param state - The cell's state.
  * @param cell - The row deck's record against the column deck, when there is one.
- * @returns A sentence such as `Affinity against Elves: 35%, clear result`.
+ * @returns A sentence such as `Affinity against Elves: 35%, clear result`. A gated cell adds its decided matches against the 20 needed, §6.8.
  */
 export function cellSummary(
   rowName: string,
@@ -105,5 +105,10 @@ export function cellSummary(
       ? ""
       : ` ${Math.round(cell.rate * 100)}%,`;
 
-  return `${rowName} against ${columnName}:${rate} ${VERDICT[state]}`;
+  const count =
+    state === "gated" && cell !== undefined
+      ? `, ${cell.wins + cell.losses} of the 20 matches needed`
+      : "";
+
+  return `${rowName} against ${columnName}:${rate} ${VERDICT[state]}${count}`;
 }
