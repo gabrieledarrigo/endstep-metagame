@@ -1,4 +1,4 @@
-import { fireEvent, screen } from "@testing-library/react";
+import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import {
   type Mock,
@@ -40,10 +40,11 @@ function renderAt(path: string): void {
   );
 }
 
-function pressedWindow(): string | null | undefined {
-  return screen
-    .getAllByRole("button", { pressed: true })
-    .find((button) => button.closest("[role='group']"))?.textContent;
+function pressedWindow(): string | null {
+  return within(screen.getByRole("group", { name: "Time window" })).getByRole(
+    "button",
+    { pressed: true },
+  ).textContent;
 }
 
 beforeEach(() => {
@@ -70,7 +71,9 @@ describe("OverviewPage", () => {
     expect(
       await screen.findByRole("region", { name: "Decks by meta share" }),
     ).toBeTruthy();
-    expect(screen.getByRole("status").textContent).toBe("");
+    await waitFor(() => {
+      expect(screen.getByRole("status").textContent).toBe("");
+    });
     expect(screen.getByText("236,728")).toBeTruthy();
     expect(screen.getByRole("table")).toBeTruthy();
     for (const name of [
@@ -91,9 +94,14 @@ describe("OverviewPage", () => {
 
     expect(pressedWindow()).toBe("7d");
     expect(
-      fetchMock.mock.calls.some(([input]) =>
-        String(input).includes("window=7d"),
-      ),
+      fetchMock.mock.calls.some(([input]) => {
+        const url = new URL(String(input), "http://localhost");
+
+        return (
+          url.pathname.endsWith("/decks") &&
+          url.searchParams.get("window") === "7d"
+        );
+      }),
     ).toBe(true);
   });
 
