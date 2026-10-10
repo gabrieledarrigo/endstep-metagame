@@ -162,7 +162,7 @@ Response:
 }
 ```
 
-- `window` is `provenance.window` from step 1, unchanged. §6.7 applies when it is displayed.
+- `window` holds `from` and `to` of `provenance.window` from step 1, unchanged. §6.7 applies when it is displayed.
 - `decks` is in share order. `share` is `share.rate`.
 - `cells[a][b]` is deck `a`'s record against deck `b`. A pair absent from both decks' first 50 rows has no entry. The mirror has no entry.
 - About 88 KB uncompressed and 21 KB compressed, computed from the 30d data.
