@@ -48,7 +48,7 @@ const SEGMENT = /^[A-Za-z0-9_-]+$/;
  * @param segments - The path segments that follow `/api/metagame/`.
  * @returns `true` when every segment is safe and the sequence matches an endpoint shape.
  */
-function isAllowed(segments: string[]) {
+function isAllowed(segments: string[]): boolean {
   if (segments.length === 0) {
     return false;
   }
@@ -70,7 +70,7 @@ function isAllowed(segments: string[]) {
  * @param query - The query parameters of the incoming request.
  * @returns The filtered query string with a leading `?`, or an empty string when no parameter is left.
  */
-function forwardedQuery(query: URLSearchParams) {
+function forwardedQuery(query: URLSearchParams): string {
   const params = new URLSearchParams();
 
   for (const name of QUERY_PARAMS) {
@@ -97,7 +97,7 @@ export default {
    * @returns A Promise resolving to the upstream response, or to a JSON error: 400 for a path outside the allow-list, 405 for any other method, 502 when Endstep is unreachable.
    * @see https://vercel.com/docs/functions/functions-api-reference#fetch-web-standard
    */
-  fetch: async function handler(req: Request) {
+  fetch: async function handler(req: Request): Promise<Response> {
     const refused = methodResponse(req);
 
     if (refused) {

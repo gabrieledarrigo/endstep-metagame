@@ -24,6 +24,20 @@ type Cell = Counts &
     | { gate: string; rate: null; low: null; high: null }
   );
 
+type MatrixDeck = {
+  id: string;
+  slug: string;
+  name: string;
+  colours: string[];
+  share: number;
+};
+
+type Matrix = {
+  window: { from: string; to: string };
+  decks: MatrixDeck[];
+  cells: Record<string, Record<string, Cell>>;
+};
+
 type UpstreamDeck = {
   id: string;
   slug: string;
@@ -57,7 +71,7 @@ class UpstreamError extends Error {
  * @param search - The raw query string of the request, with its leading `?`.
  * @returns The window, or `undefined` when the query string is anything other than `?window=` and one of the five windows.
  */
-function windowOf(search: string) {
+function windowOf(search: string): string | undefined {
   return WINDOWS.find((timeWindow) => search === `?window=${timeWindow}`);
 }
 
@@ -70,7 +84,10 @@ function windowOf(search: string) {
  * @throws An `UpstreamError` with the status when Endstep answers anything other than a success.
  * @throws The fetch or parse error when Endstep is unreachable, too slow, or answers with a body that is not JSON.
  */
-async function upstream<Body>(path: string, params: Record<string, string>) {
+async function upstream<Body>(
+  path: string,
+  params: Record<string, string>,
+): Promise<Body> {
   const response = await fetch(
     `${UPSTREAM}/${path}?${new URLSearchParams(params)}`,
     {
@@ -94,7 +111,7 @@ async function upstream<Body>(path: string, params: Record<string, string>) {
  * @param error - The error a build failed with.
  * @returns `true` for an upstream 429.
  */
-function isRateLimit(error: unknown) {
+function isRateLimit(error: unknown): boolean {
   return error instanceof UpstreamError && error.status === 429;
 }
 
@@ -157,7 +174,7 @@ function mirrored(cell: Cell): Cell {
  * @returns A Promise resolving to the window, the decks in share order, and each deck's record against the others.
  * @throws The first rate limit when any upstream call answers 429, or else the first failure.
  */
-async function build(timeWindow: string) {
+async function build(timeWindow: string): Promise<Matrix> {
   const fixed = { window: timeWindow, population: "rated" };
   const top = await upstream<DecksBody>("Pauper/decks", {
     ...fixed,
@@ -246,7 +263,7 @@ export default {
    * @returns A Promise resolving to the matrix, cached for five minutes, or to a JSON error: 400 for any other query string, 405 for any other method, 429 when Endstep rate limits a call, cached for 60 seconds, and 502 when any other call fails.
    * @see https://vercel.com/docs/functions/functions-api-reference#fetch-web-standard
    */
-  fetch: async function handler(req: Request) {
+  fetch: async function handler(req: Request): Promise<Response> {
     const refused = methodResponse(req);
 
     if (refused) {

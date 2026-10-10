@@ -15,7 +15,7 @@ const NO_BODY = [204, 205, 304];
  * @param status - An HTTP status.
  * @returns `true` for 204, 205 and 304.
  */
-export function hasNoBody(status: number) {
+export function hasNoBody(status: number): boolean {
   return NO_BODY.includes(status);
 }
 
@@ -31,7 +31,7 @@ export function errorResponse(
   status: number,
   message: string,
   headers: Record<string, string> = {},
-) {
+): Response {
   return new Response(JSON.stringify({ error: message }), {
     headers: { ...BASE_HEADERS, ...headers },
     status,
@@ -44,7 +44,7 @@ export function errorResponse(
  * @param req - The incoming request.
  * @returns A 204 for OPTIONS, a 405 for any method other than GET or HEAD, or `null` when the handler should go on.
  */
-export function methodResponse(req: Request) {
+export function methodResponse(req: Request): Response | null {
   if (req.method === "OPTIONS") {
     return new Response(null, {
       headers: {
@@ -73,7 +73,7 @@ export function methodResponse(req: Request) {
  * @param rateLimitSeconds - How long the edge holds a 429.
  * @returns Five minutes at the edge for a success with a body, `rateLimitSeconds` for a rate limit, and no caching otherwise.
  */
-export function cacheControl(status: number, rateLimitSeconds: number) {
+export function cacheControl(status: number, rateLimitSeconds: number): string {
   if (status < 400 && !hasNoBody(status)) {
     return "public, s-maxage=300, stale-while-revalidate=600";
   }

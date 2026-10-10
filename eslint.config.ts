@@ -25,6 +25,13 @@ export default defineConfig([
     files: ["api/**", "*.config.{js,ts}"],
     languageOptions: { globals: globals.node },
   },
+  {
+    files: ["api/**/*.ts"],
+    ignores: ["api/**/*.spec.ts"],
+    rules: {
+      "@typescript-eslint/explicit-function-return-type": "error",
+    },
+  },
   prettier,
   {
     rules: {
