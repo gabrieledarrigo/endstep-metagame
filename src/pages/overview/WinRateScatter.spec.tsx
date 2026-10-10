@@ -70,6 +70,29 @@ describe("WinRateScatter", () => {
 
     expect(screen.getByText("Affinity")).toBeTruthy();
     expect(screen.queryByText("Monster Tron")).toBeNull();
+    expect(
+      screen.getByText(
+        /1 deck with fewer than 20 decided matches is left out, too few to place\.$/,
+      ),
+    ).toBeTruthy();
+  });
+
+  it("keeps the section and says why when every deck is too few to place", () => {
+    const gated = DECKS.map((deck) => ({
+      ...deck,
+      matchWinRate: { ...deck.matchWinRate, wins: 9, losses: 3 },
+    }));
+
+    render(<WinRateScatter decks={gated} />);
+
+    expect(
+      screen.getByRole("heading", { name: "Win rate against share" }),
+    ).toBeTruthy();
+    expect(
+      screen.getByText(
+        "3 decks with fewer than 20 decided matches are left out, too few to place.",
+      ),
+    ).toBeTruthy();
   });
 
   it("draws nothing without decks", () => {

@@ -191,11 +191,27 @@ export function WinRateScatterSkeleton() {
   );
 }
 
+function leftOutNote(count: number): string {
+  return count === 1
+    ? "1 deck with fewer than 20 decided matches is left out, too few to place."
+    : `${count} decks with fewer than 20 decided matches are left out, too few to place.`;
+}
+
 export function WinRateScatter({ decks }: { decks: Deck[] }) {
   const points = winRatePoints(decks);
+  const leftOut = decks.length - points.length;
+
+  if (decks.length === 0) {
+    return null;
+  }
 
   if (points.length === 0) {
-    return null;
+    return (
+      <Panel className="chart-section win-rate">
+        <h2 className="chart-section__title">Win rate against share</h2>
+        <p className="chart-section__note">{leftOutNote(leftOut)}</p>
+      </Panel>
+    );
   }
 
   const rates = points.map((point) => point.winRate);
@@ -214,7 +230,11 @@ export function WinRateScatter({ decks }: { decks: Deck[] }) {
   return (
     <Panel className="chart-section win-rate">
       <h2 className="chart-section__title">Win rate against share</h2>
-      <p className="chart-section__note">{WIN_RATE_NOTE}</p>
+      <p className="chart-section__note">
+        {leftOut > 0
+          ? `${WIN_RATE_NOTE} ${leftOutNote(leftOut)}`
+          : WIN_RATE_NOTE}
+      </p>
 
       <ChartFrame className="win-rate__frame">
         <ScatterChart
