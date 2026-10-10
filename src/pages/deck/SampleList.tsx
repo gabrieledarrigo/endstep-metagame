@@ -85,8 +85,11 @@ export function SampleList({ list }: { list: SampleListData }) {
     side.length > 0 ? `${lines(main)}\n\n${lines(side)}` : lines(main);
 
   const copy = async (): Promise<void> => {
+    setStatus("");
+
     try {
       await navigator.clipboard.writeText(copied);
+      setFallback(false);
       setStatus(`Copied the ${what}.`);
     } catch {
       setStatus(

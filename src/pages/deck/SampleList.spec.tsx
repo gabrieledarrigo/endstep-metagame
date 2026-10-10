@@ -100,6 +100,41 @@ describe("SampleList", () => {
     ).toBe(`${TEXT}\n\n${SIDE}`);
   });
 
+  it("clears the status before each copy, so a second copy is announced too, and hides the text box after a success", async () => {
+    const writeText = vi
+      .fn<(text: string) => Promise<void>>()
+      .mockRejectedValueOnce(new Error("NotAllowedError"))
+      .mockResolvedValue(undefined);
+    stubClipboard(writeText);
+    render(<SampleList list={LIST} />);
+    const button = screen.getByRole("button", { name: "Copy list" });
+
+    await act(async () => {
+      fireEvent.click(button);
+    });
+    expect(screen.getByRole("textbox")).toBeTruthy();
+
+    const statuses: string[] = [];
+    const observer = new MutationObserver(() => {
+      statuses.push(screen.getByRole("status").textContent ?? "");
+    });
+    observer.observe(screen.getByRole("status"), {
+      childList: true,
+      characterData: true,
+      subtree: true,
+    });
+    await act(async () => {
+      fireEvent.click(button);
+    });
+    await act(async () => {
+      fireEvent.click(button);
+    });
+    observer.disconnect();
+
+    expect(statuses).toEqual(["", "Copied the list.", "", "Copied the list."]);
+    expect(screen.queryByRole("textbox")).toBeNull();
+  });
+
   it("shows the main deck only, and copies it, when the sideboard is held back", async () => {
     const writeText = vi.fn<(text: string) => Promise<void>>(async () => {});
     stubClipboard(writeText);
