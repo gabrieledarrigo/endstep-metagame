@@ -35,6 +35,7 @@ describe("GamesTable", () => {
     expect(
       screen.getByText("Every game has a play or draw record."),
     ).toBeTruthy();
+    expect(screen.queryByText(/A hatched cell/)).toBeNull();
   });
 
   it("names each cell with its figures, and shows them in the detail on focus", () => {
@@ -79,6 +80,33 @@ describe("GamesTable", () => {
         "52 games have no play or draw record and count only in the totals.",
       ),
     ).toBeTruthy();
+    expect(
+      screen.getByText(
+        "A hatched cell has fewer than 20 decided games, too few to call.",
+      ),
+    ).toBeTruthy();
+  });
+
+  it("goes back to the focused cell's detail when the pointer leaves the table", () => {
+    render(<GamesTable results={RESULTS} />);
+    const focusedCell = screen.getByRole("cell", {
+      name: /^Game 1, on the play:/,
+    });
+    act(() => {
+      focusedCell.focus();
+    });
+
+    fireEvent.mouseEnter(
+      screen.getByRole("cell", { name: /^All games, total:/ }),
+    );
+    expect(screen.getByRole("tooltip").textContent).toMatch(
+      /^All games, total/,
+    );
+
+    fireEvent.mouseLeave(screen.getByRole("table"));
+    expect(screen.getByRole("tooltip").textContent).toMatch(
+      /^Game 1, on the play/,
+    );
   });
 
   it("says when game results are not available", () => {

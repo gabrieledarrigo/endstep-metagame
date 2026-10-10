@@ -1,10 +1,4 @@
-import {
-  type FocusEvent,
-  type MouseEvent,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import { type FocusEvent, useLayoutEffect, useRef, useState } from "react";
 import type { DeckDetail, GameSplit, WinLoss } from "../../api/types";
 import { ChartTooltip } from "../../charts/ChartTooltip";
 import { Panel } from "../../components/Panel";
@@ -82,6 +76,7 @@ export function GamesTable({
   results: DeckDetail["gameResults"];
 }) {
   const [active, setActive] = useState<GameCell | null>(null);
+  const focused = useRef<GameCell | null>(null);
   const frame = useRef<HTMLDivElement>(null);
   const tooltip = useRef<HTMLDivElement>(null);
   const cells = useRef(new Map<string, HTMLTableCellElement>());
@@ -114,16 +109,24 @@ export function GamesTable({
     { key: "all", label: "All games", split: results.total, total: true },
   ];
 
+  const gated = rows.some((row) =>
+    COLUMNS.some((column) => readRate(row.split[column.key]).gated),
+  );
+
+  const onFocusCell = (cell: GameCell): void => {
+    focused.current = cell;
+    setActive(cell);
+  };
+
   const onBlur = (event: FocusEvent<HTMLTableElement>): void => {
     if (!event.currentTarget.contains(event.relatedTarget)) {
+      focused.current = null;
       setActive(null);
     }
   };
 
-  const onMouseLeave = (event: MouseEvent<HTMLTableElement>): void => {
-    if (!event.currentTarget.contains(document.activeElement)) {
-      setActive(null);
-    }
+  const onMouseLeave = (): void => {
+    setActive(focused.current);
   };
 
   return (
@@ -181,7 +184,7 @@ export function GamesTable({
                         }
                         tabIndex={0}
                         aria-label={cellLabel(cell)}
-                        onFocus={() => setActive(cell)}
+                        onFocus={() => onFocusCell(cell)}
                         onMouseEnter={() => setActive(cell)}
                       >
                         {read.gated ? "" : percent(read.rate)}
@@ -202,6 +205,11 @@ export function GamesTable({
       </div>
 
       <p className="games__note">{unknownNote(results.unknownPositionGames)}</p>
+      {gated && (
+        <p className="games__note">
+          A hatched cell has fewer than 20 decided games, too few to call.
+        </p>
+      )}
     </Panel>
   );
 }
