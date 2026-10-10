@@ -6,8 +6,7 @@ import { ShareChange } from "../../components/ShareChange";
 import { Skeleton } from "../../components/Skeleton";
 import { WindowLink } from "../../components/WindowLink";
 import { PAGE_SIZE } from "../../config";
-import { formatCount, percent } from "../../format";
-import { rateText, readRate } from "../../helpers";
+import { formatCount, percent, rateText, readRate } from "../../helpers";
 import "./DeckTable.css";
 
 type SortKey = "name" | "share" | "players" | "matches" | "winRate";

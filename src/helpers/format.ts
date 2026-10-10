@@ -1,4 +1,4 @@
-import type { Population, Provenance } from "./api/types";
+import type { Population, Proportion, Provenance } from "../api/types";
 
 const MONTHS = [
   "Jan",
@@ -97,6 +97,16 @@ function formatDate(value: string, withYear: boolean): string {
   return withYear ? `${head} ${year}` : head;
 }
 
+/**
+ * Formats a date as its day and month, for a chart axis or a table of days.
+ *
+ * @param day - A date in `YYYY-MM-DD` form.
+ * @returns The day and month, such as `5 Sep`.
+ */
+export function formatDay(day: string): string {
+  return formatDate(day, false);
+}
+
 function lastCoveredDay(to: string): string {
   const day = new Date(`${to}T00:00:00Z`);
   day.setUTCDate(day.getUTCDate() - 1);
@@ -128,4 +138,14 @@ export function formatWindow({
  */
 export function formatPopulation(population: Population): string {
   return population.charAt(0).toUpperCase() + population.slice(1);
+}
+
+/**
+ * Formats a proportion as a percentage, or says it is not available when there is nothing to count it from.
+ *
+ * @param proportion - A count out of a total, with its rate.
+ * @returns The percentage with one decimal, such as `33.8%`, or `Not available` when the total is 0.
+ */
+export function formatProportion(proportion: Proportion): string {
+  return proportion.of === 0 ? "Not available" : percent(proportion.rate);
 }

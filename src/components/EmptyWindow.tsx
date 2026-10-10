@@ -6,20 +6,23 @@ import { WINDOWS } from "../config";
 type EmptyWindowProps = {
   timeWindow: TimeWindow;
   onSelect: (next: TimeWindow) => void;
+  title?: string;
+  detail?: string;
 };
 
-export function EmptyWindow({ timeWindow, onSelect }: EmptyWindowProps) {
+export function EmptyWindow({
+  timeWindow,
+  onSelect,
+  title = "No decks in this window",
+  detail = `The ${timeWindow} window has no registrations yet.`,
+}: EmptyWindowProps) {
   const longer: TimeWindow | undefined =
     WINDOWS[WINDOWS.indexOf(timeWindow) + 1];
 
   return (
     <StatePanel
-      title="No decks in this window"
-      detail={
-        longer
-          ? `The ${timeWindow} window has no registrations yet. Try a longer window.`
-          : `The ${timeWindow} window has no registrations yet.`
-      }
+      title={title}
+      detail={longer ? `${detail} Try a longer window.` : detail}
       action={
         longer && (
           <Button variant="secondary" onClick={() => onSelect(longer)}>

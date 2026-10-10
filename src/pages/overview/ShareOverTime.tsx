@@ -17,6 +17,7 @@ import { ChartFrame } from "../../charts/ChartFrame";
 import { ChartLegend, ChartLegendSkeleton } from "../../charts/ChartLegend";
 import { ChartTooltip } from "../../charts/ChartTooltip";
 import { seriesColours } from "../../charts/seriesColours";
+import { axisShare, longDay, shortDay, tooltipShare } from "../../helpers";
 import {
   CHART_AXIS,
   CHART_BASELINE,
@@ -25,7 +26,6 @@ import {
 } from "../../charts/theme";
 import { Panel } from "../../components/Panel";
 import { Skeleton } from "../../components/Skeleton";
-import { axisShare, longDay, shortDay, tooltipShare } from "../../format";
 import "./ShareOverTime.css";
 
 type ShareRow = Record<string, string | number | null>;

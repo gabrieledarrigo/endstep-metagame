@@ -11,8 +11,7 @@ import type { MatchupCell, MatchupMatrix, TimeWindow } from "../../api/types";
 import { ChartTooltip } from "../../charts/ChartTooltip";
 import { Skeleton } from "../../components/Skeleton";
 import { WindowLink } from "../../components/WindowLink";
-import { formatCount, percent } from "../../format";
-import { neededText } from "../../helpers";
+import { formatCount, neededText, percent, placeTooltip } from "../../helpers";
 import { type CellState, cellOf, cellState, cellSummary } from "./cellState";
 import "./MatchupTable.css";
 
@@ -29,8 +28,6 @@ const LEGEND: { state: CellState; sample: string; label: string }[] = [
   { state: "none", sample: "·", label: "No data" },
   { state: "mirror", sample: "", label: "Mirror" },
 ];
-
-const TOOLTIP_GAP = 8;
 
 function cellText(state: CellState, cell: MatchupCell | undefined): string {
   if (state === "none") {
@@ -69,32 +66,6 @@ function elementAt(
       `[data-row="${row}"][data-column="${column}"]`,
     ) ?? null
   );
-}
-
-function placeTooltip(
-  tooltip: HTMLElement,
-  frame: HTMLElement,
-  cell: HTMLElement,
-): void {
-  const box = frame.getBoundingClientRect();
-  const target = cell.getBoundingClientRect();
-  const width = tooltip.offsetWidth;
-  const height = tooltip.offsetHeight;
-
-  let left = target.right - box.left + TOOLTIP_GAP;
-  let top = target.top - box.top;
-
-  if (left + width > box.width) {
-    left = target.left - box.left - width - TOOLTIP_GAP;
-  }
-
-  if (left < 0) {
-    left = Math.max(0, Math.min(target.left - box.left, box.width - width));
-    top = target.bottom - box.top + TOOLTIP_GAP;
-  }
-
-  tooltip.style.left = `${left}px`;
-  tooltip.style.top = `${Math.max(0, Math.min(top, box.height - height))}px`;
 }
 
 type MatchupDetailProps = {

@@ -5,4 +5,12 @@
     letter-spacing: -0.01em;
     color: var(--text-600);
   }
+
+  .page-title--hero {
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+    line-height: 1.15;
+    color: var(--text-900);
+  }
 }
