@@ -4,6 +4,7 @@ import {
   formatCount,
   formatDay,
   formatPopulation,
+  formatProportion,
   formatWindow,
   longDay,
   percent,
@@ -90,5 +91,19 @@ describe("formatPopulation", () => {
   it("capitalises the population", () => {
     expect(formatPopulation("rated")).toBe("Rated");
     expect(formatPopulation("casual")).toBe("Casual");
+  });
+});
+
+describe("formatProportion", () => {
+  it("writes the rate as a percentage", () => {
+    expect(formatProportion({ count: 47, of: 12623, rate: 0.0037 })).toBe(
+      "0.4%",
+    );
+  });
+
+  it("says not available when there is nothing to count from", () => {
+    expect(formatProportion({ count: 0, of: 0, rate: 0 })).toBe(
+      "Not available",
+    );
   });
 });

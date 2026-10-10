@@ -2,7 +2,7 @@ import type { DeckDetail } from "../../api/types";
 import { Panel } from "../../components/Panel";
 import { StatList } from "../../components/StatList";
 import { StatTile } from "../../components/StatTile";
-import { formatCount, percent } from "../../format";
+import { formatCount, formatProportion } from "../../format";
 
 export function DeckTexture({ texture }: { texture: DeckDetail["texture"] }) {
   const { mulliganRate } = texture;
@@ -20,7 +20,8 @@ export function DeckTexture({ texture }: { texture: DeckDetail["texture"] }) {
         />
         <StatTile
           label="Mulligan rate"
-          value={percent(mulliganRate.rate)}
+          value={formatProportion(mulliganRate)}
+          gated={mulliganRate.of === 0}
           detail={`${formatCount(mulliganRate.count)} of ${formatCount(mulliganRate.of)} games`}
         />
       </StatList>

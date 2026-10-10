@@ -2,7 +2,7 @@ import type { DeckDetail, WinLoss } from "../../api/types";
 import { Panel } from "../../components/Panel";
 import { StatList } from "../../components/StatList";
 import { StatTile } from "../../components/StatTile";
-import { formatCount, percent } from "../../format";
+import { formatCount, formatProportion, percent } from "../../format";
 import { neededText, readRate } from "../../winRate";
 
 function GameRateTile({ label, block }: { label: string; block: WinLoss }) {
@@ -38,7 +38,8 @@ export function DeckToss({ playDraw }: { playDraw: DeckDetail["playDraw"] }) {
         <GameRateTile label="Lost the toss" block={playDraw.tossLost} />
         <StatTile
           label="Chose to draw"
-          value={percent(choseToDraw.rate)}
+          value={formatProportion(choseToDraw)}
+          gated={choseToDraw.of === 0}
           detail={`${formatCount(choseToDraw.count)} of ${formatCount(choseToDraw.of)} tosses won`}
         />
       </StatList>

@@ -41,4 +41,19 @@ describe("DeckToss", () => {
       "Won the toss: Too few to call / 9 of the 20 games needed",
     );
   });
+
+  it("says the choice to draw is not available when no toss was won", () => {
+    render(
+      <DeckToss
+        playDraw={{
+          ...PLAY_DRAW,
+          choseToDraw: { count: 0, of: 0, rate: 0 },
+        }}
+      />,
+    );
+
+    expect(statTiles()[2]).toBe(
+      "Chose to draw: Not available / 0 of 0 tosses won",
+    );
+  });
 });

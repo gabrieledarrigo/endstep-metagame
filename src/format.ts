@@ -1,4 +1,4 @@
-import type { Population, Provenance } from "./api/types";
+import type { Population, Proportion, Provenance } from "./api/types";
 
 const MONTHS = [
   "Jan",
@@ -138,4 +138,14 @@ export function formatWindow({
  */
 export function formatPopulation(population: Population): string {
   return population.charAt(0).toUpperCase() + population.slice(1);
+}
+
+/**
+ * Formats a proportion as a percentage, or says it is not available when there is nothing to count it from.
+ *
+ * @param proportion - A count out of a total, with its rate.
+ * @returns The percentage with one decimal, such as `33.8%`, or `Not available` when the total is 0.
+ */
+export function formatProportion(proportion: Proportion): string {
+  return proportion.of === 0 ? "Not available" : percent(proportion.rate);
 }
