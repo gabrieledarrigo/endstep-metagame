@@ -132,6 +132,7 @@ Public CORS proxies were tested on 2026-09-20 and rejected. All six failed. allo
 1. **The front end**. A Vite application in `src/`, built to `dist/` on Vercel. It serves all three pages from one `index.html`.
 2. **`api/metagame.ts`**. The proxy. It forwards `GET` requests to `https://endstep.cc/api/metagame/v1/...`, keeps the allow-listed query parameters, and returns the upstream body with CORS headers.
 3. **`api/matchups.ts`**. The matchup aggregator. It builds the top-24 matrix on the server and returns it in one response. See §4.4. It is a separate function so the proxy stays a pass-through.
+4. **`api/_shared.ts`**. The code both functions share: the upstream address and timeout, the CORS headers, the method rules, the error responses and the cache rules. Vercel does not deploy a file in `api/` whose name starts with an underscore, so it is not a function of its own.
 
 ### 4.3 Proxy behaviour
 
@@ -583,6 +584,6 @@ A later layer overrides an earlier one, whatever the selectors' specificity and 
 1. ~~Deck card link target.~~ Settled: our deck page, which links to endstep.cc. FR-10.
 2. ~~Share composition chart form.~~ Settled: ranked horizontal bars, FR-6.
 3. **Series count on the time chart.** Currently the API default of 8. Charting more than 8 of the 24 grid decks is possible by passing deck UUIDs to `share-series`, at no extra request cost.
-4. **Matchup coverage on other windows.** At 30d, every top-24 opponent was inside the first 50 matchup rows. Not yet checked on `1d`, `7d`, `14d` and `season`. §4.4 fills a pair found in one direction only. A pair outside both decks' first 50 rows reads as no data.
+4. ~~Matchup coverage on other windows.~~ Settled: checked on all five windows on 2026-10-10. At `7d`, `14d`, `30d` and `season`, all 276 pairs of the top 24 appear in both directions. At `1d`, 270 appear in both directions and 3 in one direction only, which §4.4 fills. The other 3 never met: one deck of each pair has all its opponents inside its first 50 rows. No pair was lost to the 50-row limit.
 5. **What the toss blocks count.** Endstep presents `playDraw` as game 1 results. Confirm against the numbers before FR-11 labels them.
 6. **Deployment Checks on this plan.** Vercel's documentation does not say which plans offer Deployment Checks. If this project's plan lacks them, the fallback is to turn off Vercel's Git deploys and deploy from the `ci` workflow with the Vercel CLI, which needs a `VERCEL_TOKEN` secret and the project IDs in GitHub.
