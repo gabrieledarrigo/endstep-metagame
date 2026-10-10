@@ -76,13 +76,11 @@ describe("OverviewPage", () => {
     });
     expect(screen.getByText("236,728")).toBeTruthy();
     expect(screen.getByRole("table")).toBeTruthy();
-    for (const name of [
-      "Share over time",
-      "Meta share by deck",
-      "Win rate against share",
-    ]) {
-      expect(screen.getByRole("heading", { name })).toBeTruthy();
-    }
+    expect(screen.getByRole("button", { name: "Affinity" })).toBeTruthy();
+    expect(
+      screen.getByRole("region", { name: "Meta share by deck, chart" }),
+    ).toBeTruthy();
+    expect(screen.getByText("50% win rate")).toBeTruthy();
   });
 
   it("requests the window the reader picks", async () => {
@@ -139,7 +137,7 @@ describe("OverviewPage", () => {
       expect(await screen.findByRole("heading", { name: title })).toBeTruthy();
     }
     expect(
-      screen.getByRole("heading", { name: "Share over time" }),
+      await screen.findByRole("button", { name: "Affinity" }),
     ).toBeTruthy();
   });
 });
