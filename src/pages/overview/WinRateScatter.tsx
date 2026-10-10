@@ -28,7 +28,7 @@ import {
   tooltipShare,
   winRateText,
 } from "../../format";
-import { readRate } from "../../helpers";
+import { DECIDED_NEEDED, readRate } from "../../helpers";
 import "./WinRateScatter.css";
 
 const WIN_RATE_MARK = token("--s1");
@@ -48,17 +48,25 @@ type WinRatePoint = {
 };
 
 function winRatePoints(decks: Deck[]): WinRatePoint[] {
-  return decks
-    .filter((deck) => !readRate(deck.matchWinRate).gated)
-    .map((deck) => ({
-      id: deck.id,
-      name: deck.name,
-      share: deck.share.rate * 100,
-      winRate: deck.matchWinRate.rate * 100,
-      low: deck.matchWinRate.low * 100,
-      high: deck.matchWinRate.high * 100,
-      players: deck.players,
-    }));
+  return decks.flatMap((deck) => {
+    const read = readRate(deck.matchWinRate);
+
+    if (read.gated) {
+      return [];
+    }
+
+    return [
+      {
+        id: deck.id,
+        name: deck.name,
+        share: deck.share.rate * 100,
+        winRate: read.rate * 100,
+        low: read.low * 100,
+        high: read.high * 100,
+        players: deck.players,
+      },
+    ];
+  });
 }
 
 function labelledPoints(
@@ -193,8 +201,8 @@ export function WinRateScatterSkeleton() {
 
 function leftOutNote(count: number): string {
   return count === 1
-    ? "1 deck with fewer than 20 decided matches is left out, too few to place."
-    : `${count} decks with fewer than 20 decided matches are left out, too few to place.`;
+    ? `1 deck with fewer than ${DECIDED_NEEDED} decided matches is left out, too few to place.`
+    : `${count} decks with fewer than ${DECIDED_NEEDED} decided matches are left out, too few to place.`;
 }
 
 export function WinRateScatter({ decks }: { decks: Deck[] }) {
