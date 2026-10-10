@@ -108,7 +108,7 @@ export function DeckPage() {
   const hero = (
     <DeckHero
       deck={detail.deck}
-      dates={dates}
+      dates={loadingWindow ? undefined : dates}
       timeWindow={timeWindow}
       onSelect={(next) => selectTimeWindow(next, loadingWindow)}
       busy={loadingWindow}

@@ -9,7 +9,7 @@ import "./DeckHero.css";
 
 type DeckHeroProps = {
   deck: Deck;
-  dates: string;
+  dates?: string;
   timeWindow: TimeWindow;
   onSelect: (next: TimeWindow) => void;
   busy?: boolean;
@@ -45,7 +45,7 @@ export function DeckHero({
             onChange={onSelect}
             busy={busy}
           />
-          <span className="deck-hero__dates">{dates}</span>
+          {dates && <span className="deck-hero__dates">{dates}</span>}
         </div>
         <ButtonLink
           variant="secondary"

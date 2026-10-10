@@ -137,6 +137,41 @@ describe("DeckPage", () => {
     });
   });
 
+  it("replaces the history entry for a window picked while another loads, and hides the old dates", async () => {
+    let answer: (response: Response) => void = () => {};
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>(
+        () => new Promise<Response>((resolve) => (answer = resolve)),
+      ),
+    );
+    renderWithQueries(
+      <MemoryRouter initialEntries={["/decks/affinity-e93f5f74?window=30d"]}>
+        <Routes>
+          <Route path="/decks/:slug" element={<DeckPage />} />
+        </Routes>
+        <Address />
+      </MemoryRouter>,
+    );
+    answer(Response.json(detail));
+    await screen.findByText("11 Sep to 10 Oct 2026");
+
+    fireEvent.click(screen.getByRole("button", { name: "7d" }));
+    expect(
+      await screen.findByText(
+        "Address: /decks/affinity-e93f5f74?window=7d by PUSH",
+      ),
+    ).toBeTruthy();
+    expect(screen.queryByText("11 Sep to 10 Oct 2026")).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "14d" }));
+    expect(
+      await screen.findByText(
+        "Address: /decks/affinity-e93f5f74?window=14d by REPLACE",
+      ),
+    ).toBeTruthy();
+  });
+
   it("keeps focus on the main heading when the deck finishes loading", async () => {
     let answer: (response: Response) => void = () => {};
     vi.stubGlobal(
