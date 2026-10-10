@@ -82,12 +82,12 @@ Every pull request gets an independent review before it reaches the human review
 3. A finding counts only when it names a concrete failure: wrong behaviour, a regression, a spec that cannot fail, or a mismatch with the requirements, the design system or this agreement. The author may take or leave anything else without recording it.
 4. Grade every finding that counts. Fix it, decline it, or hand it to the human reviewer when it is a trade-off only the owner can decide.
 5. To fix: change the code, commit, and push to the same branch.
-6. Run a second round on the commits pushed after the first, and on the code they touch. Skip it when the first round changed only docs. Two rounds is the cap, whatever the second round returns.
+6. Run a second round on `git diff <first-round-head>..HEAD`, the commits pushed after the first round, and on the code they touch. Name that range in the reviewer's brief, so it does not review the whole pull request again. Skip the round when the first one pushed no commits, or only docs. Two rounds is the cap, whatever the second round returns.
 7. Post one comment on the pull request, headed **Review**:
    - how many findings each round returned, and how many were fixed, declined and handed over;
    - each fix in one line, with its commit;
    - each decline in one line, with its reason.
-8. Post an inline comment for each decision handed to the human reviewer: the question, the options, and a recommendation. Leave these threads open. Nothing else gets a thread.
+8. Post an inline comment for each decision handed to the human reviewer: the question, the options, and a recommendation. Leave these threads open. Nothing else gets a thread. When the owner settles one, the author adds the answer to Settled decisions.
 
 The loop runs unattended. Report once at the end, in the same shape as the **Review** comment.
 
@@ -111,7 +111,7 @@ The owner has decided these. Reviews do not raise them again. A change goes to t
 - A parent may add its own class to a child's root, a BEM mix, and every block class sits on its component's root, NFR-11.
 - Doc comments go on API functions and exported helpers only, never on types or their properties.
 - Specs for modules that existed before E8 belong to E11, unless a pull request changes what they do.
-- Vercel previews sit behind Vercel Authentication. Deploy checks run in an offline `vercel build` or on production after the merge.
+- Vercel previews sit behind Vercel Authentication. A "Done when" that names a preview is met by an offline `vercel build`, or by production after the merge.
 
 ## Project context
 
