@@ -21,18 +21,12 @@ function matchesOf(deck: Deck): number {
   return deck.matchWinRate.wins + deck.matchWinRate.losses;
 }
 
-function sortableRate(deck: Deck): number {
-  const read = readRate(deck.matchWinRate);
-
-  return read.gated ? -1 : read.rate;
-}
-
 const COMPARE: Record<SortKey, (left: Deck, right: Deck) => number> = {
   name: (left, right) => left.name.localeCompare(right.name, "en-GB"),
   share: (left, right) => left.share.rate - right.share.rate,
   players: (left, right) => left.players - right.players,
   matches: (left, right) => matchesOf(left) - matchesOf(right),
-  winRate: (left, right) => sortableRate(left) - sortableRate(right),
+  winRate: (left, right) => left.matchWinRate.rate - right.matchWinRate.rate,
 };
 
 const DEFAULT_SORT: Sort = { key: "share", direction: "descending" };
@@ -76,10 +70,20 @@ function writeSort(params: URLSearchParams, sort: Sort): URLSearchParams {
   return params;
 }
 
+function isGated(deck: Deck): boolean {
+  return readRate(deck.matchWinRate).gated;
+}
+
 function sortDecks(decks: Deck[], { key, direction }: Sort): Deck[] {
   const sign = direction === "ascending" ? 1 : -1;
 
-  return [...decks].sort((left, right) => sign * COMPARE[key](left, right));
+  return [...decks].sort((left, right) => {
+    if (key === "winRate" && isGated(left) !== isGated(right)) {
+      return isGated(left) ? 1 : -1;
+    }
+
+    return sign * COMPARE[key](left, right);
+  });
 }
 
 type SortHeaderProps = {

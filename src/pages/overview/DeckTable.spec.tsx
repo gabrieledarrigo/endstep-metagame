@@ -122,29 +122,32 @@ describe("DeckTable", () => {
     expect(screen.getByText("Too few to call, 12 of 20")).toBeTruthy();
   });
 
-  it("sorts a match win rate that is too few to call below every real one", () => {
-    const [first, ...rest] = decks.decks.items as Deck[];
-    render(
-      <MemoryRouter initialEntries={["/?sort=winRate&dir=desc"]}>
-        <DeckTable
-          decks={[
-            ...rest,
-            {
-              ...first,
-              matchWinRate: {
-                ...first.matchWinRate,
-                wins: 3,
-                losses: 0,
-                rate: 1,
+  it.each(["desc", "asc"])(
+    "sorts a match win rate that is too few to call after every real one, %s",
+    (dir) => {
+      const [first, ...rest] = decks.decks.items as Deck[];
+      render(
+        <MemoryRouter initialEntries={[`/?sort=winRate&dir=${dir}`]}>
+          <DeckTable
+            decks={[
+              ...rest,
+              {
+                ...first,
+                matchWinRate: {
+                  ...first.matchWinRate,
+                  wins: 3,
+                  losses: 0,
+                  rate: 1,
+                },
               },
-            },
-          ]}
-        />
-      </MemoryRouter>,
-    );
+            ]}
+          />
+        </MemoryRouter>,
+      );
 
-    expect(deckOrder().at(-1)).toBe("Affinity");
-  });
+      expect(deckOrder().at(-1)).toBe("Affinity");
+    },
+  );
 });
 
 describe("DeckTableSkeleton", () => {
