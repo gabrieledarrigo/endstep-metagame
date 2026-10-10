@@ -431,10 +431,12 @@ The front end is a Vite application in TypeScript with React 19. `npm run build`
 
 | Tool | Version | Configuration |
 |---|---|---|
-| ESLint | 10 | Flat config. `typescript-eslint` recommended rules, the React Hooks rules, `curly: all`, explicit return types on every function and method except React components, which are told apart by a name that starts with a capital letter, and `eslint-config-prettier`, so ESLint never disputes a formatting choice |
+| ESLint | 10 | Flat config. `typescript-eslint` recommended rules, the React Hooks rules, `curly: all`, explicit return types on functions and methods, and `eslint-config-prettier`, so ESLint never disputes a formatting choice |
 | Prettier | 3 | Its defaults. `.prettierignore` excludes `dist/`, `docs/` and the lockfile. The documents in `docs/` are written by hand |
 
 `curly: all` requires the braces. Prettier always puts a block's body on its own line. Together they enforce the brace rule in `AGENTS.md`.
+
+`explicit-function-return-type` applies to the TypeScript files, with its default options. A callback whose type is already known, such as an argument to a typed function, needs no return type. In `.tsx` files, a wrapper in `eslint.config.ts` skips React components: a function whose name, or the name of the variable it is assigned to, starts with a capital letter. JavaScript files are left out, since they cannot declare a return type.
 
 **Tests.** Vitest 5 with React Testing Library 16 and jsdom. Vitest runs on the Vite configuration, so TypeScript, JSX, CSS imports and ES modules need no setup of their own. Its API matches Jest's.
 
