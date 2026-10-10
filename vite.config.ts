@@ -36,7 +36,7 @@ function functionRequest(
   if (parsed.pathname === MATCHUPS) {
     return {
       handler: matchups,
-      request: new Request(`http://localhost${url}`, { method }),
+      request: new Request(parsed, { method }),
     };
   }
 
