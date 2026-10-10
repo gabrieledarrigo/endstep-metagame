@@ -22,5 +22,6 @@
     font-size: 14px;
     color: var(--text-600);
     max-width: 44ch;
+    overflow-wrap: anywhere;
   }
 }
