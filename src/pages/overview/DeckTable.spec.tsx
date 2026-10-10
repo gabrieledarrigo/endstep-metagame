@@ -122,9 +122,12 @@ describe("DeckTable", () => {
     expect(screen.getByText("Too few to call, 12 of 20")).toBeTruthy();
   });
 
-  it.each(["desc", "asc"])(
+  it.each([
+    ["desc", 1],
+    ["asc", 0],
+  ] as const)(
     "sorts a match win rate that is too few to call after every real one, %s",
-    (dir) => {
+    (dir, rate) => {
       const [first, ...rest] = decks.decks.items as Deck[];
       render(
         <MemoryRouter initialEntries={[`/?sort=winRate&dir=${dir}`]}>
@@ -137,7 +140,7 @@ describe("DeckTable", () => {
                   ...first.matchWinRate,
                   wins: 3,
                   losses: 0,
-                  rate: 1,
+                  rate,
                 },
               },
             ]}
