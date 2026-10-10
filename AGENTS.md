@@ -56,37 +56,62 @@ Open one when an issue is done.
 
 - Before every push, `npm run format:check`, `npm run lint`, `npm test` and `npm run build` pass. CI runs the same four checks on every pull request and on `main`.
 - Title is the issue title, verbatim.
-- Description is a short bullet list of what was done. Nothing else.
 - **No attribution footer.**
 - Link the issue with `Closes #N` so it closes on merge.
 - Assign `gabrieledarrigo` as assignee. Do not request a reviewer, GitHub rejects a self-review request.
 - Carry over the issue's labels, both the type label and the wave label.
 - Do not merge. That is the reviewer's call.
 
+The description is a reading guide for the human reviewer, who wants to understand the code without reading every line. It has two parts.
+
+1. **What changed.** A short bullet list of what was done.
+2. **How to read it.**
+   - The flow in a few sentences: what calls what, and where the data goes.
+   - The files in the order to read them.
+   - The decisions the reviewer might not expect, each with its reason.
+   - What is safe to skim, such as mechanical moves and spec boilerplate.
+
+Keep one concern per pull request. When work depends on an open pull request, stack it on that branch and say so in the description.
+
 ## Review loop
 
-Every pull request gets an independent review before it reaches the human reviewer. The author does not review its own work from memory, because it already believes the code is right.
+Every pull request gets an independent review before it reaches the human reviewer. The author does not review its own work from memory, because it already believes the code is right. The review talks to the author. Only its results and the open decisions reach the human reviewer.
 
 1. Open the pull request.
-2. Run `/code-review <pr-number> --comment`. It runs in its own context and posts findings as inline comments on the pull request.
-3. Grade every finding. Either fix it or decline it.
-4. To fix: change the code, commit, and push to the same branch. Then reply on the thread with `Fixed by <sha>` and resolve it.
-5. To decline: reply on the thread with a one sentence reason and leave the thread unresolved, so the human reviewer sees it as an open item.
+2. Run `/code-review <pr-number>` without `--comment`. It runs in its own context and returns its findings to the author. Nothing is posted.
+3. A finding counts only when it names a concrete failure: wrong behaviour, a regression, a spec that cannot fail, or a mismatch with the requirements, the design system or this agreement. The author may take or leave anything else without recording it.
+4. Grade every finding that counts. Fix it, decline it, or hand it to the human reviewer when it is a trade-off only the owner can decide.
+5. To fix: change the code, commit, and push to the same branch.
+6. Run a second round on `git diff <first-round-head>..HEAD`, the commits pushed after the first round, and on the code they touch. Name that range in the reviewer's brief, so it does not review the whole pull request again. Skip the round when the first one pushed no commits, or only docs. Two rounds is the cap, whatever the second round returns.
+7. Post one comment on the pull request, headed **Review**:
+   - how many findings each round returned, and how many were fixed, declined and handed over;
+   - each fix in one line, with its commit;
+   - each decline in one line, with its reason.
+8. Post an inline comment for each decision handed to the human reviewer: the question, the options, and a recommendation. Leave these threads open. Nothing else gets a thread. When the owner settles one, the author adds the answer to Settled decisions.
 
-   Only a thread that is actually fixed gets resolved. If a later round reverses an earlier fix, say so on the original thread and leave it open. An open thread is the record that something is unsettled.
+The loop runs unattended. Report once at the end, in the same shape as the **Review** comment.
 
-6. Run the review once more after the fixes.
-7. Stop there. Two rounds is the cap, whatever the second round returns.
-
-The loop runs unattended. Report once at the end: what was found, what was fixed, what was declined and why, and what is still open.
-
-The reviewer checks three things.
+The reviewer checks three things, and raises nothing listed under Settled decisions.
 
 - **Correctness.** Bugs, edge cases, wrong behaviour.
 - **This agreement.** Simple code, few abstractions, no explanatory inline comments.
 - **Acceptance criteria.** Whether the issue's "Done when" list is actually met.
 
 Never merge. That decision belongs to the human reviewer.
+
+## Settled decisions
+
+The owner has decided these. Reviews do not raise them again. A change goes to the owner first, and then into this list.
+
+- Uppercase labels stay `--text-400`, at 3.5:1. The owner chose this over a darker colour.
+- TypeScript stays on 6.0 until typescript-eslint supports 7, NFR-1.
+- Data goes through TanStack Query, and the view state lives in the address, §4.5 and §4.8. Hidden series are kept by deck slug.
+- The brand is a link, not a heading. Each page's h1 names the page, FR-10.
+- Back and forward keep the scroll position the browser restores, §4.5.
+- A parent may add its own class to a child's root, a BEM mix, and every block class sits on its component's root, NFR-11.
+- Doc comments go on API functions and exported helpers only, never on types or their properties.
+- Specs for modules that existed before E8 belong to E11, unless a pull request changes what they do.
+- Vercel previews sit behind Vercel Authentication. A "Done when" that names a preview is met by an offline `vercel build`, or by production after the merge.
 
 ## Project context
 
