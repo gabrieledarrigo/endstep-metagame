@@ -30,4 +30,24 @@ describe("EmptyWindow", () => {
     ).toBeTruthy();
     expect(screen.queryByRole("button")).toBeNull();
   });
+
+  it("takes its own title and detail", () => {
+    render(
+      <EmptyWindow
+        timeWindow="1d"
+        onSelect={() => {}}
+        title="No matches in this window"
+        detail="Affinity has no matches in the 1d window."
+      />,
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "No matches in this window" }),
+    ).toBeTruthy();
+    expect(
+      screen.getByText(
+        "Affinity has no matches in the 1d window. Try a longer window.",
+      ),
+    ).toBeTruthy();
+  });
 });

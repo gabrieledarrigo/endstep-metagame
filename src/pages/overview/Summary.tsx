@@ -1,9 +1,9 @@
 import type { DecksResponse } from "../../api/types";
 import { Panel } from "../../components/Panel";
 import { Skeleton } from "../../components/Skeleton";
+import { StatList } from "../../components/StatList";
 import { StatTile } from "../../components/StatTile";
 import { formatCount, formatPopulation, formatWindow } from "../../format";
-import "./Summary.css";
 
 const SUMMARY_TILES = [
   { label: "Registrations", value: 177 },
@@ -16,7 +16,7 @@ const SUMMARY_TILES = [
 export function SummarySkeleton() {
   return (
     <Panel aria-busy="true">
-      <dl className="stat-list">
+      <StatList>
         {SUMMARY_TILES.map((tile, index) => (
           <StatTile
             key={tile.label}
@@ -30,7 +30,7 @@ export function SummarySkeleton() {
             }
           />
         ))}
-      </dl>
+      </StatList>
     </Panel>
   );
 }
@@ -40,7 +40,7 @@ export function Summary({ decks }: { decks: DecksResponse }) {
 
   return (
     <Panel>
-      <dl className="stat-list">
+      <StatList>
         <StatTile
           hero
           label="Registrations"
@@ -53,7 +53,7 @@ export function Summary({ decks }: { decks: DecksResponse }) {
           label="Population"
           value={formatPopulation(provenance.population)}
         />
-      </dl>
+      </StatList>
     </Panel>
   );
 }
