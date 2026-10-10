@@ -108,7 +108,7 @@ describe("ShareOverTime", () => {
 
     const chart = container.querySelector(".recharts-surface") as Element;
     fireEvent.focus(chart);
-    for (let day = 0; day < 29; day += 1) {
+    for (let day = 1; day < series.series[0].points.length; day += 1) {
       fireEvent.keyDown(chart, { key: "ArrowRight" });
     }
 
