@@ -334,7 +334,7 @@ A page with one table: the top 24 decks by share, against each other. One call t
 - Each deck page shows its own row of this table, FR-11.
 - The table sits in a full-width band that breaks out of the page column, centred, with no fixed height and no scrollbar. The header row stays at the top of the window while the page scrolls past the table.
 - The cells grow with the window, from 32px wide up to 44px, and the numbers and deck names grow with them. The design system gives the rule.
-- Where the window is narrower than the table, about 1,040px, the band scrolls sideways and the first column stays in view. The page itself does not scroll sideways, NFR-7. A box that scrolls sideways also holds its sticky header, so below 1,100px the header row scrolls away with the table.
+- Where the window is narrower than the table plus the band's padding, about 1,080px, the band scrolls sideways and the first column stays in view. The page itself does not scroll sideways, NFR-7. A box that scrolls sideways also holds its sticky header, so below 1,100px the header row scrolls away with the table.
 - The page has the window selector and the resolved window dates.
 
 ---
