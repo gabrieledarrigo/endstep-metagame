@@ -34,11 +34,13 @@ describe("readRate", () => {
     ).toEqual({ gated: true, decided: 12 });
   });
 
-  it("gates a block without a rate", () => {
-    expect(readRate({ wins: 0, losses: 0, rate: null })).toEqual({
-      gated: true,
-      decided: 0,
-    });
+  it("gates a block without a rate or a range, however many results it has", () => {
+    expect(
+      readRate({ wins: 15, losses: 10, rate: null, low: null, high: null }),
+    ).toEqual({ gated: true, decided: 25 });
+    expect(
+      readRate({ wins: 15, losses: 10, rate: 0.6, low: null, high: 0.78 }),
+    ).toEqual({ gated: true, decided: 25 });
   });
 });
 

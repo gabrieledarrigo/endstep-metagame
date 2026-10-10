@@ -6,8 +6,8 @@ type WinLossBlock = {
   wins: number;
   losses: number;
   rate: number | null;
-  low?: number | null;
-  high?: number | null;
+  low: number | null;
+  high: number | null;
   gate?: string | null;
 };
 
@@ -16,7 +16,9 @@ export type ReadRate =
   | { gated: false; decided: number; rate: number; low: number; high: number };
 
 /**
- * Applies the 20-match rule to a win and loss block, §6.8. A block Endstep gates is gated, and so is any block with fewer than 20 decided results, such as `deck.matchWinRate`, which carries no gate of its own.
+ * Applies the 20-match rule to a win and loss block, §6.8.
+ *
+ * A block Endstep gates is gated, and so is any block with fewer than 20 decided results, such as `deck.matchWinRate`, which carries no gate of its own.
  *
  * @param block - A win and loss block from Endstep.
  * @returns The rate and its range, or `gated: true` when the block is too few to call. Both carry the decided count.
@@ -30,9 +32,7 @@ export function readRate(block: WinLossBlock): ReadRate {
     decided < DECIDED_NEEDED ||
     rate === null ||
     low === null ||
-    low === undefined ||
-    high === null ||
-    high === undefined
+    high === null
   ) {
     return { gated: true, decided };
   }
