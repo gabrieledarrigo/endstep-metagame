@@ -9,9 +9,10 @@ type ChartTooltipProps = {
     value: string;
     colour?: string;
   }[];
+  verdict?: string;
 };
 
-export function ChartTooltip({ day, title, rows }: ChartTooltipProps) {
+export function ChartTooltip({ day, title, rows, verdict }: ChartTooltipProps) {
   return (
     <div className="chart-tooltip">
       {day && <div className="chart-tooltip__day">{day}</div>}
@@ -28,6 +29,7 @@ export function ChartTooltip({ day, title, rows }: ChartTooltipProps) {
           <span className="chart-tooltip__value">{row.value}</span>
         </div>
       ))}
+      {verdict && <div className="chart-tooltip__verdict">{verdict}</div>}
     </div>
   );
 }
