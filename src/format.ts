@@ -110,7 +110,10 @@ function lastCoveredDay(to: string): string {
  * @param window - The window from a response's provenance.
  * @returns The range, such as `10 Sep to 9 Oct 2026`. The first date carries its year only when the years differ.
  */
-export function formatWindow({ from, to }: Provenance["window"]): string {
+export function formatWindow({
+  from,
+  to,
+}: Pick<Provenance["window"], "from" | "to">): string {
   const last = lastCoveredDay(to);
   const sameYear = from.slice(0, 4) === last.slice(0, 4);
 

@@ -10,7 +10,7 @@ function stubFetch(response: () => Promise<Response>): Mock<typeof fetch> {
 
 function request(): Promise<{ ok: boolean }> {
   return getJson<{ ok: boolean }>(
-    "Pauper/decks",
+    "/api/metagame/Pauper/decks",
     { window: "7d" },
     new AbortController().signal,
   );
@@ -21,7 +21,7 @@ describe("getJson", () => {
     vi.unstubAllGlobals();
   });
 
-  it("requests the endpoint through the proxy and parses the body", async () => {
+  it("requests the endpoint and parses the body", async () => {
     const fetchMock = stubFetch(() =>
       Promise.resolve(Response.json({ ok: true })),
     );

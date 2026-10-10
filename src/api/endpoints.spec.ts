@@ -1,5 +1,5 @@
 import { type Mock, afterEach, describe, expect, it, vi } from "vitest";
-import { fetchDeck, fetchDecks, fetchSeries } from "./endpoints";
+import { fetchDeck, fetchDecks, fetchMatchups, fetchSeries } from "./endpoints";
 
 function stubFetch(): Mock<typeof fetch> {
   const fetchMock = vi.fn<typeof fetch>((input) =>
@@ -43,5 +43,13 @@ describe("endpoints", () => {
     expect(String(fetchMock.mock.calls[0][0])).toBe(
       "/api/metagame/Pauper/decks/affinity-e93f5f74?window=14d&population=rated",
     );
+  });
+
+  it("fetches the matchup matrix of a window with the exact query string the function accepts", async () => {
+    const fetchMock = stubFetch();
+
+    await fetchMatchups("30d", new AbortController().signal);
+
+    expect(String(fetchMock.mock.calls[0][0])).toBe("/api/matchups?window=30d");
   });
 });

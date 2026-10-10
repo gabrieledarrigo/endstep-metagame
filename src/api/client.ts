@@ -45,9 +45,9 @@ export function isRetryable(error: Error): boolean {
 }
 
 /**
- * Fetches a metagame endpoint through the proxy and parses its JSON body, in one request. The query client decides whether to retry it, §4.8.
+ * Fetches one of the site's API endpoints and parses its JSON body, in one request. The query client decides whether to retry it, §4.8.
  *
- * @param path - The endpoint path after `/api/metagame/`, such as `Pauper/decks`.
+ * @param path - The endpoint path, such as `/api/metagame/Pauper/decks` or `/api/matchups`.
  * @param params - The query parameters.
  * @param signal - Aborts the request.
  * @returns A Promise resolving to the parsed body.
@@ -59,7 +59,7 @@ export async function getJson<Body>(
   params: Record<string, string>,
   signal: AbortSignal,
 ): Promise<Body> {
-  const url = `/api/metagame/${path}?${new URLSearchParams(params)}`;
+  const url = `${path}?${new URLSearchParams(params)}`;
   let response;
 
   try {

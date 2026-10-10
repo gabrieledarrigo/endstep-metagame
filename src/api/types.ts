@@ -218,3 +218,26 @@ export type MatchupsResponse = {
   neverMet: number;
   matchups: Page<Matchup>;
 };
+
+export type MatchupCell = {
+  wins: number;
+  losses: number;
+  matches: number;
+} & (
+  | { gate: null; rate: number; low: number; high: number }
+  | { gate: "too_few"; rate: null; low: null; high: null }
+);
+
+export type MatrixDeck = {
+  id: string;
+  slug: string;
+  name: string;
+  colours: string[];
+  share: number;
+};
+
+export type MatchupMatrix = {
+  window: { from: string; to: string };
+  decks: MatrixDeck[];
+  cells: Record<string, Record<string, MatchupCell>>;
+};
