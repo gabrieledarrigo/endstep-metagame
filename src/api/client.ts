@@ -20,7 +20,7 @@ function failure(status: number): { kind: FailureKind; message: string } {
     return {
       kind: "rateLimit",
       message:
-        "Endstep's rate limit was reached. The data is cached for five minutes, so a retry usually works.",
+        "Endstep's rate limit was reached. It resets within a minute, so a retry after that usually works.",
     };
   }
   if (status === 502 || status === 504) {
