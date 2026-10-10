@@ -12,6 +12,7 @@ import { ChartTooltip } from "../../charts/ChartTooltip";
 import { Skeleton } from "../../components/Skeleton";
 import { WindowLink } from "../../components/WindowLink";
 import { formatCount, percent } from "../../format";
+import { neededText } from "../../helpers";
 import { type CellState, cellOf, cellState, cellSummary } from "./cellState";
 import "./MatchupTable.css";
 
@@ -141,7 +142,7 @@ function MatchupDetail({
       <ChartTooltip
         day={title}
         rows={counts}
-        verdict={`Too few to call: ${cell.wins + cell.losses} of the 20 matches needed.`}
+        verdict={`Too few to call: ${neededText(cell.wins + cell.losses, "matches")}.`}
       />
     );
   }

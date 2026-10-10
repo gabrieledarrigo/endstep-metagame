@@ -7,6 +7,7 @@ import { Skeleton } from "../../components/Skeleton";
 import { WindowLink } from "../../components/WindowLink";
 import { PAGE_SIZE } from "../../config";
 import { formatCount, percent } from "../../format";
+import { rateText, readRate } from "../../helpers";
 import "./DeckTable.css";
 
 type SortKey = "name" | "share" | "players" | "matches" | "winRate";
@@ -69,10 +70,20 @@ function writeSort(params: URLSearchParams, sort: Sort): URLSearchParams {
   return params;
 }
 
+function isGated(deck: Deck): boolean {
+  return readRate(deck.matchWinRate).gated;
+}
+
 function sortDecks(decks: Deck[], { key, direction }: Sort): Deck[] {
   const sign = direction === "ascending" ? 1 : -1;
 
-  return [...decks].sort((left, right) => sign * COMPARE[key](left, right));
+  return [...decks].sort((left, right) => {
+    if (key === "winRate" && isGated(left) !== isGated(right)) {
+      return isGated(left) ? 1 : -1;
+    }
+
+    return sign * COMPARE[key](left, right);
+  });
 }
 
 type SortHeaderProps = {
@@ -227,7 +238,7 @@ export function DeckTable({ decks }: { decks: Deck[] }) {
                 {formatCount(matchesOf(deck))}
               </td>
               <td className="deck-table__cell deck-table__cell--numeric">
-                {percent(deck.matchWinRate.rate)}
+                {rateText(deck.matchWinRate)}
               </td>
               <td className="deck-table__cell deck-table__cell--numeric">
                 <ShareChange change={deck.shareChange} />
