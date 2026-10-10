@@ -1,7 +1,7 @@
-import type { TimeWindow } from "../../api/types";
-import { Button } from "../../components/Button";
-import { StatePanel } from "../../components/StatePanel";
-import { WINDOWS } from "../../config";
+import type { TimeWindow } from "../api/types";
+import { Button } from "./Button";
+import { StatePanel } from "./StatePanel";
+import { WINDOWS } from "../config";
 
 type EmptyWindowProps = {
   timeWindow: TimeWindow;
