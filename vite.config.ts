@@ -71,7 +71,14 @@ function api(): Plugin {
   const cache = new Map<string, Cached>();
 
   const middleware: Connect.NextHandleFunction = async (req, res, next) => {
-    const target = functionRequest(req.url ?? "/", req.method);
+    let target;
+
+    try {
+      target = functionRequest(req.url ?? "/", req.method);
+    } catch (error) {
+      next(error);
+      return;
+    }
 
     if (!target) {
       next();
