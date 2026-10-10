@@ -91,4 +91,19 @@ describe("MatchupsPage", () => {
       await screen.findByText(/^Endstep's rate limit was reached\./),
     ).toBeTruthy();
   });
+
+  it("offers a longer window when this one has no decks", async () => {
+    const fetchMock = stubApi(
+      () => Response.json({ ...matrix, decks: [], cells: {} }),
+      () => Response.json(matrix),
+    );
+    renderAt("/matchups?window=1d");
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Switch to 7d" }),
+    );
+
+    expect(await screen.findByRole("grid")).toBeTruthy();
+    expect(String(fetchMock.mock.calls[1][0])).toBe("/api/matchups?window=7d");
+  });
 });

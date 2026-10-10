@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchMatchups } from "../../api/endpoints";
+import { EmptyWindow } from "../../components/EmptyWindow";
 import { PageTitle } from "../../components/PageTitle";
 import { Section } from "../../components/Section";
 import { SegmentedControl } from "../../components/SegmentedControl";
@@ -44,13 +45,17 @@ export function MatchupsPage() {
         skeleton={<MatchupTableSkeleton />}
         title="The matchup table could not be loaded"
       >
-        {(data) => (
-          <MatchupTable
-            key={timeWindow}
-            matrix={data}
-            timeWindow={timeWindow}
-          />
-        )}
+        {(data) =>
+          data.decks.length === 0 ? (
+            <EmptyWindow timeWindow={timeWindow} onSelect={selectTimeWindow} />
+          ) : (
+            <MatchupTable
+              key={data.decks.map((deck) => deck.slug).join(" ")}
+              matrix={data}
+              timeWindow={timeWindow}
+            />
+          )
+        }
       </Section>
     </>
   );
