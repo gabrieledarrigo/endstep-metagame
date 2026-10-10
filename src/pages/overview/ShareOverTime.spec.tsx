@@ -1,9 +1,10 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, useLocation, useNavigationType } from "react-router";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import series from "../../../test/fixtures/share-series.json";
+import { sizeCharts } from "../../../test/sizeCharts";
 import type { ShareSeries } from "../../api/types";
-import { ShareOverTime } from "./ShareOverTime";
+import { ShareOverTime, ShareOverTimeSkeleton } from "./ShareOverTime";
 
 function Address() {
   const { search } = useLocation();
@@ -15,14 +16,22 @@ function Address() {
   );
 }
 
-function renderAt(path: string): void {
-  render(
+function renderAt(path: string): HTMLElement {
+  return render(
     <MemoryRouter initialEntries={[path]}>
       <ShareOverTime series={series.series as ShareSeries[]} />
       <Address />
     </MemoryRouter>,
-  );
+  ).container;
 }
+
+function endLabels(container: HTMLElement): Element[] {
+  return [...container.querySelectorAll(".share-chart__end")];
+}
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 function pressed(name: string): string | null {
   return screen.getByRole("button", { name }).getAttribute("aria-pressed");
@@ -62,5 +71,70 @@ describe("ShareOverTime", () => {
       ),
     ).toBeTruthy();
     expect(pressed("Affinity")).toBe("true");
+  });
+
+  it("draws a line and an end label for each shown series, kept apart", () => {
+    sizeCharts();
+
+    const container = renderAt("/?window=30d");
+
+    expect(container.querySelectorAll(".recharts-line-curve")).toHaveLength(2);
+    const labels = endLabels(container);
+    expect(labels.map((label) => label.textContent)).toEqual([
+      "Mono Red Madness",
+      "Affinity",
+    ]);
+    const [upper, lower] = labels.map((label) =>
+      Number(label.getAttribute("y")),
+    );
+    expect(lower - upper).toBeGreaterThanOrEqual(16);
+  });
+
+  it("leaves a hidden series out of the chart but keeps it in the legend", () => {
+    sizeCharts();
+
+    const container = renderAt("/?window=30d&hide=affinity-e93f5f74");
+
+    expect(container.querySelectorAll(".recharts-line-curve")).toHaveLength(1);
+    expect(endLabels(container).map((label) => label.textContent)).toEqual([
+      "Mono Red Madness",
+    ]);
+    expect(screen.getByRole("button", { name: "Affinity" })).toBeTruthy();
+  });
+
+  it("shows the day and each series' share in the tooltip, highest first", () => {
+    sizeCharts();
+    const container = renderAt("/?window=30d");
+
+    const chart = container.querySelector(".recharts-surface") as Element;
+    fireEvent.focus(chart);
+    for (let day = 1; day < series.series[0].points.length; day += 1) {
+      fireEvent.keyDown(chart, { key: "ArrowRight" });
+    }
+
+    expect(container.querySelector(".chart-tooltip")?.textContent).toBe(
+      "5 October 2026Mono Red Madness6.82%Affinity6.65%",
+    );
+  });
+
+  it("draws nothing without series", () => {
+    const { container } = render(
+      <MemoryRouter>
+        <ShareOverTime series={[]} />
+      </MemoryRouter>,
+    );
+
+    expect(container.innerHTML).toBe("");
+  });
+});
+
+describe("ShareOverTimeSkeleton", () => {
+  it("keeps the heading and marks the section as busy", () => {
+    const { container } = render(<ShareOverTimeSkeleton />);
+
+    expect(
+      screen.getByRole("heading", { name: "Share over time" }),
+    ).toBeTruthy();
+    expect(container.firstElementChild?.getAttribute("aria-busy")).toBe("true");
   });
 });

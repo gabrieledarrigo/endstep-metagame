@@ -440,11 +440,12 @@ The front end is a Vite application in TypeScript with React 19. `npm run build`
 
 **Tests.** Vitest 5 with React Testing Library 16 and jsdom. Vitest runs on the Vite configuration, so TypeScript, JSX, CSS imports and ES modules need no setup of their own. Its API matches Jest's.
 
-- **The rule of thumb: an exported function with a consumer has a spec.** That covers components, hooks, helpers and the API functions.
+- **The rule: every component and every exported function has a spec, added in the same pull request as the code.** That covers components, hooks, helpers and the API functions. A function the module does not export is tested through the exports that use it. The helpers in `test/` are exercised by the specs that use them.
 - The spec sits beside its module and is named after it: `components/Card.tsx` and `components/Card.spec.tsx`, `format.ts` and `format.spec.ts`.
 - The API functions are plain `Request` to `Response` handlers, so their specs, `api/metagame.spec.ts` and `api/matchups.spec.ts`, call them directly with `fetch` stubbed.
 - Vitest runs two projects: `api` in Node for the specs in `api/`, and `app` in jsdom with the Testing Library setup for the specs in `src/`. A spec needs no per-file setup. Shared test helpers and fixtures live in `test/`, outside `src/`.
-- Specs query by role and by visible text, the way a user finds things. No snapshot tests.
+- Specs query by role and by visible text, the way a user finds things. No snapshot tests. Where nothing reaches assistive technology, such as a skeleton or a chart's marks, a spec reads the DOM.
+- jsdom lays nothing out, so Recharts' `ResponsiveContainer` would measure 0 by 0 and draw nothing. A chart spec calls `sizeCharts` from `test/` first, which gives every element a size.
 - Specs never call Endstep. Every request is stubbed.
 
 **Documentation.** Every API function and every helper has a JSDoc block. A helper is any exported function that is not a component: hooks, and the formatting and data functions.

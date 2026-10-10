@@ -3,7 +3,7 @@ import { MemoryRouter, useLocation, useNavigationType } from "react-router";
 import { describe, expect, it } from "vitest";
 import decks from "../../../test/fixtures/decks.json";
 import type { Deck } from "../../api/types";
-import { DeckTable } from "./DeckTable";
+import { DeckTable, DeckTableSkeleton } from "./DeckTable";
 
 function Address() {
   const { search } = useLocation();
@@ -91,5 +91,36 @@ describe("DeckTable", () => {
     fireEvent.click(screen.getByRole("button", { name: "Share" }));
 
     expect(screen.getByText("Address: ?window=30d by REPLACE")).toBeTruthy();
+  });
+
+  it("draws nothing without decks", () => {
+    const { container } = render(
+      <MemoryRouter>
+        <DeckTable decks={[]} />
+      </MemoryRouter>,
+    );
+
+    expect(container.innerHTML).toBe("");
+  });
+});
+
+describe("DeckTableSkeleton", () => {
+  it("keeps the column headers, holds a row for each of the 24 decks, and is marked as busy", () => {
+    const { container } = render(<DeckTableSkeleton />);
+
+    expect(
+      screen.getAllByRole("columnheader").map((header) => header.textContent),
+    ).toEqual([
+      "",
+      "Deck",
+      "Colours",
+      "Share",
+      "Players",
+      "Matches",
+      "Match win rate",
+      "Change",
+    ]);
+    expect(screen.getAllByRole("row")).toHaveLength(25);
+    expect(container.firstElementChild?.getAttribute("aria-busy")).toBe("true");
   });
 });
