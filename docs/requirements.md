@@ -431,7 +431,7 @@ The front end is a Vite application in TypeScript with React 19. `npm run build`
 
 | Tool | Version | Configuration |
 |---|---|---|
-| ESLint | 10 | Flat config. `typescript-eslint` recommended rules, the React Hooks rules, `curly: all`, explicit return types on the functions in `api/` outside the specs, and `eslint-config-prettier`, so ESLint never disputes a formatting choice |
+| ESLint | 10 | Flat config. `typescript-eslint` recommended rules, the React Hooks rules, `curly: all`, explicit return types on every function and method except React components, which are told apart by a name that starts with a capital letter, and `eslint-config-prettier`, so ESLint never disputes a formatting choice |
 | Prettier | 3 | Its defaults. `.prettierignore` excludes `dist/`, `docs/` and the lockfile. The documents in `docs/` are written by hand |
 
 `curly: all` requires the braces. Prettier always puts a block's body on its own line. Together they enforce the brace rule in `AGENTS.md`.
