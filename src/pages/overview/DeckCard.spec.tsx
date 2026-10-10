@@ -58,10 +58,11 @@ describe("DeckCard", () => {
 });
 
 describe("DeckCardSkeleton", () => {
-  it("has the card's labels hidden behind placeholders, and no link", () => {
-    render(<DeckCardSkeleton />);
+  it("holds a placeholder for the art, the name, the colours, each stat and the key cards, and no link", () => {
+    const { container } = render(<DeckCardSkeleton />);
 
+    expect(container.querySelectorAll("[aria-hidden='true']")).toHaveLength(12);
+    expect(container.textContent).toBe("");
     expect(screen.queryByRole("link")).toBeNull();
-    expect(screen.queryByRole("heading")).toBeNull();
   });
 });

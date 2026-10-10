@@ -48,6 +48,7 @@ describe("ChartLegendSkeleton", () => {
     );
 
     expect(container.querySelectorAll("[aria-hidden='true']")).toHaveLength(3);
+    expect(container.textContent).toBe("");
     expect(screen.queryAllByRole("button")).toHaveLength(0);
   });
 });

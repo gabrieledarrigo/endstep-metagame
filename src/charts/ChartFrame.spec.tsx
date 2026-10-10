@@ -20,6 +20,9 @@ describe("ChartFrame", () => {
       </ChartFrame>,
     );
 
+    expect(container.firstElementChild?.className).toBe(
+      "chart-frame share-chart__frame",
+    );
     const chart = container.querySelector("svg");
     expect(chart?.getAttribute("width")).toBe("640");
     expect(chart?.getAttribute("height")).toBe("320");
