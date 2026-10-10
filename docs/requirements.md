@@ -451,12 +451,12 @@ The front end is a Vite application in TypeScript with React 19. `npm run build`
 
 **Documentation.** Every API function and every helper has a JSDoc block. A helper is any exported function that is not a component: hooks, and the formatting and data functions.
 
-**Where helpers live.** The formatting and data helpers live in `src/helpers/`, one module per concern, and the rest of the app imports them through `src/helpers/index.ts`. A helper imports its siblings directly, not through the index. Hooks live in `src/hooks/`, chart settings in `src/charts/`, and the API layer in `src/api/`.
-
 - One sentence on what it does, a `@param` for each parameter, `@returns`, and `@throws` when it throws.
 - TypeScript carries the types, so the tags do not repeat them.
 - Components and specs need no JSDoc.
 - A JSDoc block documents a contract. It is not one of the inline comments `AGENTS.md` rules out.
+
+**Where helpers live.** The formatting and data helpers live in `src/helpers/`, one module per concern, and the rest of the app imports them through `src/helpers/index.ts`. A helper imports its siblings directly, not through the index. Hooks live in `src/hooks/`, the API layer in `src/api/`, and chart code in `src/charts/`, including the series palette, which reads the chart theme from the page's styles when it loads. Keeping chart code out of the index means a formatter can be imported without a page.
 
 **Continuous integration.** One GitHub Actions workflow, `.github/workflows/ci.yml`.
 
