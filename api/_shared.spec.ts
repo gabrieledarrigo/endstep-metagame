@@ -33,12 +33,14 @@ describe("errorResponse", () => {
     expect(await response.json()).toEqual({ error: "Bad request" });
   });
 
-  it("adds the extra headers", () => {
-    const response = errorResponse(405, "Method not allowed", {
+  it("adds the extra headers, which override the base ones", () => {
+    const response = errorResponse(429, "Too many requests", {
       Allow: "GET",
+      "Cache-Control": "public, s-maxage=60",
     });
 
     expect(response.headers.get("allow")).toBe("GET");
+    expect(response.headers.get("cache-control")).toBe("public, s-maxage=60");
   });
 });
 

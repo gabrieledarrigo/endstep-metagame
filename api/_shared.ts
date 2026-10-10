@@ -20,12 +20,12 @@ export function hasNoBody(status: number) {
 }
 
 /**
- * Builds a JSON error response that is never cached.
+ * Builds a JSON error response.
  *
  * @param status - The HTTP status to answer with.
  * @param message - The text of the `error` field.
  * @param headers - Extra headers, which override the base ones.
- * @returns A Response with the CORS headers and `Cache-Control: no-store`.
+ * @returns A Response with the CORS headers and `Cache-Control: no-store`, unless `headers` sets another `Cache-Control`.
  */
 export function errorResponse(
   status: number,
