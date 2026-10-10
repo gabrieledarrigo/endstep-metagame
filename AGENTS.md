@@ -13,7 +13,7 @@ Write simple, readable code. Prefer the clean solution over the clever one.
 - Comments are for the rare case where the reason is not visible in the code, such as a workaround for an external API.
 - CSS follows NFR-11 in the requirements: every rule in a cascade layer, one stylesheet per component named after it, and each stylesheet styles only the elements its component renders.
 - Every API function and every exported helper has a JSDoc block, as NFR-1 describes. That is documentation of a contract, not an inline comment.
-- An exported function with a consumer has a spec beside its module, named after it: `Card.tsx` and `Card.spec.tsx`. Specs query by role and visible text and never call Endstep.
+- Every new component and every new exported function comes with a spec in the same pull request, beside its module and named after it: `Card.tsx` and `Card.spec.tsx`. A function the module does not export is tested through the exports that use it. Specs query by role and visible text and never call Endstep.
 
 ## Prose
 
@@ -110,7 +110,6 @@ The owner has decided these. Reviews do not raise them again. A change goes to t
 - Back and forward keep the scroll position the browser restores, §4.5.
 - A parent may add its own class to a child's root, a BEM mix, and every block class sits on its component's root, NFR-11.
 - Doc comments go on API functions and exported helpers only, never on types or their properties.
-- Specs for modules that existed before E8 belong to E11, unless a pull request changes what they do.
 - Vercel previews sit behind Vercel Authentication. A "Done when" that names a preview is met by an offline `vercel build`, or by production after the merge.
 - The matchup function caches a 429 for 60 seconds, §4.4, even when a background revalidation could leave a stale matrix in its place.
 
