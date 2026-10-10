@@ -73,20 +73,18 @@
     text-align: left;
   }
 
-  .matchup__col a,
-  .matchup__row a {
+  .matchup__link {
     color: inherit;
     text-decoration: none;
   }
 
-  .matchup__col a {
-    display: block;
-    padding-block: 8px 10px;
+  .matchup__link:hover {
+    text-decoration: underline;
   }
 
-  .matchup__col a:hover,
-  .matchup__row a:hover {
-    text-decoration: underline;
+  .matchup__link--col {
+    display: block;
+    padding-block: 8px 10px;
   }
 
   .matchup__colname {

@@ -347,7 +347,11 @@ export function MatchupTable({ matrix, timeWindow }: MatchupTableProps) {
                       data-column={column}
                       tabIndex={tabIndex(-1, column)}
                     >
-                      <WindowLink to={`/decks/${deck.slug}`} tabIndex={-1}>
+                      <WindowLink
+                        className="matchup__link matchup__link--col"
+                        to={`/decks/${deck.slug}`}
+                        tabIndex={-1}
+                      >
                         <span className="matchup__colname">{deck.name}</span>
                       </WindowLink>
                     </th>
@@ -368,7 +372,11 @@ export function MatchupTable({ matrix, timeWindow }: MatchupTableProps) {
                       data-column={-1}
                       tabIndex={tabIndex(row, -1)}
                     >
-                      <WindowLink to={`/decks/${rowDeck.slug}`} tabIndex={-1}>
+                      <WindowLink
+                        className="matchup__link"
+                        to={`/decks/${rowDeck.slug}`}
+                        tabIndex={-1}
+                      >
                         {rowDeck.name}
                       </WindowLink>
                     </th>
