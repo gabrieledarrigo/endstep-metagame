@@ -55,10 +55,12 @@ export function neededText(decided: number, unit: "matches" | "games"): string {
  * Writes a win and loss block's rate for a table or a card, under the 20-match rule.
  *
  * @param block - A win and loss block from Endstep.
- * @returns The rate with one decimal, such as `52.2%`, or `Too few to call`.
+ * @returns The rate with one decimal, such as `52.2%`, or the decided count against the 20 needed, such as `Too few to call, 12 of 20`.
  */
 export function rateText(block: WinLossBlock): string {
   const read = readRate(block);
 
-  return read.gated ? "Too few to call" : percent(read.rate);
+  return read.gated
+    ? `Too few to call, ${read.decided} of ${DECIDED_NEEDED}`
+    : percent(read.rate);
 }

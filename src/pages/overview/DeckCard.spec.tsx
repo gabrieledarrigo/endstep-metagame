@@ -68,7 +68,7 @@ describe("DeckCard", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByText("Too few to call")).toBeTruthy();
+    expect(screen.getByText("Too few to call, 12 of 20")).toBeTruthy();
   });
 });
 

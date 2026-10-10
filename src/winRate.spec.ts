@@ -56,6 +56,6 @@ describe("rateText", () => {
     ).toBe("60.0%");
     expect(
       rateText({ wins: 9, losses: 3, rate: 0.75, low: 0.47, high: 0.91 }),
-    ).toBe("Too few to call");
+    ).toBe("Too few to call, 12 of 20");
   });
 });

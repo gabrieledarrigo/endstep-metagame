@@ -7,7 +7,7 @@ import { Skeleton } from "../../components/Skeleton";
 import { WindowLink } from "../../components/WindowLink";
 import { PAGE_SIZE } from "../../config";
 import { formatCount, percent } from "../../format";
-import { rateText } from "../../winRate";
+import { rateText, readRate } from "../../winRate";
 import "./DeckTable.css";
 
 type SortKey = "name" | "share" | "players" | "matches" | "winRate";
@@ -21,12 +21,18 @@ function matchesOf(deck: Deck): number {
   return deck.matchWinRate.wins + deck.matchWinRate.losses;
 }
 
+function sortableRate(deck: Deck): number {
+  const read = readRate(deck.matchWinRate);
+
+  return read.gated ? -1 : read.rate;
+}
+
 const COMPARE: Record<SortKey, (left: Deck, right: Deck) => number> = {
   name: (left, right) => left.name.localeCompare(right.name, "en-GB"),
   share: (left, right) => left.share.rate - right.share.rate,
   players: (left, right) => left.players - right.players,
   matches: (left, right) => matchesOf(left) - matchesOf(right),
-  winRate: (left, right) => left.matchWinRate.rate - right.matchWinRate.rate,
+  winRate: (left, right) => sortableRate(left) - sortableRate(right),
 };
 
 const DEFAULT_SORT: Sort = { key: "share", direction: "descending" };

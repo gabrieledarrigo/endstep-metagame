@@ -119,7 +119,31 @@ describe("DeckTable", () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByText("Too few to call")).toBeTruthy();
+    expect(screen.getByText("Too few to call, 12 of 20")).toBeTruthy();
+  });
+
+  it("sorts a match win rate that is too few to call below every real one", () => {
+    const [first, ...rest] = decks.decks.items as Deck[];
+    render(
+      <MemoryRouter initialEntries={["/?sort=winRate&dir=desc"]}>
+        <DeckTable
+          decks={[
+            ...rest,
+            {
+              ...first,
+              matchWinRate: {
+                ...first.matchWinRate,
+                wins: 3,
+                losses: 0,
+                rate: 1,
+              },
+            },
+          ]}
+        />
+      </MemoryRouter>,
+    );
+
+    expect(deckOrder().at(-1)).toBe("Affinity");
   });
 });
 
