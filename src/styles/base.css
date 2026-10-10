@@ -7,6 +7,7 @@
 }
 
 body {
+  container-type: inline-size;
   margin: 0;
   background: var(--background);
   color: var(--text-900);
