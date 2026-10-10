@@ -228,23 +228,26 @@ body { container-type:inline-size; }
 .bleed { width:100cqw; margin-inline:calc(50% - 50cqw); padding-inline:20px; padding-block:28px;
   background:var(--surface); border-block:1px solid var(--edge); }
 .matchup__inner { width:fit-content; max-width:100%; margin-inline:auto; display:flex; flex-direction:column; gap:14px; }
-.matchup__caption { font-size:13px; color:var(--text-600); }
+.matchup { --matchup-cell:clamp(32px, calc((100cqw - 330px) / 24), 44px); }
 .matchup__frame { position:relative; min-width:0; }
-.matchup__table { border-collapse:separate; border-spacing:2px; width:auto; min-width:0; font-size:12px; }
+.matchup__table { border-collapse:separate; border-spacing:2px; width:auto; min-width:0;
+  font-size:clamp(13px, calc(var(--matchup-cell) * .34), 15px); }
 .matchup__table th, .matchup__table td { border:0; padding:0; letter-spacing:0; text-transform:none; }
 .matchup__corner { position:sticky; top:env(safe-area-inset-top, 0px); left:0; z-index:3; background:var(--surface);
   box-shadow:0 0 0 2px var(--surface); vertical-align:bottom; text-align:left; }
-.matchup__col, .matchup__row { font-size:12px; font-weight:400; color:var(--text-900); white-space:nowrap; }
+.matchup__col, .matchup__row { font-size:clamp(13px, calc(var(--matchup-cell) * .32), 14px); font-weight:400;
+  color:var(--text-900); white-space:nowrap; }
 .matchup__col { position:sticky; top:env(safe-area-inset-top, 0px); z-index:2; background:var(--surface);
   box-shadow:0 0 0 2px var(--surface); vertical-align:bottom; text-align:center; }
 .matchup__row { position:sticky; left:0; z-index:1; background:var(--surface); box-shadow:0 0 0 2px var(--surface);
   padding-right:12px; text-align:left; }
-.matchup__col a, .matchup__row a { color:inherit; text-decoration:none; }
+.matchup__col a, .matchup__row a { color:inherit; font-weight:500; text-decoration:none; }
 .matchup__col a { display:block; padding-block:8px 10px; }
 .matchup__col a:hover, .matchup__row a:hover { text-decoration:underline; }
 .matchup__colname { display:inline-block; vertical-align:bottom; writing-mode:vertical-rl; transform:rotate(180deg); }
 .matchup__col.is-active, .matchup__row.is-active { color:var(--primary); }
-.matchup__cell, .matchup__swatch { width:32px; min-width:32px; height:28px; border-radius:3px; text-align:center;
+.matchup__cell, .matchup__swatch { width:var(--matchup-cell); min-width:var(--matchup-cell);
+  height:calc(var(--matchup-cell) * .875); border-radius:3px; text-align:center;
   vertical-align:middle; font-variant-numeric:tabular-nums; font-weight:400; color:var(--text-600); }
 .matchup__cell { scroll-margin-top:230px; cursor:default; }
 .matchup__cell:focus-visible, .matchup__col:focus-visible, .matchup__row:focus-visible {
@@ -260,7 +263,7 @@ body { container-type:inline-size; }
 .chart-tooltip__verdict { font-size:12px; color:var(--text-600); max-width:30ch; }
 .matchup__legend { list-style:none; margin:0; padding:0; display:flex; flex-wrap:wrap; gap:10px 22px; }
 .matchup__legend-item { display:inline-flex; align-items:center; gap:8px; font-size:13px; color:var(--text-600); }
-.matchup__swatch { display:inline-flex; align-items:center; justify-content:center; font-size:12px; flex-shrink:0; }
+.matchup__swatch { display:inline-flex; align-items:center; justify-content:center; font-size:13px; flex-shrink:0; }
 .matchup__swatch.matchup__cell--neutral, .matchup__swatch.matchup__cell--none { box-shadow:inset 0 0 0 1px var(--rule); }
 @media (max-width:1100px) {
   .matchup__scroll { overflow-x:auto; }
@@ -350,6 +353,7 @@ a.button { display:inline-block; text-decoration:none; }
 
 .chart-tooltip[hidden] { display:none; }
 .deck-page__matchups { gap:12px; }
+.deck-strip { --matchup-cell:32px; }
 .deck-strip__scroll { overflow-x:auto; }
 .deck-strip__table { margin:0; }
 .deck-strip__legend { margin-top:4px; }
@@ -977,8 +981,6 @@ a.button { display:inline-block; text-decoration:none; }
   the 30-day rated window, measured 2026-10-03.</p></div>
   <div class="bleed matchup" id="matchup">
     <div class="matchup__inner">
-      <p class="matchup__caption">Read across. Each number is the row deck's match win rate against the
-      column deck, so a row and its column mirror each other.</p>
       <div class="matchup__frame">
         <div class="matchup__scroll">
           <table class="matchup__table" role="grid" aria-readonly="true"
@@ -1036,17 +1038,21 @@ a.button { display:inline-block; text-decoration:none; }
   under protanopia, normal vision ΔE 15.5. Both clear their floors. One shade per side: the cell carries a
   verdict, clear or not, and the number carries the size. Text on a fill is always
   <span class="mono">--text-900</span>, at 10.61:1 or better.</p>
-  <p class="spec"><b>Cells</b> are 32 by 28 with a 2px gap and a 3px radius. Numbers are whole percentages
-  at 12px with tabular numerals. Clear cells are 700 in <span class="mono">--text-900</span>. Every other
+  <p class="spec"><b>Cells</b> grow with the window. Each is <span class="mono">clamp(32px, (100cqw - 330px) / 24, 44px)</span>
+  wide and 0.875 of that high, with a 2px gap and a 3px radius: 32 by 28 up to about 1,100px of window, about
+  40 by 35 at 1,280px, and 44 by 38.5 from about 1,390px. Numbers are whole percentages with tabular numerals,
+  from 13px in the smallest cell to 15px in the largest. Clear cells are 700 in <span class="mono">--text-900</span>. Every other
   number is 400 in <span class="mono">--text-600</span>, so weight alone separates a clear result from
   noise, per NFR-6. Both cells of a pair always match, because FR-12 decides per pair. At 30d, 96 pairs
   are clear. One pair, Rakdos Madness against Naya Gates, is gated at 18 matches.</p>
   <p class="spec"><b>Layout.</b> The table sits in a full-width band that breaks out of the page column,
-  with the table centred in it. It has no fixed height and no scrollbar. Deck names are 12px 400 in
-  <span class="mono">--text-900</span> in both the first column and the rotated column headers, in full,
-  with no truncation. Rotated names sit 10px above the first row. The header row stays at the top of the window while the page scrolls past the table.
-  The table is about 1,030px wide. Below 1,100px of window width, the band scrolls sideways and the first
-  column stays in view, so the page itself never scrolls sideways.</p>
+  with the table centred in it. It has no fixed height and no scrollbar. Deck names are 500 in
+  <span class="mono">--text-900</span>, 13px rising to 14px with the cells, in both the first column and the
+  rotated column headers, in full, with no truncation. Rotated names sit 10px above the first row. The table
+  is about 1,040px wide at its smallest and 1,340px at its largest. From 1,100px of window width the header
+  row stays at the top of the window while the page scrolls past the table. Below 1,100px the band scrolls
+  sideways and the first column stays in view, so the page itself never scrolls sideways, and the header row
+  scrolls away with the table. The deck page's row keeps 32px cells.</p>
   <p class="spec"><b>Keyboard and pointer.</b> The table is one tab stop, following the ARIA grid pattern.
   Arrow keys move between cells and headers, Home and End jump to the ends of a row, and Escape hides the
   detail. Hover or focus shows both decks, the rate to one decimal place, the range, wins, losses and
