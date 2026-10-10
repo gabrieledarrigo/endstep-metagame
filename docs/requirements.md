@@ -333,7 +333,7 @@ A page with one table: the top 24 decks by share, against each other. One call t
 - Row and column headers link to the deck pages, FR-10.
 - Each deck page shows its own row of this table, FR-11.
 - The table sits in a full-width band that breaks out of the page column, centred, with no fixed height and no scrollbar. The header row stays at the top of the window while the page scrolls past the table.
-- Where the window is narrower than the table, about 1,010px, the band scrolls sideways and the first column stays in view. The page itself does not scroll sideways, NFR-7.
+- Where the window is narrower than the table, about 1,010px, the band scrolls sideways and the first column stays in view. The page itself does not scroll sideways, NFR-7. A box that scrolls sideways also holds its sticky header, so below 1,100px the header row scrolls away with the table.
 - The page has the window selector and the resolved window dates.
 
 ---
@@ -409,7 +409,7 @@ The front end is a Vite application in TypeScript with React 19. `npm run build`
   |---|---|
   | `api/tsconfig.json` | `api/`. It is the config nearest the function, so Vercel's function build reads it |
   | `tsconfig.app.json` | `src/` and `test/`, with Vite's client types |
-  | `tsconfig.node.json` | `vite.config.ts` and `eslint.config.ts`, with Node's types. The Vite config imports the function, so this config also checks `api/metagame.ts` without the DOM lib, as the dev server runs it |
+  | `tsconfig.node.json` | `vite.config.ts` and `eslint.config.ts`, with Node's types. The Vite config imports the functions, so this config also checks `api/metagame.ts` and `api/matchups.ts` without the DOM lib, as the dev server runs them |
 
 - The root `tsconfig.json` lists the three as references and covers no file itself. An editor opens a file, finds the root config, and follows the references to the config that covers the file. Without them, an editor checks `src/` with default options and reports false errors.
 - Vite's client types stay out of `api/tsconfig.json`. Putting them there breaks the function build. Moving the config from the root to `api/` left the compiled function byte for byte the same, measured with an offline `vercel build` on 2026-10-09.

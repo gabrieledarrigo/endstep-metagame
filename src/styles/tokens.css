@@ -18,6 +18,15 @@
   --up: #006300;
   --down: #d03b3b;
 
+  --win: #9ec5f4;
+  --loss: #f7aba4;
+  --mirror: #efeee9;
+  --hatch: repeating-linear-gradient(
+    135deg,
+    var(--baseline) 0 1px,
+    transparent 1px 5px
+  );
+
   --s1: #2a78d6;
   --s2: #eb6834;
   --s3: #1baf7a;

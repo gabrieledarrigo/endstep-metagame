@@ -7,7 +7,7 @@ import { WINDOWS } from "../../config";
 import { useTimeWindow } from "../../hooks/useTimeWindow";
 import { DeckGrid, DeckGridSkeleton } from "./DeckGrid";
 import { DeckTable, DeckTableSkeleton } from "./DeckTable";
-import { EmptyWindow } from "./EmptyWindow";
+import { EmptyWindow } from "../../components/EmptyWindow";
 import { RankedBars, RankedBarsSkeleton } from "./RankedBars";
 import { ShareOverTime, ShareOverTimeSkeleton } from "./ShareOverTime";
 import { Summary, SummarySkeleton } from "./Summary";

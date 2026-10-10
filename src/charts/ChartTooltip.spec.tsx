@@ -30,4 +30,17 @@ describe("ChartTooltip", () => {
 
     expect(container.textContent).toBe("Affinity9.56%");
   });
+
+  it("closes with the verdict when there is one", () => {
+    render(
+      <ChartTooltip
+        rows={[]}
+        verdict="Too few to call: 18 of the 20 matches needed."
+      />,
+    );
+
+    expect(
+      screen.getByText("Too few to call: 18 of the 20 matches needed."),
+    ).toBeTruthy();
+  });
 });

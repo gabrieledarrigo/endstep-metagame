@@ -3,9 +3,12 @@ import { getJson } from "./client";
 import type {
   DeckDetail,
   DecksResponse,
+  MatchupMatrix,
   ShareSeriesResponse,
   TimeWindow,
 } from "./types";
+
+const METAGAME = "/api/metagame";
 
 /**
  * Fetches the top decks of a window, sorted by meta share.
@@ -20,7 +23,7 @@ export function fetchDecks(
   signal: AbortSignal,
 ): Promise<DecksResponse> {
   return getJson<DecksResponse>(
-    `${FORMAT}/decks`,
+    `${METAGAME}/${FORMAT}/decks`,
     {
       window: timeWindow,
       population: POPULATION,
@@ -46,7 +49,7 @@ export function fetchSeries(
   signal: AbortSignal,
 ): Promise<ShareSeriesResponse> {
   return getJson<ShareSeriesResponse>(
-    `${FORMAT}/share-series`,
+    `${METAGAME}/${FORMAT}/share-series`,
     { window: timeWindow, population: POPULATION },
     signal,
   );
@@ -67,8 +70,27 @@ export function fetchDeck(
   signal: AbortSignal,
 ): Promise<DeckDetail> {
   return getJson<DeckDetail>(
-    `${FORMAT}/decks/${slug}`,
+    `${METAGAME}/${FORMAT}/decks/${slug}`,
     { window: timeWindow, population: POPULATION },
+    signal,
+  );
+}
+
+/**
+ * Fetches the matchup matrix of the top 24 decks for a window, built by the matchup function, §4.4.
+ *
+ * @param timeWindow - The window to read.
+ * @param signal - Aborts the request.
+ * @returns A Promise resolving to the window's dates, the decks in share order, and each deck's record against the others.
+ * @throws The errors `getJson` throws.
+ */
+export function fetchMatchups(
+  timeWindow: TimeWindow,
+  signal: AbortSignal,
+): Promise<MatchupMatrix> {
+  return getJson<MatchupMatrix>(
+    "/api/matchups",
+    { window: timeWindow },
     signal,
   );
 }

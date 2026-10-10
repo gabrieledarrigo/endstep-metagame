@@ -111,6 +111,7 @@ The owner has decided these. Reviews do not raise them again. A change goes to t
 - A parent may add its own class to a child's root, a BEM mix, and every block class sits on its component's root, NFR-11.
 - Doc comments go on API functions and exported helpers only, never on types or their properties.
 - Vercel previews sit behind Vercel Authentication. A "Done when" that names a preview is met by an offline `vercel build`, or by production after the merge.
+- Below 1,100px the matchup table's header row scrolls away with the table. Only from 1,100px up does it stay at the top of the window, FR-12.
 - The matchup function caches a 429 for 60 seconds, §4.4, even when a background revalidation could leave a stale matrix in its place.
 
 ## Project context

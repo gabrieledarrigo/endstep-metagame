@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import type { TimeWindow } from "../../api/types";
+import type { TimeWindow } from "../api/types";
 import { EmptyWindow } from "./EmptyWindow";
 
 describe("EmptyWindow", () => {

@@ -11,8 +11,8 @@ import {
   winRateText,
 } from "./format";
 
-function range(from: string, to: string): Parameters<typeof formatWindow>[0] {
-  return { preset: "30d", from, to, since: null, until: null };
+function range(from: string, to: string): { from: string; to: string } {
+  return { from, to };
 }
 
 describe("formatCount", () => {
