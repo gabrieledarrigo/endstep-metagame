@@ -27,4 +27,14 @@ describe("StatePanel", () => {
     expect(container.textContent).toBe("Loading");
     expect(container.firstElementChild?.getAttribute("aria-busy")).toBe("true");
   });
+
+  it("makes the title the page's main heading when it stands for the page", () => {
+    render(<StatePanel main title="No deck at this address" />);
+
+    const heading = screen.getByRole("heading", {
+      level: 1,
+      name: "No deck at this address",
+    });
+    expect(heading.getAttribute("tabindex")).toBe("-1");
+  });
 });

@@ -26,4 +26,22 @@
     letter-spacing: -0.02em;
     line-height: 1.05;
   }
+
+  .stat-tile__value--gated {
+    color: var(--text-600);
+  }
+
+  .stat-tile--hero .stat-tile__value--gated {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0;
+    line-height: 1.6;
+  }
+
+  .stat-tile__detail {
+    margin: 0;
+    font-size: 12px;
+    color: var(--text-600);
+    font-variant-numeric: tabular-nums;
+  }
 }
