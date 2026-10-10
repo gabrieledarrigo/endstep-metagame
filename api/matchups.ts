@@ -168,8 +168,9 @@ async function build(timeWindow: string) {
   const decks = top.decks.items;
 
   const results = await Promise.allSettled(
-    decks.map((deck) =>
-      upstream<MatchupsBody>(
+    decks.map(async (deck) => ({
+      slug: deck.slug,
+      page: await upstream<MatchupsBody>(
         `Pauper/decks/${encodeURIComponent(deck.slug)}/matchups`,
         {
           ...fixed,
@@ -178,7 +179,7 @@ async function build(timeWindow: string) {
           pageSize: String(MATCHUP_ROWS),
         },
       ),
-    ),
+    })),
   );
   const failures = results
     .filter((result) => result.status === "rejected")
@@ -188,18 +189,16 @@ async function build(timeWindow: string) {
     throw failures.find(isRateLimit) ?? failures[0];
   }
 
-  const pages = results
-    .filter((result) => result.status === "fulfilled")
-    .map((result) => result.value);
-
   const slugById = new Map(decks.map((deck) => [deck.id, deck.slug]));
   const cells = new Map(
     decks.map((deck) => [deck.slug, new Map<string, Cell>()]),
   );
 
-  pages.forEach((page, i) => {
-    const slug = decks[i].slug;
+  const pages = results
+    .filter((result) => result.status === "fulfilled")
+    .map((result) => result.value);
 
+  for (const { slug, page } of pages) {
     for (const row of page.matchups.items) {
       const opponent = slugById.get(row.opponent.id);
 
@@ -207,7 +206,7 @@ async function build(timeWindow: string) {
         cells.get(slug)?.set(opponent, cellOf(row));
       }
     }
-  });
+  }
 
   for (const [slug, row] of cells) {
     for (const [opponent, cell] of row) {
