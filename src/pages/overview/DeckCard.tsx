@@ -3,16 +3,10 @@ import { ColourPips } from "../../components/ColourPips";
 import { ShareChange } from "../../components/ShareChange";
 import { Skeleton } from "../../components/Skeleton";
 import { WindowLink } from "../../components/WindowLink";
+import { artSource } from "../../cardArt";
 import { formatCount, tooltipShare } from "../../format";
 import { rateText } from "../../winRate";
 import "./DeckCard.css";
-
-function artSource(cardName: string): string {
-  return `https://endstep.cc/api/cards/image?${new URLSearchParams({
-    name: cardName,
-    version: "art_crop",
-  })}`;
-}
 
 export function DeckCard({ deck }: { deck: Deck }) {
   return (

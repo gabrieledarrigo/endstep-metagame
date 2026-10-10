@@ -9,6 +9,11 @@
     cursor: pointer;
   }
 
+  .button--link {
+    display: inline-block;
+    text-decoration: none;
+  }
+
   .button--primary {
     background: var(--primary);
     color: var(--text-inverse);

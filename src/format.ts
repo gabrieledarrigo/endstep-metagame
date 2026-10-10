@@ -97,6 +97,16 @@ function formatDate(value: string, withYear: boolean): string {
   return withYear ? `${head} ${year}` : head;
 }
 
+/**
+ * Formats a date as its day and month, for a chart axis or a table of days.
+ *
+ * @param day - A date in `YYYY-MM-DD` form.
+ * @returns The day and month, such as `5 Sep`.
+ */
+export function formatDay(day: string): string {
+  return formatDate(day, false);
+}
+
 function lastCoveredDay(to: string): string {
   const day = new Date(`${to}T00:00:00Z`);
   day.setUTCDate(day.getUTCDate() - 1);

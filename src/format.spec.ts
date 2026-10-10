@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   axisShare,
   formatCount,
+  formatDay,
   formatPopulation,
   formatWindow,
   longDay,
@@ -56,6 +57,12 @@ describe("shortDay", () => {
 describe("longDay", () => {
   it("writes the date in full, in British English", () => {
     expect(longDay("2026-10-07")).toBe("7 October 2026");
+  });
+});
+
+describe("formatDay", () => {
+  it("writes the day and the short month", () => {
+    expect(formatDay("2026-09-05")).toBe("5 Sep");
   });
 });
 
