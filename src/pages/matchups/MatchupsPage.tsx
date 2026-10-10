@@ -5,7 +5,7 @@ import { PageTitle } from "../../components/PageTitle";
 import { Section } from "../../components/Section";
 import { SegmentedControl } from "../../components/SegmentedControl";
 import { WINDOWS } from "../../config";
-import { formatWindow } from "../../format";
+import { formatWindow } from "../../helpers";
 import { useTimeWindow } from "../../hooks/useTimeWindow";
 import { MatchupTable, MatchupTableSkeleton } from "./MatchupTable";
 

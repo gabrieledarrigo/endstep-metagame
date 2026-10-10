@@ -1,4 +1,4 @@
-import { token } from "./theme";
+import { token } from "../charts/theme";
 
 const SERIES_COLOURS = [
   "--s1",

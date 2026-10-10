@@ -3,7 +3,7 @@ import { Panel } from "../../components/Panel";
 import { Skeleton } from "../../components/Skeleton";
 import { StatList } from "../../components/StatList";
 import { StatTile } from "../../components/StatTile";
-import { formatCount, formatPopulation, formatWindow } from "../../format";
+import { formatCount, formatPopulation, formatWindow } from "../../helpers";
 
 const SUMMARY_TILES = [
   { label: "Registrations", value: 177 },

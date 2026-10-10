@@ -24,11 +24,12 @@ import { Panel } from "../../components/Panel";
 import { Skeleton } from "../../components/Skeleton";
 import {
   axisShare,
+  DECIDED_NEEDED,
   formatCount,
+  readRate,
   tooltipShare,
   winRateText,
-} from "../../format";
-import { DECIDED_NEEDED, readRate } from "../../helpers";
+} from "../../helpers";
 import "./WinRateScatter.css";
 
 const WIN_RATE_MARK = token("--s1");

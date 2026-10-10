@@ -1,4 +1,4 @@
-import { percent } from "../format";
+import { percent } from "./format";
 
 export const DECIDED_NEEDED = 20;
 

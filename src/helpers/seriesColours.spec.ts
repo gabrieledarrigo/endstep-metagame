@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { seriesColours } from "./seriesColours";
 
-vi.mock("./theme", () => ({ token: (name: string): string => name }));
+vi.mock("../charts/theme", () => ({ token: (name: string): string => name }));
 
 describe("seriesColours", () => {
   it("gives new keys the lowest free colours, in order", () => {
