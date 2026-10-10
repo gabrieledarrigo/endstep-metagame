@@ -10,12 +10,6 @@ const returnTypes = (tseslint.plugin as ESLint.Plugin).rules?.[
   "explicit-function-return-type"
 ] as Rule.RuleModule;
 
-/**
- * Tells a React component from a plain function by React's naming convention.
- *
- * @param node - The function the return-type rule reports.
- * @returns `true` when the function, or the variable it is assigned to, has a name that starts with a capital letter.
- */
 function isComponent(node: Rule.Node): boolean {
   const parent = node.parent;
   const name =
@@ -28,9 +22,6 @@ function isComponent(node: Rule.Node): boolean {
   return name !== undefined && /^[A-Z]/.test(name);
 }
 
-/**
- * `@typescript-eslint/explicit-function-return-type`, without its reports on React components.
- */
 const plainFunctionReturnTypes: Rule.RuleModule = {
   ...returnTypes,
   create(context) {
