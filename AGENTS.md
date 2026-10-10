@@ -112,6 +112,7 @@ The owner has decided these. Reviews do not raise them again. A change goes to t
 - Doc comments go on API functions and exported helpers only, never on types or their properties.
 - Specs for modules that existed before E8 belong to E11, unless a pull request changes what they do.
 - Vercel previews sit behind Vercel Authentication. A "Done when" that names a preview is met by an offline `vercel build`, or by production after the merge.
+- The matchup function caches a 429 for 60 seconds, §4.4, even when a background revalidation could leave a stale matrix in its place.
 
 ## Project context
 
