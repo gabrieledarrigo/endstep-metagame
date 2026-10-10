@@ -13,6 +13,7 @@ export function useHeadingFocus(state: string): void {
       headingHadFocus.current = document.activeElement?.tagName === "H1";
     };
 
+    record();
     document.addEventListener("focusin", record);
 
     return (): void => document.removeEventListener("focusin", record);
