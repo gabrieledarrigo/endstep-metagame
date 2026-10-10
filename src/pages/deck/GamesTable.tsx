@@ -75,19 +75,19 @@ export function GamesTable({
 }: {
   results: DeckDetail["gameResults"];
 }) {
-  const [active, setActive] = useState<GameCell | null>(null);
-  const focused = useRef<GameCell | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const focusedId = useRef<string | null>(null);
   const frame = useRef<HTMLDivElement>(null);
   const tooltip = useRef<HTMLDivElement>(null);
   const cells = useRef(new Map<string, HTMLTableCellElement>());
 
   useLayoutEffect(() => {
-    const cell = active && cells.current.get(active.id);
+    const cell = activeId && cells.current.get(activeId);
 
     if (cell && tooltip.current && frame.current) {
       placeTooltip(tooltip.current, frame.current, cell);
     }
-  }, [active]);
+  }, [activeId, results]);
 
   if (results === null) {
     return (
@@ -109,24 +109,35 @@ export function GamesTable({
     { key: "all", label: "All games", split: results.total, total: true },
   ];
 
-  const gated = rows.some((row) =>
-    COLUMNS.some((column) => readRate(row.split[column.key]).gated),
+  const grid = rows.map((row) => ({
+    ...row,
+    cells: COLUMNS.map((column) => ({
+      id: `${row.key}-${column.key}`,
+      title: `${row.label}, ${column.label.toLowerCase()}`,
+      block: row.split[column.key],
+    })),
+  }));
+  const active = grid
+    .flatMap((row) => row.cells)
+    .find((cell) => cell.id === activeId);
+  const gated = grid.some((row) =>
+    row.cells.some((cell) => readRate(cell.block).gated),
   );
 
   const onFocusCell = (cell: GameCell): void => {
-    focused.current = cell;
-    setActive(cell);
+    focusedId.current = cell.id;
+    setActiveId(cell.id);
   };
 
   const onBlur = (event: FocusEvent<HTMLTableElement>): void => {
     if (!event.currentTarget.contains(event.relatedTarget)) {
-      focused.current = null;
-      setActive(null);
+      focusedId.current = null;
+      setActiveId(null);
     }
   };
 
   const onMouseLeave = (): void => {
-    setActive(focused.current);
+    setActiveId(focusedId.current);
   };
 
   return (
@@ -149,7 +160,7 @@ export function GamesTable({
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => (
+              {grid.map((row) => (
                 <tr
                   key={row.key}
                   className={
@@ -159,17 +170,12 @@ export function GamesTable({
                   <th scope="row" className="games__head">
                     {row.label}
                   </th>
-                  {COLUMNS.map((column) => {
-                    const cell: GameCell = {
-                      id: `${row.key}-${column.key}`,
-                      title: `${row.label}, ${column.label.toLowerCase()}`,
-                      block: row.split[column.key],
-                    };
+                  {row.cells.map((cell) => {
                     const read = readRate(cell.block);
 
                     return (
                       <td
-                        key={column.key}
+                        key={cell.id}
                         ref={(element) => {
                           if (element) {
                             cells.current.set(cell.id, element);
@@ -185,7 +191,7 @@ export function GamesTable({
                         tabIndex={0}
                         aria-label={cellLabel(cell)}
                         onFocus={() => onFocusCell(cell)}
-                        onMouseEnter={() => setActive(cell)}
+                        onMouseEnter={() => setActiveId(cell.id)}
                       >
                         {read.gated ? "" : percent(read.rate)}
                       </td>

@@ -109,6 +109,29 @@ describe("GamesTable", () => {
     );
   });
 
+  it("updates the detail of the focused cell when the results change under it", () => {
+    const { rerender } = render(<GamesTable results={RESULTS} />);
+    act(() => {
+      screen.getByRole("cell", { name: /^Game 1, on the play:/ }).focus();
+    });
+
+    rerender(
+      <GamesTable
+        results={{
+          ...RESULTS,
+          rows: [
+            { ...RESULTS.rows[0], onPlay: GATED },
+            ...RESULTS.rows.slice(1),
+          ],
+        }}
+      />,
+    );
+
+    expect(screen.getByRole("tooltip").textContent).toBe(
+      "Game 1, on the playWins6Losses8Too few to call: 14 of the 20 games needed.",
+    );
+  });
+
   it("says when game results are not available", () => {
     render(<GamesTable results={null} />);
 
