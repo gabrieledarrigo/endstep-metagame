@@ -241,7 +241,7 @@ export function MatchupTable({ matrix, timeWindow }: MatchupTableProps) {
   const onKeyDown = (event: KeyboardEvent<HTMLTableElement>): void => {
     const from = positionOf(event.target);
 
-    if (!from) {
+    if (!from || event.altKey || event.ctrlKey || event.metaKey) {
       return;
     }
 

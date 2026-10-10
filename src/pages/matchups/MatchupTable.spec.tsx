@@ -165,6 +165,26 @@ describe("MatchupTable", () => {
     expect(focused()).toBe("Naya Gates");
   });
 
+  it("leaves a key with a modifier to the browser, such as Alt and an arrow for back", () => {
+    renderTable();
+
+    focus(screen.getByRole("grid").querySelector("[tabindex='0']"));
+    const event = new KeyboardEvent("keydown", {
+      key: "ArrowLeft",
+      altKey: true,
+      bubbles: true,
+      cancelable: true,
+    });
+    act(() => {
+      document.activeElement?.dispatchEvent(event);
+    });
+
+    expect(event.defaultPrevented).toBe(false);
+    expect(focused()).toBe(
+      "Affinity against Mono Red Madness: 57%, clear result",
+    );
+  });
+
   it("follows a header's link on Enter", () => {
     renderTable();
 
