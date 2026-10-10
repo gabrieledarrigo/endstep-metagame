@@ -69,6 +69,13 @@ export default defineConfig([
     languageOptions: { globals: globals.node },
   },
   {
+    files: ["**/*.ts"],
+    rules: {
+      "@typescript-eslint/explicit-function-return-type": "error",
+    },
+  },
+  {
+    files: ["**/*.tsx"],
     plugins: {
       local: {
         rules: { "explicit-function-return-type": plainFunctionReturnTypes },
