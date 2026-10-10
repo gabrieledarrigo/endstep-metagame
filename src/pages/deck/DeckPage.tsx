@@ -4,11 +4,13 @@ import { useLocation, useNavigate, useParams } from "react-router";
 import { ApiError } from "../../api/client";
 import { fetchDeck } from "../../api/endpoints";
 import type { DeckDetail } from "../../api/types";
+import { Button } from "../../components/Button";
 import { EmptyWindow } from "../../components/EmptyWindow";
 import { PageTitle } from "../../components/PageTitle";
-import { Section } from "../../components/Section";
 import { Skeleton } from "../../components/Skeleton";
+import { StatePanel } from "../../components/StatePanel";
 import { formatWindow } from "../../format";
+import { useHeadingFocus } from "../../hooks/useHeadingFocus";
 import { useTimeWindow } from "../../hooks/useTimeWindow";
 import { DeckHero } from "./DeckHero";
 import { DeckNotFound } from "./DeckNotFound";
@@ -26,6 +28,14 @@ function isUnknownDeck(deck: UseQueryResult<DeckDetail>): boolean {
     deck.error instanceof ApiError &&
     (deck.error.status === 404 || deck.error.status === 400)
   );
+}
+
+function headingState(deck: UseQueryResult<DeckDetail>): string {
+  if (deck.data !== undefined) {
+    return "deck";
+  }
+
+  return isUnknownDeck(deck) ? "unknown" : deck.status;
 }
 
 function DeckPageSkeleton() {
@@ -46,8 +56,13 @@ export function DeckPage() {
   const deck = useQuery({
     queryKey: ["deck", slug, timeWindow],
     queryFn: ({ signal }) => fetchDeck(slug, timeWindow, signal),
+    placeholderData: (previous, previousQuery) =>
+      previousQuery?.queryKey[1] === slug ? previous : undefined,
   });
   const canonical = deck.data?.deck.slug;
+  const loadingWindow = deck.isPlaceholderData;
+
+  useHeadingFocus(headingState(deck));
 
   useEffect(() => {
     if (canonical !== undefined && canonical !== slug) {
@@ -73,13 +88,15 @@ export function DeckPage() {
           title={deck.isError ? "Deck" : "Loading the deck"}
           loading={deck.isPending}
         />
-        <Section
-          query={deck}
-          skeleton={<DeckPageSkeleton />}
-          title="The deck could not be loaded"
-        >
-          {() => null}
-        </Section>
+        {deck.isError ? (
+          <StatePanel
+            title="The deck could not be loaded"
+            detail={deck.error.message}
+            action={<Button onClick={() => deck.refetch()}>Retry</Button>}
+          />
+        ) : (
+          <DeckPageSkeleton />
+        )}
       </>
     );
   }
@@ -93,14 +110,21 @@ export function DeckPage() {
       deck={detail.deck}
       dates={dates}
       timeWindow={timeWindow}
-      onSelect={selectTimeWindow}
+      onSelect={(next) => selectTimeWindow(next, loadingWindow)}
+      busy={loadingWindow}
     />
+  );
+  const loadingStatus = (
+    <p className="visually-hidden" role="status">
+      {loadingWindow ? `Loading the ${timeWindow} window.` : ""}
+    </p>
   );
 
   if (matches === 0) {
     return (
       <div className="deck-page">
         {hero}
+        {loadingStatus}
         <EmptyWindow
           timeWindow={timeWindow}
           onSelect={selectTimeWindow}
@@ -114,37 +138,47 @@ export function DeckPage() {
   return (
     <div className="deck-page">
       {hero}
-      <DeckStats deck={detail.deck} />
-      <div className="deck-page__columns">
-        <div className="deck-page__main">
-          <DeckSection title="Share over time">
-            <DeckShare
-              name={detail.deck.name}
-              dates={dates}
-              points={detail.shareSeries.points}
-            />
-          </DeckSection>
-          <DeckSection
-            title="Games"
-            note="Game win rate, by game in the match and by who played first."
-          >
-            <GamesTable results={detail.gameResults} />
-          </DeckSection>
-          <div className="deck-page__pair">
-            <DeckSection title="Toss" note="Game 1 win rate after the toss.">
-              <DeckToss playDraw={detail.playDraw} />
+      {loadingStatus}
+      <div
+        className={
+          loadingWindow
+            ? "deck-page__body deck-page__body--busy"
+            : "deck-page__body"
+        }
+        aria-busy={loadingWindow || undefined}
+      >
+        <DeckStats deck={detail.deck} />
+        <div className="deck-page__columns">
+          <div className="deck-page__main">
+            <DeckSection title="Share over time">
+              <DeckShare
+                name={detail.deck.name}
+                dates={dates}
+                points={detail.shareSeries.points}
+              />
             </DeckSection>
             <DeckSection
-              title="Texture"
-              note="How a game with this deck tends to run."
+              title="Games"
+              note="Game win rate, by game in the match and by who played first."
             >
-              <DeckTexture texture={detail.texture} />
+              <GamesTable results={detail.gameResults} />
             </DeckSection>
+            <div className="deck-page__pair">
+              <DeckSection title="Toss" note="Game 1 win rate after the toss.">
+                <DeckToss playDraw={detail.playDraw} />
+              </DeckSection>
+              <DeckSection
+                title="Texture"
+                note="How a game with this deck tends to run."
+              >
+                <DeckTexture texture={detail.texture} />
+              </DeckSection>
+            </div>
           </div>
+          <DeckSection title="Sample list">
+            <SampleList list={detail.sampleList} />
+          </DeckSection>
         </div>
-        <DeckSection title="Sample list">
-          <SampleList list={detail.sampleList} />
-        </DeckSection>
       </div>
     </div>
   );

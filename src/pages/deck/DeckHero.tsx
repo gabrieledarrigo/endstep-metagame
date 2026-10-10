@@ -12,9 +12,16 @@ type DeckHeroProps = {
   dates: string;
   timeWindow: TimeWindow;
   onSelect: (next: TimeWindow) => void;
+  busy?: boolean;
 };
 
-export function DeckHero({ deck, dates, timeWindow, onSelect }: DeckHeroProps) {
+export function DeckHero({
+  deck,
+  dates,
+  timeWindow,
+  onSelect,
+  busy,
+}: DeckHeroProps) {
   return (
     <div className="deck-hero">
       <img
@@ -36,6 +43,7 @@ export function DeckHero({ deck, dates, timeWindow, onSelect }: DeckHeroProps) {
             options={WINDOWS}
             value={timeWindow}
             onChange={onSelect}
+            busy={busy}
           />
           <span className="deck-hero__dates">{dates}</span>
         </div>

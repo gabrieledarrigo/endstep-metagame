@@ -1,4 +1,4 @@
-import { fireEvent, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import {
   MemoryRouter,
   Route,
@@ -94,6 +94,77 @@ describe("DeckPage", () => {
         "/decks/affinity-e93f5f74?window=7d&",
       );
     });
+  });
+
+  it("keeps the deck and the focused selector on screen while another window loads, and says so", async () => {
+    let answer: (response: Response) => void = () => {};
+    const fetchMock = vi.fn<typeof fetch>(
+      () => new Promise<Response>((resolve) => (answer = resolve)),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    renderWithQueries(
+      <MemoryRouter initialEntries={["/decks/affinity-e93f5f74?window=30d"]}>
+        <Routes>
+          <Route path="/decks/:slug" element={<DeckPage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    answer(Response.json(detail));
+    await screen.findByRole("heading", { level: 1, name: "Affinity" });
+
+    const sevenDays = screen.getByRole("button", { name: "7d" });
+    act(() => {
+      sevenDays.focus();
+    });
+    fireEvent.click(sevenDays);
+
+    expect(await screen.findByText("Loading the 7d window.")).toBeTruthy();
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Affinity" }),
+    ).toBeTruthy();
+    expect(document.activeElement).toBe(
+      screen.getByRole("button", { name: "7d" }),
+    );
+    expect(
+      screen
+        .getByRole("group", { name: "Time window" })
+        .getAttribute("data-busy"),
+    ).toBe("true");
+
+    answer(Response.json(detail));
+    await waitFor(() => {
+      expect(screen.queryByText("Loading the 7d window.")).toBeNull();
+    });
+  });
+
+  it("keeps focus on the main heading when the deck finishes loading", async () => {
+    let answer: (response: Response) => void = () => {};
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>(
+        () => new Promise<Response>((resolve) => (answer = resolve)),
+      ),
+    );
+    renderWithQueries(
+      <MemoryRouter initialEntries={["/decks/affinity-e93f5f74?window=30d"]}>
+        <Routes>
+          <Route path="/decks/:slug" element={<DeckPage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    act(() => {
+      screen
+        .getByRole("heading", { level: 1, name: "Loading the deck" })
+        .focus();
+    });
+
+    answer(Response.json(detail));
+
+    const heading = await screen.findByRole("heading", {
+      level: 1,
+      name: "Affinity",
+    });
+    expect(document.activeElement).toBe(heading);
   });
 
   it("replaces a stale slug in the address with the deck's own", async () => {
