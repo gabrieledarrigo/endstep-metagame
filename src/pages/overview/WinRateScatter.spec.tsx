@@ -60,6 +60,18 @@ describe("WinRateScatter", () => {
     expect(screen.getByText("51.4% to 53.1%")).toBeTruthy();
   });
 
+  it("leaves out a deck with fewer than 20 decided matches", () => {
+    const gated = {
+      ...DECKS[2],
+      matchWinRate: { ...DECKS[2].matchWinRate, wins: 9, losses: 3 },
+    };
+
+    render(<WinRateScatter decks={[DECKS[0], DECKS[1], gated]} />);
+
+    expect(screen.getByText("Affinity")).toBeTruthy();
+    expect(screen.queryByText("Monster Tron")).toBeNull();
+  });
+
   it("draws nothing without decks", () => {
     const { container } = render(<WinRateScatter decks={[]} />);
 

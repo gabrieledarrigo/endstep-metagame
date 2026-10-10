@@ -28,6 +28,7 @@ import {
   tooltipShare,
   winRateText,
 } from "../../format";
+import { readRate } from "../../winRate";
 import "./WinRateScatter.css";
 
 const WIN_RATE_MARK = token("--s1");
@@ -47,15 +48,17 @@ type WinRatePoint = {
 };
 
 function winRatePoints(decks: Deck[]): WinRatePoint[] {
-  return decks.map((deck) => ({
-    id: deck.id,
-    name: deck.name,
-    share: deck.share.rate * 100,
-    winRate: deck.matchWinRate.rate * 100,
-    low: deck.matchWinRate.low * 100,
-    high: deck.matchWinRate.high * 100,
-    players: deck.players,
-  }));
+  return decks
+    .filter((deck) => !readRate(deck.matchWinRate).gated)
+    .map((deck) => ({
+      id: deck.id,
+      name: deck.name,
+      share: deck.share.rate * 100,
+      winRate: deck.matchWinRate.rate * 100,
+      low: deck.matchWinRate.low * 100,
+      high: deck.matchWinRate.high * 100,
+      players: deck.players,
+    }));
 }
 
 function labelledPoints(
@@ -189,11 +192,12 @@ export function WinRateScatterSkeleton() {
 }
 
 export function WinRateScatter({ decks }: { decks: Deck[] }) {
-  if (decks.length === 0) {
+  const points = winRatePoints(decks);
+
+  if (points.length === 0) {
     return null;
   }
 
-  const points = winRatePoints(decks);
   const rates = points.map((point) => point.winRate);
   const shareMax =
     Math.ceil((Math.max(...points.map((point) => point.share)) + 1) / 2) * 2;

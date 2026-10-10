@@ -7,6 +7,7 @@ import { Skeleton } from "../../components/Skeleton";
 import { WindowLink } from "../../components/WindowLink";
 import { PAGE_SIZE } from "../../config";
 import { formatCount, percent } from "../../format";
+import { rateText } from "../../winRate";
 import "./DeckTable.css";
 
 type SortKey = "name" | "share" | "players" | "matches" | "winRate";
@@ -227,7 +228,7 @@ export function DeckTable({ decks }: { decks: Deck[] }) {
                 {formatCount(matchesOf(deck))}
               </td>
               <td className="deck-table__cell deck-table__cell--numeric">
-                {percent(deck.matchWinRate.rate)}
+                {rateText(deck.matchWinRate)}
               </td>
               <td className="deck-table__cell deck-table__cell--numeric">
                 <ShareChange change={deck.shareChange} />

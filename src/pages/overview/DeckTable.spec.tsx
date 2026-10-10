@@ -102,6 +102,25 @@ describe("DeckTable", () => {
 
     expect(container.innerHTML).toBe("");
   });
+
+  it("reads a match win rate from fewer than 20 decided matches as too few to call", () => {
+    const [first, ...rest] = decks.decks.items as Deck[];
+    render(
+      <MemoryRouter>
+        <DeckTable
+          decks={[
+            {
+              ...first,
+              matchWinRate: { ...first.matchWinRate, wins: 9, losses: 3 },
+            },
+            ...rest,
+          ]}
+        />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText("Too few to call")).toBeTruthy();
+  });
 });
 
 describe("DeckTableSkeleton", () => {
