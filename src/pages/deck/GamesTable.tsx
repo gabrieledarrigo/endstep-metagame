@@ -7,6 +7,7 @@ import {
   neededText,
   percent,
   placeTooltip,
+  type ReadRate,
   readRate,
 } from "../../helpers";
 import "./GamesTable.css";
@@ -21,11 +22,10 @@ type GameCell = {
   id: string;
   title: string;
   block: WinLoss;
+  read: ReadRate;
 };
 
-function cellLabel({ title, block }: GameCell): string {
-  const read = readRate(block);
-
+function cellLabel({ title, block, read }: GameCell): string {
   if (read.gated) {
     return `${title}: too few to call, ${neededText(read.decided, "games")}`;
   }
@@ -33,8 +33,7 @@ function cellLabel({ title, block }: GameCell): string {
   return `${title}: game win rate ${percent(read.rate)}, range ${percent(read.low)} to ${percent(read.high)}, ${formatCount(block.wins)} wins, ${formatCount(block.losses)} losses`;
 }
 
-function GameDetail({ title, block }: GameCell) {
-  const read = readRate(block);
+function GameDetail({ title, block, read }: GameCell) {
   const counts = [
     { key: "wins", name: "Wins", value: formatCount(block.wins) },
     { key: "losses", name: "Losses", value: formatCount(block.losses) },
@@ -95,7 +94,7 @@ export function GamesTable({
 
   if (results === null) {
     return (
-      <Panel>
+      <Panel className="games">
         <p className="games__unavailable">
           Game results are not available for this window.
         </p>
@@ -119,14 +118,13 @@ export function GamesTable({
       id: `${row.key}-${column.key}`,
       title: `${row.label}, ${column.label.toLowerCase()}`,
       block: row.split[column.key],
+      read: readRate(row.split[column.key]),
     })),
   }));
   const active = grid
     .flatMap((row) => row.cells)
     .find((cell) => cell.id === activeId);
-  const gated = grid.some((row) =>
-    row.cells.some((cell) => readRate(cell.block).gated),
-  );
+  const gated = grid.some((row) => row.cells.some((cell) => cell.read.gated));
 
   const onFocusCell = (cell: GameCell): void => {
     focusedId.current = cell.id;
@@ -175,7 +173,7 @@ export function GamesTable({
                     {row.label}
                   </th>
                   {row.cells.map((cell) => {
-                    const read = readRate(cell.block);
+                    const { read } = cell;
 
                     return (
                       <td
