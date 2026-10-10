@@ -17,14 +17,15 @@ export function useHeadingFocus(state: string): void {
     const leave = (event: FocusEvent): void => {
       const left = event.target;
 
-      if (
-        left instanceof HTMLElement &&
-        left.tagName === "H1" &&
-        left.isConnected &&
-        event.relatedTarget === null
-      ) {
-        headingHadFocus.current = false;
+      if (!(left instanceof HTMLElement) || left.tagName !== "H1") {
+        return;
       }
+
+      queueMicrotask(() => {
+        if (left.isConnected && document.activeElement === document.body) {
+          headingHadFocus.current = false;
+        }
+      });
     };
 
     record();

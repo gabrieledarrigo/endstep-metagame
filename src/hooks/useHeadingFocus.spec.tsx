@@ -81,13 +81,13 @@ describe("useHeadingFocus", () => {
     expect(document.activeElement).toBe(document.body);
   });
 
-  it("leaves focus alone when the reader moved it off the heading onto the page", () => {
+  it("leaves focus alone when the reader moved it off the heading onto the page", async () => {
     const { rerender } = render(<Page state="loading" />);
     const heading = screen.getByRole("heading", { name: "Loading the deck" });
     act(() => {
       heading.focus();
     });
-    act(() => {
+    await act(async () => {
       heading.blur();
     });
 
