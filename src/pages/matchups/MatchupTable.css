@@ -1,4 +1,12 @@
 @layer components {
+  .matchup {
+    --matchup-cell: round(
+      down,
+      clamp(32px, calc((100cqw - 360px) / 24), 44px),
+      1px
+    );
+  }
+
   .matchup__inner {
     width: fit-content;
     max-width: 100%;
@@ -22,7 +30,7 @@
     border-spacing: 2px;
     width: auto;
     min-width: 0;
-    font-size: 12px;
+    font-size: clamp(13px, calc(var(--matchup-cell) * 0.34), 15px);
   }
 
   .matchup__corner,
@@ -45,7 +53,7 @@
 
   .matchup__col,
   .matchup__row {
-    font-size: 12px;
+    font-size: clamp(13px, calc(var(--matchup-cell) * 0.32), 14px);
     font-weight: 400;
     color: var(--text-900);
     white-space: nowrap;
@@ -96,9 +104,9 @@
 
   .matchup__cell,
   .matchup__swatch {
-    width: 32px;
-    min-width: 32px;
-    height: 28px;
+    width: var(--matchup-cell);
+    min-width: var(--matchup-cell);
+    height: calc(var(--matchup-cell) * 0.875);
     border: 0;
     padding: 0;
     border-radius: 3px;
@@ -110,8 +118,8 @@
   }
 
   .matchup__cell {
-    scroll-margin-top: 230px;
-    scroll-margin-left: 220px;
+    scroll-margin-top: 260px;
+    scroll-margin-left: 250px;
     cursor: default;
   }
 
@@ -178,7 +186,10 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    width: 32px;
+    min-width: 32px;
+    height: 28px;
+    font-size: 13px;
     flex-shrink: 0;
   }
 
@@ -188,9 +199,9 @@
   }
 
   .matchup__skeleton {
-    width: 1030px;
+    width: calc(var(--matchup-cell) * 24 + 280px);
     max-width: 100%;
-    height: 932px;
+    height: calc(var(--matchup-cell) * 21 + 285px);
   }
 
   @media (min-width: 1100px) {

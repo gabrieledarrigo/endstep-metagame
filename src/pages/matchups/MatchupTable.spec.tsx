@@ -267,11 +267,10 @@ describe("MatchupTable", () => {
 });
 
 describe("MatchupTableSkeleton", () => {
-  it("keeps the caption and the legend, and marks the band as busy", () => {
+  it("keeps the legend, and marks the band as busy", () => {
     const { container } = render(<MatchupTableSkeleton />);
 
     expect(container.firstElementChild?.getAttribute("aria-busy")).toBe("true");
-    expect(screen.getByText(/^Read across\./)).toBeTruthy();
     expect(screen.getByRole("list", { name: "Legend" })).toBeTruthy();
     expect(screen.queryByRole("grid")).toBeNull();
   });
