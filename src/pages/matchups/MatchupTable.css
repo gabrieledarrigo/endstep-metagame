@@ -206,7 +206,7 @@
 
   @media (min-width: 1100px) {
     .matchup__scroll {
-      overflow-x: clip;
+      overflow-x: visible;
     }
 
     .matchup__cell {

@@ -230,7 +230,6 @@ body { container-type:inline-size; }
 .matchup__inner { width:fit-content; max-width:100%; margin-inline:auto; display:flex; flex-direction:column; gap:14px; }
 .matchup { --matchup-cell:round(down, clamp(32px, calc((100cqw - 360px) / 24), 44px), 1px); }
 .matchup__frame { position:relative; min-width:0; }
-.matchup__scroll { overflow-x:clip; }
 .matchup__table { border-collapse:separate; border-spacing:2px; width:auto; min-width:0;
   font-size:clamp(13px, calc(var(--matchup-cell) * .34), 15px); }
 .matchup__table th, .matchup__table td { border:0; padding:0; letter-spacing:0; text-transform:none; }
@@ -1042,8 +1041,8 @@ a.button { display:inline-block; text-decoration:none; }
   <span class="mono">--text-900</span>, at 10.61:1 or better.</p>
   <p class="spec"><b>Cells</b> grow with the window. Each is <span class="mono">clamp(32px, (100cqw - 360px) / 24, 44px)</span>
   wide, rounded down to a whole pixel, and 0.875 of that high, with a 2px gap and a 3px radius: 32 by 28 up to
-  about 1,130px of window, 38 by 33 at 1,280px, and 44 by 38.5 from about 1,420px. Above 1,100px the band clips
-  rather than scrolls, so a wider font can never make the page scroll sideways. The legend's swatches stay 32 by 28. Numbers are whole percentages with tabular numerals,
+  about 1,130px of window, 38 by 33 at 1,280px, and 44 by 38.5 from about 1,420px. The reserve leaves at least
+  20px between the table and the band, room for a wider system font. The legend's swatches stay 32 by 28. Numbers are whole percentages with tabular numerals,
   from 13px in the smallest cell to 15px in the largest. Clear cells are 700 in <span class="mono">--text-900</span>. Every other
   number is 400 in <span class="mono">--text-600</span>, so weight alone separates a clear result from
   noise, per NFR-6. Both cells of a pair always match, because FR-12 decides per pair. At 30d, 96 pairs
