@@ -20,9 +20,6 @@ type Position = {
   column: number;
 };
 
-const CAPTION =
-  "Read across. Each number is the row deck's match win rate against the column deck, so a row and its column mirror each other.";
-
 const LEGEND: { state: CellState; sample: string; label: string }[] = [
   { state: "win", sample: "62", label: "Favoured, clear result" },
   { state: "loss", sample: "38", label: "Unfavoured, clear result" },
@@ -313,8 +310,6 @@ export function MatchupTable({ matrix, timeWindow }: MatchupTableProps) {
   return (
     <div className="bleed matchup">
       <div className="matchup__inner">
-        <p className="matchup__caption">{CAPTION}</p>
-
         <div className="matchup__frame" ref={frame}>
           <div className="matchup__scroll" onScroll={() => setActive(null)}>
             <table
@@ -443,7 +438,6 @@ export function MatchupTableSkeleton() {
   return (
     <div className="bleed matchup" aria-busy="true">
       <div className="matchup__inner">
-        <p className="matchup__caption">{CAPTION}</p>
         <Skeleton className="matchup__skeleton" />
         <MatchupLegend />
       </div>
