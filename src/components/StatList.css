@@ -6,4 +6,8 @@
     align-items: flex-end;
     margin: 0;
   }
+
+  .stat-list--compact {
+    gap: 18px 30px;
+  }
 }
