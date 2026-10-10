@@ -1,0 +1,115 @@
+{
+  "window": { "from": "2026-09-11", "to": "2026-10-11" },
+  "decks": [
+    {
+      "id": "e93f5f74",
+      "slug": "affinity-e93f5f74",
+      "name": "Affinity",
+      "colours": ["W", "U", "B"],
+      "share": 0.0939
+    },
+    {
+      "id": "60596e8a",
+      "slug": "mono-red-madness-60596e8a",
+      "name": "Mono Red Madness",
+      "colours": ["R"],
+      "share": 0.0681
+    },
+    {
+      "id": "1bc68613",
+      "slug": "monster-tron-1bc68613",
+      "name": "Monster Tron",
+      "colours": ["G"],
+      "share": 0.047
+    },
+    {
+      "id": "af060ab8",
+      "slug": "naya-gates-af060ab8",
+      "name": "Naya Gates",
+      "colours": ["R", "G", "W"],
+      "share": 0.012
+    }
+  ],
+  "cells": {
+    "affinity-e93f5f74": {
+      "mono-red-madness-60596e8a": {
+        "wins": 831,
+        "losses": 625,
+        "matches": 1456,
+        "rate": 0.5707,
+        "low": 0.5384,
+        "high": 0.6025,
+        "gate": null
+      },
+      "monster-tron-1bc68613": {
+        "wins": 475,
+        "losses": 523,
+        "matches": 998,
+        "rate": 0.476,
+        "low": 0.437,
+        "high": 0.5152,
+        "gate": null
+      },
+      "naya-gates-af060ab8": {
+        "wins": 8,
+        "losses": 10,
+        "matches": 18,
+        "rate": null,
+        "low": null,
+        "high": null,
+        "gate": "too_few"
+      }
+    },
+    "mono-red-madness-60596e8a": {
+      "affinity-e93f5f74": {
+        "wins": 625,
+        "losses": 831,
+        "matches": 1456,
+        "rate": 0.4293,
+        "low": 0.3981,
+        "high": 0.461,
+        "gate": null
+      },
+      "monster-tron-1bc68613": {
+        "wins": 369,
+        "losses": 334,
+        "matches": 703,
+        "rate": 0.5249,
+        "low": 0.4791,
+        "high": 0.5702,
+        "gate": null
+      }
+    },
+    "monster-tron-1bc68613": {
+      "affinity-e93f5f74": {
+        "wins": 523,
+        "losses": 475,
+        "matches": 998,
+        "rate": 0.524,
+        "low": 0.4862,
+        "high": 0.5616,
+        "gate": null
+      },
+      "mono-red-madness-60596e8a": {
+        "wins": 334,
+        "losses": 369,
+        "matches": 703,
+        "rate": 0.4751,
+        "low": 0.4305,
+        "high": 0.5202,
+        "gate": null
+      }
+    },
+    "naya-gates-af060ab8": {
+      "affinity-e93f5f74": {
+        "wins": 10,
+        "losses": 8,
+        "matches": 18,
+        "rate": null,
+        "low": null,
+        "high": null,
+        "gate": "too_few"
+      }
+    }
+  }
+}

@@ -46,6 +46,7 @@
   .chart-tooltip__value {
     font-weight: 600;
     font-variant-numeric: tabular-nums;
+    white-space: nowrap;
   }
 
   .chart-tooltip__verdict {
