@@ -1,7 +1,37 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { type Mock, afterEach, describe, expect, it, vi } from "vitest";
 import matchups from "./matchups.js";
 
 const UPSTREAM = "https://endstep.cc/api/metagame/v1";
+
+type DeckRow = {
+  id: string;
+  slug: string;
+  name: string;
+  machineNamed: boolean;
+  colours: string[];
+  share: { registrations: number; totalRegistrations: number; rate: number };
+  players: number;
+};
+
+type Opponent = {
+  id: string;
+  slug: string;
+  name: string;
+  machineNamed: boolean;
+};
+
+type MatchupRow = {
+  wins: number;
+  losses: number;
+  matches: number;
+  required: number;
+  gate: string | null;
+  rate: number | null;
+  low: number | null;
+  high: number | null;
+  deff: number | null;
+  opponent: Opponent;
+};
 
 const WINDOW = {
   preset: "30d",
@@ -11,7 +41,7 @@ const WINDOW = {
   until: null,
 };
 
-function deck(name: string, rate: number) {
+function deck(name: string, rate: number): DeckRow {
   const slug = name.toLowerCase();
 
   return {
@@ -32,11 +62,11 @@ const DECKS = [
   deck("Walls", 0.05),
 ];
 
-function opponent(slug: string) {
+function opponent(slug: string): Opponent {
   return { id: `id-${slug}`, slug, name: slug, machineNamed: false };
 }
 
-function record(slug: string, wins: number, losses: number) {
+function record(slug: string, wins: number, losses: number): MatchupRow {
   const rate = wins / (wins + losses);
 
   return {
@@ -53,7 +83,7 @@ function record(slug: string, wins: number, losses: number) {
   };
 }
 
-function gated(slug: string, wins: number, losses: number) {
+function gated(slug: string, wins: number, losses: number): MatchupRow {
   return {
     wins,
     losses,
@@ -68,7 +98,7 @@ function gated(slug: string, wins: number, losses: number) {
   };
 }
 
-const MATCHUPS: Record<string, unknown[]> = {
+const MATCHUPS: Record<string, MatchupRow[]> = {
   affinity: [
     record("elves", 6, 2),
     record("outsider", 9, 1),
@@ -80,14 +110,16 @@ const MATCHUPS: Record<string, unknown[]> = {
   walls: [],
 };
 
-function json(body: unknown, status = 200) {
+function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
     headers: { "content-type": "application/json" },
   });
 }
 
-function endstep(answer: (url: URL) => Response | undefined = () => undefined) {
+function endstep(
+  answer: (url: URL) => Response | undefined = () => undefined,
+): Mock<typeof fetch> {
   const fetchMock = vi.fn<typeof fetch>(async (input) => {
     const url = new URL(String(input));
     const answered = answer(url);
@@ -114,7 +146,7 @@ function endstep(answer: (url: URL) => Response | undefined = () => undefined) {
   return fetchMock;
 }
 
-function request(search: string, method = "GET") {
+function request(search: string, method = "GET"): Request {
   return new Request(`http://localhost/api/matchups${search}`, { method });
 }
 

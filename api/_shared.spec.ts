@@ -6,7 +6,7 @@ import {
   methodResponse,
 } from "./_shared.js";
 
-function request(method: string) {
+function request(method: string): Request {
   return new Request("http://localhost/api/anything", { method });
 }
 

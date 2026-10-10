@@ -21,7 +21,7 @@ const MONTHS = [
  * @param value - The count.
  * @returns The count as text, such as `2,023`.
  */
-export function formatCount(value: number) {
+export function formatCount(value: number): string {
   return value.toLocaleString("en-GB");
 }
 
@@ -31,7 +31,7 @@ export function formatCount(value: number) {
  * @param rate - A rate between 0 and 1.
  * @returns The percentage, such as `52.2%`.
  */
-export function percent(rate: number) {
+export function percent(rate: number): string {
   return `${(rate * 100).toFixed(1)}%`;
 }
 
@@ -41,7 +41,7 @@ export function percent(rate: number) {
  * @param share - A value in percent.
  * @returns The value with a percent sign, such as `5%`.
  */
-export function axisShare(share: number) {
+export function axisShare(share: number): string {
   return `${share}%`;
 }
 
@@ -51,7 +51,7 @@ export function axisShare(share: number) {
  * @param share - A share in percent.
  * @returns The share, such as `9.59%`.
  */
-export function tooltipShare(share: number) {
+export function tooltipShare(share: number): string {
   return `${share.toFixed(2)}%`;
 }
 
@@ -61,7 +61,7 @@ export function tooltipShare(share: number) {
  * @param value - A win rate in percent.
  * @returns The win rate, such as `52.2%`.
  */
-export function winRateText(value: number) {
+export function winRateText(value: number): string {
   return `${value.toFixed(1)}%`;
 }
 
@@ -71,7 +71,7 @@ export function winRateText(value: number) {
  * @param day - A date in `YYYY-MM-DD` form.
  * @returns The month and day, such as `10-07`.
  */
-export function shortDay(day: string) {
+export function shortDay(day: string): string {
   return day.slice(5);
 }
 
@@ -81,7 +81,7 @@ export function shortDay(day: string) {
  * @param day - A date in `YYYY-MM-DD` form.
  * @returns The date in British English, such as `7 October 2026`.
  */
-export function longDay(day: string) {
+export function longDay(day: string): string {
   return new Date(`${day}T00:00:00Z`).toLocaleDateString("en-GB", {
     day: "numeric",
     month: "long",
@@ -90,14 +90,14 @@ export function longDay(day: string) {
   });
 }
 
-function formatDate(value: string, withYear: boolean) {
+function formatDate(value: string, withYear: boolean): string {
   const [year, month, day] = value.split("-").map(Number);
   const head = `${day} ${MONTHS[month - 1]}`;
 
   return withYear ? `${head} ${year}` : head;
 }
 
-function lastCoveredDay(to: string) {
+function lastCoveredDay(to: string): string {
   const day = new Date(`${to}T00:00:00Z`);
   day.setUTCDate(day.getUTCDate() - 1);
 
@@ -110,7 +110,7 @@ function lastCoveredDay(to: string) {
  * @param window - The window from a response's provenance.
  * @returns The range, such as `10 Sep to 9 Oct 2026`. The first date carries its year only when the years differ.
  */
-export function formatWindow({ from, to }: Provenance["window"]) {
+export function formatWindow({ from, to }: Provenance["window"]): string {
   const last = lastCoveredDay(to);
   const sameYear = from.slice(0, 4) === last.slice(0, 4);
 
@@ -123,6 +123,6 @@ export function formatWindow({ from, to }: Provenance["window"]) {
  * @param population - The population from a response's provenance.
  * @returns The population with a capital letter, such as `Rated`.
  */
-export function formatPopulation(population: Population) {
+export function formatPopulation(population: Population): string {
   return population.charAt(0).toUpperCase() + population.slice(1);
 }

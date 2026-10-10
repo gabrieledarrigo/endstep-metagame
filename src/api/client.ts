@@ -35,7 +35,7 @@ function failure(status: number): { kind: FailureKind; message: string } {
  * @param error - The error a request failed with.
  * @returns `true` for a network error, a 429 or a 5xx.
  */
-export function isRetryable(error: Error) {
+export function isRetryable(error: Error): boolean {
   return (
     error instanceof ApiError &&
     (error.kind === "network" ||

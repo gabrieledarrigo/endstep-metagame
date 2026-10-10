@@ -21,7 +21,7 @@ const seriesSlots = new Map<string, number>();
  * @param keys - The series keys. The palette has eight colours.
  * @returns A map from each key to its colour.
  */
-export function seriesColours(keys: string[]) {
+export function seriesColours(keys: string[]): Map<string, string> {
   const taken = new Set<number>();
   const unplaced: string[] = [];
   const colours = new Map<string, string>();

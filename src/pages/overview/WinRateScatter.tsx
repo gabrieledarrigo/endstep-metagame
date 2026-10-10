@@ -58,7 +58,11 @@ function winRatePoints(decks: Deck[]): WinRatePoint[] {
   }));
 }
 
-function labelledPoints(points: WinRatePoint[], spanX: number, spanY: number) {
+function labelledPoints(
+  points: WinRatePoint[],
+  spanX: number,
+  spanY: number,
+): Set<string> {
   const byShare = [...points].sort((a, b) => b.share - a.share);
   const byWinRate = [...points].sort((a, b) => b.winRate - a.winRate);
   const wanted = [
@@ -162,7 +166,7 @@ function WinRateTooltip({ active, payload }: TooltipContentProps) {
   );
 }
 
-function axisTicks(min: number, max: number, step: number) {
+function axisTicks(min: number, max: number, step: number): number[] {
   const ticks: number[] = [];
   for (let tick = min; tick <= max; tick += step) {
     ticks.push(tick);

@@ -3,7 +3,10 @@ import { MemoryRouter } from "react-router";
 import { describe, expect, it } from "vitest";
 import { SiteNav } from "./SiteNav";
 
-function renderAt(path: string) {
+function renderAt(path: string): {
+  overview: HTMLElement;
+  matchups: HTMLElement;
+} {
   render(
     <MemoryRouter initialEntries={[path]}>
       <SiteNav />

@@ -15,7 +15,7 @@ function Address() {
   );
 }
 
-function renderAt(path: string) {
+function renderAt(path: string): void {
   render(
     <MemoryRouter initialEntries={[path]}>
       <DeckTable decks={decks.decks.items as Deck[]} />
@@ -24,7 +24,7 @@ function renderAt(path: string) {
   );
 }
 
-function deckOrder() {
+function deckOrder(): (string | null)[] {
   return screen.getAllByRole("rowheader").map((cell) => cell.textContent);
 }
 

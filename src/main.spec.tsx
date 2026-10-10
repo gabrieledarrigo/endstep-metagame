@@ -1,14 +1,20 @@
 import { fireEvent, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { type Mock, afterEach, describe, expect, it, vi } from "vitest";
 import decks from "../test/fixtures/decks.json";
 import series from "../test/fixtures/share-series.json";
 
-function stubApi() {
+type StubApi = {
+  fetchMock: Mock<typeof fetch>;
+  hold: (...windows: string[]) => void;
+  release: (window: string) => void;
+};
+
+function stubApi(): StubApi {
   let failNextDecks = true;
   const held = new Set<string | null>();
   const waiting: { window: string | null; resolve: () => void }[] = [];
 
-  const fetchMock = vi.fn((input: RequestInfo | URL) => {
+  const fetchMock = vi.fn<typeof fetch>((input) => {
     const url = new URL(String(input), "http://localhost");
     const body = url.pathname === "/api/metagame/Pauper/decks" ? decks : series;
 
@@ -33,9 +39,9 @@ function stubApi() {
 
   return {
     fetchMock,
-    hold: (...windows: string[]) =>
+    hold: (...windows: string[]): void =>
       windows.forEach((window) => held.add(window)),
-    release: (window: string) => {
+    release: (window: string): void => {
       held.delete(window);
       waiting
         .filter((request) => request.window === window)
@@ -71,7 +77,7 @@ describe("the overview page", () => {
       }),
     ).toBeNull();
 
-    const decksRequests = (window: string) =>
+    const decksRequests = (window: string): number =>
       api.fetchMock.mock.calls.filter(([input]) => {
         const url = new URL(String(input), "http://localhost");
         return (

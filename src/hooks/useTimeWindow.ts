@@ -8,7 +8,10 @@ import { DEFAULT_WINDOW, WINDOWS } from "../config";
  *
  * @returns The selected window, which is the default when the parameter is missing or unknown, and a function that selects another one. The function pushes a history entry, or replaces the current one when its second argument is `true`.
  */
-export function useTimeWindow() {
+export function useTimeWindow(): readonly [
+  TimeWindow,
+  (next: TimeWindow, replace?: boolean) => void,
+] {
   const [searchParams, setSearchParams] = useSearchParams();
   const value =
     WINDOWS.find((preset) => preset === searchParams.get("window")) ??

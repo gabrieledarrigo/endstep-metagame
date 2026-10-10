@@ -15,7 +15,7 @@ function Address() {
   );
 }
 
-function renderAt(path: string) {
+function renderAt(path: string): void {
   render(
     <MemoryRouter initialEntries={[path]}>
       <ShareOverTime series={series.series as ShareSeries[]} />
@@ -24,7 +24,7 @@ function renderAt(path: string) {
   );
 }
 
-function pressed(name: string) {
+function pressed(name: string): string | null {
   return screen.getByRole("button", { name }).getAttribute("aria-pressed");
 }
 

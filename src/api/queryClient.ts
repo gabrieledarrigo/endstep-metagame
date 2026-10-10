@@ -10,7 +10,7 @@ const RETRY_BASE_MS = 400;
  *
  * @returns A client whose responses stay fresh for five minutes and in memory for the visit, that runs requests whether or not the browser reports itself online, that never refetches when the browser window regains focus, and that retries a network error, a 429 or a 5xx at most twice, after 400 ms and then 800 ms.
  */
-export function createQueryClient() {
+export function createQueryClient(): QueryClient {
   return new QueryClient({
     defaultOptions: {
       queries: {
@@ -18,9 +18,9 @@ export function createQueryClient() {
         gcTime: Infinity,
         networkMode: "always",
         refetchOnWindowFocus: false,
-        retry: (failures, error) =>
+        retry: (failures, error): boolean =>
           failures < MAX_RETRIES && isRetryable(error),
-        retryDelay: (attempt) => RETRY_BASE_MS * 2 ** attempt,
+        retryDelay: (attempt): number => RETRY_BASE_MS * 2 ** attempt,
       },
     },
   });

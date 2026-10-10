@@ -6,7 +6,7 @@ import { PageTitle } from "../../components/PageTitle";
 import { Section } from "../../components/Section";
 import { useTimeWindow } from "../../hooks/useTimeWindow";
 
-function deckTitle(deck: UseQueryResult<DeckDetail>) {
+function deckTitle(deck: UseQueryResult<DeckDetail>): string {
   if (deck.data !== undefined) {
     return deck.data.deck.name;
   }

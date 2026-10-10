@@ -1,5 +1,5 @@
 import { QueryClientProvider } from "@tanstack/react-query";
-import { render } from "@testing-library/react";
+import { type RenderResult, render } from "@testing-library/react";
 import type { ReactElement } from "react";
 import { createQueryClient } from "../src/api/queryClient";
 
@@ -9,7 +9,7 @@ import { createQueryClient } from "../src/api/queryClient";
  * @param ui - The tree to render.
  * @returns What Testing Library's `render` returns.
  */
-export function renderWithQueries(ui: ReactElement) {
+export function renderWithQueries(ui: ReactElement): RenderResult {
   return render(
     <QueryClientProvider client={createQueryClient()}>
       {ui}

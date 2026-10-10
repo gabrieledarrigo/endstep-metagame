@@ -38,7 +38,7 @@ type SeriesEnd = {
   colour: string | undefined;
 };
 
-function shareRows(series: ShareSeries[]) {
+function shareRows(series: ShareSeries[]): ShareRow[] {
   const byDay = new Map<string, ShareRow>();
 
   series.forEach((item) => {
@@ -58,7 +58,7 @@ const END_LABEL_OFFSET = 10;
 const END_LABEL_GAP = 16;
 const END_LABEL_CHAR_WIDTH = 8;
 
-function endLabelGutter(series: ShareSeries[]) {
+function endLabelGutter(series: ShareSeries[]): number {
   const longest = series.reduce(
     (width, item) => Math.max(width, item.deck.name.length),
     0,
@@ -67,7 +67,7 @@ function endLabelGutter(series: ShareSeries[]) {
   return END_LABEL_OFFSET + longest * END_LABEL_CHAR_WIDTH;
 }
 
-function seriesEnd(item: ShareSeries) {
+function seriesEnd(item: ShareSeries): Omit<SeriesEnd, "colour"> | null {
   const last = item.points.findLast((point) => point.rate !== null);
   if (!last || last.rate === null) {
     return null;
@@ -81,7 +81,10 @@ function seriesEnd(item: ShareSeries) {
   };
 }
 
-function stackEnds<End extends { y: number }>(ends: End[], bottom: number) {
+function stackEnds<End extends { y: number }>(
+  ends: End[],
+  bottom: number,
+): (End & { labelY: number })[] {
   const placed = [...ends]
     .sort((a, b) => a.y - b.y)
     .map((end) => ({ ...end, labelY: end.y }));
@@ -206,7 +209,7 @@ export function ShareOverTime({ series }: { series: ShareSeries[] }) {
     return end ? [{ ...end, colour: colours.get(end.key) }] : [];
   });
 
-  const toggle = (slug: string) =>
+  const toggle = (slug: string): void =>
     setSearchParams(
       (params) => {
         if (params.has("hide", slug)) {
