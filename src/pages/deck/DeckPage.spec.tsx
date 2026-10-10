@@ -202,6 +202,100 @@ describe("DeckPage", () => {
     expect(document.activeElement).toBe(heading);
   });
 
+  it("keeps the window selector when another window fails to load", async () => {
+    const answers = [
+      (): Response => Response.json(detail),
+      (): Response => Response.json({ error: "Forbidden" }, { status: 403 }),
+    ];
+    let calls = 0;
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>(async () => answers[Math.min(calls++, 1)]()),
+    );
+    renderWithQueries(
+      <MemoryRouter initialEntries={["/decks/affinity-e93f5f74?window=30d"]}>
+        <Routes>
+          <Route path="/decks/:slug" element={<DeckPage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    await screen.findByRole("heading", { level: 1, name: "Affinity" });
+
+    fireEvent.click(screen.getByRole("button", { name: "7d" }));
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "The deck could not be loaded",
+      }),
+    ).toBeTruthy();
+    expect(screen.getByRole("group", { name: "Time window" })).toBeTruthy();
+    expect(
+      screen.getByRole("button", { name: "7d", pressed: true }),
+    ).toBeTruthy();
+  });
+
+  it("does not judge the next window empty from the previous one while it loads", async () => {
+    const empty = {
+      ...detail,
+      deck: {
+        ...detail.deck,
+        matchWinRate: { ...detail.deck.matchWinRate, wins: 0, losses: 0 },
+      },
+    };
+    let answer: (response: Response) => void = () => {};
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>(
+        () => new Promise<Response>((resolve) => (answer = resolve)),
+      ),
+    );
+    renderWithQueries(
+      <MemoryRouter initialEntries={["/decks/affinity-e93f5f74?window=1d"]}>
+        <Routes>
+          <Route path="/decks/:slug" element={<DeckPage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+    answer(Response.json(empty));
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Switch to 7d" }),
+    );
+
+    expect(await screen.findByText("Loading the 7d window.")).toBeTruthy();
+    expect(
+      screen.queryByRole("heading", { name: "No matches in this window" }),
+    ).toBeNull();
+  });
+
+  it("clears the sample list's copy status when the window changes", async () => {
+    vi.stubGlobal("navigator", {
+      ...navigator,
+      clipboard: { writeText: async () => {} },
+    });
+    const sevenDays = {
+      ...detail,
+      provenance: {
+        ...detail.provenance,
+        window: { ...detail.provenance.window, from: "2026-10-04" },
+      },
+    };
+    let calls = 0;
+    renderAt("/decks/affinity-e93f5f74?window=30d", () =>
+      Response.json(calls++ === 0 ? detail : sevenDays),
+    );
+    await screen.findByRole("heading", { level: 1, name: "Affinity" });
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Copy list" }));
+    });
+    expect(screen.getByText("Copied the list.")).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: "7d" }));
+
+    expect(await screen.findByText("4 Oct to 10 Oct 2026")).toBeTruthy();
+    expect(screen.queryByText("Copied the list.")).toBeNull();
+  });
+
   it("replaces a stale slug in the address with the deck's own", async () => {
     renderAt("/decks/renamed-e93f5f74?window=30d", () => Response.json(detail));
 

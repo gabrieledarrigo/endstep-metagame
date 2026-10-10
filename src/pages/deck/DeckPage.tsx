@@ -7,8 +7,10 @@ import type { DeckDetail } from "../../api/types";
 import { Button } from "../../components/Button";
 import { EmptyWindow } from "../../components/EmptyWindow";
 import { PageTitle } from "../../components/PageTitle";
+import { SegmentedControl } from "../../components/SegmentedControl";
 import { Skeleton } from "../../components/Skeleton";
 import { StatePanel } from "../../components/StatePanel";
+import { WINDOWS } from "../../config";
 import { formatWindow } from "../../helpers";
 import { useHeadingFocus } from "../../hooks/useHeadingFocus";
 import { useTimeWindow } from "../../hooks/useTimeWindow";
@@ -89,11 +91,21 @@ export function DeckPage() {
           loading={deck.isPending}
         />
         {deck.isError ? (
-          <StatePanel
-            title="The deck could not be loaded"
-            detail={deck.error.message}
-            action={<Button onClick={() => deck.refetch()}>Retry</Button>}
-          />
+          <>
+            <div className="page__controls">
+              <SegmentedControl
+                label="Time window"
+                options={WINDOWS}
+                value={timeWindow}
+                onChange={(next) => selectTimeWindow(next)}
+              />
+            </div>
+            <StatePanel
+              title="The deck could not be loaded"
+              detail={deck.error.message}
+              action={<Button onClick={() => deck.refetch()}>Retry</Button>}
+            />
+          </>
         ) : (
           <DeckPageSkeleton />
         )}
@@ -125,12 +137,16 @@ export function DeckPage() {
       <div className="deck-page">
         {hero}
         {loadingStatus}
-        <EmptyWindow
-          timeWindow={timeWindow}
-          onSelect={selectTimeWindow}
-          title="No matches in this window"
-          detail={`${detail.deck.name} has no matches in the ${timeWindow} window.`}
-        />
+        {loadingWindow ? (
+          <Skeleton className="deck-page__skeleton deck-page__skeleton--section" />
+        ) : (
+          <EmptyWindow
+            timeWindow={timeWindow}
+            onSelect={selectTimeWindow}
+            title="No matches in this window"
+            detail={`${detail.deck.name} has no matches in the ${timeWindow} window.`}
+          />
+        )}
       </div>
     );
   }
@@ -176,7 +192,10 @@ export function DeckPage() {
             </div>
           </div>
           <DeckSection title="Sample list">
-            <SampleList list={detail.sampleList} />
+            <SampleList
+              key={`${detail.provenance.window.from}/${detail.provenance.window.to}`}
+              list={detail.sampleList}
+            />
           </DeckSection>
         </div>
       </div>
