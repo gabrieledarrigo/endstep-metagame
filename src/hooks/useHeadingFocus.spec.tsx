@@ -10,11 +10,12 @@ function Page({ state }: { state: string }) {
     <>
       {state === "loading" && <button type="button">Leaves</button>}
       <button type="button">Elsewhere</button>
-      {state === "loading" ? (
+      {state === "loading" && (
         <div>
           <h1 tabIndex={-1}>Loading the deck</h1>
         </div>
-      ) : (
+      )}
+      {state === "loaded" && (
         <section>
           <h1 tabIndex={-1}>Affinity</h1>
         </section>
@@ -94,5 +95,26 @@ describe("useHeadingFocus", () => {
     rerender(<Page state="loaded" />);
 
     expect(document.activeElement).toBe(document.body);
+  });
+
+  it("keeps counting a heading that was removed, even when the browser reports its removal as a focus loss", async () => {
+    const { rerender } = render(<Page state="loading" />);
+    const heading = screen.getByRole("heading", { name: "Loading the deck" });
+    act(() => {
+      heading.focus();
+    });
+
+    heading.dispatchEvent(
+      new FocusEvent("focusout", { bubbles: true, relatedTarget: null }),
+    );
+    act(() => {
+      rerender(<Page state="between" />);
+    });
+    await act(async () => {});
+    rerender(<Page state="loaded" />);
+
+    expect(document.activeElement).toBe(
+      screen.getByRole("heading", { name: "Affinity" }),
+    );
   });
 });
