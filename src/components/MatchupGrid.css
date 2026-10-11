@@ -156,12 +156,16 @@
       overflow-x: visible;
     }
 
+    .matchup__cell {
+      scroll-margin-left: 0;
+    }
+
     .matchup--contained .matchup__scroll {
       overflow-x: auto;
     }
 
-    .matchup__cell {
-      scroll-margin-left: 0;
+    .matchup--contained .matchup__cell {
+      scroll-margin-left: 250px;
     }
   }
 }
