@@ -27,4 +27,16 @@ describe("DeckSection", () => {
       screen.getByRole("region", { name: "Sample list" }).textContent,
     ).toBe("Sample listList");
   });
+
+  it("takes an extra class from the page", () => {
+    render(
+      <DeckSection title="Matchups" className="deck-matchups">
+        <p>Row</p>
+      </DeckSection>,
+    );
+
+    expect(screen.getByRole("region", { name: "Matchups" }).className).toBe(
+      "deck-section deck-matchups",
+    );
+  });
 });
