@@ -25,4 +25,23 @@ describe("StatTile", () => {
       "stat-tile stat-tile--hero",
     );
   });
+
+  it("adds a detail line, and marks a gated value", () => {
+    render(
+      <dl>
+        <StatTile
+          hero
+          gated
+          label="Match win rate"
+          value="Too few to call"
+          detail="12 of the 20 matches needed"
+        />
+      </dl>,
+    );
+
+    const [value, detail] = screen.getAllByRole("definition");
+    expect(value.textContent).toBe("Too few to call");
+    expect(value.className).toBe("stat-tile__value stat-tile__value--gated");
+    expect(detail.textContent).toBe("12 of the 20 matches needed");
+  });
 });

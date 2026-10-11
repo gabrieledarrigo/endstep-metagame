@@ -287,7 +287,7 @@ Two calls. `/{format}/decks/{slug}` feeds every section except the matchups row,
 
 **Games.** A table from `gameResults`. Rows are game 1, game 2, game 3 and all games. Columns are on the play, on the draw and total. Each cell shows a game win rate. Its range and decided count show on hover and on keyboard focus. A note under the table gives `unknownPositionGames`. If `gameResults` is null, the table shows the unavailable state. `games` is not used, §3.6.
 
-**Toss.** Win rate after winning the toss and after losing it, from `playDraw.tossWon` and `tossLost`. How often players chose to draw, from `choseToDraw`. Endstep presents these as game 1 results, open item 5.
+**Toss.** Win rate after winning the toss and after losing it, from `playDraw.tossWon` and `tossLost`. How often players chose to draw, from `choseToDraw`. The toss blocks count game 1 only, open item 5, so the section says game 1 win rate.
 
 **Texture.** Average turns, average opening hand, mulligan rate.
 
@@ -442,7 +442,7 @@ The front end is a Vite application in TypeScript with React 19. `npm run build`
 **Tests.** Vitest 5 with React Testing Library 16 and jsdom. Vitest runs on the Vite configuration, so TypeScript, JSX, CSS imports and ES modules need no setup of their own. Its API matches Jest's.
 
 - **The rule: every component and every exported function has a spec, added in the same pull request as the code.** That covers components, hooks, helpers and the API functions. A function the module does not export is tested through the exports that use it. The helpers in `test/` are exercised by the specs that use them.
-- The spec sits beside its module and is named after it: `components/Card.tsx` and `components/Card.spec.tsx`, `format.ts` and `format.spec.ts`.
+- The spec sits beside its module and is named after it: `components/Card.tsx` and `components/Card.spec.tsx`, `helpers/format.ts` and `helpers/format.spec.ts`.
 - The API functions are plain `Request` to `Response` handlers, so their specs, `api/metagame.spec.ts` and `api/matchups.spec.ts`, call them directly with `fetch` stubbed.
 - Vitest runs two projects: `api` in Node for the specs in `api/`, and `app` in jsdom with the Testing Library setup for the specs in `src/`. A spec needs no per-file setup. Shared test helpers and fixtures live in `test/`, outside `src/`.
 - Specs query by role and by visible text, the way a user finds things. No snapshot tests. Where nothing reaches assistive technology, such as a skeleton or a chart's marks, a spec reads the DOM.
@@ -455,6 +455,8 @@ The front end is a Vite application in TypeScript with React 19. `npm run build`
 - TypeScript carries the types, so the tags do not repeat them.
 - Components and specs need no JSDoc.
 - A JSDoc block documents a contract. It is not one of the inline comments `AGENTS.md` rules out.
+
+**Where helpers live.** The formatting and data helpers live in `src/helpers/`, one module per concern, and the rest of the app imports them through `src/helpers/index.ts`. A helper imports its siblings directly, not through the index. Hooks live in `src/hooks/`, the API layer in `src/api/`, and chart code in `src/charts/`, including the series palette, which reads the chart theme from the page's styles when it loads. Keeping chart code out of the index means a formatter can be imported without a page.
 
 **Continuous integration.** One GitHub Actions workflow, `.github/workflows/ci.yml`.
 
@@ -589,5 +591,5 @@ A later layer overrides an earlier one, whatever the selectors' specificity and 
 2. ~~Share composition chart form.~~ Settled: ranked horizontal bars, FR-6.
 3. **Series count on the time chart.** Currently the API default of 8. Charting more than 8 of the 24 grid decks is possible by passing deck UUIDs to `share-series`, at no extra request cost.
 4. ~~Matchup coverage on other windows.~~ Settled: checked on all five windows on 2026-10-10. At `7d`, `14d`, `30d` and `season`, all 276 pairs of the top 24 appear in both directions. At `1d`, 270 appear in both directions and 3 in one direction only, which §4.4 fills. The other 3 never met: one deck of each pair has all its opponents inside its first 50 rows. No pair was lost to the 50-row limit.
-5. **What the toss blocks count.** Endstep presents `playDraw` as game 1 results. Confirm against the numbers before FR-11 labels them.
+5. ~~What the toss blocks count.~~ Settled: game 1. For Affinity at 30d on 2026-10-10, `tossWon` and `tossLost` hold 12,623 and 12,951 games, 25,574 in all, exactly the decided games in `games.game1`. `choseToDraw` counts 47 of the same 12,623 tosses won. FR-11 labels them game 1 win rates.
 6. **Deployment Checks on this plan.** Vercel's documentation does not say which plans offer Deployment Checks. If this project's plan lacks them, the fallback is to turn off Vercel's Git deploys and deploy from the `ci` workflow with the Vercel CLI, which needs a `VERCEL_TOKEN` secret and the project IDs in GitHub.

@@ -55,6 +55,21 @@ describe("DeckCard", () => {
       ),
     ).toBeTruthy();
   });
+
+  it("reads a match win rate from fewer than 20 decided matches as too few to call", () => {
+    render(
+      <MemoryRouter>
+        <DeckCard
+          deck={{
+            ...AFFINITY,
+            matchWinRate: { ...AFFINITY.matchWinRate, wins: 9, losses: 3 },
+          }}
+        />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText("Too few to call, 12 of 20")).toBeTruthy();
+  });
 });
 
 describe("DeckCardSkeleton", () => {

@@ -1,0 +1,641 @@
+{
+  "provenance": {
+    "schemaVersion": 1,
+    "derivationVersion": 53,
+    "window": {
+      "preset": "30d",
+      "from": "2026-09-11",
+      "to": "2026-10-11",
+      "since": null,
+      "until": null
+    },
+    "population": "rated"
+  },
+  "formatId": "Pauper",
+  "gameResults": {
+    "rows": [
+      {
+        "gameNumber": 1,
+        "onPlay": {
+          "wins": 6733,
+          "losses": 5894,
+          "required": 20,
+          "gate": null,
+          "rate": 0.5332224598083471,
+          "low": 0.5220502399046074,
+          "high": 0.5443614574665758,
+          "deff": 1.6443278084714548
+        },
+        "onDraw": {
+          "wins": 6453,
+          "losses": 6477,
+          "required": 20,
+          "gate": null,
+          "rate": 0.49907192575406034,
+          "low": 0.4880238048852762,
+          "high": 0.5101209529534879,
+          "deff": 1.6443278084714548
+        },
+        "total": {
+          "wins": 13186,
+          "losses": 12371,
+          "required": 20,
+          "gate": null,
+          "rate": 0.5159447509488594,
+          "low": 0.5080851486160395,
+          "high": 0.5237964734830284,
+          "deff": 1.6443278084714548
+        }
+      },
+      {
+        "gameNumber": 2,
+        "onPlay": {
+          "wins": 5035,
+          "losses": 5319,
+          "required": 20,
+          "gate": null,
+          "rate": 0.4862854935290709,
+          "low": 0.4739525114142696,
+          "high": 0.49863519893441494,
+          "deff": 1.6443278084714548
+        },
+        "onDraw": {
+          "wins": 5981,
+          "losses": 5007,
+          "required": 20,
+          "gate": null,
+          "rate": 0.5443210775391336,
+          "low": 0.5323580359817064,
+          "high": 0.5562331910931977,
+          "deff": 1.6443278084714548
+        },
+        "total": {
+          "wins": 11016,
+          "losses": 10326,
+          "required": 20,
+          "gate": null,
+          "rate": 0.5161653078436885,
+          "low": 0.5075643853902031,
+          "high": 0.5247566641970188,
+          "deff": 1.6443278084714548
+        }
+      },
+      {
+        "gameNumber": 3,
+        "onPlay": {
+          "wins": 2310,
+          "losses": 2117,
+          "required": 20,
+          "gate": null,
+          "rate": 0.5217980573751977,
+          "low": 0.5029116144066436,
+          "high": 0.5406223843236458,
+          "deff": 1.6443278084714548
+        },
+        "onDraw": {
+          "wins": 2258,
+          "losses": 2214,
+          "required": 20,
+          "gate": null,
+          "rate": 0.5049194991055456,
+          "low": 0.4861352272937628,
+          "high": 0.5236898931158641,
+          "deff": 1.6443278084714548
+        },
+        "total": {
+          "wins": 4568,
+          "losses": 4331,
+          "required": 20,
+          "gate": null,
+          "rate": 0.5133161029329139,
+          "low": 0.4999949537271379,
+          "high": 0.5266183616863269,
+          "deff": 1.6443278084714548
+        }
+      }
+    ],
+    "total": {
+      "onPlay": {
+        "wins": 14078,
+        "losses": 13330,
+        "required": 20,
+        "gate": null,
+        "rate": 0.5136456509048453,
+        "low": 0.5059611794697019,
+        "high": 0.5213236766205802,
+        "deff": 1.6855082872928175
+      },
+      "onDraw": {
+        "wins": 14692,
+        "losses": 13698,
+        "required": 20,
+        "gate": null,
+        "rate": 0.5175061641423037,
+        "low": 0.509897202039266,
+        "high": 0.5251070166082596,
+        "deff": 1.712183241252302
+      },
+      "total": {
+        "wins": 28770,
+        "losses": 27028,
+        "required": 20,
+        "gate": null,
+        "rate": 0.5156098784902685,
+        "low": 0.5091084016397172,
+        "high": 0.5221060759447038,
+        "deff": 2.45669152854512
+      }
+    },
+    "unknownPositionGames": 0
+  },
+  "deck": {
+    "id": "e93f5f74-2e3d-403e-ba56-1fde5b168692",
+    "slug": "affinity-e93f5f74",
+    "name": "Affinity",
+    "machineNamed": false,
+    "colours": ["W", "U", "B"],
+    "art": {
+      "cardName": "Reckoner's Bargain",
+      "setCode": null,
+      "collectorNumber": null,
+      "pinned": false
+    },
+    "keyCards": ["Reckoner's Bargain", "Myr Enforcer", "Utrom Monitor"],
+    "share": {
+      "registrations": 25892,
+      "totalRegistrations": 276808,
+      "rate": 0.09353775902430565
+    },
+    "players": 2172,
+    "matchWinRate": {
+      "wins": 13476,
+      "losses": 12416,
+      "rate": 0.520469643133014,
+      "low": 0.5126625352111599,
+      "high": 0.5282667659342711,
+      "deff": 1.6443278084714548
+    },
+    "shareChange": {
+      "points": 0.561430414972587,
+      "previousRate": 0.08792345487457978,
+      "reason": null
+    }
+  },
+  "games": {
+    "game1": {
+      "wins": 13193,
+      "losses": 12381,
+      "required": 20,
+      "gate": null,
+      "rate": 0.5158754985532181,
+      "low": 0.5080184920693703,
+      "high": 0.5237246646764874,
+      "deff": 1.6443278084714548
+    },
+    "game2AfterWin": {
+      "wins": 5939,
+      "losses": 4963,
+      "required": 20,
+      "gate": null,
+      "rate": 0.5447624289121262,
+      "low": 0.5327529152490239,
+      "high": 0.5567201019192255,
+      "deff": 1.6443278084714548
+    },
+    "game2AfterLoss": {
+      "wins": 4980,
+      "losses": 5286,
+      "required": 20,
+      "gate": null,
+      "rate": 0.48509643483343073,
+      "low": 0.4727123494986114,
+      "high": 0.49749884906620023,
+      "deff": 1.6443278084714548
+    },
+    "game3": {
+      "wins": 4571,
+      "losses": 4337,
+      "required": 20,
+      "gate": null,
+      "rate": 0.513134261338123,
+      "low": 0.4998198440601674,
+      "high": 0.5264300649389079,
+      "deff": 1.6443278084714548
+    }
+  },
+  "playDraw": {
+    "tossWon": {
+      "wins": 6725,
+      "losses": 5898,
+      "required": 20,
+      "gate": null,
+      "rate": 0.5327576645805276,
+      "low": 0.5215832184000176,
+      "high": 0.5438993429327047,
+      "deff": 1.6443278084714548
+    },
+    "tossLost": {
+      "wins": 6468,
+      "losses": 6483,
+      "required": 20,
+      "gate": null,
+      "rate": 0.4994208941394487,
+      "low": 0.4883815476843836,
+      "high": 0.5104608052160875,
+      "deff": 1.6443278084714548
+    },
+    "onPlay": {
+      "wins": 14086,
+      "losses": 13347,
+      "required": 20,
+      "gate": null,
+      "rate": 0.5134691794554004,
+      "low": 0.5057866315897027,
+      "high": 0.5211453681967594,
+      "deff": 1.6861873848987108
+    },
+    "onDraw": {
+      "wins": 14699,
+      "losses": 13707,
+      "required": 20,
+      "gate": null,
+      "rate": 0.5174610997676548,
+      "low": 0.5098533022852797,
+      "high": 0.5250608109921818,
+      "deff": 1.7126178637200735
+    },
+    "choseToDraw": { "count": 47, "of": 12623, "rate": 0.0037233621167709736 }
+  },
+  "texture": {
+    "averageTurns": 15.060422636103151,
+    "averageOpeningHand": 6.55615889212828,
+    "mulliganRate": { "count": 18566, "of": 54880, "rate": 0.33830174927113704 }
+  },
+  "sampleList": {
+    "state": "shown",
+    "reason": null,
+    "minPlayers": 3,
+    "players": 260,
+    "similarity": 0.4218104319293758,
+    "distinctLists": 3204,
+    "main": [
+      {
+        "name": "Black Mage's Rod",
+        "count": 3,
+        "setCode": null,
+        "collectorNumber": null
+      },
+      {
+        "name": "Blood Fountain",
+        "count": 2,
+        "setCode": null,
+        "collectorNumber": null
+      },
+      {
+        "name": "Drossforge Bridge",
+        "count": 4,
+        "setCode": null,
+        "collectorNumber": null
+      },
+      {
+        "name": "Galvanic Blast",
+        "count": 4,
+        "setCode": null,
+        "collectorNumber": null
+      },
+      {
+        "name": "Great Furnace",
+        "count": 2,
+        "setCode": null,
+        "collectorNumber": null
+      },
+      {
+        "name": "Ichor Wellspring",
+        "count": 4,
+        "setCode": null,
+        "collectorNumber": null
+      },
+      {
+        "name": "Krark-Clan Shaman",
+        "count": 3,
+        "setCode": null,
+        "collectorNumber": null
+      },
+      {
+        "name": "Makeshift Munitions",
+        "count": 1,
+        "setCode": null,
+        "collectorNumber": null
+      },
+      {
+        "name": "Mistvault Bridge",
+        "count": 4,
+        "setCode": null,
+        "collectorNumber": null
+      },
+      {
+        "name": "Mountain",
+        "count": 1,
+        "setCode": null,
+        "collectorNumber": null
+      },
+      {
+        "name": "Myr Enforcer",
+        "count": 4,
+        "setCode": null,
+        "collectorNumber": null
+      },
+      {
+        "name": "Nihil Spellbomb",
+        "count": 2,
+        "setCode": null,
+        "collectorNumber": null
+      },
+      {
+        "name": "Reckoner's Bargain",
+        "count": 4,
+        "setCode": null,
+        "collectorNumber": null
+      },
+      {
+        "name": "Refurbished Familiar",
+        "count": 4,
+        "setCode": null,
+        "collectorNumber": null
+      },
+      {
+        "name": "Seat of the Synod",
+        "count": 2,
+        "setCode": null,
+        "collectorNumber": null
+      },
+      {
+        "name": "Sewer-veillance Cam",
+        "count": 1,
+        "setCode": null,
+        "collectorNumber": null
+      },
+      {
+        "name": "Silverbluff Bridge",
+        "count": 2,
+        "setCode": null,
+        "collectorNumber": null
+      },
+      {
+        "name": "Thoughtcast",
+        "count": 4,
+        "setCode": null,
+        "collectorNumber": null
+      },
+      {
+        "name": "Toxin Analysis",
+        "count": 2,
+        "setCode": null,
+        "collectorNumber": null
+      },
+      {
+        "name": "Utrom Monitor",
+        "count": 3,
+        "setCode": null,
+        "collectorNumber": null
+      },
+      {
+        "name": "Vault of Whispers",
+        "count": 4,
+        "setCode": null,
+        "collectorNumber": null
+      }
+    ],
+    "side": [
+      {
+        "name": "Blue Elemental Blast",
+        "count": 2,
+        "setCode": null,
+        "collectorNumber": null
+      },
+      {
+        "name": "Extract a Confession",
+        "count": 2,
+        "setCode": null,
+        "collectorNumber": null
+      },
+      {
+        "name": "Hydroblast",
+        "count": 4,
+        "setCode": null,
+        "collectorNumber": null
+      },
+      {
+        "name": "Krark-Clan Shaman",
+        "count": 1,
+        "setCode": null,
+        "collectorNumber": null
+      },
+      {
+        "name": "Pyroblast",
+        "count": 4,
+        "setCode": null,
+        "collectorNumber": null
+      },
+      {
+        "name": "Red Elemental Blast",
+        "count": 1,
+        "setCode": null,
+        "collectorNumber": null
+      },
+      {
+        "name": "Unexpected Fangs",
+        "count": 1,
+        "setCode": null,
+        "collectorNumber": null
+      }
+    ]
+  },
+  "cardTableWithheld": null,
+  "shareSeries": {
+    "days": { "from": "2026-09-11", "to": "2026-10-11" },
+    "markedDay": null,
+    "points": [
+      {
+        "day": "2026-09-11",
+        "registrations": 589,
+        "totalRegistrations": 5722,
+        "rate": 0.10293603635092625
+      },
+      {
+        "day": "2026-09-12",
+        "registrations": 628,
+        "totalRegistrations": 5802,
+        "rate": 0.1082385384350224
+      },
+      {
+        "day": "2026-09-13",
+        "registrations": 732,
+        "totalRegistrations": 6838,
+        "rate": 0.10704884469143024
+      },
+      {
+        "day": "2026-09-14",
+        "registrations": 947,
+        "totalRegistrations": 7532,
+        "rate": 0.1257302177376527
+      },
+      {
+        "day": "2026-09-15",
+        "registrations": 992,
+        "totalRegistrations": 7714,
+        "rate": 0.12859735545760953
+      },
+      {
+        "day": "2026-09-16",
+        "registrations": 1061,
+        "totalRegistrations": 8058,
+        "rate": 0.13167038967485728
+      },
+      {
+        "day": "2026-09-17",
+        "registrations": 915,
+        "totalRegistrations": 7764,
+        "rate": 0.1178516228748068
+      },
+      {
+        "day": "2026-09-18",
+        "registrations": 934,
+        "totalRegistrations": 8112,
+        "rate": 0.11513806706114399
+      },
+      {
+        "day": "2026-09-19",
+        "registrations": 812,
+        "totalRegistrations": 7220,
+        "rate": 0.11246537396121883
+      },
+      {
+        "day": "2026-09-20",
+        "registrations": 769,
+        "totalRegistrations": 7780,
+        "rate": 0.09884318766066838
+      },
+      {
+        "day": "2026-09-21",
+        "registrations": 875,
+        "totalRegistrations": 9240,
+        "rate": 0.0946969696969697
+      },
+      {
+        "day": "2026-09-22",
+        "registrations": 855,
+        "totalRegistrations": 9506,
+        "rate": 0.0899431937723543
+      },
+      {
+        "day": "2026-09-23",
+        "registrations": 794,
+        "totalRegistrations": 9270,
+        "rate": 0.08565264293419633
+      },
+      {
+        "day": "2026-09-24",
+        "registrations": 773,
+        "totalRegistrations": 8720,
+        "rate": 0.08864678899082569
+      },
+      {
+        "day": "2026-09-25",
+        "registrations": 812,
+        "totalRegistrations": 8520,
+        "rate": 0.09530516431924882
+      },
+      {
+        "day": "2026-09-26",
+        "registrations": 769,
+        "totalRegistrations": 8624,
+        "rate": 0.08916975881261596
+      },
+      {
+        "day": "2026-09-27",
+        "registrations": 818,
+        "totalRegistrations": 9094,
+        "rate": 0.08994941719815262
+      },
+      {
+        "day": "2026-09-28",
+        "registrations": 935,
+        "totalRegistrations": 11180,
+        "rate": 0.0836314847942755
+      },
+      {
+        "day": "2026-09-29",
+        "registrations": 944,
+        "totalRegistrations": 11076,
+        "rate": 0.08522932466594438
+      },
+      {
+        "day": "2026-09-30",
+        "registrations": 848,
+        "totalRegistrations": 10578,
+        "rate": 0.08016638305917943
+      },
+      {
+        "day": "2026-10-01",
+        "registrations": 986,
+        "totalRegistrations": 10660,
+        "rate": 0.0924953095684803
+      },
+      {
+        "day": "2026-10-02",
+        "registrations": 795,
+        "totalRegistrations": 10148,
+        "rate": 0.07834055971620024
+      },
+      {
+        "day": "2026-10-03",
+        "registrations": 774,
+        "totalRegistrations": 9072,
+        "rate": 0.08531746031746032
+      },
+      {
+        "day": "2026-10-04",
+        "registrations": 843,
+        "totalRegistrations": 9724,
+        "rate": 0.08669271904566023
+      },
+      {
+        "day": "2026-10-05",
+        "registrations": 1026,
+        "totalRegistrations": 11512,
+        "rate": 0.08912439193884641
+      },
+      {
+        "day": "2026-10-06",
+        "registrations": 995,
+        "totalRegistrations": 11066,
+        "rate": 0.08991505512380264
+      },
+      {
+        "day": "2026-10-07",
+        "registrations": 1119,
+        "totalRegistrations": 13134,
+        "rate": 0.08519872087711283
+      },
+      {
+        "day": "2026-10-08",
+        "registrations": 958,
+        "totalRegistrations": 13048,
+        "rate": 0.0734212139791539
+      },
+      {
+        "day": "2026-10-09",
+        "registrations": 1045,
+        "totalRegistrations": 12640,
+        "rate": 0.08267405063291139
+      },
+      {
+        "day": "2026-10-10",
+        "registrations": 549,
+        "totalRegistrations": 7454,
+        "rate": 0.0736517306144352
+      }
+    ]
+  }
+}

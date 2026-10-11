@@ -1,0 +1,59 @@
+@layer components {
+  .deck-hero {
+    display: grid;
+    gap: 18px;
+    align-items: center;
+  }
+
+  .deck-hero__art {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 626 / 300;
+    object-fit: cover;
+    object-position: center 38%;
+    border-radius: 10px;
+    background: var(--rule);
+  }
+
+  .deck-hero__body {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .deck-hero__title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .deck-hero__keys {
+    margin: 0;
+    font-size: 14px;
+    color: var(--text-600);
+  }
+
+  .deck-hero__controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 16px;
+    max-width: 100%;
+  }
+
+  .deck-hero__dates {
+    font-size: 13px;
+    color: var(--text-600);
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (min-width: 640px) {
+    .deck-hero {
+      grid-template-columns: 280px minmax(0, 1fr);
+    }
+  }
+}

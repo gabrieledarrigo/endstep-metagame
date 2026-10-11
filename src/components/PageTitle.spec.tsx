@@ -22,4 +22,12 @@ describe("PageTitle", () => {
     expect(heading.textContent).toBe("Loading the deck");
     expect(heading.querySelector(".skeleton")).toBeTruthy();
   });
+
+  it("takes the hero style, for a page whose title leads its header", () => {
+    render(<PageTitle title="Affinity" hero />);
+
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Affinity" }).className,
+    ).toBe("page-title page-title--hero");
+  });
 });

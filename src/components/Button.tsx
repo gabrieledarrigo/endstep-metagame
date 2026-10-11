@@ -1,4 +1,5 @@
 import type { ComponentProps } from "react";
+import { Link, type LinkProps } from "react-router";
 import "./Button.css";
 
 type ButtonProps = ComponentProps<"button"> & {
@@ -21,5 +22,24 @@ export function Button({
     >
       {children}
     </button>
+  );
+}
+
+type ButtonLinkProps = LinkProps & {
+  variant?: "primary" | "secondary" | "ghost";
+};
+
+export function ButtonLink({
+  variant = "primary",
+  className,
+  ...rest
+}: ButtonLinkProps) {
+  return (
+    <Link
+      {...rest}
+      className={["button", "button--" + variant, "button--link", className]
+        .filter(Boolean)
+        .join(" ")}
+    />
   );
 }

@@ -13,7 +13,7 @@ import { CHART_AXIS, CHART_CARTESIAN_GRID, token } from "../../charts/theme";
 import { Panel } from "../../components/Panel";
 import { Skeleton } from "../../components/Skeleton";
 import { PAGE_SIZE } from "../../config";
-import { axisShare, tooltipShare } from "../../format";
+import { axisShare, tooltipShare } from "../../helpers";
 import "./RankedBars.css";
 
 const CHART_BAR = token("--seq-500");

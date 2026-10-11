@@ -5,13 +5,17 @@ import "./PageTitle.css";
 type PageTitleProps = {
   title: string;
   loading?: boolean;
+  hero?: boolean;
 };
 
-export function PageTitle({ title, loading }: PageTitleProps) {
+export function PageTitle({ title, loading, hero }: PageTitleProps) {
   return (
     <>
       <title>{`${title} · ${SITE_NAME}`}</title>
-      <h1 className="page-title" tabIndex={-1}>
+      <h1
+        className={hero ? "page-title page-title--hero" : "page-title"}
+        tabIndex={-1}
+      >
         {loading ? (
           <>
             <span className="visually-hidden">{title}</span>

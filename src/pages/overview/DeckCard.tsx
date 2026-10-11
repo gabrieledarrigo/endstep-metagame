@@ -3,15 +3,8 @@ import { ColourPips } from "../../components/ColourPips";
 import { ShareChange } from "../../components/ShareChange";
 import { Skeleton } from "../../components/Skeleton";
 import { WindowLink } from "../../components/WindowLink";
-import { formatCount, percent, tooltipShare } from "../../format";
+import { artSource, formatCount, rateText, tooltipShare } from "../../helpers";
 import "./DeckCard.css";
-
-function artSource(cardName: string): string {
-  return `https://endstep.cc/api/cards/image?${new URLSearchParams({
-    name: cardName,
-    version: "art_crop",
-  })}`;
-}
 
 export function DeckCard({ deck }: { deck: Deck }) {
   return (
@@ -46,7 +39,7 @@ export function DeckCard({ deck }: { deck: Deck }) {
           </div>
           <div className="deck__stat">
             <dt className="deck__label">Match win rate</dt>
-            <dd className="deck__value">{percent(deck.matchWinRate.rate)}</dd>
+            <dd className="deck__value">{rateText(deck.matchWinRate)}</dd>
           </div>
           <div className="deck__stat deck__stat--change">
             <dt className="deck__label">Share change</dt>

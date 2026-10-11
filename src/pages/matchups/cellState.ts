@@ -1,4 +1,5 @@
 import type { MatchupCell, MatchupMatrix } from "../../api/types";
+import { neededText } from "../../helpers";
 
 export type CellState =
   "mirror" | "none" | "gated" | "win" | "loss" | "neutral";
@@ -107,7 +108,7 @@ export function cellSummary(
 
   const count =
     state === "gated" && cell !== undefined
-      ? `, ${cell.wins + cell.losses} of the 20 matches needed`
+      ? `, ${neededText(cell.wins + cell.losses, "matches")}`
       : "";
 
   return `${rowName} against ${columnName}:${rate} ${VERDICT[state]}${count}`;

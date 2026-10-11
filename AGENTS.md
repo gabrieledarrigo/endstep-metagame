@@ -13,6 +13,7 @@ Write simple, readable code. Prefer the clean solution over the clever one.
 - Comments are for the rare case where the reason is not visible in the code, such as a workaround for an external API.
 - CSS follows NFR-11 in the requirements: every rule in a cascade layer, one stylesheet per component named after it, and each stylesheet styles only the elements its component renders.
 - Every API function and every exported helper has a JSDoc block, as NFR-1 describes. That is documentation of a contract, not an inline comment.
+- Helpers live in `src/helpers/` and are imported through its index, as NFR-1 describes. No helper module sits loose in `src/` or inside a page or component folder.
 - Every new component and every new exported function comes with a spec in the same pull request, beside its module and named after it: `Card.tsx` and `Card.spec.tsx`. A function the module does not export is tested through the exports that use it. Specs query by role and visible text and never call Endstep.
 
 ## Prose

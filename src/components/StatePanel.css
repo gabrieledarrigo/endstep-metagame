@@ -15,6 +15,7 @@
     margin: 0;
     font-size: 15px;
     font-weight: 600;
+    letter-spacing: 0;
   }
 
   .state-panel__detail {
@@ -22,5 +23,6 @@
     font-size: 14px;
     color: var(--text-600);
     max-width: 44ch;
+    overflow-wrap: anywhere;
   }
 }

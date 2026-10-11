@@ -52,4 +52,14 @@ describe("endpoints", () => {
 
     expect(String(fetchMock.mock.calls[0][0])).toBe("/api/matchups?window=30d");
   });
+
+  it("encodes the slug, so a character from the address cannot change the request", async () => {
+    const fetchMock = stubFetch();
+
+    await fetchDeck("a?b", "30d", new AbortController().signal);
+
+    expect(String(fetchMock.mock.calls[0][0])).toBe(
+      "/api/metagame/Pauper/decks/a%3Fb?window=30d&population=rated",
+    );
+  });
 });

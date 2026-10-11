@@ -70,7 +70,7 @@ export function fetchDeck(
   signal: AbortSignal,
 ): Promise<DeckDetail> {
   return getJson<DeckDetail>(
-    `${METAGAME}/${FORMAT}/decks/${slug}`,
+    `${METAGAME}/${FORMAT}/decks/${encodeURIComponent(slug)}`,
     { window: timeWindow, population: POPULATION },
     signal,
   );
