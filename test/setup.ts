@@ -10,7 +10,7 @@ globalThis.ResizeObserver = class {
 Object.defineProperty(globalThis, "navigator", {
   value: {
     language: "en-GB",
-    languages: ["en-Gb"],
+    languages: ["en-GB"],
   },
   writable: true,
 });

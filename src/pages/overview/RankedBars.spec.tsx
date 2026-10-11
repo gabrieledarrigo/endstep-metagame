@@ -67,7 +67,9 @@ describe("RankedBarsSkeleton", () => {
     expect(
       screen.getByRole("heading", { name: "Meta share by deck" }),
     ).toBeTruthy();
-    expect(screen.getByText(/^Other is a residual, not a deck\./)).toBeTruthy();
+    expect(
+      screen.getByText(/Other covers every archetype outside the top 24\./),
+    ).toBeTruthy();
     expect(container.firstElementChild?.getAttribute("aria-busy")).toBe("true");
   });
 });

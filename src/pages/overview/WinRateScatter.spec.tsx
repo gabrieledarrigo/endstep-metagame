@@ -109,7 +109,9 @@ describe("WinRateScatterSkeleton", () => {
     expect(
       screen.getByRole("heading", { name: "Win rate against share" }),
     ).toBeTruthy();
-    expect(screen.getByText(/^Bubble area is player count\./)).toBeTruthy();
+    expect(
+      screen.getByText(/^The bubble area represents player count\./),
+    ).toBeTruthy();
     expect(container.firstElementChild?.getAttribute("aria-busy")).toBe("true");
   });
 });

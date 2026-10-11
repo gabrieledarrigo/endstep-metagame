@@ -187,7 +187,7 @@ function axisTicks(min: number, max: number, step: number): number[] {
 }
 
 const WIN_RATE_NOTE =
-  "Bubble area is player count. Decks above the line win more than half their matches. The tooltip carries the confidence bounds, and small gaps between decks sit inside them.";
+  "The bubble area represents player count. Decks above the line win more than half their matches.";
 
 export function WinRateScatterSkeleton() {
   return (

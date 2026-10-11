@@ -1,10 +1,10 @@
 import type { Population, Proportion, Provenance } from "../api/types";
 
-const DEFAULT_LOCALE = "it-IT";
+const DEFAULT_LOCALE = "en-GB";
 
 function userLocales(): string {
   return (
-    window.navigator?.languages[0] ??
+    window.navigator.languages?.[0] ??
     window.navigator.language ??
     DEFAULT_LOCALE
   );
@@ -23,13 +23,19 @@ export function formatCount(value: number): string {
 }
 
 /**
- * Formats a rate as a percentage with one decimal.
+ * Formats a rate as a percentage with one decimal in the user's locales.
  *
  * @param rate - A rate between 0 and 1.
  * @returns The percentage, such as `52.2%`.
  */
 export function percent(rate: number): string {
-  return `${(rate * 100).toFixed(1)}%`;
+  const locales = userLocales();
+
+  return new Intl.NumberFormat(locales, {
+    style: "percent",
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  }).format(rate);
 }
 
 /**
@@ -43,23 +49,35 @@ export function axisShare(share: number): string {
 }
 
 /**
- * Formats a meta share with two decimals.
+ * Formats a meta share with two decimals in the user's locales.
  *
  * @param share - A share in percent.
  * @returns The share, such as `9.59%`.
  */
 export function tooltipShare(share: number): string {
-  return `${share.toFixed(2)}%`;
+  const locales = userLocales();
+
+  return new Intl.NumberFormat(locales, {
+    style: "percent",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(share / 100);
 }
 
 /**
- * Formats a win rate with one decimal.
+ * Formats a win rate with one decimal in the user's locales.
  *
  * @param value - A win rate in percent.
  * @returns The win rate, such as `52.2%`.
  */
 export function winRateText(value: number): string {
-  return `${value.toFixed(1)}%`;
+  const locales = userLocales();
+
+  return new Intl.NumberFormat(locales, {
+    style: "percent",
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  }).format(value / 100);
 }
 
 /**

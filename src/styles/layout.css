@@ -53,5 +53,5 @@
   margin: 0 0 4px;
   font-size: 14px;
   color: var(--text-600);
-  max-width: 76ch;
+  /* max-width: 76ch; */
 }

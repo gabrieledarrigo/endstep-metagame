@@ -49,7 +49,7 @@ function shareBars({ items, total }: Page<Deck>): ShareBar[] {
   ];
 }
 
-const RANKED_BARS_NOTE = `Other is a residual, not a deck. It covers every archetype outside the top ${PAGE_SIZE} and the registrations Endstep did not classify.`;
+const RANKED_BARS_NOTE = `Other covers every archetype outside the top ${PAGE_SIZE}.`;
 
 export function RankedBarsSkeleton() {
   return (
