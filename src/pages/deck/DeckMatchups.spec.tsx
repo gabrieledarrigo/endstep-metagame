@@ -7,7 +7,7 @@ import { renderWithQueries } from "../../../test/renderWithQueries";
 import type { Deck, DeckDetail } from "../../api/types";
 import { DeckMatchups } from "./DeckMatchups";
 
-const DECK: Deck = { ...(detail as DeckDetail).deck, id: "e93f5f74" };
+const DECK: Deck = (detail as DeckDetail).deck;
 const MATRIX_WINDOW = matrix.window;
 
 function renderRow(

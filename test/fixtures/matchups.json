@@ -2,28 +2,28 @@
   "window": { "from": "2026-09-11", "to": "2026-10-11" },
   "decks": [
     {
-      "id": "e93f5f74",
+      "id": "e93f5f74-2e3d-403e-ba56-1fde5b168692",
       "slug": "affinity-e93f5f74",
       "name": "Affinity",
       "colours": ["W", "U", "B"],
       "share": 0.0939
     },
     {
-      "id": "60596e8a",
+      "id": "60596e8a-4df8-49ed-aaf9-99c02e648058",
       "slug": "mono-red-madness-60596e8a",
       "name": "Mono Red Madness",
       "colours": ["R"],
       "share": 0.0681
     },
     {
-      "id": "1bc68613",
+      "id": "1bc68613-2c5b-4b8e-84d3-e6658580eeaf",
       "slug": "monster-tron-1bc68613",
       "name": "Monster Tron",
       "colours": ["G"],
       "share": 0.047
     },
     {
-      "id": "af060ab8",
+      "id": "af060ab8-0000-4000-8000-000000000000",
       "slug": "naya-gates-af060ab8",
       "name": "Naya Gates",
       "colours": ["R", "G", "W"],

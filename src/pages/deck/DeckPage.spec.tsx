@@ -98,6 +98,11 @@ describe("DeckPage", () => {
     expect(String(fetchMock.mock.calls[0][0])).toBe(
       "/api/metagame/Pauper/decks/affinity-e93f5f74?window=30d&population=rated",
     );
+    expect(
+      await screen.findByRole("grid", {
+        name: "Match win rate of Affinity against the other 3 decks in the top 4, 30d window, rated.",
+      }),
+    ).toBeTruthy();
   });
 
   it("requests the window the reader picks", async () => {
@@ -332,6 +337,11 @@ describe("DeckPage", () => {
       await screen.findByText(
         "Address: /decks/affinity-e93f5f74?window=30d by REPLACE",
       ),
+    ).toBeTruthy();
+    expect(
+      await screen.findByRole("gridcell", {
+        name: "Affinity against Mono Red Madness: 57%, clear result",
+      }),
     ).toBeTruthy();
   });
 
