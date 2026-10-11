@@ -1,21 +1,16 @@
-import { useQuery } from "@tanstack/react-query";
-import { fetchMatchups } from "../../api/endpoints";
 import { EmptyWindow } from "../../components/EmptyWindow";
 import { PageTitle } from "../../components/PageTitle";
 import { Section } from "../../components/Section";
 import { SegmentedControl } from "../../components/SegmentedControl";
 import { WINDOWS } from "../../config";
 import { formatWindow } from "../../helpers";
+import { useMatchups } from "../../hooks/useMatchups";
 import { useTimeWindow } from "../../hooks/useTimeWindow";
 import { MatchupTable, MatchupTableSkeleton } from "./MatchupTable";
 
 export function MatchupsPage() {
   const [timeWindow, selectTimeWindow] = useTimeWindow();
-  const matchups = useQuery({
-    queryKey: ["matchups", timeWindow],
-    queryFn: ({ signal }) => fetchMatchups(timeWindow, signal),
-    retry: false,
-  });
+  const matchups = useMatchups(timeWindow);
 
   return (
     <>
