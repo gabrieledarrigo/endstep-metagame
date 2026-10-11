@@ -1,5 +1,5 @@
-import type { MatchupCell, MatchupMatrix } from "../../api/types";
-import { neededText } from "../../helpers";
+import type { MatchupCell, MatchupMatrix } from "../api/types";
+import { neededText } from "./winRate";
 
 export type CellState =
   "mirror" | "none" | "gated" | "win" | "loss" | "neutral";

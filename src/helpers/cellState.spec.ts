@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { MatchupCell, MatchupMatrix } from "../../api/types";
+import type { MatchupCell, MatchupMatrix } from "../api/types";
 import { cellOf, cellState, cellSummary, isClearPair } from "./cellState";
 
 function ranged(
