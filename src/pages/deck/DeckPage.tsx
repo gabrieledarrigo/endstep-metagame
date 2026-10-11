@@ -15,6 +15,7 @@ import { formatWindow } from "../../helpers";
 import { useHeadingFocus } from "../../hooks/useHeadingFocus";
 import { useTimeWindow } from "../../hooks/useTimeWindow";
 import { DeckHero } from "./DeckHero";
+import { DeckMatchups } from "./DeckMatchups";
 import { DeckNotFound } from "./DeckNotFound";
 import { DeckSection } from "./DeckSection";
 import { DeckShare } from "./DeckShare";
@@ -198,6 +199,11 @@ export function DeckPage() {
             />
           </DeckSection>
         </div>
+        <DeckMatchups
+          deck={detail.deck}
+          detailWindow={detail.provenance.window}
+          timeWindow={timeWindow}
+        />
       </div>
     </div>
   );

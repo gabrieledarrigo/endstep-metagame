@@ -16,6 +16,7 @@ import {
   vi,
 } from "vitest";
 import detail from "../../../test/fixtures/deck.json";
+import matrix from "../../../test/fixtures/matchups.json";
 import { renderWithQueries } from "../../../test/renderWithQueries";
 import { sizeCharts } from "../../../test/sizeCharts";
 import { DeckPage } from "./DeckPage";
@@ -30,9 +31,27 @@ function Address() {
   );
 }
 
-function renderAt(path: string, answer: () => Response): Mock<typeof fetch> {
-  const fetchMock = vi.fn<typeof fetch>(async () => answer());
+function stubApi(
+  answer: () => Response | Promise<Response>,
+): Mock<typeof fetch> {
+  const fetchMock = vi.fn<typeof fetch>(async (input) =>
+    String(input).startsWith("/api/matchups")
+      ? Response.json(matrix)
+      : answer(),
+  );
   vi.stubGlobal("fetch", fetchMock);
+
+  return fetchMock;
+}
+
+function deckRequests(fetchMock: Mock<typeof fetch>): string[] {
+  return fetchMock.mock.calls
+    .map(([input]) => String(input))
+    .filter((url) => url.includes("/decks/"));
+}
+
+function renderAt(path: string, answer: () => Response): Mock<typeof fetch> {
+  const fetchMock = stubApi(answer);
 
   renderWithQueries(
     <MemoryRouter initialEntries={[path]}>
@@ -90,18 +109,20 @@ describe("DeckPage", () => {
     fireEvent.click(screen.getByRole("button", { name: "7d" }));
 
     await waitFor(() => {
-      expect(String(fetchMock.mock.calls.at(-1)?.[0])).toContain(
+      expect(deckRequests(fetchMock).at(-1)).toContain(
         "/decks/affinity-e93f5f74?window=7d&",
+      );
+    });
+    await waitFor(() => {
+      expect(fetchMock.mock.calls.map(([input]) => String(input))).toContain(
+        "/api/matchups?window=7d",
       );
     });
   });
 
   it("keeps the deck and the focused selector on screen while another window loads, and says so", async () => {
     let answer: (response: Response) => void = () => {};
-    const fetchMock = vi.fn<typeof fetch>(
-      () => new Promise<Response>((resolve) => (answer = resolve)),
-    );
-    vi.stubGlobal("fetch", fetchMock);
+    stubApi(() => new Promise<Response>((resolve) => (answer = resolve)));
     renderWithQueries(
       <MemoryRouter initialEntries={["/decks/affinity-e93f5f74?window=30d"]}>
         <Routes>
@@ -139,12 +160,7 @@ describe("DeckPage", () => {
 
   it("replaces the history entry for a window picked while another loads, and hides the old dates", async () => {
     let answer: (response: Response) => void = () => {};
-    vi.stubGlobal(
-      "fetch",
-      vi.fn<typeof fetch>(
-        () => new Promise<Response>((resolve) => (answer = resolve)),
-      ),
-    );
+    stubApi(() => new Promise<Response>((resolve) => (answer = resolve)));
     renderWithQueries(
       <MemoryRouter initialEntries={["/decks/affinity-e93f5f74?window=30d"]}>
         <Routes>
@@ -174,12 +190,7 @@ describe("DeckPage", () => {
 
   it("keeps focus on the main heading when the deck finishes loading", async () => {
     let answer: (response: Response) => void = () => {};
-    vi.stubGlobal(
-      "fetch",
-      vi.fn<typeof fetch>(
-        () => new Promise<Response>((resolve) => (answer = resolve)),
-      ),
-    );
+    stubApi(() => new Promise<Response>((resolve) => (answer = resolve)));
     renderWithQueries(
       <MemoryRouter initialEntries={["/decks/affinity-e93f5f74?window=30d"]}>
         <Routes>
@@ -208,10 +219,7 @@ describe("DeckPage", () => {
       (): Response => Response.json({ error: "Forbidden" }, { status: 403 }),
     ];
     let calls = 0;
-    vi.stubGlobal(
-      "fetch",
-      vi.fn<typeof fetch>(async () => answers[Math.min(calls++, 1)]()),
-    );
+    stubApi(async () => answers[Math.min(calls++, 1)]());
     renderWithQueries(
       <MemoryRouter initialEntries={["/decks/affinity-e93f5f74?window=30d"]}>
         <Routes>
@@ -243,12 +251,7 @@ describe("DeckPage", () => {
       },
     };
     let answer: (response: Response) => void = () => {};
-    vi.stubGlobal(
-      "fetch",
-      vi.fn<typeof fetch>(
-        () => new Promise<Response>((resolve) => (answer = resolve)),
-      ),
-    );
+    stubApi(() => new Promise<Response>((resolve) => (answer = resolve)));
     renderWithQueries(
       <MemoryRouter initialEntries={["/decks/affinity-e93f5f74?window=1d"]}>
         <Routes>
@@ -294,6 +297,32 @@ describe("DeckPage", () => {
 
     expect(await screen.findByText("4 Oct to 10 Oct 2026")).toBeTruthy();
     expect(screen.queryByText("Copied the list.")).toBeNull();
+  });
+
+  it("keeps the numbers and the sample list when the matchups fail", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>(async (input) =>
+        String(input).startsWith("/api/matchups")
+          ? Response.json({ error: "x" }, { status: 502 })
+          : Response.json(detail),
+      ),
+    );
+    renderWithQueries(
+      <MemoryRouter initialEntries={["/decks/affinity-e93f5f74?window=30d"]}>
+        <Routes>
+          <Route path="/decks/:slug" element={<DeckPage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "The matchups could not be loaded",
+      }),
+    ).toBeTruthy();
+    expect(screen.getByRole("region", { name: "Sample list" })).toBeTruthy();
+    expect(screen.getByRole("region", { name: "Games" })).toBeTruthy();
   });
 
   it("replaces a stale slug in the address with the deck's own", async () => {
