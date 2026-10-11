@@ -306,4 +306,23 @@ describe("MatchupGrid", () => {
     press("Home");
     expect(focused()).toBe("Mono Red Madness");
   });
+
+  it("puts the tab stop on the row's name when there is no cell", () => {
+    const [affinity] = MATRIX.decks;
+    render(
+      <MemoryRouter>
+        <MatchupGrid
+          rows={[affinity]}
+          columns={[]}
+          cells={MATRIX.cells}
+          label="Affinity alone"
+          linkRows={false}
+        />
+      </MemoryRouter>,
+    );
+
+    const stops = screen.getByRole("grid").querySelectorAll("[tabindex='0']");
+    expect(stops).toHaveLength(1);
+    expect(stops[0].textContent).toBe("Affinity");
+  });
 });

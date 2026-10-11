@@ -10,7 +10,7 @@
 
   .matchup-table__grid,
   .matchup-table__skeleton {
-    --matchup-cell: round(
+    --matchup-size: round(
       down,
       clamp(32px, calc((100cqw - 360px) / 24), 44px),
       1px
@@ -18,8 +18,8 @@
   }
 
   .matchup-table__skeleton {
-    width: calc(var(--matchup-cell) * 24 + 280px);
+    width: calc(var(--matchup-size) * 24 + 280px);
     max-width: 100%;
-    height: calc(var(--matchup-cell) * 21 + 285px);
+    height: calc(var(--matchup-size) * 21 + 285px);
   }
 }

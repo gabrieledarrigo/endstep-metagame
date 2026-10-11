@@ -1,6 +1,6 @@
 @layer components {
   .matchup {
-    --matchup-cell: 32px;
+    --matchup-cell: var(--matchup-size, 32px);
   }
 
   .matchup__frame {
@@ -154,6 +154,10 @@
   @media (min-width: 1100px) {
     .matchup__scroll {
       overflow-x: visible;
+    }
+
+    .matchup--contained .matchup__scroll {
+      overflow-x: auto;
     }
 
     .matchup__cell {

@@ -144,6 +144,7 @@ type MatchupGridProps = {
   cells: MatchupMatrix["cells"];
   label: string;
   linkRows?: boolean;
+  contained?: boolean;
   className?: string;
 };
 
@@ -153,16 +154,17 @@ export function MatchupGrid({
   cells,
   label,
   linkRows = true,
+  contained,
   className,
 }: MatchupGridProps) {
   const lastRow = rows.length - 1;
   const lastColumn = columns.length - 1;
+  const firstCell = columns.findIndex(
+    (column) => column.slug !== rows[0]?.slug,
+  );
   const [focus, setFocus] = useState<Position>({
     row: 0,
-    column: Math.max(
-      0,
-      columns.findIndex((column) => column.slug !== rows[0]?.slug),
-    ),
+    column: firstCell,
   });
   const [active, setActive] = useState<Position | null>(null);
   const table = useRef<HTMLTableElement>(null);
@@ -275,7 +277,11 @@ export function MatchupGrid({
   };
 
   return (
-    <div className={["matchup", className].filter(Boolean).join(" ")}>
+    <div
+      className={["matchup", contained && "matchup--contained", className]
+        .filter(Boolean)
+        .join(" ")}
+    >
       <div className="matchup__frame" ref={frame}>
         <div className="matchup__scroll" onScroll={() => setActive(null)}>
           <table
