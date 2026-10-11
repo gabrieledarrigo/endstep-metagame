@@ -18,7 +18,7 @@ function range(from: string, to: string): { from: string; to: string } {
 }
 
 describe("formatCount", () => {
-  it("separates thousands with commas", () => {
+  it("separates thousands depending on the user locales", () => {
     expect(formatCount(236728)).toBe("236,728");
     expect(formatCount(40)).toBe("40");
   });
@@ -57,20 +57,20 @@ describe("shortDay", () => {
 
 describe("longDay", () => {
   it("writes the date in full, in British English", () => {
-    expect(longDay("2026-10-07")).toBe("7 October 2026");
+    expect(longDay("2026-10-07")).toBe("07 October 2026");
   });
 });
 
 describe("formatDay", () => {
   it("writes the day and the short month", () => {
-    expect(formatDay("2026-09-05")).toBe("5 Sep");
+    expect(formatDay("2026-09-05")).toBe("05 Sept");
   });
 });
 
 describe("formatWindow", () => {
   it("ends on the last covered day, the day before the exclusive end", () => {
     expect(formatWindow(range("2026-09-06", "2026-10-06"))).toBe(
-      "6 Sep to 5 Oct 2026",
+      "06 Sept to 05 Oct 2026",
     );
   });
 
@@ -82,7 +82,7 @@ describe("formatWindow", () => {
 
   it("counts a window that ends on the first of the year as ending in the year before", () => {
     expect(formatWindow(range("2025-12-02", "2026-01-01"))).toBe(
-      "2 Dec to 31 Dec 2025",
+      "02 Dec to 31 Dec 2025",
     );
   });
 });

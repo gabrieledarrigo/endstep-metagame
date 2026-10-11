@@ -175,7 +175,7 @@ describe("DeckPage", () => {
       </MemoryRouter>,
     );
     answer(Response.json(detail));
-    await screen.findByText("11 Sep to 10 Oct 2026");
+    await screen.findByText("11 Sept to 10 Oct 2026");
 
     fireEvent.click(screen.getByRole("button", { name: "7d" }));
     expect(
@@ -183,7 +183,7 @@ describe("DeckPage", () => {
         "Address: /decks/affinity-e93f5f74?window=7d by PUSH",
       ),
     ).toBeTruthy();
-    expect(screen.queryByText("11 Sep to 10 Oct 2026")).toBeNull();
+    expect(screen.queryByText("11 Sept to 10 Oct 2026")).toBeNull();
 
     fireEvent.click(screen.getByRole("button", { name: "14d" }));
     expect(
@@ -300,7 +300,7 @@ describe("DeckPage", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "7d" }));
 
-    expect(await screen.findByText("4 Oct to 10 Oct 2026")).toBeTruthy();
+    expect(await screen.findByText("04 Oct to 10 Oct 2026")).toBeTruthy();
     expect(screen.queryByText("Copied the list.")).toBeNull();
   });
 

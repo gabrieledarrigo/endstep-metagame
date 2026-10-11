@@ -56,12 +56,14 @@ export function DeckPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const [timeWindow, selectTimeWindow] = useTimeWindow();
+
   const deck = useQuery({
     queryKey: ["deck", slug, timeWindow],
     queryFn: ({ signal }) => fetchDeck(slug, timeWindow, signal),
     placeholderData: (previous, previousQuery) =>
       previousQuery?.queryKey[1] === slug ? previous : undefined,
   });
+
   const canonical = deck.data?.deck.slug;
   const loadingWindow = deck.isPlaceholderData;
 

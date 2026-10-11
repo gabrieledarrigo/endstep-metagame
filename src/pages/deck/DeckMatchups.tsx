@@ -39,11 +39,6 @@ export function DeckMatchups({
     <DeckSection
       className="deck-matchups"
       title={`Matchups against the top ${matrix?.decks.length || TOP}`}
-      note={
-        row
-          ? `Match win rate against each of the other ${others.length} decks in the top ${matrix?.decks.length}, in share order. Read across.`
-          : undefined
-      }
     >
       {otherDates && matrix && (
         <p className="deck-matchups__dates">

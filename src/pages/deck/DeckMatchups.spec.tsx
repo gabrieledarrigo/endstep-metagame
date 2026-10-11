@@ -48,11 +48,6 @@ describe("DeckMatchups", () => {
       screen.getByRole("region", { name: "Matchups against the top 4" }),
     ).toBeTruthy();
     expect(
-      screen.getByText(
-        "Match win rate against each of the other 3 decks in the top 4, in share order. Read across.",
-      ),
-    ).toBeTruthy();
-    expect(
       within(grid)
         .getAllByRole("columnheader")
         .map((header) => header.textContent),
@@ -96,7 +91,7 @@ describe("DeckMatchups", () => {
     renderRow(DECK, undefined, { from: "2026-09-10", to: "2026-10-10" });
 
     expect(
-      await screen.findByText("These matchups cover 11 Sep to 10 Oct 2026."),
+      await screen.findByText("These matchups cover 11 Sept to 10 Oct 2026."),
     ).toBeTruthy();
   });
 

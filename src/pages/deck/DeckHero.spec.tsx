@@ -12,7 +12,7 @@ function renderHero(onSelect: (next: TimeWindow) => void = () => {}): void {
     <MemoryRouter>
       <DeckHero
         deck={DECK}
-        dates="11 Sep to 10 Oct 2026"
+        dates="11 Sept to 10 Oct 2026"
         timeWindow="30d"
         onSelect={onSelect}
       />
@@ -44,7 +44,7 @@ describe("DeckHero", () => {
     const onSelect = vi.fn<(next: TimeWindow) => void>();
     renderHero(onSelect);
 
-    expect(screen.getByText("11 Sep to 10 Oct 2026")).toBeTruthy();
+    expect(screen.getByText("11 Sept to 10 Oct 2026")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "7d" }));
 
     expect(onSelect).toHaveBeenCalledWith("7d");

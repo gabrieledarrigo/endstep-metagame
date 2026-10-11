@@ -1,19 +1,14 @@
 import type { Population, Proportion, Provenance } from "../api/types";
 
-const MONTHS = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
+const DEFAULT_LOCALE = "it-IT";
+
+function userLocales(): string {
+  return (
+    window.navigator?.languages[0] ??
+    window.navigator.language ??
+    DEFAULT_LOCALE
+  );
+}
 
 /**
  * Formats a count with British English thousands separators.
@@ -22,7 +17,9 @@ const MONTHS = [
  * @returns The count as text, such as `2,023`.
  */
 export function formatCount(value: number): string {
-  return value.toLocaleString("en-GB");
+  const locales = userLocales();
+
+  return value.toLocaleString(locales);
 }
 
 /**
@@ -79,11 +76,13 @@ export function shortDay(day: string): string {
  * Formats a date in full, for a tooltip.
  *
  * @param day - A date in `YYYY-MM-DD` form.
- * @returns The date in British English, such as `7 October 2026`.
+ * @returns The date in in the user's locales
  */
 export function longDay(day: string): string {
-  return new Date(`${day}T00:00:00Z`).toLocaleDateString("en-GB", {
-    day: "numeric",
+  const locales = userLocales();
+
+  return new Date(`${day}T00:00:00Z`).toLocaleDateString(locales, {
+    day: "2-digit",
     month: "long",
     year: "numeric",
     timeZone: "UTC",
@@ -91,10 +90,16 @@ export function longDay(day: string): string {
 }
 
 function formatDate(value: string, withYear: boolean): string {
-  const [year, month, day] = value.split("-").map(Number);
-  const head = `${day} ${MONTHS[month - 1]}`;
+  const locales = userLocales();
 
-  return withYear ? `${head} ${year}` : head;
+  const date = new Date(value).toLocaleDateString(locales, {
+    day: "2-digit",
+    month: "short",
+    year: withYear ? "numeric" : undefined,
+    timeZone: "UTC",
+  });
+
+  return date;
 }
 
 /**

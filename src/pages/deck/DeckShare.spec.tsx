@@ -9,7 +9,11 @@ const POINTS = (detail as DeckDetail).shareSeries.points;
 
 function renderShare(points: SharePoint[] = POINTS): HTMLElement {
   return render(
-    <DeckShare name="Affinity" dates="11 Sep to 10 Oct 2026" points={points} />,
+    <DeckShare
+      name="Affinity"
+      dates="11 Sept to 10 Oct 2026"
+      points={points}
+    />,
   ).container;
 }
 
@@ -27,7 +31,7 @@ describe("DeckShare", () => {
 
     expect(
       screen.getByRole("region", {
-        name: "Daily meta share of Affinity, 11 Sep to 10 Oct 2026",
+        name: "Daily meta share of Affinity, 11 Sept to 10 Oct 2026",
       }),
     ).toBeTruthy();
     expect(container.querySelectorAll(".recharts-line-curve")).toHaveLength(1);
@@ -64,9 +68,9 @@ describe("DeckShare", () => {
 
     expect(rows.map((row) => row.textContent)).toEqual([
       "DayMeta share",
-      "4 Sepno data",
-      "11 Sep10.29%",
-      "12 Sep10.82%",
+      "04 Septno data",
+      "11 Sept10.29%",
+      "12 Sept10.82%",
     ]);
   });
 });

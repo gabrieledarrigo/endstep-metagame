@@ -44,7 +44,7 @@ describe("MatchupsPage", () => {
 
     expect(await screen.findByRole("grid")).toBeTruthy();
     expect(screen.getByRole("status").textContent).toBe("");
-    expect(screen.getByText("11 Sep to 10 Oct 2026")).toBeTruthy();
+    expect(screen.getByText("11 Sept to 10 Oct 2026")).toBeTruthy();
     expect(String(fetchMock.mock.calls[0][0])).toBe("/api/matchups?window=30d");
   });
 

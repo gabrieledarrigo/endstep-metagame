@@ -7,6 +7,14 @@ globalThis.ResizeObserver = class {
   disconnect(): void {}
 };
 
+Object.defineProperty(globalThis, "navigator", {
+  value: {
+    language: "en-GB",
+    languages: ["en-Gb"],
+  },
+  writable: true,
+});
+
 afterEach(() => {
   cleanup();
 });

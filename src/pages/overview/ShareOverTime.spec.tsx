@@ -113,7 +113,7 @@ describe("ShareOverTime", () => {
     }
 
     expect(container.querySelector(".chart-tooltip")?.textContent).toBe(
-      "5 October 2026Mono Red Madness6.82%Affinity6.65%",
+      "05 October 2026Mono Red Madness6.82%Affinity6.65%",
     );
   });
 
