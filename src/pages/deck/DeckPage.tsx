@@ -202,6 +202,7 @@ export function DeckPage() {
         <DeckMatchups
           deck={detail.deck}
           detailWindow={detail.provenance.window}
+          detailLoading={loadingWindow}
           timeWindow={timeWindow}
         />
       </div>

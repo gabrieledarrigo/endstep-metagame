@@ -14,13 +14,19 @@ function renderRow(
   deck: Deck,
   answer: () => Response | Promise<Response> = () => Response.json(matrix),
   detailWindow = MATRIX_WINDOW,
+  detailLoading = false,
 ): Mock<typeof fetch> {
   const fetchMock = vi.fn<typeof fetch>(async () => answer());
   vi.stubGlobal("fetch", fetchMock);
 
   renderWithQueries(
     <MemoryRouter initialEntries={[`/decks/${deck.slug}?window=30d`]}>
-      <DeckMatchups deck={deck} detailWindow={detailWindow} timeWindow="30d" />
+      <DeckMatchups
+        deck={deck}
+        detailWindow={detailWindow}
+        detailLoading={detailLoading}
+        timeWindow="30d"
+      />
     </MemoryRouter>,
   );
 
@@ -91,6 +97,24 @@ describe("DeckMatchups", () => {
 
     expect(
       await screen.findByText("These matchups cover 11 Sep to 10 Oct 2026."),
+    ).toBeTruthy();
+  });
+
+  it("prints no dates of its own while the deck's own window is still loading", async () => {
+    renderRow(DECK, undefined, { from: "2026-09-10", to: "2026-10-10" }, true);
+
+    await screen.findByRole("grid");
+    expect(screen.queryByText(/^These matchups cover/)).toBeNull();
+  });
+
+  it("says there are no matchups when the window has none yet", async () => {
+    renderRow(DECK, () => Response.json({ ...matrix, decks: [], cells: {} }));
+
+    expect(
+      await screen.findByText("No matchups are recorded for this window yet."),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("region", { name: "Matchups against the top 24" }),
     ).toBeTruthy();
   });
 

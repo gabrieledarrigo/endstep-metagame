@@ -10,15 +10,19 @@ import { useMatchups } from "../../hooks/useMatchups";
 import { DeckSection } from "./DeckSection";
 import "./DeckMatchups.css";
 
+const TOP = 24;
+
 type DeckMatchupsProps = {
   deck: Deck;
   detailWindow: { from: string; to: string };
+  detailLoading: boolean;
   timeWindow: TimeWindow;
 };
 
 export function DeckMatchups({
   deck,
   detailWindow,
+  detailLoading,
   timeWindow,
 }: DeckMatchupsProps) {
   const matchups = useMatchups(timeWindow);
@@ -27,13 +31,14 @@ export function DeckMatchups({
   const others = matrix?.decks.filter((item) => item.id !== deck.id) ?? [];
   const otherDates =
     matrix !== undefined &&
+    !detailLoading &&
     (matrix.window.from !== detailWindow.from ||
       matrix.window.to !== detailWindow.to);
 
   return (
     <DeckSection
       className="deck-matchups"
-      title={`Matchups against the top ${matrix?.decks.length ?? 24}`}
+      title={`Matchups against the top ${matrix?.decks.length || TOP}`}
       note={
         row
           ? `Match win rate against each of the other ${others.length} decks in the top ${matrix?.decks.length}, in share order. Read across.`
@@ -51,7 +56,13 @@ export function DeckMatchups({
         title="The matchups could not be loaded"
       >
         {(data) =>
-          row ? (
+          data.decks.length === 0 ? (
+            <Panel>
+              <p className="deck-matchups__outside">
+                No matchups are recorded for this window yet.
+              </p>
+            </Panel>
+          ) : row ? (
             <>
               <MatchupGrid
                 key={others.map((item) => item.slug).join(" ")}
@@ -60,6 +71,7 @@ export function DeckMatchups({
                 cells={data.cells}
                 label={`Match win rate of ${row.name} against the other ${others.length} decks in the top ${data.decks.length}, ${timeWindow} window, rated.`}
                 linkRows={false}
+                contained
               />
               <MatchupLegend mirror={false} />
             </>

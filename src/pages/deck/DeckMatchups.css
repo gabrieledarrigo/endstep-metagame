@@ -1,8 +1,4 @@
 @layer components {
-  .deck-matchups {
-    gap: 12px;
-  }
-
   .deck-matchups__dates {
     margin: 0;
     font-size: 13px;
