@@ -1,6 +1,6 @@
 # Endstep Pauper Metagame Viewer: Requirements
 
-**Status:** Draft v3 · **Date:** 2026-10-03
+**Status:** Draft v4 · **Date:** 2026-10-13
 **Scope:** three pages. The overview, a deck page with its numbers, a sample list and its matchups against the top 24, and a matchup table. Other deck page sections are out of scope, see §8.
 **Visual design** is specified in [`design-system.html`](./design-system.html). This document covers structure, content and behaviour.
 
@@ -214,6 +214,7 @@ The pages read the API through **TanStack Query 5**. It was chosen over SWR on t
 - One query client for the app. Each request is a query keyed by what it reads, such as `["decks", window]` or `["deck", slug, window]`.
 - A response stays fresh for five minutes, the edge cache's `s-maxage`, §4.3. Within that time a page renders it from memory, with no request and no loading state. After it, the page shows it and refetches it in the background. Responses stay in memory for the rest of the visit, so that holds however long the reader was away.
 - A section shows its data whenever it has some. A failed refetch keeps the data on screen. The error panel appears only when there is nothing to show, FR-9.
+- **A window change keeps the page on screen.** While another window loads, a page keeps the previous window's data, dimmed and marked busy, its window selector marked busy, and a status line saying which window is loading. A pick made during the load replaces the history entry. The overview and the deck page both behave this way. The previous window's data is never presented as the new one: the dates and anything else that names the window wait for the new data.
 - Requests run whether or not the browser reports itself online, so a reader without a connection sees the network error, not a page that waits.
 - Nothing refetches when the browser window regains focus, NFR-4.
 - A network error, a 429 or a 5xx is retried at most twice, after 400 ms and then 800 ms, NFR-4. Any other failure shows at once. In a background tab the retries wait until the tab is shown again. A query can turn retries off: the matchup table and the deck's matchups row do, FR-11 and FR-12.
@@ -258,10 +259,14 @@ A **ranked horizontal bar chart**. The top 24 decks plus an **`Other`** bar, sor
 
 This is not a pie. Twenty-five categories exceed the eight-hue ceiling of a categorical palette, and a pie with 25 slices cannot be read at any size. Bars encode magnitude by length, so they use one hue, sequential blue. The `Other` bar uses `--text-400` to mark it as a residual rather than a deck.
 
+A click on a deck's bar or its name opens the deck's page, FR-11, in the same window. `Other` is not a deck and opens nothing. The deck grid and the deck table stay the keyboard path to the same pages.
+
 ### FR-7. Win rate against share
 A scatter plot. Meta share on the x-axis, match win rate on the y-axis, marker size proportional to player count. A reference line at 50% win rate separates decks above the field from decks below it. This is the main analytical view on the page. It shows which decks are good and which are only popular.
 
 All markers use **one hue**. A scatter invites comparison between any two points, and under all-pairs comparison only three hues stay separable. Colouring 24 decks individually is therefore not available. Identity comes from position, from labels on selected decks, and from hover.
+
+A click on a marker or its label opens the deck's page, FR-11, in the same window. The tooltip says so. The deck grid and the deck table stay the keyboard path to the same pages.
 
 ### FR-8. Share change
 Where `shareChange.points` is present, the grid and table show the movement against the previous window, with its direction. Where it is `null`, the UI states that no comparison is available. It must not show a zero or a blank. See §6.3.
@@ -593,3 +598,6 @@ A later layer overrides an earlier one, whatever the selectors' specificity and 
 4. ~~Matchup coverage on other windows.~~ Settled: checked on all five windows on 2026-10-10. At `7d`, `14d`, `30d` and `season`, all 276 pairs of the top 24 appear in both directions. At `1d`, 270 appear in both directions and 3 in one direction only, which §4.4 fills. The other 3 never met: one deck of each pair has all its opponents inside its first 50 rows. No pair was lost to the 50-row limit.
 5. ~~What the toss blocks count.~~ Settled: game 1. For Affinity at 30d on 2026-10-10, `tossWon` and `tossLost` hold 12,623 and 12,951 games, 25,574 in all, exactly the decided games in `games.game1`. `choseToDraw` counts 47 of the same 12,623 tosses won. FR-11 labels them game 1 win rates.
 6. **Deployment Checks on this plan.** Vercel's documentation does not say which plans offer Deployment Checks. If this project's plan lacks them, the fallback is to turn off Vercel's Git deploys and deploy from the `ci` workflow with the Vercel CLI, which needs a `VERCEL_TOKEN` secret and the project IDs in GitHub.
+7. **The matchup table on a phone.** Below 640px the table shows about four of its 24 columns, under a header row about 240px tall. A phone needs another way to read it, such as one deck's row as a list. The design comes first, D2, then FR-12.
+8. **Finding a deck in the matchup table.** The deck page's row links to the full table, which opens at its top. An address that names a deck could highlight its row and column and bring them into view, and hover could mark the whole row and column. The design comes first, D2, then FR-12.
+9. **Cards or a table on the overview.** FR-4 shows the 24 cards and the 24-row table one after the other, so the page repeats its decks, and on a phone it is very long. A switch between the two, kept in the address, would end the repeat. The design comes first, D2, then FR-3 and FR-4.

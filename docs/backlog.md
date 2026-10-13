@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-26. Derived from [`requirements.md`](./requirements.md) and [`design-system.html`](./design-system.html).
 
-Milestone 1 has sixteen items: four enablers, nine user stories, three hardening items. Milestone 2, at the end of this file, has eight. Each one is meant to be a separate branch and a separate review. Nothing here assumes a single large implementation pass.
+Milestone 1 has sixteen items: four enablers, nine user stories, three hardening items. Milestones 2 and 3 follow at the end of this file. Each one is meant to be a separate branch and a separate review. Nothing here assumes a single large implementation pass.
 
 Every item lists what blocks it, what it blocks, and how to tell it is done.
 
@@ -747,3 +747,135 @@ Covers NFR-1: an exported function with a consumer has a spec beside it. E10 set
 **E12 comes before the pages.** S10, S11 and S12 read their data through the queries it sets up, so they are written once, on the final data layer.
 
 **E8 gives the stories empty pages.** S10 and S11 then fill a page each and never touch the router, so they can run in parallel.
+
+---
+
+# Milestone 3: connected pages
+
+**Date:** 2026-10-13. Derived from Draft v4 of the requirements.
+
+Six items. One design item, five user stories. Two stories need no design and start at once. The other three wait for D2, because each changes how a page looks, and the owner chooses the design first.
+
+| Wave | Items | Runs in parallel |
+|---|---|---|
+| 15 | D2, S13, S14 | Yes, three ways |
+| 16 | S16, S17 | Yes, two ways |
+| 17 | S15 | No |
+
+```
+D2 design ─┬─► S16 find a deck in the matchup table ──► S15 matchup table on a phone
+           ├─► S17 cards or table on the overview
+           └─► S15
+S13 overview keeps the page on a window change
+S14 charts open the deck pages
+```
+
+---
+
+## D2. Design the phone matchup view, the deck highlight and the overview's switch
+
+Covers open items 7, 8 and 9 in the requirements. Changes `docs/design-system.html` only, with the owner choosing between proposals.
+
+**Tasks**
+
+1. The matchup table below 640px: one or more proposals, with their trade-offs, for reading it on a phone.
+2. A deck named in the address on the matchup table: how its row and column stand out, and where the page scrolls. The hover crosshair on desktop.
+3. The overview's switch between the cards and the table: where it sits, what it looks like, and what each view keeps.
+4. Check any new colour for contrast and colour-vision deficiency against the surface.
+5. Turn the chosen designs into FR-12, FR-3 and FR-4, and settle open items 7, 8 and 9.
+6. Republish the artifact.
+
+**Done when**
+
+- Each chosen design has a specimen, with its states.
+- FR-3, FR-4 and FR-12 describe the behaviour, and open items 7, 8 and 9 are settled.
+
+**Blocked by** nothing. **Blocks** S15, S16, S17.
+
+---
+
+## S13. Keep the overview on screen while another window loads
+
+As a Pauper player, I want to switch windows without the overview going blank, so I can compare what changed.
+
+Covers §4.8.
+
+**Tasks**
+
+1. Keep the previous window's decks and series on screen while the new window loads, for the same queries only.
+2. Dim the sections, mark them busy, mark the window selector busy, and keep the status line.
+3. Hold back what names the window, such as the dates in the summary, until the new data arrives.
+4. Keep the empty window state from deciding on the previous window's data.
+5. A spec beside each component and helper it changes.
+
+**Done when**
+
+- Switching windows never shows a skeleton once a window has loaded.
+- No dates or empty state describe a window that has not loaded.
+
+**Blocked by** nothing. **Blocks** nothing.
+
+---
+
+## S14. Open a deck from the charts
+
+As a Pauper player, I want to click a deck in a chart, so I can read its page without looking it up.
+
+Covers FR-6 and FR-7.
+
+**Tasks**
+
+1. Ranked bars: a click on a deck's bar or name opens its page in the current window. `Other` opens nothing.
+2. Scatter: a click on a marker or its label opens the deck's page. The tooltip says so.
+3. A pointer cursor on what can be clicked.
+4. A spec beside each component it changes.
+
+**Done when**
+
+- Every deck in both charts opens its page, and `Other` does not.
+
+**Blocked by** nothing. **Blocks** nothing.
+
+---
+
+## S15. Read the matchup table on a phone
+
+As a Pauper player on a phone, I want to read the matchups without scrolling across a 24-column table.
+
+Covers FR-12 as D2 leaves it.
+
+**Tasks** follow from the chosen design. Reuse `MatchupGrid` and the cell states.
+
+**Blocked by** D2, S16. **Blocks** nothing.
+
+---
+
+## S16. Find a deck in the matchup table
+
+As a Pauper player, I want to land on my deck's row of the matchup table, so I do not search for it.
+
+Covers FR-12 as D2 leaves it.
+
+**Tasks** follow from the chosen design. At least: an address that names a deck highlights its row and column and brings them into view, and the deck page's row links there.
+
+**Blocked by** D2. **Blocks** S15.
+
+---
+
+## S17. Switch the overview between cards and a table
+
+As a Pauper player, I want either the cards or the table, not both, so the overview is shorter.
+
+Covers FR-3 and FR-4 as D2 leaves them.
+
+**Tasks** follow from the chosen design. The choice is kept in the address, as the sort is.
+
+**Blocked by** D2. **Blocks** nothing.
+
+---
+
+## Notes on sequencing, milestone 3
+
+**S13 and S14 need no design.** They change behaviour, not appearance, so they start beside D2.
+
+**S16 comes before S15.** Both change the matchup page, and the phone view can open on the deck the address names.
