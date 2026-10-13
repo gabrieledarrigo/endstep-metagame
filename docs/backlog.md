@@ -766,7 +766,7 @@ Six items. One design item, five user stories. Two stories need no design and st
 D2 design ─┬─► S16 find a deck in the matchup table ──► S15 matchup table on a phone
            ├─► S17 cards or table on the overview
            └─► S15
-S13 overview keeps the page on a window change
+S13 every page kept on a window change
 S14 charts open the deck pages
 ```
 
@@ -774,7 +774,7 @@ S14 charts open the deck pages
 
 ## D2. Design the phone matchup view, the deck highlight and the overview's switch
 
-Covers open items 7, 8 and 9 in the requirements. Changes `docs/design-system.html` only, with the owner choosing between proposals.
+Covers open items 7, 8 and 9 in the requirements. Changes `docs/design-system.html`, with the owner choosing between proposals, and then writes the chosen behaviour into `docs/requirements.md`. No code.
 
 **Tasks**
 
@@ -794,23 +794,23 @@ Covers open items 7, 8 and 9 in the requirements. Changes `docs/design-system.ht
 
 ---
 
-## S13. Keep the overview on screen while another window loads
+## S13. Keep every page on screen while another window loads
 
-As a Pauper player, I want to switch windows without the overview going blank, so I can compare what changed.
+As a Pauper player, I want to switch windows without a page going blank, so I can compare what changed.
 
 Covers §4.8.
 
 **Tasks**
 
-1. Keep the previous window's decks and series on screen while the new window loads, for the same queries only.
+1. Keep the previous window's data on screen while the new window loads, for the same queries only: the overview's decks and series, the deck page's matchups row, and the matchup table.
 2. Dim the sections, mark them busy, mark the window selector busy, and keep the status line.
-3. Hold back what names the window, such as the dates in the summary, until the new data arrives.
+3. Hold back what names the window, such as the dates in the summary and on the matchup page, until the new data arrives.
 4. Keep the empty window state from deciding on the previous window's data.
 5. A spec beside each component and helper it changes.
 
 **Done when**
 
-- Switching windows never shows a skeleton once a window has loaded.
+- Switching windows never shows a skeleton once a window has loaded, on any page.
 - No dates or empty state describe a window that has not loaded.
 
 **Blocked by** nothing. **Blocks** nothing.
@@ -826,13 +826,15 @@ Covers FR-6 and FR-7.
 **Tasks**
 
 1. Ranked bars: a click on a deck's bar or name opens its page in the current window. `Other` opens nothing.
-2. Scatter: a click on a marker or its label opens the deck's page. The tooltip says so.
+2. Scatter: a click on a marker or its label opens the deck's page. The tooltip says so. On a touch screen the first tap shows the tooltip and a second tap opens the page.
 3. A pointer cursor on what can be clicked.
 4. A spec beside each component it changes.
 
 **Done when**
 
-- Every deck in both charts opens its page, and `Other` does not.
+- Every deck in both charts opens its page in the selected time window, and `Other` does not.
+- The scatter's tooltip says a click opens the deck, and on a touch screen the first tap shows the tooltip.
+- What can be clicked has a pointer cursor.
 
 **Blocked by** nothing. **Blocks** nothing.
 
@@ -856,7 +858,7 @@ As a Pauper player, I want to land on my deck's row of the matchup table, so I d
 
 Covers FR-12 as D2 leaves it.
 
-**Tasks** follow from the chosen design. At least: an address that names a deck highlights its row and column and brings them into view, and the deck page's row links there.
+**Tasks** follow from the chosen design. At least: an address that names a deck highlights its row and column and brings them into view, and a new link from the deck page's row leads there.
 
 **Blocked by** D2. **Blocks** S15.
 
@@ -876,6 +878,6 @@ Covers FR-3 and FR-4 as D2 leaves them.
 
 ## Notes on sequencing, milestone 3
 
-**S13 and S14 need no design.** They change behaviour, not appearance, so they start beside D2.
+**S13 and S14 need no design.** They change behaviour, not appearance, so they start beside D2. S13 reuses the deck page's dimmed, busy state.
 
 **S16 comes before S15.** Both change the matchup page, and the phone view can open on the deck the address names.
