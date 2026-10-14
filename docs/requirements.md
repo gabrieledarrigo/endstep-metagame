@@ -10,7 +10,7 @@
 
 A browser application that reads the public Endstep metagame API and shows the **Pauper** metagame. The overview reports which decks are played, how much of the field each one holds, how they perform, and how that has changed over time. A deck page gives one deck's numbers, a sample list, and its results against the rest of the top 24. A matchup table shows how the top decks do against each other.
 
-The application is read-only. It stores nothing. It has no authentication and no user accounts. It is not affiliated with Endstep.
+The application is read-only. It stores nothing but the reader's theme choice, FR-13. It has no authentication and no user accounts. It is not affiliated with Endstep.
 
 ---
 
@@ -368,11 +368,11 @@ A page with one table: the top 24 decks by share, against each other. One call t
 ### FR-13. Theme
 Every page comes in a light theme and a dark theme. The design system specifies both palettes, NFR-1a.
 
-- On a first visit the page follows the device's setting, `prefers-color-scheme`. A device with no setting gets the light theme.
-- A button at the right end of the site header switches between the two themes, on every page and at every width. It is a toggle button named Dark theme, with `aria-pressed`. Its icon shows the theme it switches to.
+- On a first visit the page follows the device's setting, `prefers-color-scheme`. A device with no setting gets the light theme. Until the reader chooses, the page also follows a change to the device setting while it is open, and so do the toggle and the charts.
+- A button at the right end of the site header switches between the two themes, on every page and at every width. It is a toggle button named Dark theme, with `aria-pressed`. Its look shows the current theme, so it agrees with `aria-pressed`. D3 draws it.
 - The reader's choice is kept in local storage and wins over the device setting from then on. It is not in the address, §4.5.
 - The theme applies before the page first paints, so a dark page never flashes light.
-- A switch recolours the charts at once, with no reload.
+- A switch recolours the charts at once, with no reload. Native controls and scrollbars follow the theme through `color-scheme`.
 - Card art and colour pips look the same in both themes. They are the cards' own colours.
 
 ---
@@ -508,9 +508,9 @@ Every commit that reaches `main` therefore compiles, lints, is formatted, and pa
 This replaces the no-build decision of Draft v2. That decision pinned React to 18, because React 19 ships no UMD build, and named Vite as the escape hatch. The owner took it on 2026-10-03, for modules, type checking and room for more pages. A mechanical port of the v2 page to Vite and React 19 rendered every section with live data, and an offline `vercel build` kept the function and the rewrite.
 
 ### NFR-1a. Design language
-Colour, typography and the chart palette are specified in [`design-system.html`](./design-system.html), which is the authority for every token. In summary: a light theme on `#f9f9f7` and a dark theme, FR-13, whose palette D3 chooses, open item 10, `system-ui` as the single typeface so no font is fetched and NFR-9 holds, `#1c5cab` for links and primary buttons at 6.46:1, and an eight-hue categorical palette validated for colour-vision deficiency against our own surface.
+Colour, typography and the chart palette are specified in [`design-system.html`](./design-system.html), which is the authority for every token. In summary: a light theme on `#f9f9f7` and a dark theme, FR-13, whose palette D3 chooses, open item 10, `system-ui` as the single typeface so no font is fetched and NFR-9 holds, `#1c5cab` for links and primary buttons at 6.46:1 on the light surface, and an eight-hue categorical palette validated for colour-vision deficiency against our own surface.
 
-Three of the eight series hues fall below 3:1 against the surface. That triggers the relief rule: the chart must ship visible labels or a table view. The line chart labels its series ends, and FR-4's deck table, one choice away on the overview, gives the figures as text. Do not drop either without re-checking the palette.
+Three of the eight series hues fall below 3:1 against the light surface. That triggers the relief rule: the chart must ship visible labels or a table view. The line chart labels its series ends, and FR-4's deck table, one choice away on the overview, gives the figures as text. Do not drop either without re-checking the palette.
 
 ### NFR-2. Charting library: Recharts
 Charts use **Recharts 3.10**, installed from npm. Two criteria decided the choice: simplicity and popularity. The comparison below was made under the no-build constraint of Draft v2. The move to a build removes the UMD argument against the others, and the simplicity argument still stands.
@@ -633,4 +633,4 @@ A later layer overrides an earlier one, whatever the selectors' specificity and 
 7. ~~The matchup table on a phone.~~ Settled: below 640px, one deck's row as a list, opening on the top deck by share. FR-12.
 8. ~~Finding a deck in the matchup table.~~ Settled: `?deck=` puts one deck in the spotlight and fades the other cells. A picker chooses it, and the deck page's row links to it. No hover crosshair. FR-11 and FR-12.
 9. ~~Cards or a table on the overview.~~ Settled: one view at a time, chosen with a switch kept in `view`. Cards by default. FR-3 and FR-4.
-10. **The dark palette.** FR-13 needs a second palette, validated against its own dark surface, never an automatic inversion. Three gentle options are drafted: warm stone, dusk slate and soft graphite. None goes near black, and body text sits at about 9 to 10:1. Every chart hue clears 3:1, and the hues keep their colour-blind separation. The owner chooses in D3, then NFR-1a and the design system take the values.
+10. **The dark palette.** FR-13 needs a second palette, validated against its own dark surface, never an automatic inversion. Three options are drafted: warm stone, dusk slate and soft graphite. None goes near black, and body text sits at about 9 to 10:1. Every chart hue clears 3:1, and the hues keep their colour-blind separation. The owner chooses in D3, then NFR-1a and the design system take the values.

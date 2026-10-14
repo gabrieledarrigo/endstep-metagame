@@ -752,7 +752,7 @@ Covers NFR-1: an exported function with a consumer has a spec beside it. E10 set
 
 # Milestone 3: connected pages
 
-**Date:** 2026-10-13. Derived from Draft v4 of the requirements.
+**Date:** 2026-10-13. Derived from Draft v4 of the requirements. D3 and S18 were added on 2026-10-14, from Draft v5.
 
 Eight items. Two design items, six user stories. Two stories need no design and start at once. The other four wait for D2 or D3, because each changes how a page looks, and the owner chooses the design first.
 
@@ -801,10 +801,10 @@ Covers FR-13 and open item 10 in the requirements. Changes `docs/design-system.h
 
 **Tasks**
 
-1. Three gentle dark palettes, none near black and none at the light theme's 19:1 text contrast. Each covers the neutrals, the primary blue and its wash, up and down, the matchup fills, the eight chart hues and the sequential blue.
-2. Check each palette against its own surface: 4.5:1 for text, 3.5:1 for labels, 3:1 for every chart hue, and the chart hues' separation under protanopia, deuteranopia and normal vision.
+1. Three dark palettes, none near black and none at the light theme's 19:1 text contrast. Each covers the neutrals, the primary blue and its wash, up and down, the matchup fills, the eight chart hues and the sequential blue.
+2. Check each palette against its own surface: 4.5:1 for text, 3.5:1 for labels, 3:1 for every chart hue, and the chart hues' separation under protanopia, deuteranopia and normal vision. Re-check what fades by opacity on the dark surface: the spotlight's faded cells, NFR-6, and the dimmed loading states.
 3. Name tokens for the colours that are literals today: the hover fills, the primary hover, the table row hover and the tooltip shadow.
-4. The toggle: its icon, size and states, and the site header at 360px, 640px and wide.
+4. The toggle: its icon, size and states, with a look that shows the current theme, and the site header at 360px, 640px and wide.
 5. Specimens of the components in the chosen palette.
 6. Write the chosen palette into NFR-1a, settle open item 10, and republish the artifact.
 
@@ -946,11 +946,11 @@ Covers FR-13, NFR-1a and NFR-9.
 
 **Tasks**
 
-1. The dark tokens, applied under `prefers-color-scheme: dark` when the reader has not chosen, and under the reader's choice when they have.
+1. The dark tokens, applied under `prefers-color-scheme: dark` when the reader has not chosen, and under the reader's choice when they have. Set `color-scheme` with them, so native controls and scrollbars follow.
 2. Tokens in place of the colour literals D3 names.
 3. A script in `index.html` that applies a stored choice before the first paint.
 4. The toggle at the right end of the site header. It writes the choice to local storage.
-5. Charts re-read their colours when the theme changes. `src/charts/theme.ts` reads the tokens once, when the module loads.
+5. Charts re-read their colours when the theme changes, including a change to the device setting before the reader chooses. Today every chart reads its tokens once, when its module loads: `src/charts/theme.ts`, `DeckShare`, `RankedBars` and `WinRateScatter`.
 6. A spec beside each component, hook and helper it adds or changes.
 
 **Done when**
@@ -958,6 +958,7 @@ Covers FR-13, NFR-1a and NFR-9.
 - A device in dark mode opens the site dark, with no light flash.
 - The toggle switches the theme on every page and at every width, and the choice survives a reload.
 - Every chart recolours on a switch, without a reload.
+- With no stored choice, a change to the device setting recolours the page and its charts and updates the toggle.
 - Text, labels and chart marks meet the contrast NFR-1a gives for the dark palette.
 
 **Blocked by** D3. **Blocks** nothing.
