@@ -844,9 +844,21 @@ Covers FR-6 and FR-7.
 
 As a Pauper player on a phone, I want to read the matchups without scrolling across a 24-column table.
 
-Covers FR-12 as D2 leaves it.
+Covers FR-12, On a phone.
 
-**Tasks** follow from the chosen design. Reuse `MatchupGrid` and the cell states.
+**Tasks**
+
+1. Below 640px, show one deck's row as a list in place of the table. Each line holds the opponent's name, linking to its deck page, its matches, the verdict in words and the cell.
+2. The deck picker without "All decks". With no deck in the address it shows the top deck by share and writes nothing.
+3. A deck outside the window's top 24: the top deck's list, under the line "{name} isn't in the top 24 for the selected time window. The table shows {top deck} by default."
+4. Reuse the cell states and the swatch from the table.
+5. A spec beside each component it adds or changes.
+
+**Done when**
+
+- At 360px the matchup page lists one deck's 23 matchups, and nothing scrolls sideways.
+- With no deck in the address the list shows the top deck by share. With one, it shows that deck.
+- A deck outside the top 24 shows the top deck's list under the line.
 
 **Blocked by** D2, S16. **Blocks** nothing.
 
@@ -856,9 +868,24 @@ Covers FR-12 as D2 leaves it.
 
 As a Pauper player, I want to land on my deck's row of the matchup table, so I do not search for it.
 
-Covers FR-12 as D2 leaves it.
+Covers FR-11 and FR-12, A deck in the spotlight.
 
-**Tasks** follow from the chosen design. At least: an address that names a deck highlights its row and column and brings them into view, and a new link from the deck page's row leads there.
+**Tasks**
+
+1. A deck picker in the matchup page's controls: "All decks", then the 24 decks in share order. It reads and writes `?deck=` and replaces the history entry, §4.5.
+2. The spotlight: every cell outside the deck's row and column fades to 25% opacity, and its two headers turn `--primary` on a `--primary-wash` band.
+3. On load and on a choice, scroll the deck's row into view, and below 1,100px its column too. Move the grid's tab stop to the deck's row header.
+4. Match the deck by the 8-character suffix of its slug, §6.11.
+5. A window that drops the deck keeps `?deck=`, shows "All decks" and the line "{name} isn't in the top 24 for the selected time window." The name comes from the deck detail, and the line names "This deck" until it arrives or if it fails.
+6. Under the deck page's row, the link "See {name} in the full table", with `?deck=`.
+7. A spec beside each component, hook and helper it adds or changes.
+
+**Done when**
+
+- `/matchups?deck={slug}` opens with that deck in the spotlight and its row in view.
+- "All decks" clears the spotlight and removes `deck` from the address.
+- A deck outside the window's top 24 shows the line and no spotlight, and the address keeps it.
+- The deck page's row links to its deck in the table.
 
 **Blocked by** D2. **Blocks** S15.
 
@@ -868,9 +895,21 @@ Covers FR-12 as D2 leaves it.
 
 As a Pauper player, I want either the cards or the table, not both, so the overview is shorter.
 
-Covers FR-3 and FR-4 as D2 leaves them.
+Covers FR-3 and FR-4.
 
-**Tasks** follow from the chosen design. The choice is kept in the address, as the sort is.
+**Tasks**
+
+1. A segmented control named View, with Cards and Table, after the window selector.
+2. Cards by default, with no `view` in the address. Table writes `?view=table`, and Cards removes it. A change replaces the history entry, §4.5.
+3. One view at a time. While the decks load, only the chosen view's skeleton shows.
+4. The sort applies to the table only and stays in the address while the cards show.
+5. A spec beside each component it adds or changes.
+
+**Done when**
+
+- The overview shows the cards or the table, never both.
+- `?view=table` opens on the table, and switching back to the cards leaves only `?window=` in the address.
+- Back leaves the page rather than undoing a switch.
 
 **Blocked by** D2. **Blocks** nothing.
 
