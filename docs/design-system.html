@@ -362,6 +362,32 @@ a.button { display:inline-block; text-decoration:none; }
 .deck-strip__outside { font-size:14px; color:var(--text-600); }
 .deck-strip-states { gap:26px; flex-wrap:nowrap; }
 
+.deck-picker { display:inline-flex; align-items:center; gap:10px; max-width:100%; }
+.deck-picker--stacked { display:flex; flex-direction:column; align-items:stretch; gap:5px; }
+.deck-picker__label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.07em; color:var(--text-400); white-space:nowrap; }
+.deck-picker__select { font-family:inherit; font-size:14px; color:var(--text-900); background:var(--surface);
+  border:1px solid var(--edge); border-radius:8px; padding:7px 10px; min-width:0; max-width:100%; }
+.matchup-controls { display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px; }
+.matchup__notice { font-size:14px; color:var(--text-600); }
+.matchup--spotlit .matchup__cell:not(.is-spotlit) { opacity:.25; }
+.matchup__col.is-spotlit, .matchup__row.is-spotlit { color:var(--primary); background:var(--primary-wash);
+  box-shadow:0 0 0 2px var(--primary-wash); }
+.matchup__col.is-spotlit a, .matchup__row.is-spotlit a { font-weight:600; }
+.phone-demos { display:flex; flex-wrap:wrap; gap:20px; align-items:flex-start; }
+.phone-demo { width:min(360px, 100%); display:flex; flex-direction:column; gap:12px; padding:16px 14px;
+  background:var(--background); border:1px solid var(--edge); border-radius:22px; }
+.matchup-list { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
+.matchup-list__item { display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:10px; align-items:center;
+  padding-block:7px; border-bottom:1px solid var(--rule); }
+.matchup-list__item:last-child { border-bottom:0; }
+.matchup-list__name { min-width:0; font-size:14px; }
+.matchup-list__name a { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  color:var(--text-900); font-weight:500; text-decoration:none; }
+.matchup-list__name a:hover { text-decoration:underline; }
+.matchup-list__matches { display:block; font-size:12px; color:var(--text-600); font-variant-numeric:tabular-nums; }
+.matchup-list__verdict { font-size:12px; color:var(--text-600); text-align:right; white-space:nowrap; }
+.deck-strip__more { font-size:14px; }
+
 @media (prefers-reduced-motion:reduce) { .skeleton { animation:none; } * { transition:none !important; } }
 @media (max-width:640px) {
   .srow { grid-template-columns:1fr; gap:5px; }
@@ -384,7 +410,7 @@ a.button { display:inline-block; text-decoration:none; }
   </div>
 </header>
 
-<nav class="toc" aria-label="Contents"><div class="navgroup"><a class="navhead" href="#foundations">Foundations</a><a href="#type">Typeface and scale</a><a href="#neutrals">Text and neutrals</a><a href="#action">Action colours</a><a href="#palette">Chart palette</a><a href="#charts">The three charts</a></div><div class="navgroup"><a class="navhead" href="#components">Components</a><a href="#panel">Panel</a><a href="#buttons">Buttons</a><a href="#window">Window selector</a><a href="#pips">Colour identity</a><a href="#deckcard">Deck card</a><a href="#summary">Summary header</a><a href="#table">Table</a><a href="#matchups">Matchup table</a><a href="#pageheader">Page header</a><a href="#deckpage">Deck page</a><a href="#deckstates">Deck page states</a><a href="#delta">Share change</a><a href="#chrome">Chart chrome</a><a href="#states">Loading, error and empty</a></div><div class="navgroup"><a class="navhead" href="#tokens">Tokens</a></div></nav>
+<nav class="toc" aria-label="Contents"><div class="navgroup"><a class="navhead" href="#foundations">Foundations</a><a href="#type">Typeface and scale</a><a href="#neutrals">Text and neutrals</a><a href="#action">Action colours</a><a href="#palette">Chart palette</a><a href="#charts">The three charts</a></div><div class="navgroup"><a class="navhead" href="#components">Components</a><a href="#panel">Panel</a><a href="#buttons">Buttons</a><a href="#window">Window selector</a><a href="#viewswitch">View switch</a><a href="#pips">Colour identity</a><a href="#deckcard">Deck card</a><a href="#summary">Summary header</a><a href="#table">Table</a><a href="#matchups">Matchup table</a><a href="#pageheader">Page header</a><a href="#deckpage">Deck page</a><a href="#deckstates">Deck page states</a><a href="#delta">Share change</a><a href="#chrome">Chart chrome</a><a href="#states">Loading, error and empty</a></div><div class="navgroup"><a class="navhead" href="#tokens">Tokens</a></div></nav>
 
 <div class="part" id="foundations">
   <h2>Part one. Foundations</h2>
@@ -794,6 +820,31 @@ a.button { display:inline-block; text-decoration:none; }
   the segments do not resize between windows. Below 640px the control scrolls horizontally rather than
   wrapping to two rows.</p>
 </section>
+<section id="viewswitch">
+  <div class="shead"><h3>View switch</h3>
+  <p class="why">FR-4. The overview shows its decks as cards or as a table, one at a time, so the page lists
+  them once.</p></div>
+  <div class="demo">
+    <div class="button-row">
+      <div class="segmented" role="group" aria-label="Time window">
+        <button type="button" class="segmented__option" aria-pressed="false">1d</button>
+        <button type="button" class="segmented__option" aria-pressed="false">7d</button>
+        <button type="button" class="segmented__option" aria-pressed="false">14d</button>
+        <button type="button" class="segmented__option" aria-pressed="true">30d</button>
+        <button type="button" class="segmented__option" aria-pressed="false">season</button>
+      </div>
+      <div class="segmented" role="group" aria-label="View">
+        <button type="button" class="segmented__option" aria-pressed="true">Cards</button>
+        <button type="button" class="segmented__option" aria-pressed="false">Table</button>
+      </div>
+    </div>
+  </div>
+  <p class="spec"><b>Control</b> The window selector's segmented control, with two options and the accessible
+  name View. It sits 16px after the window selector in the page's controls and wraps below it when the row is
+  too narrow. <b>Cards</b> is the default and shows the deck grid. <b>Table</b> shows the deck table with its
+  sort. The summary panel stays above both, and the charts below. While the decks load, only the chosen
+  view's skeleton shows. The address carries <span class="mono">?view=table</span> for the table only, FR-4.</p>
+</section>
 <section id="pips">
   <div class="shead"><h3>Colour identity</h3>
   <p class="why">Drawn as SVG. Endstep uses a mana icon font, which NFR-9 rules out, so these are
@@ -941,7 +992,8 @@ a.button { display:inline-block; text-decoration:none; }
 </section>
 <section id="table">
   <div class="shead"><h3>Table</h3>
-  <p class="why">FR-4. The same 24 decks, sortable, and the accessible alternative to every chart.</p></div>
+  <p class="why">FR-4. The same 24 decks, sortable, and the accessible alternative to every chart. The overview
+  shows it in place of the cards when the view switch says Table.</p></div>
   <div class="panel deck-table__scroll">
     <table>
       <thead><tr>
@@ -980,6 +1032,10 @@ a.button { display:inline-block; text-decoration:none; }
   <p class="why">FR-12. The top 24 decks against each other, read by row. A cell is the row deck's match
   win rate against the column deck. Colour marks only the pairs whose range excludes 50%. Live data from
   the 30-day rated window, measured 2026-10-03.</p></div>
+  <div class="matchup-controls">
+    <label class="deck-picker"><span class="deck-picker__label">Deck</span>
+    <select class="deck-picker__select" id="matchup-deck"><option value="0" selected>All decks</option><option value="1">Affinity</option><option value="2">Mono Red Madness</option><option value="3">Monster Tron</option><option value="4">Elves</option><option value="5">Blue Terror</option><option value="6">Spy combo</option><option value="7">Dimir Control</option><option value="8">Mono Red Rally</option><option value="9">Gruul Ponza</option><option value="10">Bogles</option><option value="11">Mono Blue Faeries</option><option value="12">Boros + Mardu Synth/Synthless</option><option value="13">Jund Wildfire</option><option value="14">Azorius Springleaf Drum</option><option value="15">Esper Ephemerate</option><option value="16">Gardens</option><option value="17">White Aggro</option><option value="18">White Weenie</option><option value="19">Jeskai Ephemerate</option><option value="20">Flicker Tron</option><option value="21">Orzhov Blade</option><option value="22">Rakdos Madness</option><option value="23">Izzet Control</option><option value="24">Naya Gates</option></select></label>
+  </div>
   <div class="bleed matchup" id="matchup">
     <div class="matchup__inner">
       <div class="matchup__frame">
@@ -1060,6 +1116,88 @@ a.button { display:inline-block; text-decoration:none; }
   detail. Hover or focus shows both decks, the rate to one decimal place, the range, wins, losses and
   matches. The headers of the active cell turn <span class="mono">--primary</span>. Enter on a header
   follows its link. In the app that is the deck page. Here it is the same deck on endstep.cc.</p>
+  <p class="spec"><b>Spotlight.</b> The page's controls add a native select, named Deck, after the window
+  selector: "All decks", then the 24 decks in share order. Choosing a deck puts it in the spotlight. Every cell
+  outside its row and column drops to 25% opacity, and its two headers turn <span class="mono">--primary</span>
+  at 600 on a <span class="mono">--primary-wash</span> band. The deck's own cells keep their colours and
+  contrast. The faded numbers fall below 4.5:1, the one contrast exception NFR-6 accepts. Hover, focus and the
+  detail still work on every cell. "All decks" clears the spotlight. On load, or when the picker changes, the
+  deck's row scrolls into view under the sticky header row, and the grid's tab stop moves to its row header.
+  Try the picker above the table.</p>
+  <h4 class="sub">A deck outside the top 24</h4>
+  <div class="demo col">
+    <p class="matchup__notice" role="status">Mono Green Stompy isn't in the top 24 for the selected time window.</p>
+  </div>
+  <p class="spec">The deck in the address can be outside the window's top 24, after a window change or from an
+  old link. The address keeps it, the picker shows "All decks", and this line sits above the table in
+  <span class="mono">--text-600</span>. A window where the deck is back in the top 24 brings the spotlight back.</p>
+  <h4 class="sub">On a phone</h4>
+  <div class="phone-demos">
+    <div class="phone-demo">
+      <label class="deck-picker deck-picker--stacked"><span class="deck-picker__label">Deck</span>
+      <select class="deck-picker__select" data-list><option value="1" selected>Affinity</option><option value="2">Mono Red Madness</option><option value="3">Monster Tron</option><option value="4">Elves</option><option value="5">Blue Terror</option><option value="6">Spy combo</option><option value="7">Dimir Control</option><option value="8">Mono Red Rally</option><option value="9">Gruul Ponza</option><option value="10">Bogles</option><option value="11">Mono Blue Faeries</option><option value="12">Boros + Mardu Synth/Synthless</option><option value="13">Jund Wildfire</option><option value="14">Azorius Springleaf Drum</option><option value="15">Esper Ephemerate</option><option value="16">Gardens</option><option value="17">White Aggro</option><option value="18">White Weenie</option><option value="19">Jeskai Ephemerate</option><option value="20">Flicker Tron</option><option value="21">Orzhov Blade</option><option value="22">Rakdos Madness</option><option value="23">Izzet Control</option><option value="24">Naya Gates</option></select></label>
+      <ol class="matchup-list" aria-label="Match win rate of Affinity against the other 23 decks">
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Mono Red Madness</a><span class="matchup-list__matches">1,456 matches</span></span><span class="matchup-list__verdict">Favoured</span><span class="matchup__swatch matchup__cell--win">57</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Monster Tron</a><span class="matchup-list__matches">998 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">48</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Elves</a><span class="matchup-list__matches">892 matches</span></span><span class="matchup-list__verdict">Unfavoured</span><span class="matchup__swatch matchup__cell--loss">35</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Blue Terror</a><span class="matchup-list__matches">827 matches</span></span><span class="matchup-list__verdict">Favoured</span><span class="matchup__swatch matchup__cell--win">56</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Spy combo</a><span class="matchup-list__matches">890 matches</span></span><span class="matchup-list__verdict">Unfavoured</span><span class="matchup__swatch matchup__cell--loss">41</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Dimir Control</a><span class="matchup-list__matches">793 matches</span></span><span class="matchup-list__verdict">Favoured</span><span class="matchup__swatch matchup__cell--win">55</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Mono Red Rally</a><span class="matchup-list__matches">804 matches</span></span><span class="matchup-list__verdict">Unfavoured</span><span class="matchup__swatch matchup__cell--loss">43</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Gruul Ponza</a><span class="matchup-list__matches">804 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">48</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Bogles</a><span class="matchup-list__matches">552 matches</span></span><span class="matchup-list__verdict">Unfavoured</span><span class="matchup__swatch matchup__cell--loss">41</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Mono Blue Faeries</a><span class="matchup-list__matches">604 matches</span></span><span class="matchup-list__verdict">Favoured</span><span class="matchup__swatch matchup__cell--win">57</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Boros + Mardu Synth/Synthless</a><span class="matchup-list__matches">541 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">50</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Jund Wildfire</a><span class="matchup-list__matches">450 matches</span></span><span class="matchup-list__verdict">Favoured</span><span class="matchup__swatch matchup__cell--win">62</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Azorius Springleaf Drum</a><span class="matchup-list__matches">443 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">51</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Esper Ephemerate</a><span class="matchup-list__matches">434 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">45</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Gardens</a><span class="matchup-list__matches">477 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">53</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">White Aggro</a><span class="matchup-list__matches">413 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">56</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">White Weenie</a><span class="matchup-list__matches">408 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">47</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Jeskai Ephemerate</a><span class="matchup-list__matches">405 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">50</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Flicker Tron</a><span class="matchup-list__matches">296 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">50</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Orzhov Blade</a><span class="matchup-list__matches">259 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">49</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Rakdos Madness</a><span class="matchup-list__matches">275 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">45</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Izzet Control</a><span class="matchup-list__matches">203 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">52</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Naya Gates</a><span class="matchup-list__matches">197 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">44</span></li>
+      </ol>
+    </div>
+    <div class="phone-demo">
+      <label class="deck-picker deck-picker--stacked"><span class="deck-picker__label">Deck</span>
+      <select class="deck-picker__select" data-list><option value="1" selected>Affinity</option><option value="2">Mono Red Madness</option><option value="3">Monster Tron</option><option value="4">Elves</option><option value="5">Blue Terror</option><option value="6">Spy combo</option><option value="7">Dimir Control</option><option value="8">Mono Red Rally</option><option value="9">Gruul Ponza</option><option value="10">Bogles</option><option value="11">Mono Blue Faeries</option><option value="12">Boros + Mardu Synth/Synthless</option><option value="13">Jund Wildfire</option><option value="14">Azorius Springleaf Drum</option><option value="15">Esper Ephemerate</option><option value="16">Gardens</option><option value="17">White Aggro</option><option value="18">White Weenie</option><option value="19">Jeskai Ephemerate</option><option value="20">Flicker Tron</option><option value="21">Orzhov Blade</option><option value="22">Rakdos Madness</option><option value="23">Izzet Control</option><option value="24">Naya Gates</option></select></label>
+      <p class="matchup__notice" role="status">Mono Green Stompy isn't in the top 24 for the selected time window. The table shows Affinity by default.</p><ol class="matchup-list" aria-label="Match win rate of Affinity against the other 23 decks">
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Mono Red Madness</a><span class="matchup-list__matches">1,456 matches</span></span><span class="matchup-list__verdict">Favoured</span><span class="matchup__swatch matchup__cell--win">57</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Monster Tron</a><span class="matchup-list__matches">998 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">48</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Elves</a><span class="matchup-list__matches">892 matches</span></span><span class="matchup-list__verdict">Unfavoured</span><span class="matchup__swatch matchup__cell--loss">35</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Blue Terror</a><span class="matchup-list__matches">827 matches</span></span><span class="matchup-list__verdict">Favoured</span><span class="matchup__swatch matchup__cell--win">56</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Spy combo</a><span class="matchup-list__matches">890 matches</span></span><span class="matchup-list__verdict">Unfavoured</span><span class="matchup__swatch matchup__cell--loss">41</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Dimir Control</a><span class="matchup-list__matches">793 matches</span></span><span class="matchup-list__verdict">Favoured</span><span class="matchup__swatch matchup__cell--win">55</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Mono Red Rally</a><span class="matchup-list__matches">804 matches</span></span><span class="matchup-list__verdict">Unfavoured</span><span class="matchup__swatch matchup__cell--loss">43</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Gruul Ponza</a><span class="matchup-list__matches">804 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">48</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Bogles</a><span class="matchup-list__matches">552 matches</span></span><span class="matchup-list__verdict">Unfavoured</span><span class="matchup__swatch matchup__cell--loss">41</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Mono Blue Faeries</a><span class="matchup-list__matches">604 matches</span></span><span class="matchup-list__verdict">Favoured</span><span class="matchup__swatch matchup__cell--win">57</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Boros + Mardu Synth/Synthless</a><span class="matchup-list__matches">541 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">50</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Jund Wildfire</a><span class="matchup-list__matches">450 matches</span></span><span class="matchup-list__verdict">Favoured</span><span class="matchup__swatch matchup__cell--win">62</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Azorius Springleaf Drum</a><span class="matchup-list__matches">443 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">51</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Esper Ephemerate</a><span class="matchup-list__matches">434 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">45</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Gardens</a><span class="matchup-list__matches">477 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">53</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">White Aggro</a><span class="matchup-list__matches">413 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">56</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">White Weenie</a><span class="matchup-list__matches">408 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">47</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Jeskai Ephemerate</a><span class="matchup-list__matches">405 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">50</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Flicker Tron</a><span class="matchup-list__matches">296 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">50</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Orzhov Blade</a><span class="matchup-list__matches">259 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">49</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Rakdos Madness</a><span class="matchup-list__matches">275 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">45</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Izzet Control</a><span class="matchup-list__matches">203 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">52</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Naya Gates</a><span class="matchup-list__matches">197 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">44</span></li>
+      </ol>
+    </div>
+  </div>
+  <p class="spec"><b>Below 640px</b> the table gives way to one deck's row as a list. The same picker heads it,
+  stacked, without "All decks", and opens on the top deck by share. Each line holds the opponent's name, 14px
+  500, a link to its deck page, with its matches under it in 12px <span class="mono">--text-600</span>, then
+  the verdict in words and the cell as a 32 by 28 swatch. The verdict says what the colour means, so the list
+  has no legend. Lines are split by a 1px <span class="mono">--rule</span>. The second phone shows a deck
+  outside the top 24: the list falls back to the top deck and says so.</p>
 </section>
 <section id="pageheader">
   <div class="shead"><h3>Page header</h3>
@@ -1218,6 +1356,7 @@ a.button { display:inline-block; text-decoration:none; }
   <li class="matchup__legend-item"><span class="matchup__swatch matchup__cell--gated" aria-hidden="true"></span>Too few matches</li>
   <li class="matchup__legend-item"><span class="matchup__swatch matchup__cell--none" aria-hidden="true">&middot;</span>No data</li>
 </ul>
+          <p class="deck-strip__more"><a href="#matchups">See Affinity in the full table</a></p>
         </div>
   </div>
   <p class="spec"><b>Layout.</b> Mobile first. Below 640px everything stacks, with the art above the name.
@@ -1244,7 +1383,7 @@ a.button { display:inline-block; text-decoration:none; }
   or missing, a text box opens with the same text, selected, so the keyboard copy gives MTGO the right
   format.</p>
   <p class="spec"><b>Matchups.</b> The deck's own row of the matchup table: the same rotated names, cells, colour
-  rule and detail on hover or focus, in share order, with the deck itself left out. It reads
+  rule and detail on hover or focus, in share order, with the deck itself left out. Under the legend, a 14px link opens the matchup table with the deck in the spotlight, keeping the window. It reads
   <span class="mono">/api/matchups</span>, the matchup page's own request, so the two share an edge cache entry.
   It spans the page width below the numbers and the sample list, because 23 columns need about 870px. From
   1,100px it fits without scrolling. Below that it scrolls sideways and the deck's name stays in view. One tab
@@ -1897,6 +2036,63 @@ a.button { display:inline-block; text-decoration:none; }
     });
     window.addEventListener('resize', hide);
     strip.querySelector('.deck-strip__scroll').addEventListener('scroll', hide);
+  });
+})();
+</script>
+<script>
+(function () {
+  const root = document.getElementById('matchup');
+  const picker = document.getElementById('matchup-deck');
+  if (!root || !picker) {
+    return;
+  }
+  picker.addEventListener('change', () => {
+    const index = picker.value;
+    root.querySelectorAll('.is-spotlit').forEach((el) => el.classList.remove('is-spotlit'));
+    root.classList.toggle('matchup--spotlit', index !== '0');
+    if (index === '0') {
+      return;
+    }
+    root.querySelectorAll(`[data-r="${index}"], [data-c="${index}"]`).forEach((el) => el.classList.add('is-spotlit'));
+  });
+})();
+(function () {
+  const table = document.querySelector('#matchup .matchup__table');
+  if (!table) {
+    return;
+  }
+  const verdicts = { win: 'Favoured', loss: 'Unfavoured', neutral: 'Within chance', gated: 'Too few to call', none: 'No data' };
+  const names = Array.from(table.querySelectorAll('.matchup__colname')).map((el) => el.textContent);
+  const count = new Intl.NumberFormat('en-GB');
+  document.querySelectorAll('[data-list]').forEach((select) => {
+    const list = select.closest('.phone-demo').querySelector('.matchup-list');
+    select.addEventListener('change', () => {
+      const row = Number(select.value);
+      list.setAttribute('aria-label', `Match win rate of ${names[row - 1]} against the other 23 decks`);
+      list.replaceChildren(...Array.from(table.querySelectorAll(`td[data-r="${row}"]`))
+        .filter((cell) => cell.dataset.state !== 'mirror')
+        .map((cell) => {
+          const item = document.createElement('li');
+          item.className = 'matchup-list__item';
+          const name = document.createElement('span');
+          name.className = 'matchup-list__name';
+          const link = document.createElement('a');
+          link.href = '#matchups';
+          link.textContent = names[Number(cell.dataset.c) - 1];
+          const matches = document.createElement('span');
+          matches.className = 'matchup-list__matches';
+          matches.textContent = cell.dataset.m ? `${count.format(Number(cell.dataset.m))} matches` : 'No matches';
+          name.append(link, matches);
+          const verdict = document.createElement('span');
+          verdict.className = 'matchup-list__verdict';
+          verdict.textContent = verdicts[cell.dataset.state];
+          const swatch = document.createElement('span');
+          swatch.className = `matchup__swatch matchup__cell--${cell.dataset.state}`;
+          swatch.textContent = cell.textContent;
+          item.append(name, verdict, swatch);
+          return item;
+        }));
+    });
   });
 })();
 </script>
