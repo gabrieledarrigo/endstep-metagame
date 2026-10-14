@@ -754,18 +754,19 @@ Covers NFR-1: an exported function with a consumer has a spec beside it. E10 set
 
 **Date:** 2026-10-13. Derived from Draft v4 of the requirements.
 
-Six items. One design item, five user stories. Two stories need no design and start at once. The other three wait for D2, because each changes how a page looks, and the owner chooses the design first.
+Eight items. Two design items, six user stories. Two stories need no design and start at once. The other four wait for D2 or D3, because each changes how a page looks, and the owner chooses the design first.
 
 | Wave | Items | Runs in parallel |
 |---|---|---|
-| 15 | D2, S13, S14 | Yes, three ways |
-| 16 | S16, S17 | Yes, two ways |
+| 15 | D2, D3, S13, S14 | Yes, four ways |
+| 16 | S16, S17, S18 | Yes, three ways |
 | 17 | S15 | No |
 
 ```
 D2 design ─┬─► S16 find a deck in the matchup table ──► S15 matchup table on a phone
            ├─► S17 cards or table on the overview
            └─► S15
+D3 design ──► S18 light and dark theme
 S13 every page kept on a window change
 S14 charts open the deck pages
 ```
@@ -791,6 +792,28 @@ Covers open items 7, 8 and 9 in the requirements. Changes `docs/design-system.ht
 - FR-3, FR-4 and FR-12 describe the behaviour, and open items 7, 8 and 9 are settled.
 
 **Blocked by** nothing. **Blocks** S15, S16, S17.
+
+---
+
+## D3. Design the dark theme and its toggle
+
+Covers FR-13 and open item 10 in the requirements. Changes `docs/design-system.html`, with the owner choosing between palettes, and then writes the chosen values into NFR-1a. No code.
+
+**Tasks**
+
+1. Three gentle dark palettes, none near black and none at the light theme's 19:1 text contrast. Each covers the neutrals, the primary blue and its wash, up and down, the matchup fills, the eight chart hues and the sequential blue.
+2. Check each palette against its own surface: 4.5:1 for text, 3.5:1 for labels, 3:1 for every chart hue, and the chart hues' separation under protanopia, deuteranopia and normal vision.
+3. Name tokens for the colours that are literals today: the hover fills, the primary hover, the table row hover and the tooltip shadow.
+4. The toggle: its icon, size and states, and the site header at 360px, 640px and wide.
+5. Specimens of the components in the chosen palette.
+6. Write the chosen palette into NFR-1a, settle open item 10, and republish the artifact.
+
+**Done when**
+
+- The design system specifies both palettes and the toggle, with specimens.
+- NFR-1a and open item 10 name the chosen palette.
+
+**Blocked by** nothing. **Blocks** S18.
 
 ---
 
@@ -915,8 +938,36 @@ Covers FR-3 and FR-4.
 
 ---
 
+## S18. Switch between a light and a dark theme
+
+As a Pauper player, I want the site dark when my device is, and a toggle to switch, so I can read it in any light.
+
+Covers FR-13, NFR-1a and NFR-9.
+
+**Tasks**
+
+1. The dark tokens, applied under `prefers-color-scheme: dark` when the reader has not chosen, and under the reader's choice when they have.
+2. Tokens in place of the colour literals D3 names.
+3. A script in `index.html` that applies a stored choice before the first paint.
+4. The toggle at the right end of the site header. It writes the choice to local storage.
+5. Charts re-read their colours when the theme changes. `src/charts/theme.ts` reads the tokens once, when the module loads.
+6. A spec beside each component, hook and helper it adds or changes.
+
+**Done when**
+
+- A device in dark mode opens the site dark, with no light flash.
+- The toggle switches the theme on every page and at every width, and the choice survives a reload.
+- Every chart recolours on a switch, without a reload.
+- Text, labels and chart marks meet the contrast NFR-1a gives for the dark palette.
+
+**Blocked by** D3. **Blocks** nothing.
+
+---
+
 ## Notes on sequencing, milestone 3
 
 **S13 and S14 need no design.** They change behaviour, not appearance, so they start beside D2. S13 reuses the deck page's dimmed, busy state.
 
 **S16 comes before S15.** Both change the matchup page, and the phone view can open on the deck the address names.
+
+**D3 does not wait for D2.** The theme changes colours, not layout. S18 and S14 both touch the chart code, so whichever lands second rebases onto the first.
