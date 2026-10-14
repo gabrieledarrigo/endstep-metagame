@@ -850,7 +850,7 @@ Covers FR-12, On a phone.
 
 1. Below 640px, show one deck's row as a list in place of the table. Each line holds the opponent's name, linking to its deck page, its matches, the verdict in words and the cell.
 2. The deck picker without "All decks". With no deck in the address it shows the top deck by share and writes nothing.
-3. A deck outside the window's top 24: the top deck's list, under the line "{name} isn't in the top 24 for the selected time window. The table shows {top deck} by default."
+3. A deck outside the window's top 24: the picker keeps it as an extra first option, and the list shows the top deck under the line "{name} isn't in the top 24 for the selected time window. The table shows {top deck} by default."
 4. Reuse the cell states and the swatch from the table.
 5. A spec beside each component it adds or changes.
 
@@ -873,10 +873,10 @@ Covers FR-11 and FR-12, A deck in the spotlight.
 **Tasks**
 
 1. A deck picker in the matchup page's controls: "All decks", then the 24 decks in share order. It reads and writes `?deck=` and replaces the history entry, §4.5.
-2. The spotlight: every cell outside the deck's row and column fades to 25% opacity, and its two headers turn `--primary` on a `--primary-wash` band.
-3. On load and on a choice, scroll the deck's row into view, and below 1,100px its column too. Move the grid's tab stop to the deck's row header.
+2. The spotlight: every cell outside the deck's row and column fades to 25% opacity, and returns to full opacity under the pointer or keyboard focus. The deck's two headers turn `--primary` on a `--primary-wash` band.
+3. When a link opens the page with a deck, and on a choice, scroll the deck's row into view, and below 1,100px its column too. Back and forward keep the browser's scroll position. Move the grid's tab stop to the deck's row header.
 4. Match the deck by the 8-character suffix of its slug, §6.11.
-5. A window that drops the deck keeps `?deck=`, shows "All decks" and the line "{name} isn't in the top 24 for the selected time window." The name comes from the deck detail, and the line names "This deck" until it arrives or if it fails.
+5. A window that drops the deck keeps `?deck=`, shows it in the picker as an extra first option, "{name} (not in the top 24)", and shows the line "{name} isn't in the top 24 for the selected time window." The name comes from the deck detail, and the line names "This deck" until it arrives or if it fails.
 6. Under the deck page's row, the link "See {name} in the full table", with `?deck=`.
 7. A spec beside each component, hook and helper it adds or changes.
 
@@ -908,7 +908,7 @@ Covers FR-3 and FR-4.
 **Done when**
 
 - The overview shows the cards or the table, never both.
-- `?view=table` opens on the table, and switching back to the cards leaves only `?window=` in the address.
+- `?view=table` opens on the table, and switching back to the cards removes `view` from the address.
 - Back leaves the page rather than undoing a switch.
 
 **Blocked by** D2. **Blocks** nothing.

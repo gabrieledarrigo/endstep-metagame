@@ -191,7 +191,7 @@ The front end uses **React Router 8 in declarative mode**: `BrowserRouter`, `Rou
 - Back, forward and reload therefore return to a page as the reader left it. A link carries only `?window=`, so it opens a page in its default view. This is the browser's own rule: history returns to a page, a link is a new visit. The one exception is the deck page's link to the matchup table, which also carries `?deck=`, FR-11.
 - Back and forward work. A route change does not reload the page.
 - Any other path is a Vercel 404. A path that reaches the app without a route, such as `/index.html`, shows a Not found page.
-- A route change moves focus to the new page's main heading, so keyboard and screen reader users know the page changed. A link scrolls the new page to the top. Back and forward keep the scroll position the browser restores. Declarative mode does none of this, because `ScrollRestoration` exists only in data mode, so the app does it when the path changes. A change to the query string alone is not a route change.
+- A route change moves focus to the new page's main heading, so keyboard and screen reader users know the page changed. A link scrolls the new page to the top, or to the deck that a link to the matchup table names, FR-12. Back and forward keep the scroll position the browser restores. Declarative mode does none of this, because `ScrollRestoration` exists only in data mode, so the app does it when the path changes. A change to the query string alone is not a route change.
 
 ### 4.6 Local development
 
@@ -350,11 +350,11 @@ A page with one table: the top 24 decks by share, against each other. One call t
 **A deck in the spotlight.** `?deck=` names one deck by its slug. Every cell outside its row and column fades, so the deck reads at a glance against the field.
 
 - The picker is a native select named Deck. It lists "All decks", then the 24 decks in share order. "All decks" is the default: no spotlight, and no `deck` in the address. Choosing a deck writes its slug, and choosing "All decks" removes it, §4.5.
-- The other cells fade to a quarter of their opacity. Their numbers fall below WCAG AA, which NFR-6 accepts for this case only. Hover, keyboard focus and the detail work on every cell, faded or not.
+- The other cells fade to a quarter of their opacity. Their numbers fall below WCAG AA, which NFR-6 accepts for this case only. A faded cell returns to full opacity while it has the pointer or keyboard focus, so its focus indicator keeps its contrast. The detail works on every cell.
 - The deck's row and column headers turn `--primary` on a `--primary-wash` band, so the spotlight does not rest on the fade alone.
-- When the page opens with a deck, or the picker chooses one, the page scrolls the deck's row into view. From 1,100px the row sits just under the sticky header row. Below 1,100px the band also scrolls sideways to bring the deck's column next to the first column. The table's tab stop moves to the deck's row header. Focus stays where §4.5 puts it.
+- When a link opens the page with a deck, or the picker chooses one, the page scrolls the deck's row into view, in place of the top. Back and forward keep the scroll position the browser restores, §4.5. From 1,100px the row sits just under the sticky header row. Below 1,100px the band also scrolls sideways to bring the deck's column next to the first column. The table's tab stop moves to the deck's row header. Focus stays where §4.5 puts it.
 - The deck is matched by the 8-character suffix of its slug, so a slug under an old name still finds it, §6.11.
-- A window change keeps `deck` in the address. When the deck is not in the new window's top 24, the table shows no spotlight and the picker shows "All decks". A line above the table reads "{name} isn't in the top 24 for the selected time window." A window where the deck is in the top 24 brings the spotlight back. The name comes from the deck detail, §3.6, requested only in this case. Until it arrives, or if the request fails, the line names "This deck".
+- A window change keeps `deck` in the address. When the deck is not in the new window's top 24, the table shows no spotlight. The picker shows the deck as an extra first option, "{name} (not in the top 24)", so any choice replaces it, "All decks" included. A line above the table reads "{name} isn't in the top 24 for the selected time window." A window where the deck is in the top 24 brings the spotlight back. The name comes from the deck detail, §3.6, requested only in this case. Until it arrives, or if the request fails, the line names "This deck".
 - The deck page's row links here with its deck named, FR-11.
 
 **On a phone.** Below 640px the page shows one deck's row as a list, in place of the table.
@@ -362,7 +362,7 @@ A page with one table: the top 24 decks by share, against each other. One call t
 - The picker lists the 24 decks, without "All decks". With no deck in the address it shows the top deck by share, and `deck` stays out of the address. Choosing a deck writes its slug, as on the desktop, so a link opens the same deck at either width.
 - Each of the other 23 decks is one line, in share order: the opponent's name, linking to its deck page, its matches under the name, the verdict in words, and the cell. The verdicts are favoured, unfavoured, within chance, too few to call and no data. They say what the colour means, so the list has no legend.
 - The cells, the colour rule and the gated and no-data states are the table's.
-- When the deck in the address is not in the window's top 24, the list shows the top deck under a line that reads "{name} isn't in the top 24 for the selected time window. The table shows {top deck} by default."
+- When the deck in the address is not in the window's top 24, the picker shows it as on the desktop, and the list shows the top deck under a line that reads "{name} isn't in the top 24 for the selected time window. The table shows {top deck} by default."
 
 ---
 
@@ -535,7 +535,7 @@ The page states that the data comes from Endstep and links to `https://endstep.c
 
 ### NFR-6. Accessibility
 - All content reachable and operable by keyboard. A chart's bars and markers open deck pages on a click, but are not tab stops: every page they open is reachable by keyboard through the deck grid or the deck table, whichever view the overview shows.
-- Charts are never the only carrier of information. Everything in a chart is also in the table.
+- Charts are never the only carrier of information. Everything in a chart is also in a table. On the overview that is the deck table, one choice away in the view switch, FR-4.
 - Colour is never the only means of conveying meaning. Contrast targets WCAG AA. One exception is accepted: the cells the matchup table's spotlight fades, FR-12. They are context for the deck in the spotlight, which keeps full contrast, and the detail on hover or focus gives their figures in full.
 - Card art carries meaningful `alt` text. Decorative elements are hidden from assistive technology.
 
