@@ -24,7 +24,7 @@ The application is read-only. It stores nothing. It has no authentication and no
 | Front end | React 19 and TypeScript, built with Vite. See NFR-1 |
 | Data fetching | TanStack Query 5. A response stays fresh for five minutes. See §4.8 |
 | Page state | The window and the view state live in the address. A link opens a page in its default view, except the deck page's link to its deck in the matchup table. See §4.5 |
-| Styling | Hand-written CSS in cascade layers, BEM, one stylesheet per component. No framework. Light-only theme. See NFR-11 |
+| Styling | Hand-written CSS in cascade layers, BEM, one stylesheet per component. No framework. A light and a dark theme, FR-13. See NFR-11 |
 | Charting | Recharts 3.x from npm |
 | Pages | Overview, deck page, matchup table. React Router in declarative mode, see §4.5 |
 | Quality gates | ESLint, Prettier and Vitest with React Testing Library, run by GitHub Actions on every pull request and every push to `main`. See NFR-1 |
@@ -189,6 +189,7 @@ The front end uses **React Router 8 in declarative mode**: `BrowserRouter`, `Rou
 - The layout route replaces a missing or unknown window with the default, with a replace navigation, so the address always names the window on screen.
 - The view state lives in the address too: the overview's view in `view` and the deck table's sort in `sort` and `dir`, FR-4, the share chart's hidden series in `hide`, one deck slug per parameter, FR-5, and the matchup table's chosen deck in `deck`, FR-12. A change replaces the history entry, so Back leaves the page rather than undoing a sort. The default view leaves the parameters out.
 - Back, forward and reload therefore return to a page as the reader left it. A link carries only `?window=`, so it opens a page in its default view. This is the browser's own rule: history returns to a page, a link is a new visit. The one exception is the deck page's link to the matchup table, which also carries `?deck=`, FR-11.
+- The theme is not view state. It is the reader's preference, kept in local storage, so a link never carries it. See FR-13.
 - Back and forward work. A route change does not reload the page.
 - Any other path is a Vercel 404. A path that reaches the app without a route, such as `/index.html`, shows a Not found page.
 - A route change moves focus to the new page's main heading, so keyboard and screen reader users know the page changed. A link scrolls the new page to the top, or to the deck that a link to the matchup table names, FR-12. Back and forward keep the scroll position the browser restores. Declarative mode does none of this, because `ScrollRestoration` exists only in data mode, so the app does it when the path changes. A change to the query string alone is not a route change.
@@ -364,6 +365,16 @@ A page with one table: the top 24 decks by share, against each other. One call t
 - The cells, the colour rule and the gated and no-data states are the table's.
 - When the deck in the address is not in the window's top 24, the picker shows it as on the desktop, and the list shows the top deck under a line that reads "{name} isn't in the top 24 for the selected time window. The table shows {top deck} by default."
 
+### FR-13. Theme
+Every page comes in a light theme and a dark theme. The design system specifies both palettes, NFR-1a.
+
+- On a first visit the page follows the device's setting, `prefers-color-scheme`. A device with no setting gets the light theme.
+- A button at the right end of the site header switches between the two themes, on every page and at every width. It is a toggle button named Dark theme, with `aria-pressed`. Its icon shows the theme it switches to.
+- The reader's choice is kept in local storage and wins over the device setting from then on. It is not in the address, §4.5.
+- The theme applies before the page first paints, so a dark page never flashes light.
+- A switch recolours the charts at once, with no reload.
+- Card art and colour pips look the same in both themes. They are the cards' own colours.
+
 ---
 
 ## 6. Data caveats the UI must handle
@@ -497,7 +508,7 @@ Every commit that reaches `main` therefore compiles, lints, is formatted, and pa
 This replaces the no-build decision of Draft v2. That decision pinned React to 18, because React 19 ships no UMD build, and named Vite as the escape hatch. The owner took it on 2026-10-03, for modules, type checking and room for more pages. A mechanical port of the v2 page to Vite and React 19 rendered every section with live data, and an offline `vercel build` kept the function and the rewrite.
 
 ### NFR-1a. Design language
-Colour, typography and the chart palette are specified in [`design-system.html`](./design-system.html), which is the authority for every token. In summary: a light-only theme on `#f9f9f7`, `system-ui` as the single typeface so no font is fetched and NFR-9 holds, `#1c5cab` for links and primary buttons at 6.46:1, and an eight-hue categorical palette validated for colour-vision deficiency against our own surface.
+Colour, typography and the chart palette are specified in [`design-system.html`](./design-system.html), which is the authority for every token. In summary: a light theme on `#f9f9f7` and a dark theme, FR-13, whose palette D3 chooses, open item 10, `system-ui` as the single typeface so no font is fetched and NFR-9 holds, `#1c5cab` for links and primary buttons at 6.46:1, and an eight-hue categorical palette validated for colour-vision deficiency against our own surface.
 
 Three of the eight series hues fall below 3:1 against the surface. That triggers the relief rule: the chart must ship visible labels or a table view. The line chart labels its series ends, and FR-4's deck table, one choice away on the overview, gives the figures as text. Do not drop either without re-checking the palette.
 
@@ -548,7 +559,7 @@ Current versions of Chrome, Firefox, Safari and Edge. No IE, no polyfills.
 The code targets ES2025: `target` and `lib` in the three TypeScript configs, and Vite's `build.target`. Older browser versions are not supported.
 
 ### NFR-9. Privacy
-No analytics, no cookies, no local storage of personal data, no third-party requests beyond the card-art host.
+No analytics, no cookies, no local storage of personal data, no third-party requests beyond the card-art host. The theme choice, FR-13, is the one value the app keeps in local storage. It is a display preference, not personal data, and it never leaves the browser.
 
 ### NFR-10. Deployment
 Deployed on Vercel from the Git repository. A Vite build and two serverless functions. No environment variables and no secrets. Production waits until CI passes, §4.7.
@@ -608,7 +619,6 @@ A later layer overrides an earlier one, whatever the selectors' specificity and 
 - Formats other than Pauper.
 - The `casual` population and rating-band filtering.
 - Deck search, `minMatches` filtering, and pagination beyond the top 24.
-- Dark mode. The theme is light-only by decision. Adding dark mode means a second palette validated against a dark surface. It is never an automatic inversion.
 
 ---
 
@@ -623,3 +633,4 @@ A later layer overrides an earlier one, whatever the selectors' specificity and 
 7. ~~The matchup table on a phone.~~ Settled: below 640px, one deck's row as a list, opening on the top deck by share. FR-12.
 8. ~~Finding a deck in the matchup table.~~ Settled: `?deck=` puts one deck in the spotlight and fades the other cells. A picker chooses it, and the deck page's row links to it. No hover crosshair. FR-11 and FR-12.
 9. ~~Cards or a table on the overview.~~ Settled: one view at a time, chosen with a switch kept in `view`. Cards by default. FR-3 and FR-4.
+10. **The dark palette.** FR-13 needs a second palette, validated against its own dark surface, never an automatic inversion. Three gentle options are drafted: warm stone, dusk slate and soft graphite. None goes near black, and body text sits at about 9 to 10:1. Every chart hue clears 3:1, and the hues keep their colour-blind separation. The owner chooses in D3, then NFR-1a and the design system take the values.
