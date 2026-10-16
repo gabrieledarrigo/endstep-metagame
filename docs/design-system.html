@@ -1,4 +1,14 @@
 <title>Pauper Metagame Design System</title>
+<script>
+  try {
+    const stored = localStorage.getItem('theme');
+    if (stored === 'light' || stored === 'dark') {
+      document.documentElement.dataset.theme = stored;
+    }
+  } catch (error) {
+    document.documentElement.removeAttribute('data-theme');
+  }
+</script>
 <style>
 :root, .scope-light {
   color-scheme: light;
@@ -11,6 +21,7 @@
   --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100;
   --s5:#e87ba4; --s6:#008300; --s7:#4a3aa7; --s8:#e34948;
   --win:#9ec5f4; --loss:#f7aba4; --mirror:#efeee9;
+  --seq-500:#256abf;
   --hatch:repeating-linear-gradient(135deg, var(--baseline) 0 1px, transparent 1px 5px);
   --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
@@ -26,6 +37,8 @@
   --s1:#4f8ddd; --s2:#da6d44; --s3:#38a276; --s4:#bd8003;
   --s5:#ca7091; --s6:#499e44; --s7:#8581e0; --s8:#e3635e;
   --win:#385c8a; --loss:#844645; --mirror:#444547;
+    --seq-500:#689bdb;
+    --hatch:repeating-linear-gradient(135deg, var(--baseline) 0 1px, transparent 1px 5px);
   }
 }
 :root[data-theme="dark"], .scope-dark {
@@ -39,6 +52,8 @@
   --s1:#4f8ddd; --s2:#da6d44; --s3:#38a276; --s4:#bd8003;
   --s5:#ca7091; --s6:#499e44; --s7:#8581e0; --s8:#e3635e;
   --win:#385c8a; --loss:#844645; --mirror:#444547;
+  --seq-500:#689bdb;
+  --hatch:repeating-linear-gradient(135deg, var(--baseline) 0 1px, transparent 1px 5px);
 }
 .scope-light, .scope-dark { background:var(--background); color:var(--text-900); }
 * { box-sizing:border-box; }
@@ -320,6 +335,7 @@ body { container-type:inline-size; }
 .head__top { display:flex; justify-content:space-between; align-items:center; gap:16px; }
 .theme-demos { display:flex; flex-wrap:wrap; gap:16px; }
 .theme-demo { flex:1 1 100%; min-width:0; border:1px solid var(--edge); border-radius:12px; padding:0 20px 16px; }
+.theme-demo--tablet { flex:0 1 640px; width:640px; max-width:100%; }
 .theme-demo--phone { flex:0 1 360px; width:360px; max-width:100%; border-radius:20px; }
 .theme-demo--phone .site-header { grid-template-columns:minmax(0,1fr) auto; align-items:start; gap:10px 16px; }
 .theme-demo--phone .site-header__brand { font-size:22px; }
@@ -498,7 +514,7 @@ a.button { display:inline-block; text-decoration:none; }
     the card surface, <span class="mono">#fcfcfb</span>. Body text needs 4.5:1. Marks and large text need
     3:1.</p>
   </div>
-  <div class="panel">
+  <div class="panel scope-light">
     <table class="swatch">
       <thead><tr><th>Token</th><th></th><th>Hex</th><th class="r">Contrast</th><th>Role</th></tr></thead>
       <tbody><tr><td class="mono">--text-900</td><td><span class="chip" style="background:#0b0b0b;"></span></td>
@@ -559,7 +575,7 @@ a.button { display:inline-block; text-decoration:none; }
     not get a ninth colour, it folds into Other. Colour follows the deck and not its rank, so changing the
     window does not repaint the decks that remain.</p>
   </div>
-  <div class="panel">
+  <div class="panel scope-light">
     <table class="swatch">
       <thead><tr><th>Slot</th><th></th><th>Hue</th><th>Hex</th><th class="r">Contrast</th><th>Use</th></tr></thead>
       <tbody><tr><td class="slot">1</td><td><span class="chip" style="background:#2a78d6"></span></td>
@@ -601,8 +617,8 @@ a.button { display:inline-block; text-decoration:none; }
 </section>
 <section id="dark">
   <div class="shead"><h3>Dark theme</h3>
-  <p class="why">FR-13. Soft graphite, a neutral grey with a slight cool bias. It never goes near black, and body
-  text sits at 9:1 rather than the light theme's 19:1. Every token below takes its dark value under
+  <p class="why">FR-13. Soft graphite, a neutral grey with a slight cool bias. It never goes near black. Headings and
+  values sit at 9:1 rather than the light theme's 19:1, and body text at 6.6:1 rather than 7.7:1. Every token below takes its dark value under
   <span class="mono">[data-theme="dark"]</span>, or under <span class="mono">prefers-color-scheme: dark</span> when the
   reader has not chosen. Contrast is measured against the dark card surface, <span class="mono">#3c3d3f</span>. Use
   the toggle at the top of this page to see every specimen in it.</p></div>
@@ -749,76 +765,76 @@ a.button { display:inline-block; text-decoration:none; }
 <line x1="889.0" y1="16" x2="889.0" y2="620" stroke="var(--rule)" stroke-width="1"/>
 <text x="889.0" y="10" text-anchor="middle" class="tick">20%</text>
 <text x="186" y="41" text-anchor="end" class="lbl" fill="var(--text-600)">Affinity</text>
-<rect x="196" y="26" width="354.8" height="17" rx="3" fill="var(--s1)"/>
+<rect x="196" y="26" width="354.8" height="17" rx="3" fill="var(--seq-500)"/>
 <text x="558.8" y="41" class="val" fill="var(--text-900)">10.24%</text>
 <text x="186" y="65" text-anchor="end" class="lbl" fill="var(--text-600)">Mono-Red Madness</text>
-<rect x="196" y="50" width="272.7" height="17" rx="3" fill="var(--s1)"/>
+<rect x="196" y="50" width="272.7" height="17" rx="3" fill="var(--seq-500)"/>
 <text x="476.7" y="65" class="val" fill="var(--text-900)">7.87%</text>
 <text x="186" y="89" text-anchor="end" class="lbl" fill="var(--text-600)">Monster Tron</text>
-<rect x="196" y="74" width="244.6" height="17" rx="3" fill="var(--s1)"/>
+<rect x="196" y="74" width="244.6" height="17" rx="3" fill="var(--seq-500)"/>
 <text x="448.6" y="89" class="val" fill="var(--text-900)">7.06%</text>
 <text x="186" y="113" text-anchor="end" class="lbl" fill="var(--text-600)">Gruul Ponza</text>
-<rect x="196" y="98" width="152.8" height="17" rx="3" fill="var(--s1)"/>
+<rect x="196" y="98" width="152.8" height="17" rx="3" fill="var(--seq-500)"/>
 <text x="356.8" y="113" class="val" fill="var(--text-900)">4.41%</text>
 <text x="186" y="137" text-anchor="end" class="lbl" fill="var(--text-600)">Blue Terror</text>
-<rect x="196" y="122" width="145.2" height="17" rx="3" fill="var(--s1)"/>
+<rect x="196" y="122" width="145.2" height="17" rx="3" fill="var(--seq-500)"/>
 <text x="349.2" y="137" class="val" fill="var(--text-900)">4.19%</text>
 <text x="186" y="161" text-anchor="end" class="lbl" fill="var(--text-600)">Spy combo</text>
-<rect x="196" y="146" width="142.1" height="17" rx="3" fill="var(--s1)"/>
+<rect x="196" y="146" width="142.1" height="17" rx="3" fill="var(--seq-500)"/>
 <text x="346.1" y="161" class="val" fill="var(--text-900)">4.10%</text>
 <text x="186" y="185" text-anchor="end" class="lbl" fill="var(--text-600)">Mono-Red Rally</text>
-<rect x="196" y="170" width="139.3" height="17" rx="3" fill="var(--s1)"/>
+<rect x="196" y="170" width="139.3" height="17" rx="3" fill="var(--seq-500)"/>
 <text x="343.3" y="185" class="val" fill="var(--text-900)">4.02%</text>
 <text x="186" y="209" text-anchor="end" class="lbl" fill="var(--text-600)">Jeskai Ephemerate</text>
-<rect x="196" y="194" width="138.6" height="17" rx="3" fill="var(--s1)"/>
+<rect x="196" y="194" width="138.6" height="17" rx="3" fill="var(--seq-500)"/>
 <text x="342.6" y="209" class="val" fill="var(--text-900)">4.00%</text>
 <text x="186" y="233" text-anchor="end" class="lbl" fill="var(--text-600)">Elves</text>
-<rect x="196" y="218" width="138.6" height="17" rx="3" fill="var(--s1)"/>
+<rect x="196" y="218" width="138.6" height="17" rx="3" fill="var(--seq-500)"/>
 <text x="342.6" y="233" class="val" fill="var(--text-900)">4.00%</text>
 <text x="186" y="257" text-anchor="end" class="lbl" fill="var(--text-600)">Boros</text>
-<rect x="196" y="242" width="124.4" height="17" rx="3" fill="var(--s1)"/>
+<rect x="196" y="242" width="124.4" height="17" rx="3" fill="var(--seq-500)"/>
 <text x="328.4" y="257" class="val" fill="var(--text-900)">3.59%</text>
 <text x="186" y="281" text-anchor="end" class="lbl" fill="var(--text-600)">Dimir Control</text>
-<rect x="196" y="266" width="123.0" height="17" rx="3" fill="var(--s1)"/>
+<rect x="196" y="266" width="123.0" height="17" rx="3" fill="var(--seq-500)"/>
 <text x="327.0" y="281" class="val" fill="var(--text-900)">3.55%</text>
 <text x="186" y="305" text-anchor="end" class="lbl" fill="var(--text-600)">Mono-Blue Faeries</text>
-<rect x="196" y="290" width="103.6" height="17" rx="3" fill="var(--s1)"/>
+<rect x="196" y="290" width="103.6" height="17" rx="3" fill="var(--seq-500)"/>
 <text x="307.6" y="305" class="val" fill="var(--text-900)">2.99%</text>
 <text x="186" y="329" text-anchor="end" class="lbl" fill="var(--text-600)">Bogles</text>
-<rect x="196" y="314" width="90.8" height="17" rx="3" fill="var(--s1)"/>
+<rect x="196" y="314" width="90.8" height="17" rx="3" fill="var(--seq-500)"/>
 <text x="294.8" y="329" class="val" fill="var(--text-900)">2.62%</text>
 <text x="186" y="353" text-anchor="end" class="lbl" fill="var(--text-600)">Jund Wildfire</text>
-<rect x="196" y="338" width="85.9" height="17" rx="3" fill="var(--s1)"/>
+<rect x="196" y="338" width="85.9" height="17" rx="3" fill="var(--seq-500)"/>
 <text x="289.9" y="353" class="val" fill="var(--text-900)">2.48%</text>
 <text x="186" y="377" text-anchor="end" class="lbl" fill="var(--text-600)">White Weenie</text>
-<rect x="196" y="362" width="82.8" height="17" rx="3" fill="var(--s1)"/>
+<rect x="196" y="362" width="82.8" height="17" rx="3" fill="var(--seq-500)"/>
 <text x="286.8" y="377" class="val" fill="var(--text-900)">2.39%</text>
 <text x="186" y="401" text-anchor="end" class="lbl" fill="var(--text-600)">Gardens</text>
-<rect x="196" y="386" width="70.7" height="17" rx="3" fill="var(--s1)"/>
+<rect x="196" y="386" width="70.7" height="17" rx="3" fill="var(--seq-500)"/>
 <text x="274.7" y="401" class="val" fill="var(--text-900)">2.04%</text>
 <text x="186" y="425" text-anchor="end" class="lbl" fill="var(--text-600)">Mono-White Aggro</text>
-<rect x="196" y="410" width="70.3" height="17" rx="3" fill="var(--s1)"/>
+<rect x="196" y="410" width="70.3" height="17" rx="3" fill="var(--seq-500)"/>
 <text x="274.3" y="425" class="val" fill="var(--text-900)">2.03%</text>
 <text x="186" y="449" text-anchor="end" class="lbl" fill="var(--text-600)">Gates</text>
-<rect x="196" y="434" width="44.0" height="17" rx="3" fill="var(--s1)"/>
+<rect x="196" y="434" width="44.0" height="17" rx="3" fill="var(--seq-500)"/>
 <text x="248.0" y="449" class="val" fill="var(--text-900)">1.27%</text>
 <text x="186" y="473" text-anchor="end" class="lbl" fill="var(--text-600)">Caw-Blade</text>
-<rect x="196" y="458" width="40.9" height="17" rx="3" fill="var(--s1)"/>
+<rect x="196" y="458" width="40.9" height="17" rx="3" fill="var(--seq-500)"/>
 <text x="244.9" y="473" class="val" fill="var(--text-900)">1.18%</text>
 <text x="186" y="497" text-anchor="end" class="lbl" fill="var(--text-600)">Dimir Faeries</text>
-<rect x="196" y="482" width="39.5" height="17" rx="3" fill="var(--s1)"/>
+<rect x="196" y="482" width="39.5" height="17" rx="3" fill="var(--seq-500)"/>
 <text x="243.5" y="497" class="val" fill="var(--text-900)">1.14%</text>
 <text x="186" y="521" text-anchor="end" class="lbl" fill="var(--text-600)">Mono-Black Sac</text>
-<rect x="196" y="506" width="32.9" height="17" rx="3" fill="var(--s1)"/>
+<rect x="196" y="506" width="32.9" height="17" rx="3" fill="var(--seq-500)"/>
 <text x="236.9" y="521" class="val" fill="var(--text-900)">0.95%</text>
 <text x="186" y="545" text-anchor="end" class="lbl" fill="var(--text-600)">Izzet Control</text>
-<rect x="196" y="530" width="31.5" height="17" rx="3" fill="var(--s1)"/>
+<rect x="196" y="530" width="31.5" height="17" rx="3" fill="var(--seq-500)"/>
 <text x="235.5" y="545" class="val" fill="var(--text-900)">0.91%</text>
 <text x="186" y="569" text-anchor="end" class="lbl" fill="var(--text-600)">Ruby Storm</text>
-<rect x="196" y="554" width="30.8" height="17" rx="3" fill="var(--s1)"/>
+<rect x="196" y="554" width="30.8" height="17" rx="3" fill="var(--seq-500)"/>
 <text x="234.8" y="569" class="val" fill="var(--text-900)">0.89%</text>
 <text x="186" y="593" text-anchor="end" class="lbl" fill="var(--text-600)">Blue-White Familiars</text>
-<rect x="196" y="578" width="30.1" height="17" rx="3" fill="var(--s1)"/>
+<rect x="196" y="578" width="30.1" height="17" rx="3" fill="var(--seq-500)"/>
 <text x="234.1" y="593" class="val" fill="var(--text-900)">0.87%</text>
 <text x="186" y="617" text-anchor="end" class="lbl" fill="var(--text-600)">Other (240 archetypes)</text>
 <rect x="196" y="602" width="736.0" height="17" rx="3" fill="var(--text-400)"/>
@@ -1207,7 +1223,7 @@ a.button { display:inline-block; text-decoration:none; }
       </ul>
     </div>
   </div>
-  <div class="panel">
+  <div class="panel scope-light">
     <table class="swatch">
       <thead><tr><th>Token</th><th></th><th>Hex</th><th class="r">Text on it</th><th>Role</th></tr></thead>
       <tbody>
@@ -1351,12 +1367,16 @@ a.button { display:inline-block; text-decoration:none; }
   the matchup table's header row already sticks to the top of the window.</p>
   <h4 class="sub">Theme toggle</h4>
   <div class="theme-demos">
-    <div class="theme-demo scope-light"><header class="site-header"><a class="site-header__brand" href="#pageheader">Pauper Endstep metagame</a><nav class="site-nav" aria-label="Pages"><a class="site-nav__link" href="#pageheader" aria-current="page">Overview</a><a class="site-nav__link" href="#pageheader">Matchups</a></nav><button type="button" class="theme-toggle" aria-label="Dark theme" aria-pressed="false"><svg class="theme-toggle__icon theme-toggle__icon--sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg><svg class="theme-toggle__icon theme-toggle__icon--moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg></button></header><p class="theme-demo__title">Overview</p></div>
-    <div class="theme-demo scope-dark"><header class="site-header"><a class="site-header__brand" href="#pageheader">Pauper Endstep metagame</a><nav class="site-nav" aria-label="Pages"><a class="site-nav__link" href="#pageheader" aria-current="page">Overview</a><a class="site-nav__link" href="#pageheader">Matchups</a></nav><button type="button" class="theme-toggle" aria-label="Dark theme" aria-pressed="true"><svg class="theme-toggle__icon theme-toggle__icon--sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg><svg class="theme-toggle__icon theme-toggle__icon--moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg></button></header><p class="theme-demo__title">Overview</p></div>
+    <div class="theme-demo scope-light" inert><header class="site-header"><a class="site-header__brand" href="#pageheader">Pauper Endstep metagame</a><nav class="site-nav" aria-label="Pages"><a class="site-nav__link" href="#pageheader" aria-current="page">Overview</a><a class="site-nav__link" href="#pageheader">Matchups</a></nav><button type="button" class="theme-toggle" aria-label="Dark theme" aria-pressed="false"><svg class="theme-toggle__icon theme-toggle__icon--sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg><svg class="theme-toggle__icon theme-toggle__icon--moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg></button></header><p class="theme-demo__title">Overview</p></div>
+    <div class="theme-demo scope-dark" inert><header class="site-header"><a class="site-header__brand" href="#pageheader">Pauper Endstep metagame</a><nav class="site-nav" aria-label="Pages"><a class="site-nav__link" href="#pageheader" aria-current="page">Overview</a><a class="site-nav__link" href="#pageheader">Matchups</a></nav><button type="button" class="theme-toggle" aria-label="Dark theme" aria-pressed="true"><svg class="theme-toggle__icon theme-toggle__icon--sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg><svg class="theme-toggle__icon theme-toggle__icon--moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg></button></header><p class="theme-demo__title">Overview</p></div>
   </div>
   <div class="theme-demos">
-    <div class="theme-demo theme-demo--phone scope-light"><header class="site-header"><a class="site-header__brand" href="#pageheader">Pauper Endstep metagame</a><nav class="site-nav" aria-label="Pages"><a class="site-nav__link" href="#pageheader" aria-current="page">Overview</a><a class="site-nav__link" href="#pageheader">Matchups</a></nav><button type="button" class="theme-toggle" aria-label="Dark theme" aria-pressed="false"><svg class="theme-toggle__icon theme-toggle__icon--sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg><svg class="theme-toggle__icon theme-toggle__icon--moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg></button></header><p class="theme-demo__title">Overview</p></div>
-    <div class="theme-demo theme-demo--phone scope-dark"><header class="site-header"><a class="site-header__brand" href="#pageheader">Pauper Endstep metagame</a><nav class="site-nav" aria-label="Pages"><a class="site-nav__link" href="#pageheader" aria-current="page">Overview</a><a class="site-nav__link" href="#pageheader">Matchups</a></nav><button type="button" class="theme-toggle" aria-label="Dark theme" aria-pressed="true"><svg class="theme-toggle__icon theme-toggle__icon--sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg><svg class="theme-toggle__icon theme-toggle__icon--moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg></button></header><p class="theme-demo__title">Overview</p></div>
+    <div class="theme-demo theme-demo--tablet scope-light" inert><header class="site-header"><a class="site-header__brand" href="#pageheader">Pauper Endstep metagame</a><nav class="site-nav" aria-label="Pages"><a class="site-nav__link" href="#pageheader" aria-current="page">Overview</a><a class="site-nav__link" href="#pageheader">Matchups</a></nav><button type="button" class="theme-toggle" aria-label="Dark theme" aria-pressed="false"><svg class="theme-toggle__icon theme-toggle__icon--sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg><svg class="theme-toggle__icon theme-toggle__icon--moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg></button></header><p class="theme-demo__title">Overview</p></div>
+    <div class="theme-demo theme-demo--tablet scope-dark" inert><header class="site-header"><a class="site-header__brand" href="#pageheader">Pauper Endstep metagame</a><nav class="site-nav" aria-label="Pages"><a class="site-nav__link" href="#pageheader" aria-current="page">Overview</a><a class="site-nav__link" href="#pageheader">Matchups</a></nav><button type="button" class="theme-toggle" aria-label="Dark theme" aria-pressed="true"><svg class="theme-toggle__icon theme-toggle__icon--sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg><svg class="theme-toggle__icon theme-toggle__icon--moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg></button></header><p class="theme-demo__title">Overview</p></div>
+  </div>
+  <div class="theme-demos">
+    <div class="theme-demo theme-demo--phone scope-light" inert><header class="site-header"><a class="site-header__brand" href="#pageheader">Pauper Endstep metagame</a><nav class="site-nav" aria-label="Pages"><a class="site-nav__link" href="#pageheader" aria-current="page">Overview</a><a class="site-nav__link" href="#pageheader">Matchups</a></nav><button type="button" class="theme-toggle" aria-label="Dark theme" aria-pressed="false"><svg class="theme-toggle__icon theme-toggle__icon--sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg><svg class="theme-toggle__icon theme-toggle__icon--moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg></button></header><p class="theme-demo__title">Overview</p></div>
+    <div class="theme-demo theme-demo--phone scope-dark" inert><header class="site-header"><a class="site-header__brand" href="#pageheader">Pauper Endstep metagame</a><nav class="site-nav" aria-label="Pages"><a class="site-nav__link" href="#pageheader" aria-current="page">Overview</a><a class="site-nav__link" href="#pageheader">Matchups</a></nav><button type="button" class="theme-toggle" aria-label="Dark theme" aria-pressed="true"><svg class="theme-toggle__icon theme-toggle__icon--sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg><svg class="theme-toggle__icon theme-toggle__icon--moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg></button></header><p class="theme-demo__title">Overview</p></div>
   </div>
   <p class="spec"><b>Toggle</b> FR-13. A 36px round button at the top right of the header, on every page and at
   every width: a 1px <span class="mono">--edge</span> border on <span class="mono">--surface</span>, with an 18px icon in
@@ -1366,8 +1386,8 @@ a.button { display:inline-block; text-decoration:none; }
   <span class="mono">--primary</span> ring. <b>Layout</b> The header is a grid. Below 640px the name takes the free width
   and the toggle keeps 36px on the first row, with the links on the second. When the name runs out of room, at a 320px
   screen, with a wide system font or with enlarged text, the name wraps to two lines and the toggle stays where it is.
-  From 640px the name, the links and the toggle share one row, the toggle last. The four specimens above are forced
-  to one theme each, whatever theme this page is in. The toggle at the top of this page works: it switches the whole
+  From 640px the name, the links and the toggle share one row, the toggle last. At 640px itself the name wraps, as the
+  second pair shows. The six specimens above are forced to one theme each and are inert, whatever theme this page is in. The toggle at the top of this page works: it switches the whole
   design system, and the choice is kept for the next visit.</p>
 </section>
 <section id="deckpage">
@@ -1744,10 +1764,13 @@ a.button { display:inline-block; text-decoration:none; }
     <p class="why">Paste into the single HTML file. Use the roles in the stylesheet, not raw hex.</p>
   </div>
 <pre>:root {
+  color-scheme: light;
+
   <b>/* surfaces */</b>
   --background:    #f9f9f7;   /* page behind the cards */
   --surface:       #fcfcfb;   /* cards, table, chart area */
   --edge:          rgba(11,11,11,.10);
+  --shadow:        rgba(11,11,11,.09);   /* tooltip */
 
   <b>/* text */</b>
   --text-900:      #0b0b0b;   /* 19.17:1  headings, values */
@@ -1761,8 +1784,11 @@ a.button { display:inline-block; text-decoration:none; }
 
   <b>/* action */</b>
   --primary:       #1c5cab;   /*  6.46:1  links, filled buttons */
+  --primary-hover: #184f95;   /* filled buttons on hover */
   --primary-wash:  #eaf1fb;   /* hover, selected, callout */
   --secondary:     #3f3f3c;   /* 10.29:1  outline buttons */
+  --hover:         #f1f0ec;   /* buttons and segments on hover */
+  --row-hover:     #f5f4f0;   /* table rows on hover */
 
   <b>/* chart series, fixed order, no cycling */</b>
   --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100;
@@ -1780,6 +1806,25 @@ a.button { display:inline-block; text-decoration:none; }
 
   <b>/* type */</b>
   --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+<b>/* Soft graphite, FR-13. The same block under both selectors */</b>
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { <i>the block below</i> } }
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background:#353537; --surface:#3c3d3f; --edge:rgba(255,255,255,.09); --shadow:rgba(0,0,0,.32);
+  --text-900:#eaeaec;   /* 9.05:1 */  --text-600:#c8c9cb;   /* 6.56:1 */
+  --text-400:#949597;   /* 3.63:1 */  --text-inverse:#3c3d3f;
+  --rule:#4d4e4f; --baseline:#606163;
+  --primary:#8fbefa;    /* 5.65:1 */  --primary-hover:#a6cdff; --primary-wash:#38485c;
+  --secondary:#dcdcde;  --hover:#424244; --row-hover:#404143;
+  --up:#7ac07c; --down:#f8968e;
+  --s1:#4f8ddd; --s2:#da6d44; --s3:#38a276; --s4:#bd8003;
+  --s5:#ca7091; --s6:#499e44; --s7:#8581e0; --s8:#e3635e;
+  --seq-100:#164781; --seq-200:#2b5c97; --seq-300:#3f70ad; --seq-400:#5485c4;
+  --seq-500:#689bdb; --seq-600:#7eb1f3; --seq-700:#93c7ff;
+  --win:#385c8a; --loss:#844645; --mirror:#444547;
+  --hatch:repeating-linear-gradient(135deg, var(--baseline) 0 1px, transparent 1px 5px);
 }</pre>
 </section>
 </div>
@@ -2251,15 +2296,6 @@ a.button { display:inline-block; text-decoration:none; }
   const root = document.documentElement;
   const media = window.matchMedia('(prefers-color-scheme: dark)');
   const buttons = [document.getElementById('doc-theme'), document.getElementById('header-theme')].filter(Boolean);
-  let stored = null;
-  try {
-    stored = localStorage.getItem('theme');
-  } catch (error) {
-    stored = null;
-  }
-  if (stored === 'light' || stored === 'dark') {
-    root.dataset.theme = stored;
-  }
   function current() {
     return root.dataset.theme || (media.matches ? 'dark' : 'light');
   }
@@ -2269,12 +2305,12 @@ a.button { display:inline-block; text-decoration:none; }
   buttons.forEach((button) => button.addEventListener('click', () => {
     const next = current() === 'dark' ? 'light' : 'dark';
     root.dataset.theme = next;
+    sync();
     try {
       localStorage.setItem('theme', next);
     } catch (error) {
-      root.dataset.theme = next;
+      return;
     }
-    sync();
   }));
   media.addEventListener('change', sync);
   sync();
