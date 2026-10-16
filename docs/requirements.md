@@ -369,7 +369,8 @@ A page with one table: the top 24 decks by share, against each other. One call t
 Every page comes in a light theme and a dark theme. The design system specifies both palettes, NFR-1a.
 
 - On a first visit the page follows the device's setting, `prefers-color-scheme`. A device with no setting gets the light theme. Until the reader chooses, the page also follows a change to the device setting while it is open, and so do the toggle and the charts.
-- A button at the right end of the site header switches between the two themes, on every page and at every width. It is a toggle button named Dark theme, with `aria-pressed`. Its look shows the current theme, so it agrees with `aria-pressed`. D3 draws it.
+- A 36px round button at the top right of the site header switches between the two themes, on every page and at every width. It is a toggle button named Dark theme, with `aria-pressed`. Its icon shows the current theme, a sun or a moon, so it agrees with `aria-pressed`.
+- Below 640px the button shares the first row with the site name, and the links take the second. When the name runs out of room, it wraps to two lines and the button stays at the top right.
 - The reader's choice is kept in local storage and wins over the device setting from then on. It is not in the address, §4.5.
 - The theme applies before the page first paints, so a dark page never flashes light.
 - A switch recolours the charts at once, with no reload. Native controls and scrollbars follow the theme through `color-scheme`.
@@ -508,9 +509,11 @@ Every commit that reaches `main` therefore compiles, lints, is formatted, and pa
 This replaces the no-build decision of Draft v2. That decision pinned React to 18, because React 19 ships no UMD build, and named Vite as the escape hatch. The owner took it on 2026-10-03, for modules, type checking and room for more pages. A mechanical port of the v2 page to Vite and React 19 rendered every section with live data, and an offline `vercel build` kept the function and the rewrite.
 
 ### NFR-1a. Design language
-Colour, typography and the chart palette are specified in [`design-system.html`](./design-system.html), which is the authority for every token. In summary: a light theme on `#f9f9f7` and a dark theme, FR-13, whose palette D3 chooses, open item 10, `system-ui` as the single typeface so no font is fetched and NFR-9 holds, `#1c5cab` for links and primary buttons at 6.46:1 on the light surface, and an eight-hue categorical palette validated for colour-vision deficiency against our own surface.
+Colour, typography and the chart palette are specified in [`design-system.html`](./design-system.html), which is the authority for every token. In summary: a light theme on `#f9f9f7` and a dark theme, Soft graphite, on `#353537`, FR-13, `system-ui` as the single typeface so no font is fetched and NFR-9 holds, `#1c5cab` for links and primary buttons at 6.46:1 on the light surface, and an eight-hue categorical palette validated for colour-vision deficiency against our own surface.
 
 Three of the eight series hues fall below 3:1 against the light surface. That triggers the relief rule: the chart must ship visible labels or a table view. The line chart labels its series ends, and FR-4's deck table, one choice away on the overview, gives the figures as text. Do not drop either without re-checking the palette.
+
+The dark theme is a second palette, validated against its own surface, `#3c3d3f`, never an automatic inversion. Body text reads at 9.05:1 and labels at 3.63:1. Links and primary buttons use `#8fbefa` at 5.65:1. The eight series hues are the light hues lifted in lightness, each between 3.20:1 and 3.42:1, so the relief rule does not trigger there. Their worst adjacent pair keeps ΔE 8.2 under colour-vision deficiency and 16.1 under normal vision. What fades by opacity, such as the matchup spotlight, fades no further than in the light theme.
 
 ### NFR-2. Charting library: Recharts
 Charts use **Recharts 3.10**, installed from npm. Two criteria decided the choice: simplicity and popularity. The comparison below was made under the no-build constraint of Draft v2. The move to a build removes the UMD argument against the others, and the simplicity argument still stands.
@@ -633,4 +636,4 @@ A later layer overrides an earlier one, whatever the selectors' specificity and 
 7. ~~The matchup table on a phone.~~ Settled: below 640px, one deck's row as a list, opening on the top deck by share. FR-12.
 8. ~~Finding a deck in the matchup table.~~ Settled: `?deck=` puts one deck in the spotlight and fades the other cells. A picker chooses it, and the deck page's row links to it. No hover crosshair. FR-11 and FR-12.
 9. ~~Cards or a table on the overview.~~ Settled: one view at a time, chosen with a switch kept in `view`. Cards by default. FR-3 and FR-4.
-10. **The dark palette.** FR-13 needs a second palette, validated against its own dark surface, never an automatic inversion. Three options were drafted. The owner narrowed them to two on 2026-10-14: warm stone and soft graphite. Neither goes near black, and body text sits at about 9 to 10:1. Every chart hue clears 3:1, and the hues keep their colour-blind separation. The owner chooses in D3, then NFR-1a and the design system take the values.
+10. ~~The dark palette.~~ Settled: Soft graphite, chosen by the owner on 2026-10-16 over warm stone. NFR-1a gives its figures and the design system its tokens.
