@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-26. Derived from [`requirements.md`](./requirements.md) and [`design-system.html`](./design-system.html).
 
-Milestone 1 has sixteen items: four enablers, nine user stories, three hardening items. Milestone 2, at the end of this file, has eight. Each one is meant to be a separate branch and a separate review. Nothing here assumes a single large implementation pass.
+Milestone 1 has sixteen items: four enablers, nine user stories, three hardening items. Milestones 2 and 3 follow at the end of this file. Each one is meant to be a separate branch and a separate review. Nothing here assumes a single large implementation pass.
 
 Every item lists what blocks it, what it blocks, and how to tell it is done.
 
@@ -747,3 +747,228 @@ Covers NFR-1: an exported function with a consumer has a spec beside it. E10 set
 **E12 comes before the pages.** S10, S11 and S12 read their data through the queries it sets up, so they are written once, on the final data layer.
 
 **E8 gives the stories empty pages.** S10 and S11 then fill a page each and never touch the router, so they can run in parallel.
+
+---
+
+# Milestone 3: connected pages
+
+**Date:** 2026-10-13. Derived from Draft v4 of the requirements. D3 and S18 were added on 2026-10-14, from Draft v5.
+
+Eight items. Two design items, six user stories. Two stories need no design and start at once. The other four wait for D2 or D3, because each changes how a page looks, and the owner chooses the design first.
+
+| Wave | Items | Runs in parallel |
+|---|---|---|
+| 15 | D2, D3, S13, S14 | Yes, four ways |
+| 16 | S16, S17, S18 | Yes, three ways |
+| 17 | S15 | No |
+
+```
+D2 design ─┬─► S16 find a deck in the matchup table ──► S15 matchup table on a phone
+           ├─► S17 cards or table on the overview
+           └─► S15
+D3 design ──► S18 light and dark theme
+S13 every page kept on a window change
+S14 charts open the deck pages
+```
+
+---
+
+## D2. Design the phone matchup view, the deck highlight and the overview's switch
+
+Covers open items 7, 8 and 9 in the requirements. Changes `docs/design-system.html`, with the owner choosing between proposals, and then writes the chosen behaviour into `docs/requirements.md`. No code.
+
+**Tasks**
+
+1. The matchup table below 640px: one or more proposals, with their trade-offs, for reading it on a phone.
+2. A deck named in the address on the matchup table: how its row and column stand out, and where the page scrolls. The hover crosshair on desktop.
+3. The overview's switch between the cards and the table: where it sits, what it looks like, and what each view keeps.
+4. Check any new colour for contrast and colour-vision deficiency against the surface.
+5. Turn the chosen designs into FR-12, FR-3 and FR-4, and settle open items 7, 8 and 9.
+6. Republish the artifact.
+
+**Done when**
+
+- Each chosen design has a specimen, with its states.
+- FR-3, FR-4 and FR-12 describe the behaviour, and open items 7, 8 and 9 are settled.
+
+**Blocked by** nothing. **Blocks** S15, S16, S17.
+
+---
+
+## D3. Design the dark theme and its toggle
+
+Covers FR-13 and open item 10 in the requirements. Changes `docs/design-system.html`, with the owner choosing between palettes, and then writes the chosen values into NFR-1a. No code.
+
+**Tasks**
+
+1. Three dark palettes, none near black and none at the light theme's 19:1 text contrast. Each covers the neutrals, the primary blue and its wash, up and down, the matchup fills, the eight chart hues and the sequential blue.
+2. Check each palette against its own surface: 4.5:1 for text, 3.5:1 for labels, 3:1 for every chart hue, and the chart hues' separation under protanopia, deuteranopia and normal vision. Re-check what fades by opacity on the dark surface: the spotlight's faded cells, NFR-6, and the dimmed loading states.
+3. Name tokens for the colours that are literals today: the hover fills, the primary hover, the table row hover and the tooltip shadow.
+4. The toggle: its icon, size and states, with a look that shows the current theme, and the site header at 360px, 640px and wide.
+5. Specimens of the components in the chosen palette.
+6. Write the chosen palette into NFR-1a, settle open item 10, and republish the artifact.
+
+**Done when**
+
+- The design system specifies both palettes and the toggle, with specimens.
+- NFR-1a and open item 10 name the chosen palette.
+
+**Blocked by** nothing. **Blocks** S18.
+
+---
+
+## S13. Keep every page on screen while another window loads
+
+As a Pauper player, I want to switch windows without a page going blank, so I can compare what changed.
+
+Covers §4.8.
+
+**Tasks**
+
+1. Keep the previous window's data on screen while the new window loads, for the same queries only: the overview's decks and series, the deck page's matchups row, and the matchup table.
+2. Dim the sections, mark them busy, mark the window selector busy, and keep the status line.
+3. Hold back what names the window, such as the dates in the summary and on the matchup page, until the new data arrives.
+4. Keep the empty window state from deciding on the previous window's data.
+5. A spec beside each component and helper it changes.
+
+**Done when**
+
+- Switching windows never shows a skeleton once a window has loaded, on any page.
+- No dates or empty state describe a window that has not loaded.
+
+**Blocked by** nothing. **Blocks** nothing.
+
+---
+
+## S14. Open a deck from the charts
+
+As a Pauper player, I want to click a deck in a chart, so I can read its page without looking it up.
+
+Covers FR-6 and FR-7.
+
+**Tasks**
+
+1. Ranked bars: a click on a deck's bar or name opens its page in the current window. `Other` opens nothing.
+2. Scatter: a click on a marker or its label opens the deck's page. The tooltip says so. On a touch screen the first tap shows the tooltip and a second tap opens the page.
+3. A pointer cursor on what can be clicked.
+4. A spec beside each component it changes.
+
+**Done when**
+
+- Every deck in both charts opens its page in the selected time window, and `Other` does not.
+- The scatter's tooltip says a click opens the deck, and on a touch screen the first tap shows the tooltip.
+- What can be clicked has a pointer cursor.
+
+**Blocked by** nothing. **Blocks** nothing.
+
+---
+
+## S15. Read the matchup table on a phone
+
+As a Pauper player on a phone, I want to read the matchups without scrolling across a 24-column table.
+
+Covers FR-12, On a phone.
+
+**Tasks**
+
+1. Below 640px, show one deck's row as a list in place of the table. Each line holds the opponent's name, linking to its deck page, its matches, the verdict in words and the cell.
+2. The deck picker without "All decks". With no deck in the address it shows the top deck by share and writes nothing.
+3. A deck outside the window's top 24: the picker keeps it as an extra first option, and the list shows the top deck under the line "{name} isn't in the top 24 for the selected time window. The table shows {top deck} by default."
+4. Reuse the cell states and the swatch from the table.
+5. A spec beside each component it adds or changes.
+
+**Done when**
+
+- At 360px the matchup page lists one deck's 23 matchups, and nothing scrolls sideways.
+- With no deck in the address the list shows the top deck by share. With one, it shows that deck.
+- A deck outside the top 24 shows the top deck's list under the line.
+
+**Blocked by** D2, S16. **Blocks** nothing.
+
+---
+
+## S16. Find a deck in the matchup table
+
+As a Pauper player, I want to land on my deck's row of the matchup table, so I do not search for it.
+
+Covers FR-11 and FR-12, A deck in the spotlight.
+
+**Tasks**
+
+1. A deck picker in the matchup page's controls: "All decks", then the 24 decks in share order. It reads and writes `?deck=` and replaces the history entry, §4.5.
+2. The spotlight: every cell outside the deck's row and column fades to 25% opacity, and returns to full opacity under the pointer or keyboard focus. The deck's two headers turn `--primary` on a `--primary-wash` band.
+3. When a link opens the page with a deck, and on a choice, scroll the deck's row into view, and below 1,100px its column too. Back and forward keep the browser's scroll position. Move the grid's tab stop to the deck's row header.
+4. Match the deck by the 8-character suffix of its slug, §6.11.
+5. A window that drops the deck keeps `?deck=`, shows it in the picker as an extra first option, "{name} (not in the top 24)", and shows the line "{name} isn't in the top 24 for the selected time window." The name comes from the deck detail, and the line names "This deck" until it arrives or if it fails.
+6. Under the deck page's row, the link "See {name} in the full table", with `?deck=`.
+7. A spec beside each component, hook and helper it adds or changes.
+
+**Done when**
+
+- `/matchups?deck={slug}` opens with that deck in the spotlight and its row in view.
+- "All decks" clears the spotlight and removes `deck` from the address.
+- A deck outside the window's top 24 shows the line and no spotlight, and the address keeps it.
+- The deck page's row links to its deck in the table.
+
+**Blocked by** D2. **Blocks** S15.
+
+---
+
+## S17. Switch the overview between cards and a table
+
+As a Pauper player, I want either the cards or the table, not both, so the overview is shorter.
+
+Covers FR-3 and FR-4.
+
+**Tasks**
+
+1. A segmented control named View, with Cards and Table, after the window selector.
+2. Cards by default, with no `view` in the address. Table writes `?view=table`, and Cards removes it. A change replaces the history entry, §4.5.
+3. One view at a time. While the decks load, only the chosen view's skeleton shows.
+4. The sort applies to the table only and stays in the address while the cards show.
+5. A spec beside each component it adds or changes.
+
+**Done when**
+
+- The overview shows the cards or the table, never both.
+- `?view=table` opens on the table, and switching back to the cards removes `view` from the address.
+- Back leaves the page rather than undoing a switch.
+
+**Blocked by** D2. **Blocks** nothing.
+
+---
+
+## S18. Switch between a light and a dark theme
+
+As a Pauper player, I want the site dark when my device is, and a toggle to switch, so I can read it in any light.
+
+Covers FR-13, NFR-1a and NFR-9.
+
+**Tasks**
+
+1. The dark tokens, applied under `prefers-color-scheme: dark` when the reader has not chosen, and under the reader's choice when they have. Set `color-scheme` with them, so native controls and scrollbars follow.
+2. Tokens in place of the colour literals D3 names.
+3. A script in `index.html` that applies a stored choice before the first paint.
+4. The toggle at the right end of the site header. It writes the choice to local storage.
+5. Charts re-read their colours when the theme changes, including a change to the device setting before the reader chooses. Today every chart reads its tokens once, when its module loads: `src/charts/theme.ts`, `DeckShare`, `RankedBars` and `WinRateScatter`.
+6. A spec beside each component, hook and helper it adds or changes.
+
+**Done when**
+
+- A device in dark mode opens the site dark, with no light flash.
+- The toggle switches the theme on every page and at every width, and the choice survives a reload.
+- Every chart recolours on a switch, without a reload.
+- With no stored choice, a change to the device setting recolours the page and its charts and updates the toggle.
+- Text, labels and chart marks meet the contrast NFR-1a gives for the dark palette.
+
+**Blocked by** D3. **Blocks** nothing.
+
+---
+
+## Notes on sequencing, milestone 3
+
+**S13 and S14 need no design.** They change behaviour, not appearance, so they start beside D2. S13 reuses the deck page's dimmed, busy state.
+
+**S16 comes before S15.** Both change the matchup page, and the phone view can open on the deck the address names.
+
+**D3 does not wait for D2.** The theme changes colours, not layout. S18 and S14 both touch the chart code, so whichever lands second rebases onto the first.

@@ -114,6 +114,7 @@ The owner has decided these. Reviews do not raise them again. A change goes to t
 - Vercel previews sit behind Vercel Authentication. A "Done when" that names a preview is met by an offline `vercel build`, or by production after the merge.
 - Below 1,100px the matchup table's header row scrolls away with the table. Only from 1,100px up does it stay at the top of the window, FR-12.
 - The matchup function caches a 429 for 60 seconds, §4.4, even when a background revalidation could leave a stale matrix in its place.
+- The matchup table's spotlight fades the other cells to 25% opacity, below WCAG AA, NFR-6. The owner chose it over a fade that keeps the numbers at AA.
 
 ## Project context
 
@@ -121,8 +122,8 @@ The owner has decided these. Reviews do not raise them again. A change goes to t
 | ------------------------- | ---------------------------------------------------------------------- |
 | `docs/requirements.md`    | Functional and non-functional requirements. The authority on behaviour |
 | `docs/design-system.html` | Tokens and components. The authority on appearance                     |
-| `docs/backlog.md`         | Both milestones' items, their tasks and their dependencies             |
+| `docs/backlog.md`         | Every milestone's items, their tasks and their dependencies            |
 
-Issues #1 to #16 mirror milestone 1 of `docs/backlog.md`. Milestone 2's issues mirror the rest. Labels carry type (`enabler`, `story`, `hardening`) and wave (`wave-0` onwards). Items in the same wave have no dependency on each other and can run in parallel.
+Issues #1 to #16 mirror milestone 1 of `docs/backlog.md`, and #40 onwards mirror milestones 2 and 3. Other issues track one-off work, such as the review loop in #61. Labels carry type (`enabler`, `story`, `hardening`) and wave (`wave-0` onwards). Items in the same wave have no dependency on each other and can run in parallel.
 
 The data source is the public Endstep API. It refuses cross-origin requests, which is why the app proxies it. Read section 4.1 of the requirements before changing anything about data access.

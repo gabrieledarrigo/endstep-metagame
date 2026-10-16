@@ -1,18 +1,61 @@
 <title>Pauper Metagame Design System</title>
+<script>
+  try {
+    const stored = localStorage.getItem('theme');
+    if (stored === 'light' || stored === 'dark') {
+      document.documentElement.dataset.theme = stored;
+    }
+  } catch (error) {
+    document.documentElement.removeAttribute('data-theme');
+  }
+</script>
 <style>
-:root {
+:root, .scope-light {
   color-scheme: light;
   --background:#f9f9f7; --surface:#fcfcfb; --edge:rgba(11,11,11,.10);
   --text-900:#0b0b0b; --text-600:#52514e; --text-400:#898781; --text-inverse:#ffffff;
   --rule:#e1e0d9; --baseline:#c3c2b7;
-  --primary:#1c5cab; --primary-wash:#eaf1fb; --secondary:#3f3f3c;
+  --primary:#1c5cab; --primary-hover:#184f95; --primary-wash:#eaf1fb; --secondary:#3f3f3c;
+  --hover:#f1f0ec; --row-hover:#f5f4f0; --shadow:rgba(11,11,11,.09); --wash-text:#173f73;
   --up:#006300; --down:#d03b3b;
   --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100;
   --s5:#e87ba4; --s6:#008300; --s7:#4a3aa7; --s8:#e34948;
   --win:#9ec5f4; --loss:#f7aba4; --mirror:#efeee9;
+  --seq-500:#256abf;
   --hatch:repeating-linear-gradient(135deg, var(--baseline) 0 1px, transparent 1px 5px);
   --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+  --background:#353537; --surface:#3c3d3f; --edge:rgba(255,255,255,.09);
+  --text-900:#eaeaec; --text-600:#c8c9cb; --text-400:#949597; --text-inverse:#3c3d3f;
+  --rule:#4d4e4f; --baseline:#606163;
+  --primary:#8fbefa; --primary-hover:#a6cdff; --primary-wash:#38485c; --secondary:#dcdcde;
+  --hover:#424244; --row-hover:#404143; --shadow:rgba(0,0,0,.32); --wash-text:#dbe8fb;
+  --up:#7ac07c; --down:#f8968e;
+  --s1:#4f8ddd; --s2:#da6d44; --s3:#38a276; --s4:#bd8003;
+  --s5:#ca7091; --s6:#499e44; --s7:#8581e0; --s8:#e3635e;
+  --win:#385c8a; --loss:#844645; --mirror:#444547;
+    --seq-500:#689bdb;
+    --hatch:repeating-linear-gradient(135deg, var(--baseline) 0 1px, transparent 1px 5px);
+  }
+}
+:root[data-theme="dark"], .scope-dark {
+  color-scheme: dark;
+  --background:#353537; --surface:#3c3d3f; --edge:rgba(255,255,255,.09);
+  --text-900:#eaeaec; --text-600:#c8c9cb; --text-400:#949597; --text-inverse:#3c3d3f;
+  --rule:#4d4e4f; --baseline:#606163;
+  --primary:#8fbefa; --primary-hover:#a6cdff; --primary-wash:#38485c; --secondary:#dcdcde;
+  --hover:#424244; --row-hover:#404143; --shadow:rgba(0,0,0,.32); --wash-text:#dbe8fb;
+  --up:#7ac07c; --down:#f8968e;
+  --s1:#4f8ddd; --s2:#da6d44; --s3:#38a276; --s4:#bd8003;
+  --s5:#ca7091; --s6:#499e44; --s7:#8581e0; --s8:#e3635e;
+  --win:#385c8a; --loss:#844645; --mirror:#444547;
+  --seq-500:#689bdb;
+  --hatch:repeating-linear-gradient(135deg, var(--baseline) 0 1px, transparent 1px 5px);
+}
+.scope-light, .scope-dark { background:var(--background); color:var(--text-900); }
 * { box-sizing:border-box; }
 body { margin:0; background:var(--background); color:var(--text-900);
   font-family:var(--sans); font-size:15px; line-height:1.6; -webkit-font-smoothing:antialiased; }
@@ -92,7 +135,7 @@ table.swatch { min-width:0; }
 .panel:has(table.swatch) { overflow-x:auto; }
 table.swatch th { font-size:12px; border-bottom-color:var(--rule); }
 table.swatch tbody tr:hover { background:transparent; }
-#table tbody tr:hover { background:#f5f4f0; }
+#table tbody tr:hover { background:var(--row-hover); }
 .slot { color:var(--text-400); font-variant-numeric:tabular-nums; width:26px; }
 .nm { color:var(--text-600); }
 .chip { display:block; width:34px; height:20px; border-radius:4px; }
@@ -111,9 +154,9 @@ table.swatch tbody tr:hover { background:transparent; }
 .button { font-family:inherit; font-size:14px; font-weight:600; padding:9px 17px;
   border-radius:7px; cursor:pointer; border:1px solid transparent; }
 .button--primary { background:var(--primary); color:var(--text-inverse); }
-.button--primary:hover { background:#184f95; }
+.button--primary:hover { background:var(--primary-hover); }
 .button--secondary { background:var(--surface); color:var(--secondary); border-color:var(--edge); }
-.button--secondary:hover { background:#f1f0ec; }
+.button--secondary:hover { background:var(--hover); }
 .button--ghost { background:transparent; color:var(--primary); }
 .button--ghost:hover { background:var(--primary-wash); }
 button:disabled { opacity:.45; cursor:not-allowed; }
@@ -127,9 +170,9 @@ button:disabled { opacity:.45; cursor:not-allowed; }
 @media (min-width:640px) { .segmented { overflow-x:visible; } }
 .segmented__option { flex:0 0 auto; font-family:inherit; cursor:pointer; border:0; background:transparent; color:var(--text-600); font-size:13px;
   font-weight:600; padding:7px 15px; border-radius:6px; font-variant-numeric:tabular-nums; }
-.segmented__option:hover { background:#f1f0ec; color:var(--text-900); }
+.segmented__option:hover { background:var(--hover); color:var(--text-900); }
 .segmented__option[aria-pressed="true"] { background:var(--primary); color:var(--text-inverse); }
-.segmented__option[aria-pressed="true"]:hover { background:#184f95; }
+.segmented__option[aria-pressed="true"]:hover { background:var(--primary-hover); }
 
 blockquote { margin:0; padding:2px 0 2px 18px; border-left:3px solid var(--baseline);
   color:var(--text-600); max-width:68ch; }
@@ -141,14 +184,14 @@ blockquote { margin:0; padding:2px 0 2px 18px; border-left:3px solid var(--basel
 
 .figwrap { overflow-x:auto; }
 .fig { display:block; width:100%; min-width:620px; max-width:1000px; height:auto; }
-.fig .tick { font:400 12px var(--sans); fill:#898781; }
+.fig .tick { font:400 12px var(--sans); fill:var(--text-400); }
 .fig .lbl { font:500 12px var(--sans); }
 .fig .val { font:600 12px var(--sans); font-variant-numeric:tabular-nums; }
 figure { margin:0; display:flex; flex-direction:column; gap:12px; }
 figcaption { font-size:13px; color:var(--text-600); max-width:72ch; }
 figcaption b { color:var(--text-900); font-weight:600; }
 .note { background:var(--primary-wash); border-radius:8px; padding:15px 18px;
-  font-size:14px; color:#173f73; max-width:78ch; }
+  font-size:14px; color:var(--wash-text); max-width:78ch; }
 .note b { font-weight:600; }
 pre { background:var(--surface); border:1px solid var(--edge); border-radius:9px;
   padding:18px; overflow-x:auto; font-size:12.5px; line-height:1.65; margin:0;
@@ -200,7 +243,7 @@ pre b { color:var(--text-900); font-weight:600; }
 .delta.na { color:var(--text-400); font-weight:400; font-size:12px; }
 
 .chart-tooltip { background:var(--surface); border:1px solid var(--edge); border-radius:8px;
-  padding:11px 13px; box-shadow:0 4px 14px rgba(11,11,11,.09); display:inline-flex;
+  padding:11px 13px; box-shadow:0 4px 14px var(--shadow); display:inline-flex;
   flex-direction:column; gap:7px; min-width:196px; }
 .chart-tooltip__day { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.07em; color:var(--text-400); }
 .chart-tooltip__row { display:flex; align-items:center; gap:8px; font-size:13px; }
@@ -271,10 +314,34 @@ body { container-type:inline-size; }
   .matchup__cell { scroll-margin-left:250px; }
 }
 
-.site-header { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:10px 24px;
+.site-header { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:start; gap:10px 16px;
   padding-block:14px; border-bottom:1px solid var(--rule); }
 .site-header__brand { font-size:22px; font-weight:700; letter-spacing:-.015em; color:var(--text-900); text-decoration:none; }
-@media (min-width:640px) { .site-header__brand { font-size:30px; } }
+.site-header .site-nav { grid-column:1 / -1; }
+.site-header .theme-toggle { grid-column:2; grid-row:1; }
+@media (min-width:640px) {
+  .site-header { grid-template-columns:minmax(0,1fr) auto auto; align-items:center; gap:10px 24px; }
+  .site-header__brand { font-size:30px; }
+  .site-header .site-nav { grid-column:2; grid-row:1; }
+  .site-header .theme-toggle { grid-column:3; }
+}
+.theme-toggle { width:36px; height:36px; display:grid; place-items:center; padding:0; border-radius:50%;
+  border:1px solid var(--edge); background:var(--surface); color:var(--text-600); cursor:pointer; }
+.theme-toggle:hover { background:var(--hover); color:var(--text-900); }
+.theme-toggle__icon { width:18px; height:18px; display:block; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; }
+.theme-toggle__icon--moon { fill:currentColor; stroke:none; }
+.theme-toggle[aria-pressed="true"] .theme-toggle__icon--sun,
+.theme-toggle[aria-pressed="false"] .theme-toggle__icon--moon { display:none; }
+.head__top { display:flex; justify-content:space-between; align-items:center; gap:16px; }
+.theme-demos { display:flex; flex-wrap:wrap; gap:16px; }
+.theme-demo { flex:1 1 100%; min-width:0; border:1px solid var(--edge); border-radius:12px; padding:0 20px 16px; }
+.theme-demo--tablet { flex:0 1 640px; width:640px; max-width:100%; }
+.theme-demo--phone { flex:0 1 360px; width:360px; max-width:100%; border-radius:20px; }
+.theme-demo--phone .site-header { grid-template-columns:minmax(0,1fr) auto; align-items:start; gap:10px 16px; }
+.theme-demo--phone .site-header__brand { font-size:22px; }
+.theme-demo--phone .site-header .site-nav { grid-column:1 / -1; grid-row:2; }
+.theme-demo--phone .site-header .theme-toggle { grid-column:2; }
+.theme-demo__title { font-size:22px; font-weight:600; color:var(--text-600); padding-top:12px; }
 .site-nav { display:flex; gap:22px; }
 .site-nav__link { font-size:14px; font-weight:600; color:var(--text-600); text-decoration:none; padding-bottom:4px;
   border-bottom:2px solid transparent; }
@@ -305,8 +372,8 @@ a.button { display:inline-block; text-decoration:none; }
 .deck-share { display:flex; flex-direction:column; gap:14px; }
 .deck-share__scroll { overflow-x:auto; }
 .deck-share__svg { display:block; width:100%; min-width:460px; max-width:640px; height:auto; }
-.deck-share__tick { font:400 12px var(--sans); fill:#898781; font-variant-numeric:tabular-nums; }
-.deck-share__end { font:600 12px var(--sans); fill:#0b0b0b; font-variant-numeric:tabular-nums; }
+.deck-share__tick { font:400 12px var(--sans); fill:var(--text-400); font-variant-numeric:tabular-nums; }
+.deck-share__end { font:600 12px var(--sans); fill:var(--text-900); font-variant-numeric:tabular-nums; }
 .disclosure__summary { cursor:pointer; font-size:13px; font-weight:600; color:var(--primary); width:fit-content; }
 .disclosure__summary:hover { text-decoration:underline; text-underline-offset:3px; }
 .disclosure__table { min-width:0; width:auto; margin-top:10px; }
@@ -362,6 +429,35 @@ a.button { display:inline-block; text-decoration:none; }
 .deck-strip__outside { font-size:14px; color:var(--text-600); }
 .deck-strip-states { gap:26px; flex-wrap:nowrap; }
 
+.deck-picker { display:inline-flex; align-items:center; gap:10px; max-width:100%; }
+.deck-picker--stacked { display:flex; flex-direction:column; align-items:stretch; gap:5px; }
+.deck-picker__label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.07em; color:var(--text-400); white-space:nowrap; }
+.deck-picker__select { font-family:inherit; font-size:16px; color:var(--text-900); background:var(--surface);
+  border:1px solid var(--edge); border-radius:8px; padding:7px 10px; min-width:0; max-width:100%; }
+@media (min-width:640px) { .deck-picker__select { font-size:14px; } }
+.matchup-controls { display:flex; flex-wrap:wrap; align-items:center; gap:10px 16px; }
+.matchup__notice { font-size:14px; color:var(--text-600); }
+.matchup__row { scroll-margin-top:260px; }
+.matchup--spotlit .matchup__cell:not(.is-spotlit) { opacity:.25; }
+.matchup--spotlit .matchup__cell:hover, .matchup--spotlit .matchup__cell:focus-visible { opacity:1; }
+.matchup__col.is-spotlit, .matchup__row.is-spotlit { color:var(--primary); background:var(--primary-wash);
+  box-shadow:0 0 0 2px var(--primary-wash); }
+.matchup__col.is-spotlit a, .matchup__row.is-spotlit a { font-weight:600; }
+.phone-demos { display:flex; flex-wrap:wrap; gap:20px; align-items:flex-start; }
+.phone-demo { width:min(360px, 100%); display:flex; flex-direction:column; gap:12px; padding:16px 14px;
+  background:var(--background); border:1px solid var(--edge); border-radius:22px; }
+.matchup-list { list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
+.matchup-list__item { display:grid; grid-template-columns:minmax(0,1fr) auto auto; gap:10px; align-items:center;
+  padding-block:7px; border-bottom:1px solid var(--rule); }
+.matchup-list__item:last-child { border-bottom:0; }
+.matchup-list__name { min-width:0; font-size:14px; }
+.matchup-list__name a { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  color:var(--text-900); font-weight:500; text-decoration:none; }
+.matchup-list__name a:hover { text-decoration:underline; }
+.matchup-list__matches { display:block; font-size:12px; color:var(--text-600); font-variant-numeric:tabular-nums; }
+.matchup-list__verdict { font-size:12px; color:var(--text-600); text-align:right; white-space:nowrap; }
+.deck-strip__more { font-size:14px; }
+
 @media (prefers-reduced-motion:reduce) { .skeleton { animation:none; } * { transition:none !important; } }
 @media (max-width:640px) {
   .srow { grid-template-columns:1fr; gap:5px; }
@@ -373,18 +469,18 @@ a.button { display:inline-block; text-decoration:none; }
 <div class="wrap">
 
 <header class="head">
-  <div class="eyebrow">Endstep Pauper Metagame Viewer</div>
+  <div class="head__top"><div class="eyebrow">Endstep Pauper Metagame Viewer</div><button type="button" class="theme-toggle" id="doc-theme" aria-label="Dark theme" aria-pressed="false"><svg class="theme-toggle__icon theme-toggle__icon--sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg><svg class="theme-toggle__icon theme-toggle__icon--moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg></button></div>
   <h1>Design system</h1>
-  <p class="why">Foundations and components for the overview, the deck page and the matchup table. One typeface, a light surface, two
-  action colours, and a chart palette tested for colour-vision deficiency. All card art and figures are
+  <p class="why">Foundations and components for the overview, the deck page and the matchup table. One typeface, a light and a dark
+  theme, two action colours, and a chart palette tested for colour-vision deficiency. All card art and figures are
   live Pauper data from the 30-day rated window.</p>
   <div class="chips">
-    <span>Light only</span><span>One sans family</span>
+    <span>Light and dark</span><span>One sans family</span>
     <span>Validated 8-hue palette</span><span>Ranked bars, not a pie</span>
   </div>
 </header>
 
-<nav class="toc" aria-label="Contents"><div class="navgroup"><a class="navhead" href="#foundations">Foundations</a><a href="#type">Typeface and scale</a><a href="#neutrals">Text and neutrals</a><a href="#action">Action colours</a><a href="#palette">Chart palette</a><a href="#charts">The three charts</a></div><div class="navgroup"><a class="navhead" href="#components">Components</a><a href="#panel">Panel</a><a href="#buttons">Buttons</a><a href="#window">Window selector</a><a href="#pips">Colour identity</a><a href="#deckcard">Deck card</a><a href="#summary">Summary header</a><a href="#table">Table</a><a href="#matchups">Matchup table</a><a href="#pageheader">Page header</a><a href="#deckpage">Deck page</a><a href="#deckstates">Deck page states</a><a href="#delta">Share change</a><a href="#chrome">Chart chrome</a><a href="#states">Loading, error and empty</a></div><div class="navgroup"><a class="navhead" href="#tokens">Tokens</a></div></nav>
+<nav class="toc" aria-label="Contents"><div class="navgroup"><a class="navhead" href="#foundations">Foundations</a><a href="#type">Typeface and scale</a><a href="#neutrals">Text and neutrals</a><a href="#action">Action colours</a><a href="#palette">Chart palette</a><a href="#dark">Dark theme</a><a href="#charts">The three charts</a></div><div class="navgroup"><a class="navhead" href="#components">Components</a><a href="#panel">Panel</a><a href="#buttons">Buttons</a><a href="#window">Window selector</a><a href="#viewswitch">View switch</a><a href="#pips">Colour identity</a><a href="#deckcard">Deck card</a><a href="#summary">Summary header</a><a href="#table">Table</a><a href="#matchups">Matchup table</a><a href="#pageheader">Page header</a><a href="#deckpage">Deck page</a><a href="#deckstates">Deck page states</a><a href="#delta">Share change</a><a href="#chrome">Chart chrome</a><a href="#states">Loading, error and empty</a></div><div class="navgroup"><a class="navhead" href="#tokens">Tokens</a></div></nav>
 
 <div class="part" id="foundations">
   <h2>Part one. Foundations</h2>
@@ -418,7 +514,7 @@ a.button { display:inline-block; text-decoration:none; }
     the card surface, <span class="mono">#fcfcfb</span>. Body text needs 4.5:1. Marks and large text need
     3:1.</p>
   </div>
-  <div class="panel">
+  <div class="panel scope-light">
     <table class="swatch">
       <thead><tr><th>Token</th><th></th><th>Hex</th><th class="r">Contrast</th><th>Role</th></tr></thead>
       <tbody><tr><td class="mono">--text-900</td><td><span class="chip" style="background:#0b0b0b;"></span></td>
@@ -479,7 +575,7 @@ a.button { display:inline-block; text-decoration:none; }
     not get a ninth colour, it folds into Other. Colour follows the deck and not its rank, so changing the
     window does not repaint the decks that remain.</p>
   </div>
-  <div class="panel">
+  <div class="panel scope-light">
     <table class="swatch">
       <thead><tr><th>Slot</th><th></th><th>Hue</th><th>Hex</th><th class="r">Contrast</th><th>Use</th></tr></thead>
       <tbody><tr><td class="slot">1</td><td><span class="chip" style="background:#2a78d6"></span></td>
@@ -519,6 +615,78 @@ a.button { display:inline-block; text-decoration:none; }
   eight. Other is the exception. It uses <span class="mono">--text-400</span> because it is a residual and
   not a deck.</p>
 </section>
+<section id="dark">
+  <div class="shead"><h3>Dark theme</h3>
+  <p class="why">FR-13. Soft graphite, a neutral grey with a slight cool bias. It never goes near black. Headings and
+  values sit at 9:1 rather than the light theme's 19:1, and body text at 6.6:1 rather than 7.7:1. Every token below takes its dark value under
+  <span class="mono">[data-theme="dark"]</span>, or under <span class="mono">prefers-color-scheme: dark</span> when the
+  reader has not chosen. Contrast is measured against the dark card surface, <span class="mono">#3c3d3f</span>. Use
+  the toggle at the top of this page to see every specimen in it.</p></div>
+  <div class="panel">
+    <table class="swatch">
+      <thead><tr><th>Token</th><th>Light</th><th>Dark</th><th></th><th class="r">Dark contrast</th><th>Role</th></tr></thead>
+      <tbody>
+<tr><td class="mono">--background</td><td class="mono">#f9f9f7</td><td class="mono">#353537</td><td><span class="chip" style="background:#353537;box-shadow:inset 0 0 0 1px rgba(11,11,11,.14)"></span></td><td class="num">n/a</td><td class="nm">Page behind the cards</td></tr>
+<tr><td class="mono">--surface</td><td class="mono">#fcfcfb</td><td class="mono">#3c3d3f</td><td><span class="chip" style="background:#3c3d3f;box-shadow:inset 0 0 0 1px rgba(11,11,11,.14)"></span></td><td class="num">n/a</td><td class="nm">Cards, tables, chart drawing area</td></tr>
+<tr><td class="mono">--text-900</td><td class="mono">#0b0b0b</td><td class="mono">#eaeaec</td><td><span class="chip" style="background:#eaeaec;box-shadow:inset 0 0 0 1px rgba(11,11,11,.14)"></span></td><td class="num">9.05:1</td><td class="nm">Headings, values, table figures</td></tr>
+<tr><td class="mono">--text-600</td><td class="mono">#52514e</td><td class="mono">#c8c9cb</td><td><span class="chip" style="background:#c8c9cb;box-shadow:inset 0 0 0 1px rgba(11,11,11,.14)"></span></td><td class="num">6.56:1</td><td class="nm">Body text, secondary information</td></tr>
+<tr><td class="mono">--text-400</td><td class="mono">#898781</td><td class="mono">#949597</td><td><span class="chip" style="background:#949597;box-shadow:inset 0 0 0 1px rgba(11,11,11,.14)"></span></td><td class="num">3.63:1</td><td class="nm">Axis ticks, captions, uppercase labels</td></tr>
+<tr><td class="mono">--text-inverse</td><td class="mono">#ffffff</td><td class="mono">#3c3d3f</td><td><span class="chip" style="background:#3c3d3f;box-shadow:inset 0 0 0 1px rgba(11,11,11,.14)"></span></td><td class="num">n/a</td><td class="nm">Text on --primary fills, the surface colour in the dark theme</td></tr>
+<tr><td class="mono">--rule</td><td class="mono">#e1e0d9</td><td class="mono">#4d4e4f</td><td><span class="chip" style="background:#4d4e4f;box-shadow:inset 0 0 0 1px rgba(11,11,11,.14)"></span></td><td class="num">1.30:1</td><td class="nm">Gridlines, table row separators</td></tr>
+<tr><td class="mono">--baseline</td><td class="mono">#c3c2b7</td><td class="mono">#606163</td><td><span class="chip" style="background:#606163;box-shadow:inset 0 0 0 1px rgba(11,11,11,.14)"></span></td><td class="num">1.75:1</td><td class="nm">Chart baselines, axes, the hatch</td></tr>
+<tr><td class="mono">--primary</td><td class="mono">#1c5cab</td><td class="mono">#8fbefa</td><td><span class="chip" style="background:#8fbefa;box-shadow:inset 0 0 0 1px rgba(11,11,11,.14)"></span></td><td class="num">5.65:1</td><td class="nm">Links, the selected segment, primary buttons</td></tr>
+<tr><td class="mono">--primary-hover</td><td class="mono">#184f95</td><td class="mono">#a6cdff</td><td><span class="chip" style="background:#a6cdff;box-shadow:inset 0 0 0 1px rgba(11,11,11,.14)"></span></td><td class="num">6.63:1</td><td class="nm">Primary fills on hover. New, was a literal</td></tr>
+<tr><td class="mono">--primary-wash</td><td class="mono">#eaf1fb</td><td class="mono">#38485c</td><td><span class="chip" style="background:#38485c;box-shadow:inset 0 0 0 1px rgba(11,11,11,.14)"></span></td><td class="num">n/a</td><td class="nm">Notes, the spotlight band. --primary reads at 4.85:1 on it</td></tr>
+<tr><td class="mono">--wash-text</td><td class="mono">#173f73</td><td class="mono">#dbe8fb</td><td><span class="chip" style="background:#dbe8fb;box-shadow:inset 0 0 0 1px rgba(11,11,11,.14)"></span></td><td class="num">n/a</td><td class="nm">Text on --primary-wash. New, was a literal</td></tr>
+<tr><td class="mono">--secondary</td><td class="mono">#3f3f3c</td><td class="mono">#dcdcde</td><td><span class="chip" style="background:#dcdcde;box-shadow:inset 0 0 0 1px rgba(11,11,11,.14)"></span></td><td class="num">7.94:1</td><td class="nm">Secondary button text</td></tr>
+<tr><td class="mono">--hover</td><td class="mono">#f1f0ec</td><td class="mono">#424244</td><td><span class="chip" style="background:#424244;box-shadow:inset 0 0 0 1px rgba(11,11,11,.14)"></span></td><td class="num">n/a</td><td class="nm">Hover fill of buttons and segments. New, was a literal</td></tr>
+<tr><td class="mono">--row-hover</td><td class="mono">#f5f4f0</td><td class="mono">#404143</td><td><span class="chip" style="background:#404143;box-shadow:inset 0 0 0 1px rgba(11,11,11,.14)"></span></td><td class="num">n/a</td><td class="nm">Table row hover. New, was a literal</td></tr>
+<tr><td class="mono">--up</td><td class="mono">#006300</td><td class="mono">#7ac07c</td><td><span class="chip" style="background:#7ac07c;box-shadow:inset 0 0 0 1px rgba(11,11,11,.14)"></span></td><td class="num">5.00:1</td><td class="nm">Share gained</td></tr>
+<tr><td class="mono">--down</td><td class="mono">#d03b3b</td><td class="mono">#f8968e</td><td><span class="chip" style="background:#f8968e;box-shadow:inset 0 0 0 1px rgba(11,11,11,.14)"></span></td><td class="num">5.05:1</td><td class="nm">Share lost</td></tr>
+<tr><td class="mono">--win</td><td class="mono">#9ec5f4</td><td class="mono">#385c8a</td><td><span class="chip" style="background:#385c8a;box-shadow:inset 0 0 0 1px rgba(11,11,11,.14)"></span></td><td class="num">n/a</td><td class="nm">Favoured, clear result</td></tr>
+<tr><td class="mono">--loss</td><td class="mono">#f7aba4</td><td class="mono">#844645</td><td><span class="chip" style="background:#844645;box-shadow:inset 0 0 0 1px rgba(11,11,11,.14)"></span></td><td class="num">n/a</td><td class="nm">Unfavoured, clear result</td></tr>
+<tr><td class="mono">--mirror</td><td class="mono">#efeee9</td><td class="mono">#444547</td><td><span class="chip" style="background:#444547;box-shadow:inset 0 0 0 1px rgba(11,11,11,.14)"></span></td><td class="num">n/a</td><td class="nm">The diagonal</td></tr>
+<tr><td class="mono">--shadow</td><td class="mono">rgba(11,11,11,.09)</td><td class="mono">rgba(0,0,0,.32)</td><td></td><td class="num">n/a</td><td class="nm">Tooltip shadow. New, was a literal</td></tr>
+<tr><td class="mono">--edge</td><td class="mono">rgba(11,11,11,.10)</td><td class="mono">rgba(255,255,255,.09)</td><td></td><td class="num">n/a</td><td class="nm">Panel and control borders</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="panel">
+    <table class="swatch">
+      <thead><tr><th>Slot</th><th>Light</th><th>Dark</th><th></th><th class="r">Dark contrast</th><th>Hue</th></tr></thead>
+      <tbody>
+<tr><td class="mono">--s1</td><td class="mono">#2a78d6</td><td class="mono">#4f8ddd</td><td><span class="chip" style="background:#4f8ddd;box-shadow:inset 0 0 0 1px rgba(11,11,11,.14)"></span></td><td class="num">3.20:1</td><td class="nm">Blue</td></tr>
+<tr><td class="mono">--s2</td><td class="mono">#eb6834</td><td class="mono">#da6d44</td><td><span class="chip" style="background:#da6d44;box-shadow:inset 0 0 0 1px rgba(11,11,11,.14)"></span></td><td class="num">3.24:1</td><td class="nm">Orange</td></tr>
+<tr><td class="mono">--s3</td><td class="mono">#1baf7a</td><td class="mono">#38a276</td><td><span class="chip" style="background:#38a276;box-shadow:inset 0 0 0 1px rgba(11,11,11,.14)"></span></td><td class="num">3.42:1</td><td class="nm">Aqua</td></tr>
+<tr><td class="mono">--s4</td><td class="mono">#eda100</td><td class="mono">#bd8003</td><td><span class="chip" style="background:#bd8003;box-shadow:inset 0 0 0 1px rgba(11,11,11,.14)"></span></td><td class="num">3.24:1</td><td class="nm">Yellow</td></tr>
+<tr><td class="mono">--s5</td><td class="mono">#e87ba4</td><td class="mono">#ca7091</td><td><span class="chip" style="background:#ca7091;box-shadow:inset 0 0 0 1px rgba(11,11,11,.14)"></span></td><td class="num">3.23:1</td><td class="nm">Magenta</td></tr>
+<tr><td class="mono">--s6</td><td class="mono">#008300</td><td class="mono">#499e44</td><td><span class="chip" style="background:#499e44;box-shadow:inset 0 0 0 1px rgba(11,11,11,.14)"></span></td><td class="num">3.24:1</td><td class="nm">Green</td></tr>
+<tr><td class="mono">--s7</td><td class="mono">#4a3aa7</td><td class="mono">#8581e0</td><td><span class="chip" style="background:#8581e0;box-shadow:inset 0 0 0 1px rgba(11,11,11,.14)"></span></td><td class="num">3.22:1</td><td class="nm">Violet</td></tr>
+<tr><td class="mono">--s8</td><td class="mono">#e34948</td><td class="mono">#e3635e</td><td><span class="chip" style="background:#e3635e;box-shadow:inset 0 0 0 1px rgba(11,11,11,.14)"></span></td><td class="num">3.22:1</td><td class="nm">Red</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="note"><b>Validator result on the dark surface.</b> The dark slots are the light hues, lifted in OKLCH
+  lightness until each clears 3:1, from 3.20:1 to 3.42:1, inside the dark band of L 0.48 to 0.67. Worst adjacent pair
+  under colour-vision deficiency: aqua against orange, ΔE 8.2 under deuteranopia, above the target of 8. Worst adjacent
+  pair under normal vision: magenta against yellow, ΔE 16.1, above the floor of 15. Every hue clears 3:1, so the
+  relief rule that the light palette triggers does not apply in the dark theme. The charts keep their labels and the
+  table view anyway.</p>
+  <p class="spec"><b>Sequential blue, dark.</b> The ramp flips, so step 100 sits nearest the surface and step 700 is
+  the lightest: 100 <span class="mono">#164781</span>, 200 <span class="mono">#2b5c97</span>, 300 <span class="mono">#3f70ad</span>, 400 <span class="mono">#5485c4</span>, 500 <span class="mono">#689bdb</span>, 600 <span class="mono">#7eb1f3</span>, 700 <span class="mono">#93c7ff</span>. The ranked bars use step 500, <span class="mono">#689bdb</span>, at 3.78:1.</p>
+  <p class="spec"><b>Matchup cells.</b> Favoured and unfavoured become deep fills under light text:
+  <span class="mono">--text-900</span> reads at 5.70:1 on <span class="mono">--win</span> and 5.94:1 on
+  <span class="mono">--loss</span>. Blue against red keeps ΔE 11.2 under protanopia. The hatch draws in
+  <span class="mono">--baseline</span>, as in the light theme.</p>
+  <p class="spec"><b>What fades by opacity.</b> Measured on each theme's surface, light first: the spotlight's faded
+  cells, NFR-6's one exception, read at 1.5:1 and 1.7:1. A hidden legend entry at 40% reads at 1.9:1 and 2.4:1. A busy
+  section at 55% keeps its body text at 4.4:1 and 4.0:1. The dark theme fades no further than the light one, so the
+  owner's settled exception holds as accepted.</p>
+  <p class="spec"><b>What stays.</b> Card art and the colour pips are the same in both themes. The pips' fills and their
+  <span class="mono">#1a1714</span> letters are the cards' own colours, and each pip has its own outline, so it holds on
+  either surface. <span class="mono">color-scheme</span> follows the theme, so native controls, such as the deck picker,
+  and the scrollbars turn dark too.</p>
+</section>
 <section id="charts">
   <div class="shead">
     <h3>The three charts</h3>
@@ -529,21 +697,21 @@ a.button { display:inline-block; text-decoration:none; }
     <h4 class="sub">Share over time</h4>
     <div class="figwrap"><svg viewBox="0 0 1000 340" role="img" aria-label="Daily meta share, eight decks" class="fig">
 <text x="0" y="10" class="tick" text-anchor="start">meta share</text>
-<line x1="46" y1="306.0" x2="868" y2="306.0" stroke="#e1e0d9" stroke-width="1"/>
+<line x1="46" y1="306.0" x2="868" y2="306.0" stroke="var(--rule)" stroke-width="1"/>
 <text x="36" y="310.0" text-anchor="end" class="tick">0%</text>
-<line x1="46" y1="265.7" x2="868" y2="265.7" stroke="#e1e0d9" stroke-width="1"/>
+<line x1="46" y1="265.7" x2="868" y2="265.7" stroke="var(--rule)" stroke-width="1"/>
 <text x="36" y="269.7" text-anchor="end" class="tick">2%</text>
-<line x1="46" y1="225.4" x2="868" y2="225.4" stroke="#e1e0d9" stroke-width="1"/>
+<line x1="46" y1="225.4" x2="868" y2="225.4" stroke="var(--rule)" stroke-width="1"/>
 <text x="36" y="229.4" text-anchor="end" class="tick">4%</text>
-<line x1="46" y1="185.1" x2="868" y2="185.1" stroke="#e1e0d9" stroke-width="1"/>
+<line x1="46" y1="185.1" x2="868" y2="185.1" stroke="var(--rule)" stroke-width="1"/>
 <text x="36" y="189.1" text-anchor="end" class="tick">6%</text>
-<line x1="46" y1="144.9" x2="868" y2="144.9" stroke="#e1e0d9" stroke-width="1"/>
+<line x1="46" y1="144.9" x2="868" y2="144.9" stroke="var(--rule)" stroke-width="1"/>
 <text x="36" y="148.9" text-anchor="end" class="tick">8%</text>
-<line x1="46" y1="104.6" x2="868" y2="104.6" stroke="#e1e0d9" stroke-width="1"/>
+<line x1="46" y1="104.6" x2="868" y2="104.6" stroke="var(--rule)" stroke-width="1"/>
 <text x="36" y="108.6" text-anchor="end" class="tick">10%</text>
-<line x1="46" y1="64.3" x2="868" y2="64.3" stroke="#e1e0d9" stroke-width="1"/>
+<line x1="46" y1="64.3" x2="868" y2="64.3" stroke="var(--rule)" stroke-width="1"/>
 <text x="36" y="68.3" text-anchor="end" class="tick">12%</text>
-<line x1="46" y1="24.0" x2="868" y2="24.0" stroke="#e1e0d9" stroke-width="1"/>
+<line x1="46" y1="24.0" x2="868" y2="24.0" stroke="var(--rule)" stroke-width="1"/>
 <text x="36" y="28.0" text-anchor="end" class="tick">14%</text>
 <text x="46.0" y="328" text-anchor="middle" class="tick">09-05</text>
 <text x="210.4" y="328" text-anchor="middle" class="tick">09-09</text>
@@ -551,31 +719,31 @@ a.button { display:inline-block; text-decoration:none; }
 <text x="539.2" y="328" text-anchor="middle" class="tick">09-17</text>
 <text x="703.6" y="328" text-anchor="middle" class="tick">09-21</text>
 <text x="868.0" y="328" text-anchor="middle" class="tick">09-25</text>
-<line x1="46" y1="306.0" x2="868" y2="306.0" stroke="#c3c2b7" stroke-width="1"/>
-<polyline points="46.0,199.2 87.1,144.5 128.2,119.7 169.3,107.0 210.4,140.4 251.5,133.0 292.6,105.8 333.7,92.1 374.8,92.1 415.9,56.2 457.0,53.0 498.1,53.2 539.2,69.9 580.3,65.9 621.4,75.0 662.5,98.1 703.6,110.6 744.7,121.7 785.8,135.8 826.9,121.7 868.0,170.0" fill="none" stroke="#2a78d6" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-<polyline points="46.0,106.2 87.1,130.6 128.2,149.7 169.3,173.9 210.4,155.9 251.5,160.2 292.6,143.6 333.7,143.8 374.8,138.0 415.9,150.3 457.0,143.0 498.1,146.7 539.2,141.4 580.3,146.3 621.4,156.1 662.5,139.2 703.6,144.3 744.7,148.7 785.8,137.6 826.9,157.5 868.0,179.7" fill="none" stroke="#eb6834" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-<polyline points="46.0,153.1 87.1,163.2 128.2,168.6 169.3,154.9 210.4,148.5 251.5,177.9 292.6,162.0 333.7,139.0 374.8,130.2 415.9,162.2 457.0,138.8 498.1,169.2 539.2,177.3 580.3,151.7 621.4,156.5 662.5,190.8 703.6,161.8 744.7,182.7 785.8,178.5 826.9,166.0 868.0,207.5" fill="none" stroke="#1baf7a" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-<polyline points="46.0,180.1 87.1,191.8 128.2,181.9 169.3,198.8 210.4,164.8 251.5,178.3 292.6,191.6 333.7,200.0 374.8,214.8 415.9,211.9 457.0,221.2 498.1,222.2 539.2,215.8 580.3,230.3 621.4,241.5 662.5,226.0 703.6,233.3 744.7,230.9 785.8,227.0 826.9,245.0 868.0,245.0" fill="none" stroke="#eda100" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-<polyline points="46.0,199.2 87.1,222.4 128.2,227.6 169.3,203.1 210.4,229.1 251.5,224.0 292.6,235.3 333.7,217.2 374.8,220.0 415.9,240.9 457.0,233.5 498.1,218.0 539.2,215.2 580.3,229.1 621.4,213.7 662.5,214.1 703.6,228.2 744.7,209.9 785.8,212.9 826.9,220.8 868.0,246.4" fill="none" stroke="#e87ba4" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-<polyline points="46.0,195.4 87.1,202.9 128.2,227.6 169.3,203.9 210.4,217.4 251.5,212.5 292.6,208.9 333.7,251.4 374.8,229.5 415.9,228.7 457.0,243.8 498.1,233.5 539.2,229.3 580.3,221.6 621.4,220.6 662.5,225.8 703.6,215.8 744.7,215.4 785.8,229.7 826.9,210.3 868.0,243.6" fill="none" stroke="#008300" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-<polyline points="46.0,171.4 87.1,183.3 128.2,216.4 169.3,207.1 210.4,218.2 251.5,222.6 292.6,228.7 333.7,231.1 374.8,236.7 415.9,223.6 457.0,235.3 498.1,241.5 539.2,237.7 580.3,246.0 621.4,247.8 662.5,237.3 703.6,216.8 744.7,211.1 785.8,208.3 826.9,209.9 868.0,237.3" fill="none" stroke="#4a3aa7" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-<polyline points="46.0,246.4 87.1,244.0 128.2,229.7 169.3,225.6 210.4,218.2 251.5,250.4 292.6,246.2 333.7,238.3 374.8,229.5 415.9,243.4 457.0,234.5 498.1,236.5 539.2,225.8 580.3,224.6 621.4,217.4 662.5,208.7 703.6,218.0 744.7,213.3 785.8,212.5 826.9,201.7 868.0,226.2" fill="none" stroke="#e34948" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
-<circle cx="868.0" cy="170.0" r="3.5" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/>
-<text x="878" y="174.0" class="lbl" fill="#52514e">Affinity</text>
-<circle cx="868.0" cy="179.7" r="3.5" fill="#eb6834" stroke="#fcfcfb" stroke-width="2"/>
-<text x="878" y="198.7" class="lbl" fill="#52514e">Mono-Red Madness</text>
-<circle cx="868.0" cy="207.5" r="3.5" fill="#1baf7a" stroke="#fcfcfb" stroke-width="2"/>
-<text x="878" y="226.5" class="lbl" fill="#52514e">Monster Tron</text>
-<circle cx="868.0" cy="226.2" r="3.5" fill="#e34948" stroke="#fcfcfb" stroke-width="2"/>
-<text x="878" y="245.2" class="lbl" fill="#52514e">Jeskai Ephemerate</text>
-<circle cx="868.0" cy="237.3" r="3.5" fill="#4a3aa7" stroke="#fcfcfb" stroke-width="2"/>
-<text x="878" y="271.3" class="lbl" fill="#52514e">Mono-Red Rally</text>
-<circle cx="868.0" cy="243.6" r="3.5" fill="#008300" stroke="#fcfcfb" stroke-width="2"/>
-<text x="878" y="292.6" class="lbl" fill="#52514e">Spy combo</text>
-<circle cx="868.0" cy="245.0" r="3.5" fill="#eda100" stroke="#fcfcfb" stroke-width="2"/>
-<text x="878" y="309.0" class="lbl" fill="#52514e">Gruul Ponza</text>
-<circle cx="868.0" cy="246.4" r="3.5" fill="#e87ba4" stroke="#fcfcfb" stroke-width="2"/>
-<text x="878" y="325.4" class="lbl" fill="#52514e">Blue Terror</text>
+<line x1="46" y1="306.0" x2="868" y2="306.0" stroke="var(--baseline)" stroke-width="1"/>
+<polyline points="46.0,199.2 87.1,144.5 128.2,119.7 169.3,107.0 210.4,140.4 251.5,133.0 292.6,105.8 333.7,92.1 374.8,92.1 415.9,56.2 457.0,53.0 498.1,53.2 539.2,69.9 580.3,65.9 621.4,75.0 662.5,98.1 703.6,110.6 744.7,121.7 785.8,135.8 826.9,121.7 868.0,170.0" fill="none" stroke="var(--s1)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="46.0,106.2 87.1,130.6 128.2,149.7 169.3,173.9 210.4,155.9 251.5,160.2 292.6,143.6 333.7,143.8 374.8,138.0 415.9,150.3 457.0,143.0 498.1,146.7 539.2,141.4 580.3,146.3 621.4,156.1 662.5,139.2 703.6,144.3 744.7,148.7 785.8,137.6 826.9,157.5 868.0,179.7" fill="none" stroke="var(--s2)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="46.0,153.1 87.1,163.2 128.2,168.6 169.3,154.9 210.4,148.5 251.5,177.9 292.6,162.0 333.7,139.0 374.8,130.2 415.9,162.2 457.0,138.8 498.1,169.2 539.2,177.3 580.3,151.7 621.4,156.5 662.5,190.8 703.6,161.8 744.7,182.7 785.8,178.5 826.9,166.0 868.0,207.5" fill="none" stroke="var(--s3)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="46.0,180.1 87.1,191.8 128.2,181.9 169.3,198.8 210.4,164.8 251.5,178.3 292.6,191.6 333.7,200.0 374.8,214.8 415.9,211.9 457.0,221.2 498.1,222.2 539.2,215.8 580.3,230.3 621.4,241.5 662.5,226.0 703.6,233.3 744.7,230.9 785.8,227.0 826.9,245.0 868.0,245.0" fill="none" stroke="var(--s4)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="46.0,199.2 87.1,222.4 128.2,227.6 169.3,203.1 210.4,229.1 251.5,224.0 292.6,235.3 333.7,217.2 374.8,220.0 415.9,240.9 457.0,233.5 498.1,218.0 539.2,215.2 580.3,229.1 621.4,213.7 662.5,214.1 703.6,228.2 744.7,209.9 785.8,212.9 826.9,220.8 868.0,246.4" fill="none" stroke="var(--s5)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="46.0,195.4 87.1,202.9 128.2,227.6 169.3,203.9 210.4,217.4 251.5,212.5 292.6,208.9 333.7,251.4 374.8,229.5 415.9,228.7 457.0,243.8 498.1,233.5 539.2,229.3 580.3,221.6 621.4,220.6 662.5,225.8 703.6,215.8 744.7,215.4 785.8,229.7 826.9,210.3 868.0,243.6" fill="none" stroke="var(--s6)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="46.0,171.4 87.1,183.3 128.2,216.4 169.3,207.1 210.4,218.2 251.5,222.6 292.6,228.7 333.7,231.1 374.8,236.7 415.9,223.6 457.0,235.3 498.1,241.5 539.2,237.7 580.3,246.0 621.4,247.8 662.5,237.3 703.6,216.8 744.7,211.1 785.8,208.3 826.9,209.9 868.0,237.3" fill="none" stroke="var(--s7)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<polyline points="46.0,246.4 87.1,244.0 128.2,229.7 169.3,225.6 210.4,218.2 251.5,250.4 292.6,246.2 333.7,238.3 374.8,229.5 415.9,243.4 457.0,234.5 498.1,236.5 539.2,225.8 580.3,224.6 621.4,217.4 662.5,208.7 703.6,218.0 744.7,213.3 785.8,212.5 826.9,201.7 868.0,226.2" fill="none" stroke="var(--s8)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+<circle cx="868.0" cy="170.0" r="3.5" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"/>
+<text x="878" y="174.0" class="lbl" fill="var(--text-600)">Affinity</text>
+<circle cx="868.0" cy="179.7" r="3.5" fill="var(--s2)" stroke="var(--surface)" stroke-width="2"/>
+<text x="878" y="198.7" class="lbl" fill="var(--text-600)">Mono-Red Madness</text>
+<circle cx="868.0" cy="207.5" r="3.5" fill="var(--s3)" stroke="var(--surface)" stroke-width="2"/>
+<text x="878" y="226.5" class="lbl" fill="var(--text-600)">Monster Tron</text>
+<circle cx="868.0" cy="226.2" r="3.5" fill="var(--s8)" stroke="var(--surface)" stroke-width="2"/>
+<text x="878" y="245.2" class="lbl" fill="var(--text-600)">Jeskai Ephemerate</text>
+<circle cx="868.0" cy="237.3" r="3.5" fill="var(--s7)" stroke="var(--surface)" stroke-width="2"/>
+<text x="878" y="271.3" class="lbl" fill="var(--text-600)">Mono-Red Rally</text>
+<circle cx="868.0" cy="243.6" r="3.5" fill="var(--s6)" stroke="var(--surface)" stroke-width="2"/>
+<text x="878" y="292.6" class="lbl" fill="var(--text-600)">Spy combo</text>
+<circle cx="868.0" cy="245.0" r="3.5" fill="var(--s4)" stroke="var(--surface)" stroke-width="2"/>
+<text x="878" y="309.0" class="lbl" fill="var(--text-600)">Gruul Ponza</text>
+<circle cx="868.0" cy="246.4" r="3.5" fill="var(--s5)" stroke="var(--surface)" stroke-width="2"/>
+<text x="878" y="325.4" class="lbl" fill="var(--text-600)">Blue Terror</text>
 </svg></div>
     <figcaption><b>Eight series, eight slots.</b> This is the only chart that uses the categorical palette,
     and it uses all of it. Lines are 2px, the grid is low contrast, and every series has a labelled endpoint
@@ -586,91 +754,91 @@ a.button { display:inline-block; text-decoration:none; }
   <figure>
     <h4 class="sub">Meta share, ranked bars</h4>
     <div class="figwrap"><svg viewBox="0 0 1000 626" role="img" aria-label="Meta share by deck, ranked" class="fig">
-<line x1="196.0" y1="16" x2="196.0" y2="620" stroke="#e1e0d9" stroke-width="1"/>
+<line x1="196.0" y1="16" x2="196.0" y2="620" stroke="var(--rule)" stroke-width="1"/>
 <text x="196.0" y="10" text-anchor="middle" class="tick">0%</text>
-<line x1="369.3" y1="16" x2="369.3" y2="620" stroke="#e1e0d9" stroke-width="1"/>
+<line x1="369.3" y1="16" x2="369.3" y2="620" stroke="var(--rule)" stroke-width="1"/>
 <text x="369.3" y="10" text-anchor="middle" class="tick">5%</text>
-<line x1="542.5" y1="16" x2="542.5" y2="620" stroke="#e1e0d9" stroke-width="1"/>
+<line x1="542.5" y1="16" x2="542.5" y2="620" stroke="var(--rule)" stroke-width="1"/>
 <text x="542.5" y="10" text-anchor="middle" class="tick">10%</text>
-<line x1="715.8" y1="16" x2="715.8" y2="620" stroke="#e1e0d9" stroke-width="1"/>
+<line x1="715.8" y1="16" x2="715.8" y2="620" stroke="var(--rule)" stroke-width="1"/>
 <text x="715.8" y="10" text-anchor="middle" class="tick">15%</text>
-<line x1="889.0" y1="16" x2="889.0" y2="620" stroke="#e1e0d9" stroke-width="1"/>
+<line x1="889.0" y1="16" x2="889.0" y2="620" stroke="var(--rule)" stroke-width="1"/>
 <text x="889.0" y="10" text-anchor="middle" class="tick">20%</text>
-<text x="186" y="41" text-anchor="end" class="lbl" fill="#52514e">Affinity</text>
-<rect x="196" y="26" width="354.8" height="17" rx="3" fill="#2a78d6"/>
-<text x="558.8" y="41" class="val" fill="#0b0b0b">10.24%</text>
-<text x="186" y="65" text-anchor="end" class="lbl" fill="#52514e">Mono-Red Madness</text>
-<rect x="196" y="50" width="272.7" height="17" rx="3" fill="#2a78d6"/>
-<text x="476.7" y="65" class="val" fill="#0b0b0b">7.87%</text>
-<text x="186" y="89" text-anchor="end" class="lbl" fill="#52514e">Monster Tron</text>
-<rect x="196" y="74" width="244.6" height="17" rx="3" fill="#2a78d6"/>
-<text x="448.6" y="89" class="val" fill="#0b0b0b">7.06%</text>
-<text x="186" y="113" text-anchor="end" class="lbl" fill="#52514e">Gruul Ponza</text>
-<rect x="196" y="98" width="152.8" height="17" rx="3" fill="#2a78d6"/>
-<text x="356.8" y="113" class="val" fill="#0b0b0b">4.41%</text>
-<text x="186" y="137" text-anchor="end" class="lbl" fill="#52514e">Blue Terror</text>
-<rect x="196" y="122" width="145.2" height="17" rx="3" fill="#2a78d6"/>
-<text x="349.2" y="137" class="val" fill="#0b0b0b">4.19%</text>
-<text x="186" y="161" text-anchor="end" class="lbl" fill="#52514e">Spy combo</text>
-<rect x="196" y="146" width="142.1" height="17" rx="3" fill="#2a78d6"/>
-<text x="346.1" y="161" class="val" fill="#0b0b0b">4.10%</text>
-<text x="186" y="185" text-anchor="end" class="lbl" fill="#52514e">Mono-Red Rally</text>
-<rect x="196" y="170" width="139.3" height="17" rx="3" fill="#2a78d6"/>
-<text x="343.3" y="185" class="val" fill="#0b0b0b">4.02%</text>
-<text x="186" y="209" text-anchor="end" class="lbl" fill="#52514e">Jeskai Ephemerate</text>
-<rect x="196" y="194" width="138.6" height="17" rx="3" fill="#2a78d6"/>
-<text x="342.6" y="209" class="val" fill="#0b0b0b">4.00%</text>
-<text x="186" y="233" text-anchor="end" class="lbl" fill="#52514e">Elves</text>
-<rect x="196" y="218" width="138.6" height="17" rx="3" fill="#2a78d6"/>
-<text x="342.6" y="233" class="val" fill="#0b0b0b">4.00%</text>
-<text x="186" y="257" text-anchor="end" class="lbl" fill="#52514e">Boros</text>
-<rect x="196" y="242" width="124.4" height="17" rx="3" fill="#2a78d6"/>
-<text x="328.4" y="257" class="val" fill="#0b0b0b">3.59%</text>
-<text x="186" y="281" text-anchor="end" class="lbl" fill="#52514e">Dimir Control</text>
-<rect x="196" y="266" width="123.0" height="17" rx="3" fill="#2a78d6"/>
-<text x="327.0" y="281" class="val" fill="#0b0b0b">3.55%</text>
-<text x="186" y="305" text-anchor="end" class="lbl" fill="#52514e">Mono-Blue Faeries</text>
-<rect x="196" y="290" width="103.6" height="17" rx="3" fill="#2a78d6"/>
-<text x="307.6" y="305" class="val" fill="#0b0b0b">2.99%</text>
-<text x="186" y="329" text-anchor="end" class="lbl" fill="#52514e">Bogles</text>
-<rect x="196" y="314" width="90.8" height="17" rx="3" fill="#2a78d6"/>
-<text x="294.8" y="329" class="val" fill="#0b0b0b">2.62%</text>
-<text x="186" y="353" text-anchor="end" class="lbl" fill="#52514e">Jund Wildfire</text>
-<rect x="196" y="338" width="85.9" height="17" rx="3" fill="#2a78d6"/>
-<text x="289.9" y="353" class="val" fill="#0b0b0b">2.48%</text>
-<text x="186" y="377" text-anchor="end" class="lbl" fill="#52514e">White Weenie</text>
-<rect x="196" y="362" width="82.8" height="17" rx="3" fill="#2a78d6"/>
-<text x="286.8" y="377" class="val" fill="#0b0b0b">2.39%</text>
-<text x="186" y="401" text-anchor="end" class="lbl" fill="#52514e">Gardens</text>
-<rect x="196" y="386" width="70.7" height="17" rx="3" fill="#2a78d6"/>
-<text x="274.7" y="401" class="val" fill="#0b0b0b">2.04%</text>
-<text x="186" y="425" text-anchor="end" class="lbl" fill="#52514e">Mono-White Aggro</text>
-<rect x="196" y="410" width="70.3" height="17" rx="3" fill="#2a78d6"/>
-<text x="274.3" y="425" class="val" fill="#0b0b0b">2.03%</text>
-<text x="186" y="449" text-anchor="end" class="lbl" fill="#52514e">Gates</text>
-<rect x="196" y="434" width="44.0" height="17" rx="3" fill="#2a78d6"/>
-<text x="248.0" y="449" class="val" fill="#0b0b0b">1.27%</text>
-<text x="186" y="473" text-anchor="end" class="lbl" fill="#52514e">Caw-Blade</text>
-<rect x="196" y="458" width="40.9" height="17" rx="3" fill="#2a78d6"/>
-<text x="244.9" y="473" class="val" fill="#0b0b0b">1.18%</text>
-<text x="186" y="497" text-anchor="end" class="lbl" fill="#52514e">Dimir Faeries</text>
-<rect x="196" y="482" width="39.5" height="17" rx="3" fill="#2a78d6"/>
-<text x="243.5" y="497" class="val" fill="#0b0b0b">1.14%</text>
-<text x="186" y="521" text-anchor="end" class="lbl" fill="#52514e">Mono-Black Sac</text>
-<rect x="196" y="506" width="32.9" height="17" rx="3" fill="#2a78d6"/>
-<text x="236.9" y="521" class="val" fill="#0b0b0b">0.95%</text>
-<text x="186" y="545" text-anchor="end" class="lbl" fill="#52514e">Izzet Control</text>
-<rect x="196" y="530" width="31.5" height="17" rx="3" fill="#2a78d6"/>
-<text x="235.5" y="545" class="val" fill="#0b0b0b">0.91%</text>
-<text x="186" y="569" text-anchor="end" class="lbl" fill="#52514e">Ruby Storm</text>
-<rect x="196" y="554" width="30.8" height="17" rx="3" fill="#2a78d6"/>
-<text x="234.8" y="569" class="val" fill="#0b0b0b">0.89%</text>
-<text x="186" y="593" text-anchor="end" class="lbl" fill="#52514e">Blue-White Familiars</text>
-<rect x="196" y="578" width="30.1" height="17" rx="3" fill="#2a78d6"/>
-<text x="234.1" y="593" class="val" fill="#0b0b0b">0.87%</text>
-<text x="186" y="617" text-anchor="end" class="lbl" fill="#52514e">Other (240 archetypes)</text>
-<rect x="196" y="602" width="736.0" height="17" rx="3" fill="#898781"/>
-<text x="940.0" y="617" class="val" fill="#0b0b0b">21.24%</text>
+<text x="186" y="41" text-anchor="end" class="lbl" fill="var(--text-600)">Affinity</text>
+<rect x="196" y="26" width="354.8" height="17" rx="3" fill="var(--seq-500)"/>
+<text x="558.8" y="41" class="val" fill="var(--text-900)">10.24%</text>
+<text x="186" y="65" text-anchor="end" class="lbl" fill="var(--text-600)">Mono-Red Madness</text>
+<rect x="196" y="50" width="272.7" height="17" rx="3" fill="var(--seq-500)"/>
+<text x="476.7" y="65" class="val" fill="var(--text-900)">7.87%</text>
+<text x="186" y="89" text-anchor="end" class="lbl" fill="var(--text-600)">Monster Tron</text>
+<rect x="196" y="74" width="244.6" height="17" rx="3" fill="var(--seq-500)"/>
+<text x="448.6" y="89" class="val" fill="var(--text-900)">7.06%</text>
+<text x="186" y="113" text-anchor="end" class="lbl" fill="var(--text-600)">Gruul Ponza</text>
+<rect x="196" y="98" width="152.8" height="17" rx="3" fill="var(--seq-500)"/>
+<text x="356.8" y="113" class="val" fill="var(--text-900)">4.41%</text>
+<text x="186" y="137" text-anchor="end" class="lbl" fill="var(--text-600)">Blue Terror</text>
+<rect x="196" y="122" width="145.2" height="17" rx="3" fill="var(--seq-500)"/>
+<text x="349.2" y="137" class="val" fill="var(--text-900)">4.19%</text>
+<text x="186" y="161" text-anchor="end" class="lbl" fill="var(--text-600)">Spy combo</text>
+<rect x="196" y="146" width="142.1" height="17" rx="3" fill="var(--seq-500)"/>
+<text x="346.1" y="161" class="val" fill="var(--text-900)">4.10%</text>
+<text x="186" y="185" text-anchor="end" class="lbl" fill="var(--text-600)">Mono-Red Rally</text>
+<rect x="196" y="170" width="139.3" height="17" rx="3" fill="var(--seq-500)"/>
+<text x="343.3" y="185" class="val" fill="var(--text-900)">4.02%</text>
+<text x="186" y="209" text-anchor="end" class="lbl" fill="var(--text-600)">Jeskai Ephemerate</text>
+<rect x="196" y="194" width="138.6" height="17" rx="3" fill="var(--seq-500)"/>
+<text x="342.6" y="209" class="val" fill="var(--text-900)">4.00%</text>
+<text x="186" y="233" text-anchor="end" class="lbl" fill="var(--text-600)">Elves</text>
+<rect x="196" y="218" width="138.6" height="17" rx="3" fill="var(--seq-500)"/>
+<text x="342.6" y="233" class="val" fill="var(--text-900)">4.00%</text>
+<text x="186" y="257" text-anchor="end" class="lbl" fill="var(--text-600)">Boros</text>
+<rect x="196" y="242" width="124.4" height="17" rx="3" fill="var(--seq-500)"/>
+<text x="328.4" y="257" class="val" fill="var(--text-900)">3.59%</text>
+<text x="186" y="281" text-anchor="end" class="lbl" fill="var(--text-600)">Dimir Control</text>
+<rect x="196" y="266" width="123.0" height="17" rx="3" fill="var(--seq-500)"/>
+<text x="327.0" y="281" class="val" fill="var(--text-900)">3.55%</text>
+<text x="186" y="305" text-anchor="end" class="lbl" fill="var(--text-600)">Mono-Blue Faeries</text>
+<rect x="196" y="290" width="103.6" height="17" rx="3" fill="var(--seq-500)"/>
+<text x="307.6" y="305" class="val" fill="var(--text-900)">2.99%</text>
+<text x="186" y="329" text-anchor="end" class="lbl" fill="var(--text-600)">Bogles</text>
+<rect x="196" y="314" width="90.8" height="17" rx="3" fill="var(--seq-500)"/>
+<text x="294.8" y="329" class="val" fill="var(--text-900)">2.62%</text>
+<text x="186" y="353" text-anchor="end" class="lbl" fill="var(--text-600)">Jund Wildfire</text>
+<rect x="196" y="338" width="85.9" height="17" rx="3" fill="var(--seq-500)"/>
+<text x="289.9" y="353" class="val" fill="var(--text-900)">2.48%</text>
+<text x="186" y="377" text-anchor="end" class="lbl" fill="var(--text-600)">White Weenie</text>
+<rect x="196" y="362" width="82.8" height="17" rx="3" fill="var(--seq-500)"/>
+<text x="286.8" y="377" class="val" fill="var(--text-900)">2.39%</text>
+<text x="186" y="401" text-anchor="end" class="lbl" fill="var(--text-600)">Gardens</text>
+<rect x="196" y="386" width="70.7" height="17" rx="3" fill="var(--seq-500)"/>
+<text x="274.7" y="401" class="val" fill="var(--text-900)">2.04%</text>
+<text x="186" y="425" text-anchor="end" class="lbl" fill="var(--text-600)">Mono-White Aggro</text>
+<rect x="196" y="410" width="70.3" height="17" rx="3" fill="var(--seq-500)"/>
+<text x="274.3" y="425" class="val" fill="var(--text-900)">2.03%</text>
+<text x="186" y="449" text-anchor="end" class="lbl" fill="var(--text-600)">Gates</text>
+<rect x="196" y="434" width="44.0" height="17" rx="3" fill="var(--seq-500)"/>
+<text x="248.0" y="449" class="val" fill="var(--text-900)">1.27%</text>
+<text x="186" y="473" text-anchor="end" class="lbl" fill="var(--text-600)">Caw-Blade</text>
+<rect x="196" y="458" width="40.9" height="17" rx="3" fill="var(--seq-500)"/>
+<text x="244.9" y="473" class="val" fill="var(--text-900)">1.18%</text>
+<text x="186" y="497" text-anchor="end" class="lbl" fill="var(--text-600)">Dimir Faeries</text>
+<rect x="196" y="482" width="39.5" height="17" rx="3" fill="var(--seq-500)"/>
+<text x="243.5" y="497" class="val" fill="var(--text-900)">1.14%</text>
+<text x="186" y="521" text-anchor="end" class="lbl" fill="var(--text-600)">Mono-Black Sac</text>
+<rect x="196" y="506" width="32.9" height="17" rx="3" fill="var(--seq-500)"/>
+<text x="236.9" y="521" class="val" fill="var(--text-900)">0.95%</text>
+<text x="186" y="545" text-anchor="end" class="lbl" fill="var(--text-600)">Izzet Control</text>
+<rect x="196" y="530" width="31.5" height="17" rx="3" fill="var(--seq-500)"/>
+<text x="235.5" y="545" class="val" fill="var(--text-900)">0.91%</text>
+<text x="186" y="569" text-anchor="end" class="lbl" fill="var(--text-600)">Ruby Storm</text>
+<rect x="196" y="554" width="30.8" height="17" rx="3" fill="var(--seq-500)"/>
+<text x="234.8" y="569" class="val" fill="var(--text-900)">0.89%</text>
+<text x="186" y="593" text-anchor="end" class="lbl" fill="var(--text-600)">Blue-White Familiars</text>
+<rect x="196" y="578" width="30.1" height="17" rx="3" fill="var(--seq-500)"/>
+<text x="234.1" y="593" class="val" fill="var(--text-900)">0.87%</text>
+<text x="186" y="617" text-anchor="end" class="lbl" fill="var(--text-600)">Other (240 archetypes)</text>
+<rect x="196" y="602" width="736.0" height="17" rx="3" fill="var(--text-400)"/>
+<text x="940.0" y="617" class="val" fill="var(--text-900)">21.24%</text>
 </svg></div>
     <figcaption><b>This replaces the 24-slice pie.</b> Twenty-five categories exceed the eight-hue limit,
     and a pie with that many slices cannot be read. Ranked bars use one hue, show exact values, and work as
@@ -681,15 +849,15 @@ a.button { display:inline-block; text-decoration:none; }
   <figure>
     <h4 class="sub">Win rate against share</h4>
     <div class="figwrap"><svg viewBox="0 0 1000 412" role="img" aria-label="Match win rate against meta share" class="fig">
-<line x1="56" y1="336.5" x2="980" y2="336.5" stroke="#e1e0d9" stroke-width="1"/>
+<line x1="56" y1="336.5" x2="980" y2="336.5" stroke="var(--rule)" stroke-width="1"/>
 <text x="46" y="340.5" text-anchor="end" class="tick">40%</text>
-<line x1="56" y1="272.6" x2="980" y2="272.6" stroke="#e1e0d9" stroke-width="1"/>
+<line x1="56" y1="272.6" x2="980" y2="272.6" stroke="var(--rule)" stroke-width="1"/>
 <text x="46" y="276.6" text-anchor="end" class="tick">45%</text>
-<line x1="56" y1="208.8" x2="980" y2="208.8" stroke="#e1e0d9" stroke-width="1"/>
+<line x1="56" y1="208.8" x2="980" y2="208.8" stroke="var(--rule)" stroke-width="1"/>
 <text x="46" y="212.8" text-anchor="end" class="tick">50%</text>
-<line x1="56" y1="144.9" x2="980" y2="144.9" stroke="#e1e0d9" stroke-width="1"/>
+<line x1="56" y1="144.9" x2="980" y2="144.9" stroke="var(--rule)" stroke-width="1"/>
 <text x="46" y="148.9" text-anchor="end" class="tick">55%</text>
-<line x1="56" y1="81.1" x2="980" y2="81.1" stroke="#e1e0d9" stroke-width="1"/>
+<line x1="56" y1="81.1" x2="980" y2="81.1" stroke="var(--rule)" stroke-width="1"/>
 <text x="46" y="85.1" text-anchor="end" class="tick">60%</text>
 <text x="56.0" y="386" text-anchor="middle" class="tick">0%</text>
 <text x="224.0" y="386" text-anchor="middle" class="tick">2%</text>
@@ -698,39 +866,39 @@ a.button { display:inline-block; text-decoration:none; }
 <text x="728.0" y="386" text-anchor="middle" class="tick">8%</text>
 <text x="896.0" y="386" text-anchor="middle" class="tick">10%</text>
 <text x="10" y="18" class="tick" text-anchor="start">match win rate</text>
-<line x1="56" y1="208.8" x2="980" y2="208.8" stroke="#898781" stroke-width="1.5" stroke-dasharray="5 4"/>
-<text x="974" y="200.8" text-anchor="end" class="lbl" fill="#52514e">50% win rate</text>
-<circle cx="916.2" cy="178.1" r="18.0" fill="#2a78d6" fill-opacity="0.55" stroke="#fcfcfb" stroke-width="2"/>
-<circle cx="717.1" cy="196.0" r="16.6" fill="#2a78d6" fill-opacity="0.55" stroke="#fcfcfb" stroke-width="2"/>
-<circle cx="649.0" cy="263.7" r="16.3" fill="#2a78d6" fill-opacity="0.55" stroke="#fcfcfb" stroke-width="2"/>
-<circle cx="426.4" cy="148.8" r="13.0" fill="#2a78d6" fill-opacity="0.55" stroke="#fcfcfb" stroke-width="2"/>
-<circle cx="408.0" cy="192.2" r="14.2" fill="#2a78d6" fill-opacity="0.55" stroke="#fcfcfb" stroke-width="2"/>
-<circle cx="400.4" cy="100.2" r="12.9" fill="#2a78d6" fill-opacity="0.55" stroke="#fcfcfb" stroke-width="2"/>
-<circle cx="393.7" cy="138.5" r="13.5" fill="#2a78d6" fill-opacity="0.55" stroke="#fcfcfb" stroke-width="2"/>
-<circle cx="392.0" cy="173.0" r="13.0" fill="#2a78d6" fill-opacity="0.55" stroke="#fcfcfb" stroke-width="2"/>
-<circle cx="392.0" cy="104.1" r="13.0" fill="#2a78d6" fill-opacity="0.55" stroke="#fcfcfb" stroke-width="2"/>
-<circle cx="357.6" cy="169.2" r="13.4" fill="#2a78d6" fill-opacity="0.55" stroke="#fcfcfb" stroke-width="2"/>
-<circle cx="354.2" cy="171.7" r="13.6" fill="#2a78d6" fill-opacity="0.55" stroke="#fcfcfb" stroke-width="2"/>
-<circle cx="307.2" cy="185.8" r="12.7" fill="#2a78d6" fill-opacity="0.55" stroke="#fcfcfb" stroke-width="2"/>
-<circle cx="276.1" cy="127.0" r="11.7" fill="#2a78d6" fill-opacity="0.55" stroke="#fcfcfb" stroke-width="2"/>
-<circle cx="264.3" cy="330.1" r="12.5" fill="#2a78d6" fill-opacity="0.55" stroke="#fcfcfb" stroke-width="2"/>
-<circle cx="256.8" cy="148.8" r="11.8" fill="#2a78d6" fill-opacity="0.55" stroke="#fcfcfb" stroke-width="2"/>
-<circle cx="227.4" cy="239.4" r="11.4" fill="#2a78d6" fill-opacity="0.55" stroke="#fcfcfb" stroke-width="2"/>
-<circle cx="226.5" cy="161.5" r="11.2" fill="#2a78d6" fill-opacity="0.55" stroke="#fcfcfb" stroke-width="2"/>
-<circle cx="162.7" cy="199.8" r="10.5" fill="#2a78d6" fill-opacity="0.55" stroke="#fcfcfb" stroke-width="2"/>
-<circle cx="155.1" cy="164.1" r="9.5" fill="#2a78d6" fill-opacity="0.55" stroke="#fcfcfb" stroke-width="2"/>
-<circle cx="151.8" cy="68.3" r="9.6" fill="#2a78d6" fill-opacity="0.55" stroke="#fcfcfb" stroke-width="2"/>
-<circle cx="135.8" cy="230.5" r="9.1" fill="#2a78d6" fill-opacity="0.55" stroke="#fcfcfb" stroke-width="2"/>
-<circle cx="132.4" cy="192.2" r="9.1" fill="#2a78d6" fill-opacity="0.55" stroke="#fcfcfb" stroke-width="2"/>
-<circle cx="130.8" cy="294.3" r="9.5" fill="#2a78d6" fill-opacity="0.55" stroke="#fcfcfb" stroke-width="2"/>
-<circle cx="129.1" cy="323.7" r="9.6" fill="#2a78d6" fill-opacity="0.55" stroke="#fcfcfb" stroke-width="2"/>
-<text x="916.2" y="154.1" text-anchor="middle" class="lbl" fill="#0b0b0b">Affinity</text>
-<text x="717.1" y="173.4" text-anchor="middle" class="lbl" fill="#0b0b0b">Mono-Red Madness</text>
-<text x="649.0" y="241.4" text-anchor="middle" class="lbl" fill="#0b0b0b">Monster Tron</text>
-<text x="400.4" y="81.3" text-anchor="middle" class="lbl" fill="#0b0b0b">Spy combo</text>
-<text x="392.0" y="85.0" text-anchor="middle" class="lbl" fill="#0b0b0b">Elves</text>
-<text x="264.3" y="311.5" text-anchor="middle" class="lbl" fill="#0b0b0b">Jund Wildfire</text>
-<text x="151.8" y="52.7" text-anchor="middle" class="lbl" fill="#0b0b0b">Dimir Faeries</text>
+<line x1="56" y1="208.8" x2="980" y2="208.8" stroke="var(--text-400)" stroke-width="1.5" stroke-dasharray="5 4"/>
+<text x="974" y="200.8" text-anchor="end" class="lbl" fill="var(--text-600)">50% win rate</text>
+<circle cx="916.2" cy="178.1" r="18.0" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="717.1" cy="196.0" r="16.6" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="649.0" cy="263.7" r="16.3" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="426.4" cy="148.8" r="13.0" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="408.0" cy="192.2" r="14.2" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="400.4" cy="100.2" r="12.9" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="393.7" cy="138.5" r="13.5" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="392.0" cy="173.0" r="13.0" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="392.0" cy="104.1" r="13.0" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="357.6" cy="169.2" r="13.4" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="354.2" cy="171.7" r="13.6" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="307.2" cy="185.8" r="12.7" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="276.1" cy="127.0" r="11.7" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="264.3" cy="330.1" r="12.5" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="256.8" cy="148.8" r="11.8" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="227.4" cy="239.4" r="11.4" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="226.5" cy="161.5" r="11.2" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="162.7" cy="199.8" r="10.5" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="155.1" cy="164.1" r="9.5" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="151.8" cy="68.3" r="9.6" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="135.8" cy="230.5" r="9.1" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="132.4" cy="192.2" r="9.1" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="130.8" cy="294.3" r="9.5" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="129.1" cy="323.7" r="9.6" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
+<text x="916.2" y="154.1" text-anchor="middle" class="lbl" fill="var(--text-900)">Affinity</text>
+<text x="717.1" y="173.4" text-anchor="middle" class="lbl" fill="var(--text-900)">Mono-Red Madness</text>
+<text x="649.0" y="241.4" text-anchor="middle" class="lbl" fill="var(--text-900)">Monster Tron</text>
+<text x="400.4" y="81.3" text-anchor="middle" class="lbl" fill="var(--text-900)">Spy combo</text>
+<text x="392.0" y="85.0" text-anchor="middle" class="lbl" fill="var(--text-900)">Elves</text>
+<text x="264.3" y="311.5" text-anchor="middle" class="lbl" fill="var(--text-900)">Jund Wildfire</text>
+<text x="151.8" y="52.7" text-anchor="middle" class="lbl" fill="var(--text-900)">Dimir Faeries</text>
 <text x="518.0" y="406" class="tick" text-anchor="middle">meta share</text>
 </svg></div>
     <figcaption><b>One hue, not twenty-four.</b> A scatter invites comparison between any two points, and
@@ -793,6 +961,31 @@ a.button { display:inline-block; text-decoration:none; }
   so it reaches assistive technology rather than only showing as a fill. Labels use tabular numerals so
   the segments do not resize between windows. Below 640px the control scrolls horizontally rather than
   wrapping to two rows.</p>
+</section>
+<section id="viewswitch">
+  <div class="shead"><h3>View switch</h3>
+  <p class="why">FR-4. The overview shows its decks as cards or as a table, one at a time, so the page lists
+  them once.</p></div>
+  <div class="demo">
+    <div class="button-row">
+      <div class="segmented" role="group" aria-label="Time window">
+        <button type="button" class="segmented__option" aria-pressed="false">1d</button>
+        <button type="button" class="segmented__option" aria-pressed="false">7d</button>
+        <button type="button" class="segmented__option" aria-pressed="false">14d</button>
+        <button type="button" class="segmented__option" aria-pressed="true">30d</button>
+        <button type="button" class="segmented__option" aria-pressed="false">season</button>
+      </div>
+      <div class="segmented" role="group" aria-label="View">
+        <button type="button" class="segmented__option" aria-pressed="true">Cards</button>
+        <button type="button" class="segmented__option" aria-pressed="false">Table</button>
+      </div>
+    </div>
+  </div>
+  <p class="spec"><b>Control</b> The window selector's segmented control, with two options and the accessible
+  name View. It sits 16px after the window selector in the page's controls and wraps below it when the row is
+  too narrow. <b>Cards</b> is the default and shows the deck grid. <b>Table</b> shows the deck table with its
+  sort. The summary panel stays above both, and the charts below. While the decks load, only the chosen
+  view's skeleton shows. The address carries <span class="mono">?view=table</span> for the table only, FR-4.</p>
 </section>
 <section id="pips">
   <div class="shead"><h3>Colour identity</h3>
@@ -941,7 +1134,8 @@ a.button { display:inline-block; text-decoration:none; }
 </section>
 <section id="table">
   <div class="shead"><h3>Table</h3>
-  <p class="why">FR-4. The same 24 decks, sortable, and the accessible alternative to every chart.</p></div>
+  <p class="why">FR-4. The same 24 decks, sortable, and the accessible alternative to every chart. The overview
+  shows it in place of the cards when the view switch says Table.</p></div>
   <div class="panel deck-table__scroll">
     <table>
       <thead><tr>
@@ -980,6 +1174,10 @@ a.button { display:inline-block; text-decoration:none; }
   <p class="why">FR-12. The top 24 decks against each other, read by row. A cell is the row deck's match
   win rate against the column deck. Colour marks only the pairs whose range excludes 50%. Live data from
   the 30-day rated window, measured 2026-10-03.</p></div>
+  <div class="matchup-controls">
+    <label class="deck-picker"><span class="deck-picker__label">Deck</span>
+    <select class="deck-picker__select" id="matchup-deck"><option value="0" selected>All decks</option><option value="1">Affinity</option><option value="2">Mono Red Madness</option><option value="3">Monster Tron</option><option value="4">Elves</option><option value="5">Blue Terror</option><option value="6">Spy combo</option><option value="7">Dimir Control</option><option value="8">Mono Red Rally</option><option value="9">Gruul Ponza</option><option value="10">Bogles</option><option value="11">Mono Blue Faeries</option><option value="12">Boros + Mardu Synth/Synthless</option><option value="13">Jund Wildfire</option><option value="14">Azorius Springleaf Drum</option><option value="15">Esper Ephemerate</option><option value="16">Gardens</option><option value="17">White Aggro</option><option value="18">White Weenie</option><option value="19">Jeskai Ephemerate</option><option value="20">Flicker Tron</option><option value="21">Orzhov Blade</option><option value="22">Rakdos Madness</option><option value="23">Izzet Control</option><option value="24">Naya Gates</option></select></label>
+  </div>
   <div class="bleed matchup" id="matchup">
     <div class="matchup__inner">
       <div class="matchup__frame">
@@ -1025,7 +1223,7 @@ a.button { display:inline-block; text-decoration:none; }
       </ul>
     </div>
   </div>
-  <div class="panel">
+  <div class="panel scope-light">
     <table class="swatch">
       <thead><tr><th>Token</th><th></th><th>Hex</th><th class="r">Text on it</th><th>Role</th></tr></thead>
       <tbody>
@@ -1060,19 +1258,102 @@ a.button { display:inline-block; text-decoration:none; }
   detail. Hover or focus shows both decks, the rate to one decimal place, the range, wins, losses and
   matches. The headers of the active cell turn <span class="mono">--primary</span>. Enter on a header
   follows its link. In the app that is the deck page. Here it is the same deck on endstep.cc.</p>
+  <p class="spec"><b>Spotlight.</b> The page's controls add a native select, named Deck, after the window
+  selector: "All decks", then the 24 decks in share order. Choosing a deck puts it in the spotlight. Every cell
+  outside its row and column drops to 25% opacity, and its two headers turn <span class="mono">--primary</span>
+  at 600 on a <span class="mono">--primary-wash</span> band. The deck's own cells keep their colours and
+  contrast. The faded numbers fall below 4.5:1, the one contrast exception NFR-6 accepts. A faded cell returns
+  to full opacity while it has the pointer or keyboard focus, so its number and its focus ring read in full, and
+  the detail works on every cell. "All decks" clears the spotlight. When a link opens the page with a deck, or
+  the picker changes, the deck's row scrolls into view, and the grid's tab stop moves to its row header. The row
+  header takes the cells' 260px scroll margin, so from 1,100px the row lands below the sticky header row. Back
+  and forward keep the browser's scroll position. Try the picker above the table.</p>
+  <h4 class="sub">A deck outside the top 24</h4>
+  <div class="demo col">
+    <label class="deck-picker"><span class="deck-picker__label">Deck</span>
+    <select class="deck-picker__select"><option value="x" selected>Mono Green Stompy (not in the top 24)</option><option value="0">All decks</option><option value="1">Affinity</option><option value="2">Mono Red Madness</option><option value="3">Monster Tron</option><option value="4">Elves</option><option value="5">Blue Terror</option><option value="6">Spy combo</option><option value="7">Dimir Control</option><option value="8">Mono Red Rally</option><option value="9">Gruul Ponza</option><option value="10">Bogles</option><option value="11">Mono Blue Faeries</option><option value="12">Boros + Mardu Synth/Synthless</option><option value="13">Jund Wildfire</option><option value="14">Azorius Springleaf Drum</option><option value="15">Esper Ephemerate</option><option value="16">Gardens</option><option value="17">White Aggro</option><option value="18">White Weenie</option><option value="19">Jeskai Ephemerate</option><option value="20">Flicker Tron</option><option value="21">Orzhov Blade</option><option value="22">Rakdos Madness</option><option value="23">Izzet Control</option><option value="24">Naya Gates</option></select></label>
+    <p class="matchup__notice" role="status">Mono Green Stompy isn't in the top 24 for the selected time window.</p>
+  </div>
+  <p class="spec">The deck in the address can be outside the window's top 24, after a window change or from an
+  old link. The address keeps it, and this line sits above the table in <span class="mono">--text-600</span>.
+  The picker shows the deck as an extra first option, "{name} (not in the top 24)", so any choice replaces it,
+  "All decks" included. A window where the deck is back in the top 24 brings the spotlight back.</p>
+  <h4 class="sub">On a phone</h4>
+  <div class="phone-demos">
+    <div class="phone-demo">
+      <label class="deck-picker deck-picker--stacked"><span class="deck-picker__label">Deck</span>
+      <select class="deck-picker__select" data-list><option value="1" selected>Affinity</option><option value="2">Mono Red Madness</option><option value="3">Monster Tron</option><option value="4">Elves</option><option value="5">Blue Terror</option><option value="6">Spy combo</option><option value="7">Dimir Control</option><option value="8">Mono Red Rally</option><option value="9">Gruul Ponza</option><option value="10">Bogles</option><option value="11">Mono Blue Faeries</option><option value="12">Boros + Mardu Synth/Synthless</option><option value="13">Jund Wildfire</option><option value="14">Azorius Springleaf Drum</option><option value="15">Esper Ephemerate</option><option value="16">Gardens</option><option value="17">White Aggro</option><option value="18">White Weenie</option><option value="19">Jeskai Ephemerate</option><option value="20">Flicker Tron</option><option value="21">Orzhov Blade</option><option value="22">Rakdos Madness</option><option value="23">Izzet Control</option><option value="24">Naya Gates</option></select></label>
+      <ol class="matchup-list" aria-label="Match win rate of Affinity against the other 23 decks">
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Mono Red Madness</a><span class="matchup-list__matches">1,456 matches</span></span><span class="matchup-list__verdict">Favoured</span><span class="matchup__swatch matchup__cell--win">57</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Monster Tron</a><span class="matchup-list__matches">998 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">48</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Elves</a><span class="matchup-list__matches">892 matches</span></span><span class="matchup-list__verdict">Unfavoured</span><span class="matchup__swatch matchup__cell--loss">35</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Blue Terror</a><span class="matchup-list__matches">827 matches</span></span><span class="matchup-list__verdict">Favoured</span><span class="matchup__swatch matchup__cell--win">56</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Spy combo</a><span class="matchup-list__matches">890 matches</span></span><span class="matchup-list__verdict">Unfavoured</span><span class="matchup__swatch matchup__cell--loss">41</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Dimir Control</a><span class="matchup-list__matches">793 matches</span></span><span class="matchup-list__verdict">Favoured</span><span class="matchup__swatch matchup__cell--win">55</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Mono Red Rally</a><span class="matchup-list__matches">804 matches</span></span><span class="matchup-list__verdict">Unfavoured</span><span class="matchup__swatch matchup__cell--loss">43</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Gruul Ponza</a><span class="matchup-list__matches">804 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">48</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Bogles</a><span class="matchup-list__matches">552 matches</span></span><span class="matchup-list__verdict">Unfavoured</span><span class="matchup__swatch matchup__cell--loss">41</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Mono Blue Faeries</a><span class="matchup-list__matches">604 matches</span></span><span class="matchup-list__verdict">Favoured</span><span class="matchup__swatch matchup__cell--win">57</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Boros + Mardu Synth/Synthless</a><span class="matchup-list__matches">541 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">50</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Jund Wildfire</a><span class="matchup-list__matches">450 matches</span></span><span class="matchup-list__verdict">Favoured</span><span class="matchup__swatch matchup__cell--win">62</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Azorius Springleaf Drum</a><span class="matchup-list__matches">443 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">51</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Esper Ephemerate</a><span class="matchup-list__matches">434 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">45</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Gardens</a><span class="matchup-list__matches">477 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">53</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">White Aggro</a><span class="matchup-list__matches">413 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">56</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">White Weenie</a><span class="matchup-list__matches">408 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">47</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Jeskai Ephemerate</a><span class="matchup-list__matches">405 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">50</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Flicker Tron</a><span class="matchup-list__matches">296 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">50</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Orzhov Blade</a><span class="matchup-list__matches">259 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">49</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Rakdos Madness</a><span class="matchup-list__matches">275 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">45</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Izzet Control</a><span class="matchup-list__matches">203 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">52</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Naya Gates</a><span class="matchup-list__matches">197 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">44</span></li>
+      </ol>
+    </div>
+    <div class="phone-demo">
+      <label class="deck-picker deck-picker--stacked"><span class="deck-picker__label">Deck</span>
+      <select class="deck-picker__select" data-list><option value="0" selected>Mono Green Stompy (not in the top 24)</option><option value="1">Affinity</option><option value="2">Mono Red Madness</option><option value="3">Monster Tron</option><option value="4">Elves</option><option value="5">Blue Terror</option><option value="6">Spy combo</option><option value="7">Dimir Control</option><option value="8">Mono Red Rally</option><option value="9">Gruul Ponza</option><option value="10">Bogles</option><option value="11">Mono Blue Faeries</option><option value="12">Boros + Mardu Synth/Synthless</option><option value="13">Jund Wildfire</option><option value="14">Azorius Springleaf Drum</option><option value="15">Esper Ephemerate</option><option value="16">Gardens</option><option value="17">White Aggro</option><option value="18">White Weenie</option><option value="19">Jeskai Ephemerate</option><option value="20">Flicker Tron</option><option value="21">Orzhov Blade</option><option value="22">Rakdos Madness</option><option value="23">Izzet Control</option><option value="24">Naya Gates</option></select></label>
+      <p class="matchup__notice" role="status">Mono Green Stompy isn't in the top 24 for the selected time window. The table shows Affinity by default.</p><ol class="matchup-list" aria-label="Match win rate of Affinity against the other 23 decks">
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Mono Red Madness</a><span class="matchup-list__matches">1,456 matches</span></span><span class="matchup-list__verdict">Favoured</span><span class="matchup__swatch matchup__cell--win">57</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Monster Tron</a><span class="matchup-list__matches">998 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">48</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Elves</a><span class="matchup-list__matches">892 matches</span></span><span class="matchup-list__verdict">Unfavoured</span><span class="matchup__swatch matchup__cell--loss">35</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Blue Terror</a><span class="matchup-list__matches">827 matches</span></span><span class="matchup-list__verdict">Favoured</span><span class="matchup__swatch matchup__cell--win">56</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Spy combo</a><span class="matchup-list__matches">890 matches</span></span><span class="matchup-list__verdict">Unfavoured</span><span class="matchup__swatch matchup__cell--loss">41</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Dimir Control</a><span class="matchup-list__matches">793 matches</span></span><span class="matchup-list__verdict">Favoured</span><span class="matchup__swatch matchup__cell--win">55</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Mono Red Rally</a><span class="matchup-list__matches">804 matches</span></span><span class="matchup-list__verdict">Unfavoured</span><span class="matchup__swatch matchup__cell--loss">43</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Gruul Ponza</a><span class="matchup-list__matches">804 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">48</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Bogles</a><span class="matchup-list__matches">552 matches</span></span><span class="matchup-list__verdict">Unfavoured</span><span class="matchup__swatch matchup__cell--loss">41</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Mono Blue Faeries</a><span class="matchup-list__matches">604 matches</span></span><span class="matchup-list__verdict">Favoured</span><span class="matchup__swatch matchup__cell--win">57</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Boros + Mardu Synth/Synthless</a><span class="matchup-list__matches">541 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">50</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Jund Wildfire</a><span class="matchup-list__matches">450 matches</span></span><span class="matchup-list__verdict">Favoured</span><span class="matchup__swatch matchup__cell--win">62</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Azorius Springleaf Drum</a><span class="matchup-list__matches">443 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">51</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Esper Ephemerate</a><span class="matchup-list__matches">434 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">45</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Gardens</a><span class="matchup-list__matches">477 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">53</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">White Aggro</a><span class="matchup-list__matches">413 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">56</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">White Weenie</a><span class="matchup-list__matches">408 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">47</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Jeskai Ephemerate</a><span class="matchup-list__matches">405 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">50</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Flicker Tron</a><span class="matchup-list__matches">296 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">50</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Orzhov Blade</a><span class="matchup-list__matches">259 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">49</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Rakdos Madness</a><span class="matchup-list__matches">275 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">45</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Izzet Control</a><span class="matchup-list__matches">203 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">52</span></li>
+<li class="matchup-list__item"><span class="matchup-list__name"><a href="#matchups">Naya Gates</a><span class="matchup-list__matches">197 matches</span></span><span class="matchup-list__verdict">Within chance</span><span class="matchup__swatch matchup__cell--neutral">44</span></li>
+      </ol>
+    </div>
+  </div>
+  <p class="spec"><b>Below 640px</b> the table gives way to one deck's row as a list. The same picker heads it,
+  stacked, without "All decks", and opens on the top deck by share. Each line holds the opponent's name, 14px
+  500, a link to its deck page, with its matches under it in 12px <span class="mono">--text-600</span>, then
+  the verdict in words and the cell as a 32 by 28 swatch. The verdict says what the colour means, so the list
+  has no legend. Lines are split by a 1px <span class="mono">--rule</span>. The picker's text is 16px below
+  640px, so iOS does not zoom the page when it takes focus. The second phone shows a deck outside the top 24: the
+  list falls back to the top deck and says so, and the picker keeps the missing deck as its first option until
+  another is chosen.</p>
 </section>
 <section id="pageheader">
   <div class="shead"><h3>Page header</h3>
   <p class="why">FR-10. One header on every page: the site name, and links to the two pages a reader can choose
   between. The deck page is reached from a deck, not from the header. The attribution stays in the footer.</p></div>
   <div class="demo col">
-    <header class="site-header">
-      <a class="site-header__brand" href="#pageheader">Pauper Endstep metagame</a>
-      <nav class="site-nav" aria-label="Pages">
-        <a class="site-nav__link" href="#pageheader" aria-current="page">Overview</a>
-        <a class="site-nav__link" href="#pageheader">Matchups</a>
-      </nav>
-    </header>
+    <header class="site-header"><a class="site-header__brand" href="#pageheader">Pauper Endstep metagame</a><nav class="site-nav" aria-label="Pages"><a class="site-nav__link" href="#pageheader" aria-current="page">Overview</a><a class="site-nav__link" href="#pageheader">Matchups</a></nav><button type="button" class="theme-toggle" aria-label="Dark theme" aria-pressed="false" id="header-theme"><svg class="theme-toggle__icon theme-toggle__icon--sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg><svg class="theme-toggle__icon theme-toggle__icon--moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg></button></header>
     <footer class="site-footer">Data from <a href="https://endstep.cc/metagame">endstep.cc</a>. This is not an
     official Endstep product.</footer>
   </div>
@@ -1084,6 +1365,30 @@ a.button { display:inline-block; text-decoration:none; }
   <span class="mono">aria-current="page"</span>, so the state does not rest on colour. On a deck page neither
   link is current. The header has a 1px <span class="mono">--rule</span> bottom border and does not stick:
   the matchup table's header row already sticks to the top of the window.</p>
+  <h4 class="sub">Theme toggle</h4>
+  <div class="theme-demos">
+    <div class="theme-demo scope-light" inert><header class="site-header"><a class="site-header__brand" href="#pageheader">Pauper Endstep metagame</a><nav class="site-nav" aria-label="Pages"><a class="site-nav__link" href="#pageheader" aria-current="page">Overview</a><a class="site-nav__link" href="#pageheader">Matchups</a></nav><button type="button" class="theme-toggle" aria-label="Dark theme" aria-pressed="false"><svg class="theme-toggle__icon theme-toggle__icon--sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg><svg class="theme-toggle__icon theme-toggle__icon--moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg></button></header><p class="theme-demo__title">Overview</p></div>
+    <div class="theme-demo scope-dark" inert><header class="site-header"><a class="site-header__brand" href="#pageheader">Pauper Endstep metagame</a><nav class="site-nav" aria-label="Pages"><a class="site-nav__link" href="#pageheader" aria-current="page">Overview</a><a class="site-nav__link" href="#pageheader">Matchups</a></nav><button type="button" class="theme-toggle" aria-label="Dark theme" aria-pressed="true"><svg class="theme-toggle__icon theme-toggle__icon--sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg><svg class="theme-toggle__icon theme-toggle__icon--moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg></button></header><p class="theme-demo__title">Overview</p></div>
+  </div>
+  <div class="theme-demos">
+    <div class="theme-demo theme-demo--tablet scope-light" inert><header class="site-header"><a class="site-header__brand" href="#pageheader">Pauper Endstep metagame</a><nav class="site-nav" aria-label="Pages"><a class="site-nav__link" href="#pageheader" aria-current="page">Overview</a><a class="site-nav__link" href="#pageheader">Matchups</a></nav><button type="button" class="theme-toggle" aria-label="Dark theme" aria-pressed="false"><svg class="theme-toggle__icon theme-toggle__icon--sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg><svg class="theme-toggle__icon theme-toggle__icon--moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg></button></header><p class="theme-demo__title">Overview</p></div>
+    <div class="theme-demo theme-demo--tablet scope-dark" inert><header class="site-header"><a class="site-header__brand" href="#pageheader">Pauper Endstep metagame</a><nav class="site-nav" aria-label="Pages"><a class="site-nav__link" href="#pageheader" aria-current="page">Overview</a><a class="site-nav__link" href="#pageheader">Matchups</a></nav><button type="button" class="theme-toggle" aria-label="Dark theme" aria-pressed="true"><svg class="theme-toggle__icon theme-toggle__icon--sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg><svg class="theme-toggle__icon theme-toggle__icon--moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg></button></header><p class="theme-demo__title">Overview</p></div>
+  </div>
+  <div class="theme-demos">
+    <div class="theme-demo theme-demo--phone scope-light" inert><header class="site-header"><a class="site-header__brand" href="#pageheader">Pauper Endstep metagame</a><nav class="site-nav" aria-label="Pages"><a class="site-nav__link" href="#pageheader" aria-current="page">Overview</a><a class="site-nav__link" href="#pageheader">Matchups</a></nav><button type="button" class="theme-toggle" aria-label="Dark theme" aria-pressed="false"><svg class="theme-toggle__icon theme-toggle__icon--sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg><svg class="theme-toggle__icon theme-toggle__icon--moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg></button></header><p class="theme-demo__title">Overview</p></div>
+    <div class="theme-demo theme-demo--phone scope-dark" inert><header class="site-header"><a class="site-header__brand" href="#pageheader">Pauper Endstep metagame</a><nav class="site-nav" aria-label="Pages"><a class="site-nav__link" href="#pageheader" aria-current="page">Overview</a><a class="site-nav__link" href="#pageheader">Matchups</a></nav><button type="button" class="theme-toggle" aria-label="Dark theme" aria-pressed="true"><svg class="theme-toggle__icon theme-toggle__icon--sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></svg><svg class="theme-toggle__icon theme-toggle__icon--moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg></button></header><p class="theme-demo__title">Overview</p></div>
+  </div>
+  <p class="spec"><b>Toggle</b> FR-13. A 36px round button at the top right of the header, on every page and at
+  every width: a 1px <span class="mono">--edge</span> border on <span class="mono">--surface</span>, with an 18px icon in
+  <span class="mono">--text-600</span>, <span class="mono">--text-900</span> on hover over <span class="mono">--hover</span>.
+  The icon shows the theme on screen: a sun in the light theme, a moon in the dark one. The button is named Dark theme and
+  carries <span class="mono">aria-pressed</span>, so its state and its icon say the same thing. Focus is the usual 2px
+  <span class="mono">--primary</span> ring. <b>Layout</b> The header is a grid. Below 640px the name takes the free width
+  and the toggle keeps 36px on the first row, with the links on the second. When the name runs out of room, at a 320px
+  screen, with a wide system font or with enlarged text, the name wraps to two lines and the toggle stays where it is.
+  From 640px the name, the links and the toggle share one row, the toggle last. At 640px itself the name wraps, as the
+  second pair shows. The six specimens above are forced to one theme each and are inert, whatever theme this page is in. The toggle at the top of this page works: it switches the whole
+  design system, and the choice is kept for the next visit.</p>
 </section>
 <section id="deckpage">
   <div class="shead"><h3>Deck page</h3>
@@ -1118,7 +1423,7 @@ a.button { display:inline-block; text-decoration:none; }
         <div class="deck-section">
           <h4 class="deck-section__title">Share over time</h4>
           <div class="panel deck-share">
-            <div class="deck-share__scroll"><svg class="deck-share__svg" viewBox="0 0 640 236" role="img" aria-label="Daily meta share of Affinity, 5 Sep to 4 Oct 2026"><line x1="40" y1="206.0" x2="576" y2="206.0" stroke="#e1e0d9"/><text x="32" y="210.0" text-anchor="end" class="deck-share__tick">0%</text><line x1="40" y1="158.0" x2="576" y2="158.0" stroke="#e1e0d9"/><text x="32" y="162.0" text-anchor="end" class="deck-share__tick">4%</text><line x1="40" y1="110.0" x2="576" y2="110.0" stroke="#e1e0d9"/><text x="32" y="114.0" text-anchor="end" class="deck-share__tick">8%</text><line x1="40" y1="62.0" x2="576" y2="62.0" stroke="#e1e0d9"/><text x="32" y="66.0" text-anchor="end" class="deck-share__tick">12%</text><line x1="40" y1="14.0" x2="576" y2="14.0" stroke="#e1e0d9"/><text x="32" y="18.0" text-anchor="end" class="deck-share__tick">16%</text><text x="40.0" y="228" text-anchor="middle" class="deck-share__tick">5 Sep</text><text x="169.4" y="228" text-anchor="middle" class="deck-share__tick">12 Sep</text><text x="298.8" y="228" text-anchor="middle" class="deck-share__tick">19 Sep</text><text x="428.1" y="228" text-anchor="middle" class="deck-share__tick">26 Sep</text><text x="557.5" y="228" text-anchor="middle" class="deck-share__tick">3 Oct</text><line x1="40" y1="206.0" x2="576" y2="206.0" stroke="#c3c2b7"/><polyline points="40.0,136.7 58.5,104.3 77.0,91.4 95.4,85.1 113.9,105.1 132.4,101.8 150.9,82.5 169.4,76.1 187.9,77.5 206.3,55.1 224.8,51.7 243.3,48.0 261.8,64.6 280.3,67.8 298.8,71.0 317.2,87.4 335.7,92.4 354.2,98.1 372.7,103.2 391.2,99.6 409.7,91.6 428.1,99.0 446.6,98.1 465.1,105.6 483.6,103.7 502.1,109.8 520.6,95.0 539.0,112.0 557.5,103.6 576.0,119.8" fill="none" stroke="#2a78d6" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="576.0" cy="119.8" r="3.5" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/><text x="585.0" y="123.8" class="deck-share__end">7.18%</text></svg></div>
+            <div class="deck-share__scroll"><svg class="deck-share__svg" viewBox="0 0 640 236" role="img" aria-label="Daily meta share of Affinity, 5 Sep to 4 Oct 2026"><line x1="40" y1="206.0" x2="576" y2="206.0" stroke="var(--rule)"/><text x="32" y="210.0" text-anchor="end" class="deck-share__tick">0%</text><line x1="40" y1="158.0" x2="576" y2="158.0" stroke="var(--rule)"/><text x="32" y="162.0" text-anchor="end" class="deck-share__tick">4%</text><line x1="40" y1="110.0" x2="576" y2="110.0" stroke="var(--rule)"/><text x="32" y="114.0" text-anchor="end" class="deck-share__tick">8%</text><line x1="40" y1="62.0" x2="576" y2="62.0" stroke="var(--rule)"/><text x="32" y="66.0" text-anchor="end" class="deck-share__tick">12%</text><line x1="40" y1="14.0" x2="576" y2="14.0" stroke="var(--rule)"/><text x="32" y="18.0" text-anchor="end" class="deck-share__tick">16%</text><text x="40.0" y="228" text-anchor="middle" class="deck-share__tick">5 Sep</text><text x="169.4" y="228" text-anchor="middle" class="deck-share__tick">12 Sep</text><text x="298.8" y="228" text-anchor="middle" class="deck-share__tick">19 Sep</text><text x="428.1" y="228" text-anchor="middle" class="deck-share__tick">26 Sep</text><text x="557.5" y="228" text-anchor="middle" class="deck-share__tick">3 Oct</text><line x1="40" y1="206.0" x2="576" y2="206.0" stroke="var(--baseline)"/><polyline points="40.0,136.7 58.5,104.3 77.0,91.4 95.4,85.1 113.9,105.1 132.4,101.8 150.9,82.5 169.4,76.1 187.9,77.5 206.3,55.1 224.8,51.7 243.3,48.0 261.8,64.6 280.3,67.8 298.8,71.0 317.2,87.4 335.7,92.4 354.2,98.1 372.7,103.2 391.2,99.6 409.7,91.6 428.1,99.0 446.6,98.1 465.1,105.6 483.6,103.7 502.1,109.8 520.6,95.0 539.0,112.0 557.5,103.6 576.0,119.8" fill="none" stroke="var(--s1)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="576.0" cy="119.8" r="3.5" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"/><text x="585.0" y="123.8" class="deck-share__end">7.18%</text></svg></div>
             <details class="disclosure">
               <summary class="disclosure__summary">Daily share as a table</summary>
               <table class="deck-table disclosure__table"><thead><tr>
@@ -1218,6 +1523,7 @@ a.button { display:inline-block; text-decoration:none; }
   <li class="matchup__legend-item"><span class="matchup__swatch matchup__cell--gated" aria-hidden="true"></span>Too few matches</li>
   <li class="matchup__legend-item"><span class="matchup__swatch matchup__cell--none" aria-hidden="true">&middot;</span>No data</li>
 </ul>
+          <p class="deck-strip__more"><a href="#matchups">See Affinity in the full table</a></p>
         </div>
   </div>
   <p class="spec"><b>Layout.</b> Mobile first. Below 640px everything stacks, with the art above the name.
@@ -1244,7 +1550,7 @@ a.button { display:inline-block; text-decoration:none; }
   or missing, a text box opens with the same text, selected, so the keyboard copy gives MTGO the right
   format.</p>
   <p class="spec"><b>Matchups.</b> The deck's own row of the matchup table: the same rotated names, cells, colour
-  rule and detail on hover or focus, in share order, with the deck itself left out. It reads
+  rule and detail on hover or focus, in share order, with the deck itself left out. Under the legend, a 14px link opens the matchup table with the deck in the spotlight, keeping the window. It reads
   <span class="mono">/api/matchups</span>, the matchup page's own request, so the two share an edge cache entry.
   It spans the page width below the numbers and the sample list, because 23 columns need about 870px. From
   1,100px it fits without scrolling. Below that it scrolls sideways and the deck's name stays in view. One tab
@@ -1280,7 +1586,7 @@ a.button { display:inline-block; text-decoration:none; }
   name carry the count. The deck-level match win rate has no gate field, so the app applies the same rule.</p>
   <h4 class="sub">Days with no data</h4>
   <div class="panel deck-share">
-    <div class="deck-share__scroll"><svg class="deck-share__svg" viewBox="0 0 640 236" role="img" aria-label="Daily meta share of Affinity, 30 August to 28 September 2026, with no data before 5 September"><line x1="40" y1="206.0" x2="576" y2="206.0" stroke="#e1e0d9"/><text x="32" y="210.0" text-anchor="end" class="deck-share__tick">0%</text><line x1="40" y1="158.0" x2="576" y2="158.0" stroke="#e1e0d9"/><text x="32" y="162.0" text-anchor="end" class="deck-share__tick">4%</text><line x1="40" y1="110.0" x2="576" y2="110.0" stroke="#e1e0d9"/><text x="32" y="114.0" text-anchor="end" class="deck-share__tick">8%</text><line x1="40" y1="62.0" x2="576" y2="62.0" stroke="#e1e0d9"/><text x="32" y="66.0" text-anchor="end" class="deck-share__tick">12%</text><line x1="40" y1="14.0" x2="576" y2="14.0" stroke="#e1e0d9"/><text x="32" y="18.0" text-anchor="end" class="deck-share__tick">16%</text><text x="40.0" y="228" text-anchor="middle" class="deck-share__tick">30 Aug</text><text x="169.4" y="228" text-anchor="middle" class="deck-share__tick">6 Sep</text><text x="298.8" y="228" text-anchor="middle" class="deck-share__tick">13 Sep</text><text x="428.1" y="228" text-anchor="middle" class="deck-share__tick">20 Sep</text><text x="557.5" y="228" text-anchor="middle" class="deck-share__tick">27 Sep</text><line x1="40" y1="206.0" x2="576" y2="206.0" stroke="#c3c2b7"/><polyline points="150.9,136.7 169.4,104.3 187.9,91.4 206.3,85.1 224.8,105.1 243.3,101.8 261.8,82.5 280.3,76.1 298.8,77.5 317.2,55.1 335.7,51.7 354.2,48.0 372.7,64.6 391.2,67.8 409.7,71.0 428.1,87.4 446.6,92.4 465.1,98.1 483.6,103.2 502.1,99.6 520.6,91.6 539.0,99.0 557.5,98.1 576.0,105.6" fill="none" stroke="#2a78d6" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="576.0" cy="105.6" r="3.5" fill="#2a78d6" stroke="#fcfcfb" stroke-width="2"/><text x="585.0" y="109.6" class="deck-share__end">8.36%</text></svg></div>
+    <div class="deck-share__scroll"><svg class="deck-share__svg" viewBox="0 0 640 236" role="img" aria-label="Daily meta share of Affinity, 30 August to 28 September 2026, with no data before 5 September"><line x1="40" y1="206.0" x2="576" y2="206.0" stroke="var(--rule)"/><text x="32" y="210.0" text-anchor="end" class="deck-share__tick">0%</text><line x1="40" y1="158.0" x2="576" y2="158.0" stroke="var(--rule)"/><text x="32" y="162.0" text-anchor="end" class="deck-share__tick">4%</text><line x1="40" y1="110.0" x2="576" y2="110.0" stroke="var(--rule)"/><text x="32" y="114.0" text-anchor="end" class="deck-share__tick">8%</text><line x1="40" y1="62.0" x2="576" y2="62.0" stroke="var(--rule)"/><text x="32" y="66.0" text-anchor="end" class="deck-share__tick">12%</text><line x1="40" y1="14.0" x2="576" y2="14.0" stroke="var(--rule)"/><text x="32" y="18.0" text-anchor="end" class="deck-share__tick">16%</text><text x="40.0" y="228" text-anchor="middle" class="deck-share__tick">30 Aug</text><text x="169.4" y="228" text-anchor="middle" class="deck-share__tick">6 Sep</text><text x="298.8" y="228" text-anchor="middle" class="deck-share__tick">13 Sep</text><text x="428.1" y="228" text-anchor="middle" class="deck-share__tick">20 Sep</text><text x="557.5" y="228" text-anchor="middle" class="deck-share__tick">27 Sep</text><line x1="40" y1="206.0" x2="576" y2="206.0" stroke="var(--baseline)"/><polyline points="150.9,136.7 169.4,104.3 187.9,91.4 206.3,85.1 224.8,105.1 243.3,101.8 261.8,82.5 280.3,76.1 298.8,77.5 317.2,55.1 335.7,51.7 354.2,48.0 372.7,64.6 391.2,67.8 409.7,71.0 428.1,87.4 446.6,92.4 465.1,98.1 483.6,103.2 502.1,99.6 520.6,91.6 539.0,99.0 557.5,98.1 576.0,105.6" fill="none" stroke="var(--s1)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><circle cx="576.0" cy="105.6" r="3.5" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"/><text x="585.0" y="109.6" class="deck-share__end">8.36%</text></svg></div>
     <table class="deck-table disclosure__table"><thead><tr>
       <th scope="col" class="deck-table__header">Day</th>
       <th scope="col" class="deck-table__header deck-table__header--numeric">Meta share</th>
@@ -1458,10 +1764,13 @@ a.button { display:inline-block; text-decoration:none; }
     <p class="why">Paste into the single HTML file. Use the roles in the stylesheet, not raw hex.</p>
   </div>
 <pre>:root {
+  color-scheme: light;
+
   <b>/* surfaces */</b>
   --background:    #f9f9f7;   /* page behind the cards */
   --surface:       #fcfcfb;   /* cards, table, chart area */
   --edge:          rgba(11,11,11,.10);
+  --shadow:        rgba(11,11,11,.09);   /* tooltip */
 
   <b>/* text */</b>
   --text-900:      #0b0b0b;   /* 19.17:1  headings, values */
@@ -1475,8 +1784,11 @@ a.button { display:inline-block; text-decoration:none; }
 
   <b>/* action */</b>
   --primary:       #1c5cab;   /*  6.46:1  links, filled buttons */
+  --primary-hover: #184f95;   /* filled buttons on hover */
   --primary-wash:  #eaf1fb;   /* hover, selected, callout */
   --secondary:     #3f3f3c;   /* 10.29:1  outline buttons */
+  --hover:         #f1f0ec;   /* buttons and segments on hover */
+  --row-hover:     #f5f4f0;   /* table rows on hover */
 
   <b>/* chart series, fixed order, no cycling */</b>
   --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100;
@@ -1494,6 +1806,25 @@ a.button { display:inline-block; text-decoration:none; }
 
   <b>/* type */</b>
   --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+<b>/* Soft graphite, FR-13. The same block under both selectors */</b>
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { <i>the block below</i> } }
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background:#353537; --surface:#3c3d3f; --edge:rgba(255,255,255,.09); --shadow:rgba(0,0,0,.32);
+  --text-900:#eaeaec;   /* 9.05:1 */  --text-600:#c8c9cb;   /* 6.56:1 */
+  --text-400:#949597;   /* 3.63:1 */  --text-inverse:#3c3d3f;
+  --rule:#4d4e4f; --baseline:#606163;
+  --primary:#8fbefa;    /* 5.65:1 */  --primary-hover:#a6cdff; --primary-wash:#38485c;
+  --secondary:#dcdcde;  --hover:#424244; --row-hover:#404143;
+  --up:#7ac07c; --down:#f8968e;
+  --s1:#4f8ddd; --s2:#da6d44; --s3:#38a276; --s4:#bd8003;
+  --s5:#ca7091; --s6:#499e44; --s7:#8581e0; --s8:#e3635e;
+  --seq-100:#164781; --seq-200:#2b5c97; --seq-300:#3f70ad; --seq-400:#5485c4;
+  --seq-500:#689bdb; --seq-600:#7eb1f3; --seq-700:#93c7ff;
+  --win:#385c8a; --loss:#844645; --mirror:#444547;
+  --hatch:repeating-linear-gradient(135deg, var(--baseline) 0 1px, transparent 1px 5px);
 }</pre>
 </section>
 </div>
@@ -1898,5 +2229,90 @@ a.button { display:inline-block; text-decoration:none; }
     window.addEventListener('resize', hide);
     strip.querySelector('.deck-strip__scroll').addEventListener('scroll', hide);
   });
+})();
+</script>
+<script>
+(function () {
+  const root = document.getElementById('matchup');
+  const picker = document.getElementById('matchup-deck');
+  if (!root || !picker) {
+    return;
+  }
+  picker.addEventListener('change', () => {
+    const index = picker.value;
+    root.querySelectorAll('.is-spotlit').forEach((el) => el.classList.remove('is-spotlit'));
+    root.classList.toggle('matchup--spotlit', index !== '0');
+    if (index === '0') {
+      return;
+    }
+    root.querySelectorAll(`[data-r="${index}"], [data-c="${index}"]`).forEach((el) => el.classList.add('is-spotlit'));
+  });
+})();
+(function () {
+  const table = document.querySelector('#matchup .matchup__table');
+  if (!table) {
+    return;
+  }
+  const verdicts = { win: 'Favoured', loss: 'Unfavoured', neutral: 'Within chance', gated: 'Too few to call', none: 'No data' };
+  const names = Array.from(table.querySelectorAll('.matchup__colname')).map((el) => el.textContent);
+  const count = new Intl.NumberFormat('en-GB');
+  document.querySelectorAll('[data-list]').forEach((select) => {
+    const demo = select.closest('.phone-demo');
+    const list = demo.querySelector('.matchup-list');
+    select.addEventListener('change', () => {
+      demo.querySelector('.matchup__notice')?.remove();
+      select.querySelector('option[value="0"]')?.remove();
+      const row = Number(select.value);
+      list.setAttribute('aria-label', `Match win rate of ${names[row - 1]} against the other 23 decks`);
+      list.replaceChildren(...Array.from(table.querySelectorAll(`td[data-r="${row}"]`))
+        .filter((cell) => cell.dataset.state !== 'mirror')
+        .map((cell) => {
+          const item = document.createElement('li');
+          item.className = 'matchup-list__item';
+          const name = document.createElement('span');
+          name.className = 'matchup-list__name';
+          const link = document.createElement('a');
+          link.href = '#matchups';
+          link.textContent = names[Number(cell.dataset.c) - 1];
+          const matches = document.createElement('span');
+          matches.className = 'matchup-list__matches';
+          matches.textContent = cell.dataset.m ? `${count.format(Number(cell.dataset.m))} matches` : 'No matches';
+          name.append(link, matches);
+          const verdict = document.createElement('span');
+          verdict.className = 'matchup-list__verdict';
+          verdict.textContent = verdicts[cell.dataset.state];
+          const swatch = document.createElement('span');
+          swatch.className = `matchup__swatch matchup__cell--${cell.dataset.state}`;
+          swatch.textContent = cell.textContent;
+          item.append(name, verdict, swatch);
+          return item;
+        }));
+    });
+  });
+})();
+</script>
+<script>
+(function () {
+  const root = document.documentElement;
+  const media = window.matchMedia('(prefers-color-scheme: dark)');
+  const buttons = [document.getElementById('doc-theme'), document.getElementById('header-theme')].filter(Boolean);
+  function current() {
+    return root.dataset.theme || (media.matches ? 'dark' : 'light');
+  }
+  function sync() {
+    buttons.forEach((button) => button.setAttribute('aria-pressed', String(current() === 'dark')));
+  }
+  buttons.forEach((button) => button.addEventListener('click', () => {
+    const next = current() === 'dark' ? 'light' : 'dark';
+    root.dataset.theme = next;
+    sync();
+    try {
+      localStorage.setItem('theme', next);
+    } catch (error) {
+      return;
+    }
+  }));
+  media.addEventListener('change', sync);
+  sync();
 })();
 </script>

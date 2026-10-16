@@ -1,6 +1,6 @@
 # Endstep Pauper Metagame Viewer: Requirements
 
-**Status:** Draft v3 · **Date:** 2026-10-03
+**Status:** Draft v5 · **Date:** 2026-10-14
 **Scope:** three pages. The overview, a deck page with its numbers, a sample list and its matchups against the top 24, and a matchup table. Other deck page sections are out of scope, see §8.
 **Visual design** is specified in [`design-system.html`](./design-system.html). This document covers structure, content and behaviour.
 
@@ -10,7 +10,7 @@
 
 A browser application that reads the public Endstep metagame API and shows the **Pauper** metagame. The overview reports which decks are played, how much of the field each one holds, how they perform, and how that has changed over time. A deck page gives one deck's numbers, a sample list, and its results against the rest of the top 24. A matchup table shows how the top decks do against each other.
 
-The application is read-only. It stores nothing. It has no authentication and no user accounts. It is not affiliated with Endstep.
+The application is read-only. It stores nothing but the reader's theme choice, FR-13. It has no authentication and no user accounts. It is not affiliated with Endstep.
 
 ---
 
@@ -23,8 +23,8 @@ The application is read-only. It stores nothing. It has no authentication and no
 | Cache policy | 5 minutes at the edge, with stale-while-revalidate |
 | Front end | React 19 and TypeScript, built with Vite. See NFR-1 |
 | Data fetching | TanStack Query 5. A response stays fresh for five minutes. See §4.8 |
-| Page state | The window and the view state live in the address. A link opens a page in its default view. See §4.5 |
-| Styling | Hand-written CSS in cascade layers, BEM, one stylesheet per component. No framework. Light-only theme. See NFR-11 |
+| Page state | The window and the view state live in the address. A link opens a page in its default view, except the deck page's link to its deck in the matchup table. See §4.5 |
+| Styling | Hand-written CSS in cascade layers, BEM, one stylesheet per component. No framework. A light and a dark theme, FR-13. See NFR-11 |
 | Charting | Recharts 3.x from npm |
 | Pages | Overview, deck page, matchup table. React Router in declarative mode, see §4.5 |
 | Quality gates | ESLint, Prettier and Vitest with React Testing Library, run by GitHub Actions on every pull request and every push to `main`. See NFR-1 |
@@ -35,7 +35,7 @@ The application is read-only. It stores nothing. It has no authentication and no
 | Deck page | Numbers, the sample list, and the deck's row of the matchup table. The full opponent list, card usage and ratings are deferred |
 | Deck links | Our deck page. It links to the same deck on endstep.cc |
 | Order of work | The Vite refactor first, then the deck page and the matchup table, so the new pages are written once |
-| Matchup table | Its own page. Top 24 decks. Colour only clear pairs, FR-12 |
+| Matchup table | Its own page. Top 24 decks. Colour only clear pairs. One deck's list below 640px, FR-12 |
 
 ---
 
@@ -187,11 +187,12 @@ The front end uses **React Router 8 in declarative mode**: `BrowserRouter`, `Rou
 - `vercel.json` rewrites `/decks/:slug` and `/matchups` to `/index.html`. Vercel applies rewrites after it checks for real files, so built assets are not affected.
 - `?window=` belongs to every page and carries across links. Pages read and write it with `useSearchParams`. See FR-1.
 - The layout route replaces a missing or unknown window with the default, with a replace navigation, so the address always names the window on screen.
-- The view state lives in the address too: the deck table's sort in `sort` and `dir`, FR-4, and the share chart's hidden series in `hide`, one deck slug per parameter, FR-5. A change replaces the history entry, so Back leaves the page rather than undoing a sort. The default view leaves the parameters out.
-- Back, forward and reload therefore return to a page as the reader left it. A link carries only `?window=`, so it opens a page in its default view. This is the browser's own rule: history returns to a page, a link is a new visit.
+- The view state lives in the address too: the overview's view in `view` and the deck table's sort in `sort` and `dir`, FR-4, the share chart's hidden series in `hide`, one deck slug per parameter, FR-5, and the matchup table's chosen deck in `deck`, FR-12. A change replaces the history entry, so Back leaves the page rather than undoing a sort. The default view leaves the parameters out.
+- Back, forward and reload therefore return to a page as the reader left it. A link carries only `?window=`, so it opens a page in its default view. This is the browser's own rule: history returns to a page, a link is a new visit. The one exception is the deck page's link to the matchup table, which also carries `?deck=`, FR-11.
+- The theme is not view state. It is the reader's preference, kept in local storage, so a link never carries it. See FR-13.
 - Back and forward work. A route change does not reload the page.
 - Any other path is a Vercel 404. A path that reaches the app without a route, such as `/index.html`, shows a Not found page.
-- A route change moves focus to the new page's main heading, so keyboard and screen reader users know the page changed. A link scrolls the new page to the top. Back and forward keep the scroll position the browser restores. Declarative mode does none of this, because `ScrollRestoration` exists only in data mode, so the app does it when the path changes. A change to the query string alone is not a route change.
+- A route change moves focus to the new page's main heading, so keyboard and screen reader users know the page changed. A link scrolls the new page to the top, or to the deck that a link to the matchup table names, FR-12. Back and forward keep the scroll position the browser restores. Declarative mode does none of this, because `ScrollRestoration` exists only in data mode, so the app does it when the path changes. A change to the query string alone is not a route change.
 
 ### 4.6 Local development
 
@@ -214,6 +215,7 @@ The pages read the API through **TanStack Query 5**. It was chosen over SWR on t
 - One query client for the app. Each request is a query keyed by what it reads, such as `["decks", window]` or `["deck", slug, window]`.
 - A response stays fresh for five minutes, the edge cache's `s-maxage`, §4.3. Within that time a page renders it from memory, with no request and no loading state. After it, the page shows it and refetches it in the background. Responses stay in memory for the rest of the visit, so that holds however long the reader was away.
 - A section shows its data whenever it has some. A failed refetch keeps the data on screen. The error panel appears only when there is nothing to show, FR-9.
+- **A window change keeps the page on screen.** While another window loads, a page keeps the previous window's data, dimmed and marked busy, its window selector marked busy, and a status line saying which window is loading. A pick made during the load replaces the history entry. Every page behaves this way: the overview, the deck page with its matchups row, and the matchup table. The previous window's data is never presented as the new one: the dates and anything else that names the window wait for the new data. Today the deck page's numbers do this, while the overview, the deck page's matchups row and the matchup table still fall back to their skeletons, S13.
 - Requests run whether or not the browser reports itself online, so a reader without a connection sees the network error, not a page that waits.
 - Nothing refetches when the browser window regains focus, NFR-4.
 - A network error, a 429 or a 5xx is retried at most twice, after 400 ms and then 800 ms, NFR-4. Any other failure shows at once. In a background tab the retries wait until the tab is shown again. A query can turn retries off: the matchup table and the deck's matchups row do, FR-11 and FR-12.
@@ -243,10 +245,14 @@ The top 24 decks by share, each as a card showing:
 
 Each card links to the deck's page, FR-11.
 
+The grid and the table are two views of the same decks, FR-4. The grid is the default.
+
 ### FR-4. Deck table
 The same 24 decks in tabular form: rank, name, colours, share, players, matches, win rate, share change. Columns sort client-side, and the sort is kept in the address, so Back and reload restore it, §4.5. Numbers use consistent precision: share and win rate to one decimal place, counts as integers with thousands separators.
 
-The table is a peer of the grid, not a replacement. Both are visible on the page. Each deck name links to the deck's page, FR-11.
+The overview shows the table or the grid, one at a time. A second segmented control, named View, with Cards and Table, sits beside the window selector. Cards is the default and leaves `view` out of the address. Table writes `?view=table`, and Cards removes it, §4.5. While the decks load, only the chosen view's skeleton shows.
+
+The sort applies to the table only. It stays in the address while the cards show, so the table returns in the same order. The cards keep share order. Each deck name links to the deck's page, FR-11.
 
 ### FR-5. Share over time
 A multi-series line chart of daily meta share. It uses the API's default top 8 series. Each series toggles from the legend, and the hidden series are kept in the address, §4.5. The x-axis covers the full date range of the window.
@@ -258,10 +264,14 @@ A **ranked horizontal bar chart**. The top 24 decks plus an **`Other`** bar, sor
 
 This is not a pie. Twenty-five categories exceed the eight-hue ceiling of a categorical palette, and a pie with 25 slices cannot be read at any size. Bars encode magnitude by length, so they use one hue, sequential blue. The `Other` bar uses `--text-400` to mark it as a residual rather than a deck.
 
+A click on a deck's bar or its name opens the deck's page, FR-11, keeping the selected time window as every deck link does, FR-10. `Other` is not a deck and opens nothing. The deck grid and the deck table stay the keyboard path to the same pages, NFR-6.
+
 ### FR-7. Win rate against share
 A scatter plot. Meta share on the x-axis, match win rate on the y-axis, marker size proportional to player count. A reference line at 50% win rate separates decks above the field from decks below it. This is the main analytical view on the page. It shows which decks are good and which are only popular.
 
 All markers use **one hue**. A scatter invites comparison between any two points, and under all-pairs comparison only three hues stay separable. Colouring 24 decks individually is therefore not available. Identity comes from position, from labels on selected decks, and from hover.
+
+A click on a marker or its label opens the deck's page, FR-11, keeping the selected time window as every deck link does, FR-10. The tooltip says so. On a touch screen the first tap on a marker shows its tooltip, and a second tap on the same marker opens the page, so the tooltip still identifies unlabelled markers. The deck grid and the deck table stay the keyboard path to the same pages, NFR-6.
 
 ### FR-8. Share change
 Where `shareChange.points` is present, the grid and table show the movement against the previous window, with its direction. Where it is `null`, the UI states that no comparison is available. It must not show a zero or a blank. See §6.3.
@@ -274,7 +284,7 @@ Every page has a header with links to the overview and the matchup table. The cu
 
 The header names the site, "Pauper Endstep metagame", in a link to the overview. It is not a heading. Every page opens with its main heading, which names the page: "Overview", "Matchups", or the deck's name on a deck page. The document title repeats it, such as "Overview · Pauper Endstep metagame". The heading therefore names the page when focus moves to it, §4.5.
 
-Deck names link to `/decks/{slug}` wherever a deck is listed: grid cards, table rows, matrix headers. Links keep the current `?window=`.
+Deck names link to `/decks/{slug}` wherever a deck is listed: grid cards, table rows, matrix headers, and the decks in the ranked bars and the scatter, FR-6 and FR-7. Links keep the current `?window=`.
 
 ### FR-11. Deck page
 Two calls. `/{format}/decks/{slug}` feeds every section except the matchups row, see §3.6. `/api/matchups` feeds the matchups row, §4.4.
@@ -307,7 +317,8 @@ Two calls. `/{format}/decks/{slug}` feeds every section except the matchups row,
 - One tab stop, with arrow keys between cells, as in FR-12.
 - It loads and fails on its own. A failed request shows the error panel inside this section, and the rest of the page stays. As in FR-12, there is no automatic retry.
 - The page finds its row by `deck.id` from the deck detail, matched against `decks[].id` in the response, never by the slug in the address. A stale slug therefore still finds its row.
-- When the deck is not in the top 24 for the selected window, the section says so in place of the row and links to the matchup table. The note takes the deck's name from the detail.
+- Under the legend, a link reads "See {name} in the full table". It opens the matchup table with this deck in the spotlight: it keeps `?window=` and adds `?deck=`, FR-12.
+- When the deck is not in the top 24 for the selected window, the section says so in place of the row and links to the matchup table, without `?deck=`. The note takes the deck's name from the detail.
 - The two responses are cached apart, so near the daily rollover they can cover different windows. When the row's window differs from the detail's, the section prints the row's own dates.
 
 Figures in the games and toss sections count games, not matches. Label them game win rate, never match win rate. §6.6 covers the match-level figures.
@@ -335,7 +346,35 @@ A page with one table: the top 24 decks by share, against each other. One call t
 - The table sits in a full-width band that breaks out of the page column, centred, with no fixed height and no scrollbar. The header row stays at the top of the window while the page scrolls past the table.
 - The cells grow with the window, from 32px wide up to 44px, and the numbers and deck names grow with them. The design system gives the rule.
 - Where the window is narrower than the table plus the band's padding, about 1,080px, the band scrolls sideways and the first column stays in view. The page itself does not scroll sideways, NFR-7. A box that scrolls sideways also holds its sticky header, so below 1,100px the header row scrolls away with the table.
-- The page has the window selector and the resolved window dates.
+- The page has the window selector, the resolved window dates and a deck picker.
+
+**A deck in the spotlight.** `?deck=` names one deck by its slug. Every cell outside its row and column fades, so the deck reads at a glance against the field.
+
+- The picker is a native select named Deck. It lists "All decks", then the 24 decks in share order. "All decks" is the default: no spotlight, and no `deck` in the address. Choosing a deck writes its slug, and choosing "All decks" removes it, §4.5.
+- The other cells fade to a quarter of their opacity. Their numbers fall below WCAG AA, which NFR-6 accepts for this case only. A faded cell returns to full opacity while it has the pointer or keyboard focus, so its focus indicator keeps its contrast. The detail works on every cell.
+- The deck's row and column headers turn `--primary` on a `--primary-wash` band, so the spotlight does not rest on the fade alone.
+- When a link opens the page with a deck, or the picker chooses one, the page scrolls the deck's row into view, in place of the top. Back and forward keep the scroll position the browser restores, §4.5. From 1,100px the row sits just under the sticky header row. Below 1,100px the band also scrolls sideways to bring the deck's column next to the first column. The table's tab stop moves to the deck's row header. Focus stays where §4.5 puts it.
+- The deck is matched by the 8-character suffix of its slug, so a slug under an old name still finds it, §6.11.
+- A window change keeps `deck` in the address. When the deck is not in the new window's top 24, the table shows no spotlight. The picker shows the deck as an extra first option, "{name} (not in the top 24)", so any choice replaces it, "All decks" included. A line above the table reads "{name} isn't in the top 24 for the selected time window." A window where the deck is in the top 24 brings the spotlight back. The name comes from the deck detail, §3.6, requested only in this case. Until it arrives, or if the request fails, the line names "This deck".
+- The deck page's row links here with its deck named, FR-11.
+
+**On a phone.** Below 640px the page shows one deck's row as a list, in place of the table.
+
+- The picker lists the 24 decks, without "All decks". With no deck in the address it shows the top deck by share, and `deck` stays out of the address. Choosing a deck writes its slug, as on the desktop, so a link opens the same deck at either width.
+- Each of the other 23 decks is one line, in share order: the opponent's name, linking to its deck page, its matches under the name, the verdict in words, and the cell. The verdicts are favoured, unfavoured, within chance, too few to call and no data. They say what the colour means, so the list has no legend.
+- The cells, the colour rule and the gated and no-data states are the table's.
+- When the deck in the address is not in the window's top 24, the picker shows it as on the desktop, and the list shows the top deck under a line that reads "{name} isn't in the top 24 for the selected time window. The table shows {top deck} by default."
+
+### FR-13. Theme
+Every page comes in a light theme and a dark theme. The design system specifies both palettes, NFR-1a.
+
+- On a first visit the page follows the device's setting, `prefers-color-scheme`. A device with no setting gets the light theme. Until the reader chooses, the page also follows a change to the device setting while it is open, and so do the toggle and the charts.
+- A 36px round button at the top right of the site header switches between the two themes, on every page and at every width. It is a toggle button named Dark theme, with `aria-pressed`. Its icon shows the current theme, a sun or a moon, so it agrees with `aria-pressed`.
+- Below 640px the button shares the first row with the site name, and the links take the second. When the name runs out of room, it wraps to two lines and the button stays at the top right.
+- The reader's choice is kept in local storage and wins over the device setting from then on. It is not in the address, §4.5.
+- The theme applies before the page first paints, so a dark page never flashes light.
+- A switch recolours the charts at once, with no reload. Native controls and scrollbars follow the theme through `color-scheme`.
+- Card art and colour pips look the same in both themes. They are the cards' own colours.
 
 ---
 
@@ -470,9 +509,11 @@ Every commit that reaches `main` therefore compiles, lints, is formatted, and pa
 This replaces the no-build decision of Draft v2. That decision pinned React to 18, because React 19 ships no UMD build, and named Vite as the escape hatch. The owner took it on 2026-10-03, for modules, type checking and room for more pages. A mechanical port of the v2 page to Vite and React 19 rendered every section with live data, and an offline `vercel build` kept the function and the rewrite.
 
 ### NFR-1a. Design language
-Colour, typography and the chart palette are specified in [`design-system.html`](./design-system.html), which is the authority for every token. In summary: a light-only theme on `#f9f9f7`, `system-ui` as the single typeface so no font is fetched and NFR-9 holds, `#1c5cab` for links and primary buttons at 6.46:1, and an eight-hue categorical palette validated for colour-vision deficiency against our own surface.
+Colour, typography and the chart palette are specified in [`design-system.html`](./design-system.html), which is the authority for every token. In summary: a light theme on `#f9f9f7` and a dark theme, Soft graphite, on `#353537`, FR-13, `system-ui` as the single typeface so no font is fetched and NFR-9 holds, `#1c5cab` for links and primary buttons at 6.46:1 on the light surface, and an eight-hue categorical palette validated for colour-vision deficiency against our own surface.
 
-Three of the eight series hues fall below 3:1 against the surface. That triggers the relief rule: the chart must ship visible labels or a table view. FR-4's deck table covers this, and the line chart also labels its series ends. Do not drop either without re-checking the palette.
+Three of the eight series hues fall below 3:1 against the light surface. That triggers the relief rule: the chart must ship visible labels or a table view. The line chart labels its series ends, and FR-4's deck table, one choice away on the overview, gives the figures as text. Do not drop either without re-checking the palette.
+
+The dark theme is a second palette, validated against its own surface, `#3c3d3f`, never an automatic inversion. Headings and values read at 9.05:1, body text at 6.56:1 and labels at 3.63:1. Links and primary buttons use `#8fbefa` at 5.65:1. The eight series hues are the light hues lifted in lightness, each between 3.20:1 and 3.42:1, so the relief rule does not trigger there. Their worst adjacent pair keeps ΔE 8.2 under colour-vision deficiency and 16.1 under normal vision. What fades by opacity, such as the matchup spotlight, fades no further than in the light theme.
 
 ### NFR-2. Charting library: Recharts
 Charts use **Recharts 3.10**, installed from npm. Two criteria decided the choice: simplicity and popularity. The comparison below was made under the no-build constraint of Draft v2. The move to a build removes the UMD argument against the others, and the simplicity argument still stands.
@@ -507,13 +548,13 @@ The application must not put meaningful load on Endstep. Edge caching (§4.3) me
 The page states that the data comes from Endstep and links to `https://endstep.cc/metagame`. It does not present itself as an official Endstep product.
 
 ### NFR-6. Accessibility
-- All content reachable and operable by keyboard.
-- Charts are never the only carrier of information. Everything in a chart is also in the table.
-- Colour is never the only means of conveying meaning. Contrast targets WCAG AA.
+- All content reachable and operable by keyboard. A chart's bars and markers open deck pages on a click, but are not tab stops: every page they open is reachable by keyboard through the deck grid or the deck table, whichever view the overview shows.
+- Charts are never the only carrier of information. Everything in a chart is also in a table. On the overview that is the deck table, one choice away in the view switch, FR-4.
+- Colour is never the only means of conveying meaning. Contrast targets WCAG AA. One exception is accepted: the cells the matchup table's spotlight fades, FR-12. They are context for the deck in the spotlight, which keeps full contrast, and the detail on hover or focus gives their figures in full.
 - Card art carries meaningful `alt` text. Decorative elements are hidden from assistive technology.
 
 ### NFR-7. Responsive
-Usable from 360 px to wide desktop. The table scrolls horizontally rather than reflowing. The page itself never scrolls horizontally.
+Usable from 360 px to wide desktop. Tables scroll horizontally rather than reflowing. The matchup table is the exception: below 640px it becomes one deck's list, FR-12. The page itself never scrolls horizontally.
 
 ### NFR-8. Browser support
 Current versions of Chrome, Firefox, Safari and Edge. No IE, no polyfills.
@@ -521,7 +562,7 @@ Current versions of Chrome, Firefox, Safari and Edge. No IE, no polyfills.
 The code targets ES2025: `target` and `lib` in the three TypeScript configs, and Vite's `build.target`. Older browser versions are not supported.
 
 ### NFR-9. Privacy
-No analytics, no cookies, no local storage of personal data, no third-party requests beyond the card-art host.
+No analytics, no cookies, no local storage of personal data, no third-party requests beyond the card-art host. The theme choice, FR-13, is the one value the app keeps in local storage. It is a display preference, not personal data, and it never leaves the browser.
 
 ### NFR-10. Deployment
 Deployed on Vercel from the Git repository. A Vite build and two serverless functions. No environment variables and no secrets. Production waits until CI passes, §4.7.
@@ -581,7 +622,6 @@ A later layer overrides an earlier one, whatever the selectors' specificity and 
 - Formats other than Pauper.
 - The `casual` population and rating-band filtering.
 - Deck search, `minMatches` filtering, and pagination beyond the top 24.
-- Dark mode. The theme is light-only by decision. Adding dark mode means a second palette validated against a dark surface. It is never an automatic inversion.
 
 ---
 
@@ -593,3 +633,7 @@ A later layer overrides an earlier one, whatever the selectors' specificity and 
 4. ~~Matchup coverage on other windows.~~ Settled: checked on all five windows on 2026-10-10. At `7d`, `14d`, `30d` and `season`, all 276 pairs of the top 24 appear in both directions. At `1d`, 270 appear in both directions and 3 in one direction only, which §4.4 fills. The other 3 never met: one deck of each pair has all its opponents inside its first 50 rows. No pair was lost to the 50-row limit.
 5. ~~What the toss blocks count.~~ Settled: game 1. For Affinity at 30d on 2026-10-10, `tossWon` and `tossLost` hold 12,623 and 12,951 games, 25,574 in all, exactly the decided games in `games.game1`. `choseToDraw` counts 47 of the same 12,623 tosses won. FR-11 labels them game 1 win rates.
 6. **Deployment Checks on this plan.** Vercel's documentation does not say which plans offer Deployment Checks. If this project's plan lacks them, the fallback is to turn off Vercel's Git deploys and deploy from the `ci` workflow with the Vercel CLI, which needs a `VERCEL_TOKEN` secret and the project IDs in GitHub.
+7. ~~The matchup table on a phone.~~ Settled: below 640px, one deck's row as a list, opening on the top deck by share. FR-12.
+8. ~~Finding a deck in the matchup table.~~ Settled: `?deck=` puts one deck in the spotlight and fades the other cells. A picker chooses it, and the deck page's row links to it. No hover crosshair. FR-11 and FR-12.
+9. ~~Cards or a table on the overview.~~ Settled: one view at a time, chosen with a switch kept in `view`. Cards by default. FR-3 and FR-4.
+10. ~~The dark palette.~~ Settled: Soft graphite, chosen by the owner on 2026-10-16 over warm stone. NFR-1a gives its figures and the design system its tokens.
