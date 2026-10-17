@@ -290,7 +290,7 @@ export function ShareOverTime({ series }: { series: ShareSeries[] }) {
 
                 return (
                   <Line
-                    key={item.deck.id}
+                    key={`${item.deck.slug} ${highlighted?.deck.slug ?? ""}`}
                     type="linear"
                     dataKey={item.deck.id}
                     name={item.deck.name}

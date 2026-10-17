@@ -82,6 +82,28 @@ function tiedSeries(): ShareSeries[] {
   return [affinity, { ...madness, points: affinity.points }];
 }
 
+function threeSeries(): ShareSeries[] {
+  const [affinity, madness] = series.series as ShareSeries[];
+
+  return [
+    affinity,
+    madness,
+    {
+      ...affinity,
+      deck: {
+        ...affinity.deck,
+        id: "elves",
+        slug: "elves-0a1b2c3d",
+        name: "Elves",
+      },
+      points: affinity.points.map((point) => ({
+        ...point,
+        rate: point.rate === null ? null : point.rate / 2,
+      })),
+    },
+  ];
+}
+
 function tooltipNames(container: HTMLElement): (string | null)[] {
   return [...container.querySelectorAll(".chart-tooltip__name")].map(
     (name) => name.textContent,
@@ -220,6 +242,29 @@ describe("ShareOverTime", () => {
     ];
     expect(dots).toHaveLength(2);
     expect(dots.at(-1)).toBe(activeDot(container, "Affinity"));
+  });
+
+  it("paints the highlighted deck's hover dot last when the highlight moves while the dots show", async () => {
+    sizeCharts();
+    const container = renderAt("/?window=30d", threeSeries());
+    hoverFirstDay(container);
+
+    for (const name of ["Mono Red Madness", "Affinity", "Elves"]) {
+      fireEvent.click(screen.getByRole("button", { name }));
+      await waitFor(() => {
+        expect(
+          curve(container, name).closest(".recharts-zIndex-layer_401"),
+        ).toBeTruthy();
+      });
+    }
+
+    const dots = [
+      ...container.querySelectorAll(
+        ".recharts-zIndex-layer_1200 .recharts-active-dot circle",
+      ),
+    ];
+    expect(dots).toHaveLength(3);
+    expect(dots.at(-1)).toBe(activeDot(container, "Elves"));
   });
 
   it("draws every line whatever the address says about hiding", () => {
