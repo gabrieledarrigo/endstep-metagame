@@ -165,6 +165,44 @@ describe("OverviewPage", () => {
     ).toBeTruthy();
   });
 
+  it("ends the busy state when one request fails, and shows its error", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>(async (input) => {
+        const url = new URL(String(input), "http://localhost");
+
+        if (url.pathname.endsWith("/decks")) {
+          return Response.json(decks);
+        }
+
+        return url.searchParams.get("window") === "7d"
+          ? Response.json({ error: "Not found" }, { status: 404 })
+          : Response.json(series);
+      }),
+    );
+    renderAt("/?window=30d");
+    await screen.findByText("06 Sept to 05 Oct 2026");
+
+    fireEvent.click(screen.getByRole("button", { name: "7d" }));
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "Share over time could not be loaded",
+      }),
+    ).toBeTruthy();
+    expect(screen.getByRole("status").textContent).toBe("");
+    expect(
+      screen
+        .getByRole("group", { name: "Time window" })
+        .getAttribute("data-busy"),
+    ).toBeNull();
+    expect(
+      screen
+        .getByRole("region", { name: "Decks by meta share" })
+        .closest("[aria-busy]"),
+    ).toBeNull();
+  });
+
   it("offers a longer window when this one has no decks", async () => {
     stubApi((window) =>
       Response.json(
