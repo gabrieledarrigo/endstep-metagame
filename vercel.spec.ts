@@ -28,10 +28,6 @@ function sha256(text: string): string {
 }
 
 describe("vercel.json", () => {
-  it("reads no headers for a source it has no rule for", () => {
-    expect(vercelHeaders("/nowhere")).toEqual({});
-  });
-
   it("caches the hashed assets for a year", () => {
     expect(vercelHeaders("/assets/(.*)")).toEqual({
       "Cache-Control": "public, max-age=31536000, immutable",

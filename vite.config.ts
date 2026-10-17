@@ -23,14 +23,26 @@ export function vercelHeaders(source: string): Record<string, string> {
   );
 }
 
-const SECURITY_HEADERS = vercelHeaders("/(.*)");
+/**
+ * Sends the headers of the catch-all rule in `vercel.json` on every `vite preview` response, as production does.
+ *
+ * @returns A Vite plugin whose preview middleware sets the headers and passes the request on. It must come before the plugins that answer requests.
+ */
+export function previewSecurityHeaders(): Plugin {
+  const headers = vercelHeaders("/(.*)");
 
-const securityHeaders: Connect.NextHandleFunction = (_req, res, next) => {
-  Object.entries(SECURITY_HEADERS).forEach(([name, value]) => {
-    res.setHeader(name, value);
-  });
-  next();
-};
+  return {
+    name: "preview-security-headers",
+    configurePreviewServer(server): void {
+      server.middlewares.use((_req, res, next) => {
+        Object.entries(headers).forEach(([name, value]) => {
+          res.setHeader(name, value);
+        });
+        next();
+      });
+    },
+  };
+}
 
 type FunctionTarget = {
   handler: { fetch: (req: Request) => Promise<Response> };
@@ -89,7 +101,7 @@ function functionRequest(
 /**
  * Serves the Vercel functions during development, with the rewrite from `vercel.json` and the cache lifetime each response declares.
  *
- * @returns A Vite plugin that answers `/api/metagame/*` and `/api/matchups` for both `vite` and `vite preview`. In preview, every response also carries the security headers from `vercel.json`, as in production.
+ * @returns A Vite plugin that answers `/api/metagame/*` and `/api/matchups` for both `vite` and `vite preview`.
  */
 function api(): Plugin {
   const cache = new Map<string, Cached>();
@@ -150,14 +162,13 @@ function api(): Plugin {
       server.middlewares.use(middleware);
     },
     configurePreviewServer(server): void {
-      server.middlewares.use(securityHeaders);
       server.middlewares.use(middleware);
     },
   };
 }
 
 export default defineConfig({
-  plugins: [react(), api()],
+  plugins: [react(), previewSecurityHeaders(), api()],
   build: {
     target: "es2025",
   },
@@ -168,7 +179,11 @@ export default defineConfig({
         test: {
           name: "api",
           environment: "node",
-          include: ["api/**/*.spec.ts", "vercel.spec.ts"],
+          include: [
+            "api/**/*.spec.ts",
+            "vercel.spec.ts",
+            "vite.config.spec.ts",
+          ],
         },
       },
       {
