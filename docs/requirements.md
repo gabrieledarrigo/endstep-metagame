@@ -258,7 +258,7 @@ The sort applies to the table only. It stays in the address while the cards show
 ### FR-5. Share over time
 A multi-series line chart of daily meta share. It uses the API's default top 8 series. The x-axis covers the full date range of the window.
 
-A click on a deck in the legend highlights it: its line draws at 3px on top, and the other lines, their end dots and their end labels fade to a quarter. A second click clears the highlight, and a click on another deck moves it. One deck at a time. Each legend entry is a toggle button with `aria-pressed`. The highlighted deck's slug is kept in `highlight`, §4.5, and a slug that is not in the chart shows no highlight. Nothing hides a line. The highlight replaced hiding on 2026-10-17, and the `hide` parameter is gone.
+A click on a deck in the legend highlights it: its line draws at 3px on top, and the other lines, their end dots and their end labels fade, to 25% opacity in the light theme and 35% in the dark one, so no series fades further in dark. A second click clears the highlight, and a click on another deck moves it. One deck at a time. Each legend entry is a toggle button with `aria-pressed`. The highlighted deck's slug is kept in `highlight`, §4.5, and a slug that is not in the chart shows no highlight. Nothing hides a line. The highlight replaced hiding on 2026-10-17, and the `hide` parameter is gone.
 
 Days before 2026-09-05 return `rate: null`. **Render them as a gap, not as zero.** See §6.2.
 
@@ -386,9 +386,11 @@ Every page comes in a light theme and a dark theme. The design system specifies 
 The overview finds any deck in the window, by its name or by a card in its lists, through `/decks` with `q`, §3.3. The design system's Deck search section is the visual specification.
 
 - A search field sits on its own row after the page's controls, above the decks. Its placeholder and visually hidden label read "Search decks or cards". With text in it, a clear button named "Clear the search" appears, and Escape clears too. Clearing keeps focus in the field.
-- The search runs 300ms after the last keystroke, from 2 trimmed characters. One character searches nothing and shows the top 24.
+- The search runs 300ms after the last keystroke, from 2 characters. The term is trimmed, its inner spaces collapsed and its letters lowercased before it is sent and written to the address, so variants share one cache entry. One character searches nothing and shows the top 24.
 - The results take the top 24's place in the chosen view, cards or table, FR-3 and FR-4, in share order. The field, a result line and the decks stand 14px apart. The line reads "{n} decks match "{q}". Search covers deck names and every card in their lists.", or "1 deck matches". The page's status line announces it.
-- Results come 24 at a time. While more remain, a "Show more" button loads the next page.
+- Results come 24 at a time. While more remain, a button loads the next page: "Show 24 more", or "Show {n} more" for fewer.
+- Results reach the long tail, §6.4. Their cards and rows follow the same rules as the top 24's, and a win rate under 20 decided matches reads as too few to call, §6.8.
+- In the table, the sort applies to the results loaded so far, and "Show more" adds the next page in share order before the table sorts again. The rank column gives each result's place by share among the results.
 - A search with no match shows the empty panel, "No deck or card matches "{q}"", with a "Clear the search" button that returns focus to the field.
 - The query is kept in `q`, §4.5, and a change replaces the history entry. A link carries only `?window=`, so it opens the overview with no search.
 - The summary and the charts stay on the top 24.
@@ -413,7 +415,7 @@ Endstep's data begins **2026-09-05**. A 30-day window returns 30 daily points an
 `shareChange.points` is populated for `1d`, `7d` and `14d`. On `30d` it is `null` with `reason: "previous_window_empty"`. On `season` it is `null` with `reason: "no_previous_window"`. There is not yet enough history to form a previous window. `30d` is the default, so the share-change column is empty on first load and the UI must say why. This resolves itself as Endstep accumulates history.
 
 ### 6.4 The long tail is noise, the top 24 is not
-230 of 264 archetypes have `machineNamed: true`. These are generated names, mostly for single-player decks whose win rates are 0% or 100%. All 24 decks in the grid are human-named. The smallest has 114 players and 805 matches, and none is sample-gated. No noise filtering is needed inside the grid, which is why `minMatches` is not exposed. Any feature that widens the list beyond the top 24 has to handle this again.
+230 of 264 archetypes have `machineNamed: true`. These are generated names, mostly for single-player decks whose win rates are 0% or 100%. All 24 decks in the grid are human-named. The smallest has 114 players and 805 matches, and none is sample-gated. No noise filtering is needed inside the grid, which is why `minMatches` is not exposed. Any feature that widens the list beyond the top 24 has to handle this again. The deck search does, FR-14: it shows these decks as Endstep returns them, and a win rate under 20 decided matches reads as too few to call, §6.8.
 
 ### 6.5 Win rates carry uncertainty
 `matchWinRate` includes `low` and `high` confidence bounds and a design effect, `deff`. A player's repeated matches are not independent samples. A bare percentage overstates its own precision. Show the bounds on hover at minimum. The scatter plot must not invite reading small differences as real.
@@ -555,13 +557,13 @@ Recharts covers the overview's three charts: `LineChart` for FR-5, a horizontal 
 
 ### NFR-3. Performance
 - Page interactive within 3 seconds on a normal broadband connection.
-- Initial render API calls: exactly **two** on the overview, `decks` at `pageSize=24` and `share-series`. **Two** on the deck page: the deck detail and `/api/matchups`. The second is the matchup table's own request, so it shares that page's edge cache entry. **One** on the matchup table.
+- Initial render API calls: exactly **two** on the overview, `decks` at `pageSize=24` and `share-series`, and a third when the address restores a search, FR-14. **Two** on the deck page: the deck detail and `/api/matchups`. The second is the matchup table's own request, so it shares that page's edge cache entry. **One** on the matchup table.
 - Script payload is a reference, not a gate. Draft v2 shipped about 743 KB brotli, 544 KB of it Babel Standalone. The mechanical Vite port measured 156 KB of script and 2 KB of CSS, brotli, on 2026-10-03.
 - Card art is lazy-loaded with `loading="lazy"` and sized to prevent layout shift.
 - Back, forward or a window switch to data fetched in the last five minutes renders from memory, with no request and no loading state, §4.8.
 
 ### NFR-4. Respecting the upstream service
-The application must not put meaningful load on Endstep. Edge caching (§4.3) means repeat visits and repeated window switches cost no upstream requests. Within five minutes, the client's own cache (§4.8) sends no request at all. The client must not poll. It must not retry more than twice. It must back off on 429. Total upstream traffic should stay well below the limit of 300 per 60 seconds. The matchup function costs 25 upstream calls per cold window, so warming all five windows costs 125 in each edge region that serves a request. The deck page's matchups row requests the same URL, so it adds no upstream calls once a window is warm. A search costs one upstream call for each distinct query and window. It runs 300ms after typing stops, from 2 characters, and the edge caches each query like any other deck list. Several regions warming every window inside one minute would pass the limit. At this site's traffic that is unlikely, and §4.4 holds a 429 at the edge for the full minute when it happens.
+The application must not put meaningful load on Endstep. Edge caching (§4.3) means repeat visits and repeated window switches cost no upstream requests. Within five minutes, the client's own cache (§4.8) sends no request at all. The client must not poll. It must not retry more than twice. It must back off on 429. Total upstream traffic should stay well below the limit of 300 per 60 seconds. The matchup function costs 25 upstream calls per cold window, so warming all five windows costs 125 in each edge region that serves a request. The deck page's matchups row requests the same URL, so it adds no upstream calls once a window is warm. A search costs one upstream call for each distinct normalised query, window and page. It runs 300ms after typing stops, from 2 characters, and the edge caches each query like any other deck list. Several regions warming every window inside one minute would pass the limit. At this site's traffic that is unlikely, and §4.4 holds a 429 at the edge for the full minute when it happens.
 
 ### NFR-5. Attribution
 The page states that the data comes from Endstep and links to `https://endstep.cc/metagame`. It does not present itself as an official Endstep product.
@@ -569,7 +571,7 @@ The page states that the data comes from Endstep and links to `https://endstep.c
 ### NFR-6. Accessibility
 - All content reachable and operable by keyboard. A chart's bars and markers open deck pages on a click, but are not tab stops: every page they open is reachable by keyboard through the deck grid or the deck table, whichever view the overview shows.
 - Charts are never the only carrier of information. Everything in a chart is also in a table. On the overview that is the deck table, one choice away in the view switch, FR-4.
-- Colour is never the only means of conveying meaning. Contrast targets WCAG AA. Two exceptions are accepted. The first is the cells the matchup table's spotlight fades, FR-12. They are context for the deck in the spotlight, which keeps full contrast, and the detail on hover or focus gives their figures in full. The second is the lines that Share over time fades around a highlighted deck, FR-5. The highlighted line keeps full contrast, and the legend, the end labels and the tooltip name every deck.
+- Colour is never the only means of conveying meaning. Contrast targets WCAG AA. Two exceptions are accepted. The first is the cells the matchup table's spotlight fades, FR-12. They are context for the deck in the spotlight, which keeps full contrast, and the detail on hover or focus gives their figures in full. The second is the lines, end dots and end labels that Share over time fades around a highlighted deck, FR-5. The highlighted line and its label keep full contrast, and the legend and the tooltip name every deck at full contrast.
 - Card art carries meaningful `alt` text. Decorative elements are hidden from assistive technology.
 
 ### NFR-7. Responsive

@@ -1004,10 +1004,11 @@ Covers FR-14 and NFR-4.
 1. The search field above the decks, with its visually hidden label and its clear button. Escape clears it.
 2. From 2 characters and 300ms after the last keystroke, request `/decks` with `q`, in share order, 24 per page. Keep the query in `?q=`, replacing the history entry.
 3. Show the results in the chosen view, cards or table, under the result line. The page's status line announces the count.
-4. "Show more" loads the next page of 24 while results remain.
-5. No results: the panel with "Clear the search", which returns focus to the field.
-6. The summary and the charts stay on the top 24.
-7. A spec beside each component, hook and helper it adds or changes.
+4. While results remain, "Show 24 more", or "Show {n} more" for fewer, loads the next page. In the table, the sort applies to the loaded results.
+5. Send and keep the term trimmed, with its inner spaces collapsed and lowercased. Win rates under 20 decided matches read as too few to call, §6.8.
+6. No results: the panel with "Clear the search", which returns focus to the field.
+7. The summary and the charts stay on the top 24.
+8. A spec beside each component, hook and helper it adds or changes.
 
 **Done when**
 
@@ -1029,7 +1030,7 @@ Covers FR-5.
 **Tasks**
 
 1. Each legend entry is a toggle button with `aria-pressed`. A click highlights that deck, a second click on it clears the highlight, and a click on another deck moves it.
-2. The highlighted line draws at 3px, on top. Every other line, its end dot and its end label fade to 25% opacity.
+2. The highlighted line draws at 3px, on top. Every other line, its end dot and its end label fade to `--line-fade`, 25% in light and 35% in dark.
 3. Keep the highlighted deck's slug in `?highlight=`, replacing the history entry. A slug that is not in the chart shows no highlight.
 4. Remove hiding and the `hide` parameter.
 5. A spec beside each component it changes.
