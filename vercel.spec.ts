@@ -1,17 +1,9 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import vercel from "./vercel.json" with { type: "json" };
+import { vercelHeaders } from "./vite.config.ts";
 
 const html = readFileSync(new URL("./index.html", import.meta.url), "utf8");
-
-function headersFor(source: string): Record<string, string> {
-  const rule = vercel.headers.find((candidate) => candidate.source === source);
-
-  return Object.fromEntries(
-    (rule?.headers ?? []).map(({ key, value }) => [key, value]),
-  );
-}
 
 function inlineScripts(page: string): string[] {
   return [...page.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)]
@@ -34,14 +26,18 @@ function sha256(text: string): string {
 }
 
 describe("vercel.json", () => {
+  it("reads no headers for a source it has no rule for", () => {
+    expect(vercelHeaders("/nowhere")).toEqual({});
+  });
+
   it("caches the hashed assets for a year", () => {
-    expect(headersFor("/assets/(.*)")).toEqual({
+    expect(vercelHeaders("/assets/(.*)")).toEqual({
       "Cache-Control": "public, max-age=31536000, immutable",
     });
   });
 
   it("sends the security headers on every response, with no cache rule", () => {
-    const headers = headersFor("/(.*)");
+    const headers = vercelHeaders("/(.*)");
 
     expect(headers["X-Content-Type-Options"]).toBe("nosniff");
     expect(headers["Referrer-Policy"]).toBe("strict-origin-when-cross-origin");
@@ -51,7 +47,9 @@ describe("vercel.json", () => {
   it("sends the agreed Content Security Policy", () => {
     const hashes = inlineScripts(html).map(sha256);
 
-    expect(directives(headersFor("/(.*)")["Content-Security-Policy"])).toEqual({
+    expect(
+      directives(vercelHeaders("/(.*)")["Content-Security-Policy"]),
+    ).toEqual({
       "default-src": ["'self'"],
       "script-src": ["'self'", ...hashes].toSorted(),
       "style-src": ["'self'"],
@@ -74,7 +72,7 @@ describe("vercel.json", () => {
 
   it("allows every inline script in index.html by its hash", () => {
     const scriptSources = directives(
-      headersFor("/(.*)")["Content-Security-Policy"],
+      vercelHeaders("/(.*)")["Content-Security-Policy"],
     )["script-src"];
 
     inlineScripts(html).forEach((script) => {

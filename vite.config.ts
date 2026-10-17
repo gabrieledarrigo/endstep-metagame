@@ -9,11 +9,21 @@ const METAGAME = "/api/metagame";
 const METAGAME_PREFIX = `${METAGAME}/`;
 const MATCHUPS = "/api/matchups";
 
-const SECURITY_HEADERS = Object.fromEntries(
-  (vercel.headers.find((rule) => rule.source === "/(.*)")?.headers ?? []).map(
-    ({ key, value }) => [key, value],
-  ),
-);
+/**
+ * Reads the headers that `vercel.json` sets for one source pattern.
+ *
+ * @param source - The rule's `source`, such as `/(.*)`.
+ * @returns The rule's headers by name, or an empty object when no rule has that source.
+ */
+export function vercelHeaders(source: string): Record<string, string> {
+  const rule = vercel.headers.find((candidate) => candidate.source === source);
+
+  return Object.fromEntries(
+    (rule?.headers ?? []).map(({ key, value }) => [key, value]),
+  );
+}
+
+const SECURITY_HEADERS = vercelHeaders("/(.*)");
 
 const securityHeaders: Connect.NextHandleFunction = (_req, res, next) => {
   Object.entries(SECURITY_HEADERS).forEach(([name, value]) => {
