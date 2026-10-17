@@ -1,4 +1,11 @@
 import {
+  type MouseEvent,
+  type PointerEvent,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import {
   CartesianGrid,
   ReferenceLine,
   Scatter,
@@ -11,6 +18,7 @@ import {
 } from "recharts";
 import type { Deck } from "../../api/types";
 import { ChartFrame } from "../../charts/ChartFrame";
+import { ChartLink } from "../../charts/ChartLink";
 import { ChartTooltip } from "../../charts/ChartTooltip";
 import {
   CHART_AXIS,
@@ -37,9 +45,11 @@ const SCATTER_LABEL = token("--text-600");
 const LABEL_PLOT_WIDTH = 590;
 const LABEL_CHAR_WIDTH = 6.6;
 const LABEL_GAP_Y = 0.18;
+const TAP_CLICK_WINDOW = 1000;
 
 type WinRatePoint = {
   id: string;
+  slug: string;
   name: string;
   share: number;
   winRate: number;
@@ -59,6 +69,7 @@ function winRatePoints(decks: Deck[]): WinRatePoint[] {
     return [
       {
         id: deck.id,
+        slug: deck.slug,
         name: deck.name,
         share: deck.share.rate * 100,
         winRate: read.rate * 100,
@@ -108,9 +119,19 @@ type WinRateMarkProps = {
   size: number;
   payload: WinRatePoint;
   labelled: Set<string>;
+  onPointerUp: (event: PointerEvent<SVGGElement>) => void;
+  onClick: (event: MouseEvent<HTMLAnchorElement>) => void;
 };
 
-function WinRateMark({ cx, cy, size, payload, labelled }: WinRateMarkProps) {
+function WinRateMark({
+  cx,
+  cy,
+  size,
+  payload,
+  labelled,
+  onPointerUp,
+  onClick,
+}: WinRateMarkProps) {
   if (cx === undefined || cy === undefined) {
     return null;
   }
@@ -118,31 +139,41 @@ function WinRateMark({ cx, cy, size, payload, labelled }: WinRateMarkProps) {
   const radius = Math.sqrt(size / Math.PI);
 
   return (
-    <g>
-      <circle
-        cx={cx}
-        cy={cy}
-        r={radius}
-        fill={WIN_RATE_MARK}
-        fillOpacity={0.55}
-        stroke={CHART_SURFACE}
-        strokeWidth={2}
-      />
-      {labelled.has(payload.id) && (
-        <text
-          className="win-rate__label"
-          x={cx}
-          y={cy - radius - 7}
-          textAnchor="middle"
-        >
-          {payload.name}
-        </text>
-      )}
-    </g>
+    <ChartLink
+      to={`/decks/${payload.slug}`}
+      label={payload.name}
+      onClick={onClick}
+    >
+      <g className="win-rate__mark" onPointerUp={onPointerUp}>
+        <circle
+          cx={cx}
+          cy={cy}
+          r={radius}
+          fill={WIN_RATE_MARK}
+          fillOpacity={0.55}
+          stroke={CHART_SURFACE}
+          strokeWidth={2}
+        />
+        {labelled.has(payload.id) && (
+          <text
+            className="win-rate__label"
+            x={cx}
+            y={cy - radius - 7}
+            textAnchor="middle"
+          >
+            {payload.name}
+          </text>
+        )}
+      </g>
+    </ChartLink>
   );
 }
 
-function WinRateTooltip({ active, payload }: TooltipContentProps) {
+type WinRateTooltipProps = TooltipContentProps & {
+  armed: string | null;
+};
+
+function WinRateTooltip({ active, payload, armed }: WinRateTooltipProps) {
   if (!active || payload.length === 0) {
     return null;
   }
@@ -174,6 +205,11 @@ function WinRateTooltip({ active, payload }: TooltipContentProps) {
           value: `${winRateText(point.low)} to ${winRateText(point.high)}`,
         },
       ]}
+      verdict={
+        point.id === armed
+          ? "Tap again to open the deck."
+          : "Click to open the deck."
+      }
     />
   );
 }
@@ -206,8 +242,42 @@ function leftOutNote(count: number): string {
     : `${count} decks with fewer than ${DECIDED_NEEDED} decided matches are left out, too few to place.`;
 }
 
+type ArmedMark = {
+  id: string;
+  decks: Deck[];
+};
+
+type Arming = {
+  id: string;
+  at: number;
+};
+
 export function WinRateScatter({ decks }: { decks: Deck[] }) {
+  const arming = useRef<Arming | null>(null);
+  const [armedMark, setArmedMark] = useState<ArmedMark | null>(null);
+  const armed = armedMark?.decks === decks ? armedMark.id : null;
+
+  useEffect(() => {
+    if (armed === null) {
+      return;
+    }
+
+    function disarm(event: Event): void {
+      if (
+        !(event.target instanceof Element) ||
+        event.target.closest(".win-rate__mark") === null
+      ) {
+        setArmedMark(null);
+      }
+    }
+
+    document.addEventListener("pointerdown", disarm);
+
+    return (): void => document.removeEventListener("pointerdown", disarm);
+  }, [armed]);
+
   const points = winRatePoints(decks);
+  const drawn = [...points].sort((a, b) => b.players - a.players);
   const leftOut = decks.length - points.length;
 
   if (decks.length === 0) {
@@ -300,14 +370,15 @@ export function WinRateScatter({ decks }: { decks: Deck[] }) {
               position: "insideBottomRight",
               fill: SCATTER_LABEL,
               fontSize: 12,
+              pointerEvents: "none",
             }}
           />
           <Tooltip
             cursor={{ stroke: CHART_BASELINE, strokeDasharray: "3 3" }}
-            content={WinRateTooltip}
+            content={(props) => <WinRateTooltip {...props} armed={armed} />}
           />
           <Scatter
-            data={points}
+            data={drawn}
             shape={({ cx, cy, size, payload }) => (
               <WinRateMark
                 cx={cx}
@@ -315,6 +386,25 @@ export function WinRateScatter({ decks }: { decks: Deck[] }) {
                 size={size}
                 payload={payload}
                 labelled={labelled}
+                onPointerUp={(event) => {
+                  if (event.pointerType === "touch" && armed !== payload.id) {
+                    setArmedMark({ id: payload.id, decks });
+                    arming.current = { id: payload.id, at: event.timeStamp };
+                  } else {
+                    arming.current = null;
+                  }
+                }}
+                onClick={(event) => {
+                  const tap = arming.current;
+                  arming.current = null;
+                  if (
+                    tap !== null &&
+                    tap.id === payload.id &&
+                    event.timeStamp - tap.at < TAP_CLICK_WINDOW
+                  ) {
+                    event.preventDefault();
+                  }
+                }}
               />
             )}
             isAnimationActive={false}

@@ -1,4 +1,5 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen } from "@testing-library/react";
+import { MemoryRouter, useLocation } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import decks from "../../../test/fixtures/decks.json";
 import { sizeCharts } from "../../../test/sizeCharts";
@@ -18,6 +19,21 @@ function page(shares: number[]): Page<Deck> {
   };
 }
 
+function Address() {
+  const { pathname, search } = useLocation();
+
+  return <p>Address: {pathname + search}</p>;
+}
+
+function renderBars(decks: Page<Deck>): void {
+  render(
+    <MemoryRouter initialEntries={["/?window=7d"]}>
+      <RankedBars decks={decks} />
+      <Address />
+    </MemoryRouter>,
+  );
+}
+
 beforeEach(() => {
   sizeCharts();
 });
@@ -28,7 +44,7 @@ afterEach(() => {
 
 describe("RankedBars", () => {
   it("draws a labelled bar for each deck and one for the rest of the field", () => {
-    render(<RankedBars decks={PAGE} />);
+    renderBars(PAGE);
 
     expect(
       screen.getByRole("heading", { name: "Meta share by deck" }),
@@ -46,11 +62,50 @@ describe("RankedBars", () => {
   });
 
   it("leaves the rest of the field out when the decks cover all of it", () => {
-    render(<RankedBars decks={page([0.6, 0.4])} />);
+    renderBars(page([0.6, 0.4]));
 
     expect(screen.getByText("60.00%")).toBeTruthy();
     expect(screen.getByText("40.00%")).toBeTruthy();
     expect(screen.queryByText("Other")).toBeNull();
+  });
+
+  it("links every deck's row to its page in the current window, and not the rest of the field", () => {
+    renderBars(PAGE);
+
+    expect(
+      screen
+        .getAllByRole("link")
+        .map((link) => [
+          link.getAttribute("aria-label"),
+          link.getAttribute("href"),
+        ]),
+    ).toEqual(
+      PAGE.items.map((deck) => [deck.name, `/decks/${deck.slug}?window=7d`]),
+    );
+  });
+
+  it("lets a click on a value label through to its row", () => {
+    renderBars(PAGE);
+
+    expect(
+      screen.getByText("9.56%").closest("text")?.getAttribute("pointer-events"),
+    ).toBe("none");
+  });
+
+  it("opens a deck's page from anywhere on its row, drawn over the bar", () => {
+    renderBars(PAGE);
+    const link = screen.getAllByRole("link")[1];
+    const bar = document.querySelectorAll(".recharts-bar-rectangle")[1];
+
+    expect(
+      bar.compareDocumentPosition(link) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+
+    fireEvent.click(link.querySelector("rect") as Element);
+
+    expect(
+      screen.getByText(`Address: /decks/${PAGE.items[1].slug}?window=7d`),
+    ).toBeTruthy();
   });
 
   it("draws nothing without decks", () => {

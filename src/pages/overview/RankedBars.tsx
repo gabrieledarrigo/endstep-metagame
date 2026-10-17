@@ -4,11 +4,16 @@ import {
   CartesianGrid,
   Cell,
   LabelList,
+  Text,
+  type TextProps,
   XAxis,
   YAxis,
+  useChartWidth,
+  usePlotArea,
 } from "recharts";
 import type { Deck, Page } from "../../api/types";
 import { ChartFrame } from "../../charts/ChartFrame";
+import { ChartLink } from "../../charts/ChartLink";
 import { CHART_AXIS, CHART_CARTESIAN_GRID, token } from "../../charts/theme";
 import { Panel } from "../../components/Panel";
 import { Skeleton } from "../../components/Skeleton";
@@ -23,15 +28,15 @@ const CHART_NAME = token("--text-600");
 
 type ShareBar = {
   name: string;
+  slug: string | null;
   share: number;
-  residual: boolean;
 };
 
 function shareBars({ items, total }: Page<Deck>): ShareBar[] {
   const bars = items.map((deck) => ({
     name: deck.name,
+    slug: deck.slug,
     share: deck.share.rate * 100,
-    residual: false,
   }));
 
   const other = 100 - bars.reduce((sum, bar) => sum + bar.share, 0);
@@ -43,10 +48,45 @@ function shareBars({ items, total }: Page<Deck>): ShareBar[] {
     ...bars,
     {
       name: `Other (${total - items.length} archetypes and unclassified)`,
+      slug: null,
       share: other,
-      residual: true,
     },
   ];
+}
+
+type DeckTickProps = TextProps & {
+  payload: { value: string; index: number; coordinate: number };
+  bars: ShareBar[];
+};
+
+function DeckTick({ payload, bars, ...text }: DeckTickProps) {
+  const plot = usePlotArea();
+  const width = useChartWidth();
+  const { name: deck, slug } = bars[payload.index];
+  const name = (
+    <Text {...text} {...CHART_AXIS.tick} fill={CHART_NAME}>
+      {payload.value}
+    </Text>
+  );
+
+  if (slug === null || plot === undefined || width === undefined) {
+    return name;
+  }
+
+  const band = plot.height / bars.length;
+
+  return (
+    <ChartLink to={`/decks/${slug}`} label={deck}>
+      <rect
+        x={0}
+        y={payload.coordinate - band / 2}
+        width={width}
+        height={band}
+        fill="transparent"
+      />
+      {name}
+    </ChartLink>
+  );
 }
 
 const RANKED_BARS_NOTE = `Other covers every archetype outside the top ${PAGE_SIZE}.`;
@@ -114,7 +154,7 @@ export function RankedBars({ decks }: { decks: Page<Deck> }) {
                 width={210}
                 interval={0}
                 {...CHART_AXIS}
-                tick={{ ...CHART_AXIS.tick, fill: CHART_NAME }}
+                tick={(props) => <DeckTick {...props} bars={bars} />}
               />
               <Bar
                 dataKey="share"
@@ -125,7 +165,7 @@ export function RankedBars({ decks }: { decks: Page<Deck> }) {
                 {bars.map((bar) => (
                   <Cell
                     key={bar.name}
-                    fill={bar.residual ? CHART_RESIDUAL : CHART_BAR}
+                    fill={bar.slug === null ? CHART_RESIDUAL : CHART_BAR}
                   />
                 ))}
                 <LabelList
@@ -134,6 +174,7 @@ export function RankedBars({ decks }: { decks: Page<Deck> }) {
                   formatter={(share) => tooltipShare(Number(share))}
                   fill={CHART_LABEL}
                   fontSize={12}
+                  pointerEvents="none"
                 />
               </Bar>
             </BarChart>
