@@ -14,6 +14,7 @@ import {
   cellOf,
   cellState,
   cellSummary,
+  cellText,
   formatCount,
   neededText,
   percent,
@@ -26,18 +27,6 @@ type Position = {
   row: number;
   column: number;
 };
-
-function cellText(state: CellState, cell: MatchupCell | undefined): string {
-  if (state === "none") {
-    return "·";
-  }
-
-  if (state === "mirror" || cell === undefined || cell.rate === null) {
-    return "";
-  }
-
-  return String(Math.round(cell.rate * 100));
-}
 
 function positionOf(target: EventTarget | null): Position | null {
   const element =

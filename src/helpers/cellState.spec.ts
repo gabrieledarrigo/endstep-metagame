@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import type { MatchupCell, MatchupMatrix } from "../api/types";
-import { cellOf, cellState, cellSummary, isClearPair } from "./cellState";
+import {
+  cellOf,
+  cellState,
+  cellSummary,
+  cellText,
+  isClearPair,
+} from "./cellState";
 
 function ranged(
   wins: number,
@@ -134,5 +140,19 @@ describe("cellSummary", () => {
     expect(cellSummary("Affinity", "Affinity", "mirror", undefined)).toBe(
       "Affinity against Affinity: mirror match",
     );
+  });
+});
+
+describe("cellText", () => {
+  it("gives the whole percentage of a cell with a rate", () => {
+    expect(cellText("win", CELLS.affinity.madness)).toBe("57");
+    expect(cellText("loss", CELLS.madness.affinity)).toBe("43");
+    expect(cellText("neutral", CELLS.affinity.tron)).toBe("48");
+  });
+
+  it("gives a dot for no data, and nothing for a gated cell or the mirror", () => {
+    expect(cellText("none", undefined)).toBe("\u00b7");
+    expect(cellText("gated", CELLS.affinity.gates)).toBe("");
+    expect(cellText("mirror", undefined)).toBe("");
   });
 });
