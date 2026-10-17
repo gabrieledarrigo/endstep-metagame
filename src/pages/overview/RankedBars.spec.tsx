@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter, useLocation } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import decks from "../../../test/fixtures/decks.json";
@@ -82,15 +82,15 @@ describe("RankedBars", () => {
 
   it("underlines a pointed deck's name in --text-900 and fills its bar with --seq-600, until the pointer leaves", () => {
     renderBars(PAGE);
-    const link = screen.getByRole("link", { name: PAGE.items[1].name });
+    const link = screen.getByRole("link", { name: "Affinity" });
     const row = link.querySelector("rect") as Element;
-    const name = link.querySelector("text") as Element;
+    const name = within(link).getByText("Affinity").closest("text") as Element;
 
     fireEvent.pointerMove(row, { pointerType: "mouse" });
 
     expect(barFills()).toEqual([
-      "var(--seq-500)",
       "var(--seq-600)",
+      "var(--seq-500)",
       "var(--seq-500)",
       "var(--text-400)",
     ]);
@@ -132,7 +132,7 @@ describe("RankedBars", () => {
 
   it("leaves a row as it is under a finger, which opens the deck at once", () => {
     renderBars(PAGE);
-    const link = screen.getByRole("link", { name: PAGE.items[1].name });
+    const link = screen.getByRole("link", { name: "Affinity" });
 
     fireEvent.pointerMove(link.querySelector("rect") as Element, {
       pointerType: "touch",
@@ -140,7 +140,10 @@ describe("RankedBars", () => {
 
     expect(barFills()).toEqual(RESTING);
     expect(
-      link.querySelector("text")?.getAttribute("text-decoration"),
+      within(link)
+        .getByText("Affinity")
+        .closest("text")
+        ?.getAttribute("text-decoration"),
     ).toBeNull();
   });
 
