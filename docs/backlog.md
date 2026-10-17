@@ -909,7 +909,7 @@ Covers §3.4, §4.3, FR-3, FR-11, NFR-4 and open item 11, settled by the owner o
 
 **Done when**
 
-- The top 24's cards load their art from `cards.scryfall.io`, with no request to `endstep.cc`.
+- Every top-24 card that Scryfall finds loads its art from `cards.scryfall.io`, and a card it doesn't find falls back to Endstep's endpoint.
 - With Scryfall's API unreachable, every card still shows its art, through Endstep's endpoint. Scryfall's CDN being down is out of reach: Endstep's endpoint redirects there too.
 - No response waits more than a second on Scryfall.
 
