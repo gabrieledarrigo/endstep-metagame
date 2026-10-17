@@ -23,7 +23,20 @@ function items(): HTMLElement[] {
 }
 
 function lines(): string[] {
-  return items().map((item) => item.textContent ?? "");
+  return items().map((item) => {
+    const spoken = item.cloneNode(true) as HTMLElement;
+    spoken
+      .querySelectorAll("[aria-hidden='true']")
+      .forEach((element) => element.remove());
+
+    return spoken.textContent ?? "";
+  });
+}
+
+function swatches(): (string | null)[] {
+  return items().map(
+    (item) => item.querySelector(".matchup-swatch")?.textContent ?? null,
+  );
 }
 
 describe("MatchupList", () => {
@@ -40,6 +53,7 @@ describe("MatchupList", () => {
       "Monster Tron998 matchesWithin chance48%",
       "Naya Gates18 of the 20 matches neededToo few to call",
     ]);
+    expect(swatches()).toEqual(["57%", "48%", ""]);
   });
 
   it("puts the opponent's link, its matches, the verdict and the cell on each line", () => {
@@ -74,8 +88,9 @@ describe("MatchupList", () => {
     expect(lines()).toEqual([
       "Affinity1,456 matchesUnfavoured43%",
       "Monster Tron703 matchesWithin chance52%",
-      "Naya GatesNo data·",
+      "Naya GatesNo data",
     ]);
+    expect(swatches()).toEqual(["43%", "52%", "·"]);
     expect(screen.getByText("·").getAttribute("aria-hidden")).toBe("true");
   });
 
