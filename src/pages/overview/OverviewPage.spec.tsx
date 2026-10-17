@@ -660,6 +660,18 @@ describe("OverviewPage search", () => {
     expect(topDeck("Affinity")).toBeTruthy();
   });
 
+  it("records no navigation when Escape clears a single character and the address has no term", async () => {
+    stubApi(() => Response.json(decks));
+    renderAt("/?window=30d");
+    await screen.findByRole("region", { name: "Decks by meta share" });
+
+    type("a");
+    fireEvent.keyDown(field(), { key: "Escape" });
+
+    expect(field().value).toBe("");
+    expect(screen.getByText("Address: ?window=30d by POP")).toBeTruthy();
+  });
+
   it("clears the search with the field's button, removes q and shows the top 24", async () => {
     stubApi(() => Response.json(decks));
     renderAt("/?window=30d&q=altar");

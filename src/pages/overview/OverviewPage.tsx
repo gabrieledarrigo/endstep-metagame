@@ -118,6 +118,10 @@ export function OverviewPage() {
 
   const onSearch = useCallback(
     (next: string | null): void => {
+      if (searchParams.get("q") === next) {
+        return;
+      }
+
       setSearchParams(
         (params) => {
           if (next === null) {
@@ -130,7 +134,7 @@ export function OverviewPage() {
         { replace: true },
       );
     },
-    [setSearchParams],
+    [searchParams, setSearchParams],
   );
 
   const clearSearch = (): void => {
