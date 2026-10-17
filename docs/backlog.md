@@ -752,7 +752,7 @@ Covers NFR-1: an exported function with a consumer has a spec beside it. E10 set
 
 # Milestone 3: connected pages
 
-**Date:** 2026-10-13. Derived from Draft v4 of the requirements. D3 and S18 were added on 2026-10-14, from Draft v5. D4, S19, S20 and S21 were added on 2026-10-17, from Draft v6. D5, E12, S22, S23 and S24 were added the same day, from Draft v7.
+**Date:** 2026-10-13. Derived from Draft v4 of the requirements. D3 and S18 were added on 2026-10-14, from Draft v5. D4, S19, S20 and S21 were added on 2026-10-17, from Draft v6. D5, E13, S22, S23 and S24 were added the same day, from Draft v7.
 
 Seventeen items. Four design items, one enabler, twelve user stories. Two stories and the enabler need no design and start at once. The others wait for D2, D3, D4 or D5, because each changes how a page looks, and the owner chooses the design first.
 
@@ -763,7 +763,7 @@ Seventeen items. Four design items, one enabler, twelve user stories. Two storie
 | 17 | S15 | No |
 | 18 | D4 | No |
 | 19 | S19, S20, S21 | Yes, three ways |
-| 20 | D5, E12 | Yes, two ways |
+| 20 | D5, E13 | Yes, two ways |
 | 21 | S22, S23, S24 | Yes, three ways |
 
 ```
@@ -778,7 +778,7 @@ D4 design ──┬─► S19 search for any deck
 D5 design ──┬─► S22 install as an app
             ├─► S23 a preview per deck
             └─► S24 the footer
-E12 metadata and headers ──► S23
+E13 metadata and headers ──► S23
 S13 every page kept on a window change
 S14 charts open the deck pages
 ```
@@ -873,7 +873,7 @@ Covers FR-15, FR-16 and NFR-5. The owner chose on 2026-10-17: the ranked-bars ma
 
 ---
 
-## E12. Add the page description, the asset cache and the security headers
+## E13. Add the page description, the asset cache and the security headers
 
 Covers FR-15's text tags and §4.7. Needs no design.
 
@@ -1158,7 +1158,7 @@ Covers FR-15.
 - A shared link to the overview or the matchup table shows the site card.
 - With Endstep unreachable, a deck page still loads, with the site card.
 
-**Blocked by** D5, E12. **Blocks** nothing.
+**Blocked by** D5, E13. **Blocks** nothing.
 
 ---
 
@@ -1192,4 +1192,4 @@ Covers NFR-5.
 
 **S20 and S21 wait for S18.** S18 turns the chart colours into CSS variables, and both stories change how the charts draw. S19 touches only the overview's deck list and can start as soon as D4 lands.
 
-**E12 before S23.** The deck page's function writes into the head that E12 fills, and the security policy must allow the art the preview points at. D5's mark is the owner's to finish, so S22 and S24 wait for it.
+**E13 before S23.** The deck page's function writes into the head that E13 fills, and the security policy must allow the art the preview points at. D5's mark is the owner's to finish, so S22 and S24 wait for it.
