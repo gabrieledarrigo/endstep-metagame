@@ -92,11 +92,16 @@ describe("RankedBars", () => {
     ).toBe("none");
   });
 
-  it("opens a deck's page from anywhere on its row", () => {
+  it("opens a deck's page from anywhere on its row, drawn over the bar", () => {
     renderBars(PAGE);
-    const row = screen.getAllByRole("link")[1].querySelector("rect");
+    const link = screen.getAllByRole("link")[1];
+    const bar = document.querySelectorAll(".recharts-bar-rectangle")[1];
 
-    fireEvent.click(row as Element);
+    expect(
+      bar.compareDocumentPosition(link) & Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+
+    fireEvent.click(link.querySelector("rect") as Element);
 
     expect(
       screen.getByText(`Address: /decks/${PAGE.items[1].slug}?window=7d`),
