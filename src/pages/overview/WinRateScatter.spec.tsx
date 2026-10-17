@@ -324,6 +324,19 @@ describe("WinRateScatter", () => {
     expect(screen.queryByText("Tap again to open the deck.")).toBeNull();
   });
 
+  it("follows a click with no tap before it once a mouse has disarmed the marker", () => {
+    const { container } = renderScatter(DECKS);
+
+    press(() => firstMark(container));
+    fireEvent.pointerMove(
+      screen.getByRole("link", { name: "Mono Red Madness" }),
+      { pointerType: "mouse" },
+    );
+    fireEvent.click(firstMark(container));
+
+    expect(screen.getByText(AFFINITY_PAGE)).toBeTruthy();
+  });
+
   it("keeps the armed mark while a finger moves over the chart", () => {
     const { container } = renderScatter(DECKS);
 

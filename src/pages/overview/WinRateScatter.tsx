@@ -321,6 +321,7 @@ export function WinRateScatter({ decks }: { decks: Deck[] }) {
           return;
         }
 
+        arming.current = null;
         setArmedMark(null);
       }}
     >
