@@ -890,20 +890,25 @@ describe("MatchupsPage below 640px", () => {
     stubRoutes();
     const resize = stubWidth(360);
     renderAt("/matchups?window=30d&deck=stompy-12345678");
-    const status = recordStatus();
     await waitFor(() => {
       expect(notices()).toEqual([`status: ${OUTSIDE}`, `line: ${PHONE_LINE}`]);
     });
-    const announced = [...status];
+    const status = screen.getByRole("status");
+    const changes: string[] = [];
+    new MutationObserver(() => {
+      changes.push(status.textContent ?? "");
+    }).observe(status, { childList: true, characterData: true, subtree: true });
 
-    act(() => resize(800));
+    await act(async () => resize(800));
 
+    expect(status.textContent).toBe(OUTSIDE);
     expect(notices()).toEqual([`status: ${OUTSIDE}`, `line: ${OUTSIDE}`]);
 
-    act(() => resize(360));
+    await act(async () => resize(360));
 
+    expect(status.textContent).toBe(OUTSIDE);
     expect(notices()).toEqual([`status: ${OUTSIDE}`, `line: ${PHONE_LINE}`]);
-    expect(status).toEqual(announced);
+    expect(changes).toEqual([]);
   });
 
   it("switches between the list and the table as the window crosses 640px, and does not scroll to the deck", async () => {
