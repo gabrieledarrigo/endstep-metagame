@@ -776,8 +776,10 @@ describe("OverviewPage search", () => {
     );
     renderAt("/?window=30d&q=deck");
     await statusReads("30 decks match \u201cdeck\u201d.");
+    const more = screen.getByRole("button", { name: "Show 6 more" });
+    more.focus();
 
-    fireEvent.click(screen.getByRole("button", { name: "Show 6 more" }));
+    fireEvent.click(more);
 
     await waitFor(() => {
       expect(document.activeElement).toBe(
@@ -885,6 +887,45 @@ describe("OverviewPage search", () => {
     expect(screen.getByRole("link", { name: "Deck 24" })).toBeTruthy();
     expect(searchRequests(fetchMock)).toHaveLength(2);
   });
+
+  it.each([
+    ["the field", (): HTMLElement => field()],
+    [
+      "the view switch",
+      (): HTMLElement => screen.getByRole("button", { name: "Table" }),
+    ],
+  ])(
+    "leaves focus on %s when the reader moves it there before the last page lands",
+    async (ignored, target) => {
+      let answer: (response: Response) => void = () => {};
+      stubApi(
+        () => Response.json(decks),
+        (url) =>
+          url.searchParams.get("page") === "1"
+            ? matches(url, numberedDecks(1, 24), 30)
+            : new Promise<Response>((resolve) => (answer = resolve)),
+      );
+      renderAt("/?window=30d&q=deck");
+      await statusReads("30 decks match \u201cdeck\u201d.");
+      const more = screen.getByRole("button", { name: "Show 6 more" });
+      more.focus();
+
+      fireEvent.click(more);
+      const elsewhere = target();
+      elsewhere.focus();
+      answer(
+        matches(
+          new URL("http://localhost/?window=30d&q=deck&page=2"),
+          numberedDecks(25, 30),
+          30,
+        ),
+      );
+
+      expect(await screen.findByRole("link", { name: "Deck 25" })).toBeTruthy();
+      await pause(50);
+      expect(document.activeElement).toBe(elsewhere);
+    },
+  );
 
   it("leaves focus in the field when the term changes while more results load", async () => {
     stubApi(

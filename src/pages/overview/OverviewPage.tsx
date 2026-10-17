@@ -69,19 +69,12 @@ export function OverviewPage() {
   const searching = term !== null;
   const searchField = useRef<DeckSearchHandle>(null);
   const [previousTerm, setPreviousTerm] = useState(term);
-  const [previousWindow, setPreviousWindow] = useState(timeWindow);
   const [fromTopList, setFromTopList] = useState(false);
   const [focusFrom, setFocusFrom] = useState<number | null>(null);
 
   if (term !== previousTerm) {
     setPreviousTerm(term);
     setFromTopList(previousTerm === null);
-    setFocusFrom(null);
-  }
-
-  if (timeWindow !== previousWindow) {
-    setPreviousWindow(timeWindow);
-    setFocusFrom(null);
   }
 
   const search = useInfiniteQuery({

@@ -26,10 +26,16 @@ export function SearchResults({
   children,
 }: SearchResultsProps) {
   const body = useRef<HTMLDivElement>(null);
+  const moreHeldFocus = useRef(false);
   const line = found && matchText(found.total, found.term);
 
   useEffect(() => {
     if (focus === undefined || body.current === null) {
+      return;
+    }
+
+    if (!moreHeldFocus.current) {
+      onFocused?.();
       return;
     }
 
@@ -41,6 +47,7 @@ export function SearchResults({
       return;
     }
 
+    moreHeldFocus.current = false;
     link.focus();
     onFocused?.();
   });
@@ -65,6 +72,9 @@ export function SearchResults({
           <Button
             variant="secondary"
             className="search-results__more"
+            ref={(button) => (): void => {
+              moreHeldFocus.current = document.activeElement === button;
+            }}
             aria-busy={more.loading || undefined}
             onClick={() => {
               if (!more.loading) {

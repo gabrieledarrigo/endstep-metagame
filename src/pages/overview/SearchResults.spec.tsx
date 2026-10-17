@@ -152,9 +152,17 @@ describe("SearchResults", () => {
     ).toBeNull();
   });
 
-  it("moves focus to the deck it is given, and says so", () => {
+  it("moves focus to the deck it is given when Show more held focus as it went", () => {
     const onFocused = vi.fn();
-    render(
+    const more = { remaining: 6, loading: false, onMore: vi.fn() };
+    const { rerender } = render(
+      <SearchResults field={null} more={more}>
+        {decks()}
+      </SearchResults>,
+    );
+    screen.getByRole("button", { name: "Show 6 more" }).focus();
+
+    rerender(
       <SearchResults
         field={null}
         focus="gardens-4ad158da"
@@ -170,9 +178,44 @@ describe("SearchResults", () => {
     expect(onFocused).toHaveBeenCalledTimes(1);
   });
 
+  it("leaves focus where the reader moved it, and forgets the deck", () => {
+    const onFocused = vi.fn();
+    const more = { remaining: 6, loading: false, onMore: vi.fn() };
+    const { rerender } = render(
+      <SearchResults field={<input aria-label="Field" />} more={more}>
+        {decks()}
+      </SearchResults>,
+    );
+    screen.getByRole("button", { name: "Show 6 more" }).focus();
+    screen.getByRole("textbox", { name: "Field" }).focus();
+
+    rerender(
+      <SearchResults
+        field={<input aria-label="Field" />}
+        focus="gardens-4ad158da"
+        onFocused={onFocused}
+      >
+        {decks()}
+      </SearchResults>,
+    );
+
+    expect(document.activeElement).toBe(
+      screen.getByRole("textbox", { name: "Field" }),
+    );
+    expect(onFocused).toHaveBeenCalledTimes(1);
+  });
+
   it("waits for the deck to render before it moves focus", () => {
     const onFocused = vi.fn();
+    const more = { remaining: 6, loading: false, onMore: vi.fn() };
     const { rerender } = render(
+      <SearchResults field={null} more={more}>
+        {decks()}
+      </SearchResults>,
+    );
+    screen.getByRole("button", { name: "Show 6 more" }).focus();
+
+    rerender(
       <SearchResults field={null} focus="ruby-storm-1" onFocused={onFocused}>
         {decks()}
       </SearchResults>,
