@@ -1,10 +1,9 @@
 @layer components {
   .site-header {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 10px 24px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 10px 16px;
     padding-block: 14px;
     border-bottom: 1px solid var(--rule);
   }
@@ -17,9 +16,33 @@
     text-decoration: none;
   }
 
+  .site-header__nav {
+    grid-column: 1 / -1;
+  }
+
+  .site-header__toggle {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
   @media (min-width: 640px) {
+    .site-header {
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      align-items: center;
+      gap: 10px 24px;
+    }
+
     .site-header__brand {
       font-size: 30px;
+    }
+
+    .site-header__nav {
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    .site-header__toggle {
+      grid-column: 3;
     }
   }
 }

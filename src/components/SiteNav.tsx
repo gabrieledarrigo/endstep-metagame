@@ -7,11 +7,14 @@ const PAGES = [
   { path: "/matchups", label: "Matchups" },
 ];
 
-export function SiteNav() {
+export function SiteNav({ className }: { className?: string }) {
   const [timeWindow] = useTimeWindow();
 
   return (
-    <nav className="site-nav" aria-label="Pages">
+    <nav
+      className={["site-nav", className].filter(Boolean).join(" ")}
+      aria-label="Pages"
+    >
       {PAGES.map((page) => (
         <NavLink
           key={page.path}
