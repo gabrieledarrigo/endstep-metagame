@@ -498,7 +498,7 @@ The front end is a Vite application in TypeScript with React 19. `npm run build`
 - Components and specs need no JSDoc.
 - A JSDoc block documents a contract. It is not one of the inline comments `AGENTS.md` rules out.
 
-**Where helpers live.** The formatting and data helpers live in `src/helpers/`, one module per concern, and the rest of the app imports them through `src/helpers/index.ts`. A helper imports its siblings directly, not through the index. Hooks live in `src/hooks/`, the API layer in `src/api/`, and chart code in `src/charts/`, including the series palette, which reads the chart theme from the page's styles when it loads. Keeping chart code out of the index means a formatter can be imported without a page.
+**Where helpers live.** The formatting and data helpers live in `src/helpers/`, one module per concern, and the rest of the app imports them through `src/helpers/index.ts`. A helper imports its siblings directly, not through the index. Hooks live in `src/hooks/`, the API layer in `src/api/`, and chart code in `src/charts/`, including the series palette. The charts take their colours as CSS variables, such as `var(--s1)`, so the browser resolves them on every paint and a change of theme recolours them without a re-render, FR-13. Keeping chart code out of the index means a formatter can be imported without a page.
 
 **Continuous integration.** One GitHub Actions workflow, `.github/workflows/ci.yml`.
 
@@ -516,7 +516,7 @@ Colour, typography and the chart palette are specified in [`design-system.html`]
 
 Three of the eight series hues fall below 3:1 against the light surface. That triggers the relief rule: the chart must ship visible labels or a table view. The line chart labels its series ends, and FR-4's deck table, one choice away on the overview, gives the figures as text. Do not drop either without re-checking the palette.
 
-The dark theme is a second palette, validated against its own surface, `#3c3d3f`, never an automatic inversion. Headings and values read at 9.05:1, body text at 6.56:1 and labels at 3.63:1. Links and primary buttons use `#8fbefa` at 5.65:1. The eight series hues are the light hues lifted in lightness, each between 3.20:1 and 3.42:1, so the relief rule does not trigger there. Their worst adjacent pair keeps ΔE 8.2 under colour-vision deficiency and 16.1 under normal vision. What fades by opacity, such as the matchup spotlight, fades no further than in the light theme.
+The dark theme is a second palette, validated against its own surface, `#3c3d3f`, never an automatic inversion. Headings and values read at 9.05:1, body text at 6.56:1 and labels at 3.63:1. Links and primary buttons use `#8fbefa` at 5.65:1. The eight series hues are the light hues lifted in lightness, each between 3.20:1 and 3.42:1, so the relief rule does not trigger there. Their worst adjacent pair keeps ΔE 8.2 under colour-vision deficiency and 16.1 under normal vision. What fades by opacity, such as the matchup spotlight, fades no further than in the light theme. The scatter's marks therefore fill at 63% in the dark theme, against 55% in the light one, `--mark-opacity`.
 
 ### NFR-2. Charting library: Recharts
 Charts use **Recharts 3.10**, installed from npm. Two criteria decided the choice: simplicity and popularity. The comparison below was made under the no-build constraint of Draft v2. The move to a build removes the UMD argument against the others, and the simplicity argument still stands.
@@ -583,7 +583,7 @@ A later layer overrides an earlier one, whatever the selectors' specificity and 
 
 | Layer | Owns | Example |
 |---|---|---|
-| `tokens` | The design system's tokens: custom properties on `:root`, from part three of `design-system.html`. Nothing else | `--text-900`, `--win` |
+| `tokens` | The design system's tokens: custom properties on `:root`, from part three of `design-system.html`, in the light theme and the dark one, and the `color-scheme` that goes with each theme. Nothing else | `--text-900`, `--win`, `color-scheme` |
 | `base` | The browser reset and the default rules for elements: text, headings, links, lists, tables, the focus ring. The one shared class, `.visually-hidden` | `body`, `h1`, `a`, `:focus-visible` |
 | `layout` | The layout primitives the pages are built from: the page wrapper, the full-width band that breaks out of it, the spacing between sections | `.page`, `.bleed` |
 | `components` | The UI components, one BEM block each | `.stat-tile`, `.deck`, `.matchup__cell` |

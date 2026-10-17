@@ -57,4 +57,16 @@ describe("SiteNav", () => {
     expect(overview.getAttribute("aria-current")).toBeNull();
     expect(matchups.getAttribute("aria-current")).toBeNull();
   });
+
+  it("takes an extra class from the header", () => {
+    render(
+      <MemoryRouter initialEntries={["/?window=30d"]}>
+        <SiteNav className="site-header__nav" />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole("navigation", { name: "Pages" }).className).toBe(
+      "site-nav site-header__nav",
+    );
+  });
 });

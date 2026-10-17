@@ -950,7 +950,7 @@ Covers FR-13, NFR-1a and NFR-9.
 2. Tokens in place of the colour literals D3 names.
 3. A script in `index.html` that applies a stored choice before the first paint.
 4. The toggle at the right end of the site header. It writes the choice to local storage.
-5. Charts re-read their colours when the theme changes, including a change to the device setting before the reader chooses. Today every chart reads its tokens once, when its module loads: `src/charts/theme.ts`, `DeckShare`, `RankedBars` and `WinRateScatter`.
+5. Charts recolour when the theme changes, including a change to the device setting before the reader chooses. Before S18 every chart read its tokens once, when its module loaded: `src/charts/theme.ts`, `DeckShare`, `RankedBars` and `WinRateScatter`. S18 gives the charts their colours as CSS variables instead, so the browser resolves them on every paint.
 6. A spec beside each component, hook and helper it adds or changes.
 
 **Done when**

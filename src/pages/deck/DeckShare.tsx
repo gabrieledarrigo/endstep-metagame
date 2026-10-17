@@ -16,13 +16,12 @@ import {
   CHART_BASELINE,
   CHART_CARTESIAN_GRID,
   CHART_SURFACE,
-  token,
 } from "../../charts/theme";
 import { Panel } from "../../components/Panel";
 import { axisShare, formatDay, longDay, tooltipShare } from "../../helpers";
 import "./DeckShare.css";
 
-const SHARE_LINE = token("--s1");
+const SHARE_LINE = "var(--s1)";
 
 type ShareRow = {
   day: string;

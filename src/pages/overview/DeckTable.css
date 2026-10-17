@@ -50,7 +50,7 @@
   }
 
   .deck-table__row:hover {
-    background: #f5f4f0;
+    background: var(--row-hover);
   }
 
   .deck-table__cell {

@@ -1,7 +1,10 @@
-import { fireEvent, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { type Mock, afterEach, describe, expect, it, vi } from "vitest";
 import decks from "../test/fixtures/decks.json";
 import series from "../test/fixtures/share-series.json";
+import { stubColourScheme } from "../test/stubColourScheme";
+import page from "../index.html?raw";
+import { ThemeToggle } from "./components/ThemeToggle";
 
 type StubApi = {
   fetchMock: Mock<typeof fetch>;
@@ -113,5 +116,74 @@ describe("the overview page", () => {
     const urls = requested.map((url) => new URL(url, "http://localhost"));
     expect(urls[0].searchParams.get("window")).toBe("30d");
     expect(urls[0].searchParams.get("pageSize")).toBe("24");
+  });
+});
+
+describe("the page before it first paints", () => {
+  const prePaint = /<script>([\s\S]*?)<\/script>/.exec(page);
+
+  function runPrePaint(): void {
+    new Function(prePaint?.[1] ?? "")();
+  }
+
+  afterEach(() => {
+    localStorage.clear();
+    document.documentElement.removeAttribute("data-theme");
+    vi.restoreAllMocks();
+  });
+
+  it("runs from the head, before the app's script", () => {
+    expect(prePaint?.index).toBeLessThan(page.indexOf("</head>"));
+    expect(prePaint?.index).toBeLessThan(page.indexOf('type="module"'));
+  });
+
+  it("applies a stored dark choice", () => {
+    localStorage.setItem("theme", "dark");
+
+    runPrePaint();
+
+    expect(document.documentElement.dataset.theme).toBe("dark");
+  });
+
+  it("applies a stored light choice, whatever the device's setting", () => {
+    localStorage.setItem("theme", "light");
+
+    runPrePaint();
+
+    expect(document.documentElement.dataset.theme).toBe("light");
+  });
+
+  it("leaves the theme to the device with no choice stored, or a value it does not know", () => {
+    runPrePaint();
+
+    expect(document.documentElement.hasAttribute("data-theme")).toBe(false);
+
+    localStorage.setItem("theme", "sepia");
+    runPrePaint();
+
+    expect(document.documentElement.hasAttribute("data-theme")).toBe(false);
+  });
+
+  it("leaves the theme to the device when the browser refuses to read storage", () => {
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+      throw new DOMException("Storage is disabled", "SecurityError");
+    });
+
+    runPrePaint();
+
+    expect(document.documentElement.hasAttribute("data-theme")).toBe(false);
+  });
+
+  it("applies the choice the toggle stored, on the next visit", () => {
+    stubColourScheme(false);
+    const { container } = render(<ThemeToggle />);
+    fireEvent.click(
+      within(container).getByRole("button", { name: "Dark theme" }),
+    );
+    document.documentElement.removeAttribute("data-theme");
+
+    runPrePaint();
+
+    expect(document.documentElement.dataset.theme).toBe("dark");
   });
 });

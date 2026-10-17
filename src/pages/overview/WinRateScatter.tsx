@@ -26,7 +26,6 @@ import {
   CHART_CARTESIAN_GRID,
   CHART_SURFACE,
   CHART_TICK,
-  token,
 } from "../../charts/theme";
 import { Panel } from "../../components/Panel";
 import { Skeleton } from "../../components/Skeleton";
@@ -40,8 +39,8 @@ import {
 } from "../../helpers";
 import "./WinRateScatter.css";
 
-const WIN_RATE_MARK = token("--s1");
-const SCATTER_LABEL = token("--text-600");
+const WIN_RATE_MARK = "var(--s1)";
+const SCATTER_LABEL = "var(--text-600)";
 const LABEL_PLOT_WIDTH = 590;
 const LABEL_CHAR_WIDTH = 6.6;
 const LABEL_GAP_Y = 0.18;
@@ -150,7 +149,7 @@ function WinRateMark({
           cy={cy}
           r={radius}
           fill={WIN_RATE_MARK}
-          fillOpacity={0.55}
+          fillOpacity="var(--mark-opacity)"
           stroke={CHART_SURFACE}
           strokeWidth={2}
         />

@@ -61,6 +61,20 @@ describe("RankedBars", () => {
     expect(screen.getByText("(249")).toBeTruthy();
   });
 
+  it("draws in the theme's colours, so a change of theme recolours it", () => {
+    renderBars(PAGE);
+
+    const fills = [
+      ...document.querySelectorAll(".recharts-bar-rectangle path"),
+    ].map((bar) => bar.getAttribute("fill"));
+    expect(fills).toEqual([
+      "var(--seq-500)",
+      "var(--seq-500)",
+      "var(--seq-500)",
+      "var(--text-400)",
+    ]);
+  });
+
   it("leaves the rest of the field out when the decks cover all of it", () => {
     renderBars(page([0.6, 0.4]));
 

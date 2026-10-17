@@ -153,6 +153,7 @@ export default defineConfig({
           environment: "jsdom",
           include: ["src/**/*.spec.{js,jsx,ts,tsx}"],
           setupFiles: ["./test/setup.ts"],
+          css: { include: [/tokens\.css/] },
         },
       },
     ],

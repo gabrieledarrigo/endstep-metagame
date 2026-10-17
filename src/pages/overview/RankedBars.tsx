@@ -14,17 +14,17 @@ import {
 import type { Deck, Page } from "../../api/types";
 import { ChartFrame } from "../../charts/ChartFrame";
 import { ChartLink } from "../../charts/ChartLink";
-import { CHART_AXIS, CHART_CARTESIAN_GRID, token } from "../../charts/theme";
+import { CHART_AXIS, CHART_CARTESIAN_GRID } from "../../charts/theme";
 import { Panel } from "../../components/Panel";
 import { Skeleton } from "../../components/Skeleton";
 import { PAGE_SIZE } from "../../config";
 import { axisShare, tooltipShare } from "../../helpers";
 import "./RankedBars.css";
 
-const CHART_BAR = token("--seq-500");
-const CHART_RESIDUAL = token("--text-400");
-const CHART_LABEL = token("--text-900");
-const CHART_NAME = token("--text-600");
+const CHART_BAR = "var(--seq-500)";
+const CHART_RESIDUAL = "var(--text-400)";
+const CHART_LABEL = "var(--text-900)";
+const CHART_NAME = "var(--text-600)";
 
 type ShareBar = {
   name: string;
