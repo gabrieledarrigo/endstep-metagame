@@ -40,6 +40,53 @@ describe("DeckTable", () => {
     expect(region.getAttribute("aria-labelledby")).toBe(heading.id);
   });
 
+  it("names the top decks in its caption, or the caption it is given", () => {
+    const { rerender } = render(
+      <MemoryRouter>
+        <DeckTable decks={decks.decks.items as Deck[]} />
+      </MemoryRouter>,
+    );
+
+    expect(
+      screen.getByRole("table", {
+        name: "The top 3 decks, sortable by column",
+      }),
+    ).toBeTruthy();
+
+    rerender(
+      <MemoryRouter>
+        <DeckTable
+          decks={decks.decks.items as Deck[]}
+          caption="Decks that match altar, sortable by column"
+        />
+      </MemoryRouter>,
+    );
+
+    expect(
+      screen.getByRole("table", {
+        name: "Decks that match altar, sortable by column",
+      }),
+    ).toBeTruthy();
+  });
+
+  it("writes a share above zero that one decimal would round to zero as under 0.1%", () => {
+    const [first, ...rest] = decks.decks.items as Deck[];
+    render(
+      <MemoryRouter>
+        <DeckTable
+          decks={[
+            ...rest,
+            { ...first, share: { ...first.share, rate: 0.0000191 } },
+          ]}
+        />
+      </MemoryRouter>,
+    );
+
+    expect(
+      within(screen.getByRole("row", { name: /Affinity/ })).getByText("<0.1%"),
+    ).toBeTruthy();
+  });
+
   it("sorts by share, descending, when the address names no sort", () => {
     renderAt("/?window=30d");
 

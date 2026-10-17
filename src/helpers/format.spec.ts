@@ -5,6 +5,7 @@ import {
   formatDay,
   formatPopulation,
   formatProportion,
+  formatShare,
   formatWindow,
   longDay,
   percent,
@@ -31,6 +32,22 @@ describe("percent", () => {
   });
 });
 
+describe("formatShare", () => {
+  it("formats a share with one decimal", () => {
+    expect(formatShare(0.0879)).toBe("8.8%");
+    expect(formatShare(0.0005)).toBe("0.1%");
+  });
+
+  it("says a share above zero is under the shown precision, rather than zero", () => {
+    expect(formatShare(0.0004)).toBe("<0.1%");
+    expect(formatShare(0.0000191)).toBe("<0.1%");
+  });
+
+  it("keeps a share of zero as zero", () => {
+    expect(formatShare(0)).toBe("0.0%");
+  });
+});
+
 describe("axisShare", () => {
   it("adds a percent sign to the value as it is", () => {
     expect(axisShare(5)).toBe("5%");
@@ -40,6 +57,16 @@ describe("axisShare", () => {
 describe("tooltipShare", () => {
   it("formats a share in percent with two decimals", () => {
     expect(tooltipShare(9.559072015)).toBe("9.56%");
+    expect(tooltipShare(0.005)).toBe("0.01%");
+  });
+
+  it("says a share above zero is under the shown precision, rather than zero", () => {
+    expect(tooltipShare(0.004)).toBe("<0.01%");
+    expect(tooltipShare(0.00191)).toBe("<0.01%");
+  });
+
+  it("keeps a share of zero as zero", () => {
+    expect(tooltipShare(0)).toBe("0.00%");
   });
 });
 

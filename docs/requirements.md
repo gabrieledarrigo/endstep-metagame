@@ -249,7 +249,7 @@ Each card links to the deck's page, FR-11.
 The grid and the table are two views of the same decks, FR-4. The grid is the default.
 
 ### FR-4. Deck table
-The same 24 decks in tabular form: rank, name, colours, share, players, matches, win rate, share change. Columns sort client-side, and the sort is kept in the address, so Back and reload restore it, §4.5. Numbers use consistent precision: share and win rate to one decimal place, counts as integers with thousands separators.
+The same 24 decks in tabular form: rank, name, colours, share, players, matches, win rate, share change. Columns sort client-side, and the sort is kept in the address, so Back and reload restore it, §4.5. Numbers use consistent precision: share and win rate to one decimal place, counts as integers with thousands separators. A share above zero but below the shown precision reads as "<0.1%" in the table and "<0.01%" on the cards, never as zero.
 
 The overview shows the table or the grid, one at a time. A second segmented control, named View, with Cards and Table, sits beside the window selector. Cards is the default and leaves `view` out of the address. Table writes `?view=table`, and Cards removes it, §4.5. While the decks load, only the chosen view's skeleton shows.
 
@@ -385,11 +385,11 @@ Every page comes in a light theme and a dark theme. The design system specifies 
 ### FR-14. Deck search
 The overview finds any deck in the window, by its name or by a card in its lists, through `/decks` with `q`, §3.3. The design system's Deck search section is the visual specification.
 
-- A search field sits on its own row after the page's controls, above the decks. Its placeholder and visually hidden label read "Search decks or cards". With text in it, a clear button named "Clear the search" appears, and Escape clears too. Clearing keeps focus in the field.
+- A search field sits directly above the decks, after the summary. Its placeholder and visually hidden label read "Search decks or cards". With text in it, a clear button named "Clear the search" appears, and Escape clears too. Clearing keeps focus in the field.
 - The search runs 300ms after the last keystroke, from 2 characters. The term is trimmed, its inner spaces collapsed and its letters lowercased before it is sent and written to the address, so variants share one cache entry. One character searches nothing and shows the top 24.
 - The results take the top 24's place in the chosen view, cards or table, FR-3 and FR-4, in share order. The field, a result line and the decks stand 14px apart. The line reads "{n} decks match "{q}". Search covers deck names and every card in their lists.", or "1 deck matches". The page's status line announces it.
-- Results come 24 at a time. While more remain, a button loads the next page: "Show 24 more", or "Show {n} more" for fewer.
-- Results reach the long tail, §6.4. Their cards and rows follow the same rules as the top 24's, and a win rate under 20 decided matches reads as too few to call, §6.8.
+- Results come 24 at a time. While more remain, a button loads the next page: "Show 24 more", or "Show {n} more" for fewer. A next page that fails reads "The next decks could not be loaded." with the reason, and the button stays as the retry. Paging stops on an empty page, an NFR-4 guard. When paging stops before the count, the line "Endstep returned {n} of the {total} decks it counted." is shown and announced, and focus moves to the last result card.
+- Results reach the long tail, §6.4. Their cards and rows follow the same rules as the top 24's, and a win rate under 20 decided matches reads as too few to call, §6.8. A share below the shown precision reads as FR-4 sets out.
 - In the table, the sort applies to the results loaded so far, and "Show more" adds the next page in share order before the table sorts again. The rank column gives each result's place by share among the results.
 - A search with no match shows the empty panel, "No deck or card matches "{q}"", with a "Clear the search" button that returns focus to the field.
 - The query is kept in `q`, §4.5, and a change replaces the history entry. A link carries only `?window=`, so it opens the overview with no search.

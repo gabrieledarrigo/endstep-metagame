@@ -41,6 +41,21 @@ describe("the metagame proxy", () => {
     );
   });
 
+  it("forwards a deck search's term and page", async () => {
+    const fetchMock = upstream();
+
+    await metagame.fetch(
+      request(
+        "path=Pauper/decks&window=30d&population=rated&q=altar%20tron&sort=share&dir=desc&page=2&pageSize=24",
+      ),
+    );
+
+    expect(fetchMock).toHaveBeenCalledWith(
+      `${UPSTREAM}/Pauper/decks?window=30d&population=rated&q=altar+tron&sort=share&dir=desc&page=2&pageSize=24`,
+      expect.objectContaining({ method: "GET" }),
+    );
+  });
+
   it("reads a path sent in parts or with an encoded slash", async () => {
     const fetchMock = upstream();
 

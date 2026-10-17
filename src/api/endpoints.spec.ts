@@ -1,5 +1,11 @@
 import { type Mock, afterEach, describe, expect, it, vi } from "vitest";
-import { fetchDeck, fetchDecks, fetchMatchups, fetchSeries } from "./endpoints";
+import {
+  fetchDeck,
+  fetchDecks,
+  fetchMatchups,
+  fetchSeries,
+  searchDecks,
+} from "./endpoints";
 
 function stubFetch(): Mock<typeof fetch> {
   const fetchMock = vi.fn<typeof fetch>((input) =>
@@ -22,6 +28,16 @@ describe("endpoints", () => {
 
     expect(String(fetchMock.mock.calls[0][0])).toBe(
       "/api/metagame/Pauper/decks?window=7d&population=rated&sort=share&dir=desc&page=1&pageSize=24",
+    );
+  });
+
+  it("fetches one page of a window's decks that match a term, by share", async () => {
+    const fetchMock = stubFetch();
+
+    await searchDecks("14d", "altar tron", 2, new AbortController().signal);
+
+    expect(String(fetchMock.mock.calls[0][0])).toBe(
+      "/api/metagame/Pauper/decks?window=14d&population=rated&q=altar+tron&sort=share&dir=desc&page=2&pageSize=24",
     );
   });
 

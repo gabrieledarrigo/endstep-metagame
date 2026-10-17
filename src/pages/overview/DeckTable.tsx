@@ -6,7 +6,7 @@ import { ShareChange } from "../../components/ShareChange";
 import { Skeleton } from "../../components/Skeleton";
 import { WindowLink } from "../../components/WindowLink";
 import { PAGE_SIZE } from "../../config";
-import { formatCount, percent, rateText, readRate } from "../../helpers";
+import { formatCount, formatShare, rateText, readRate } from "../../helpers";
 import "./DeckTable.css";
 
 type SortKey = "name" | "share" | "players" | "matches" | "winRate";
@@ -122,7 +122,12 @@ function SortHeader({ column, label, numeric, sort, onSort }: SortHeaderProps) {
   );
 }
 
-export function DeckTable({ decks }: { decks: Deck[] }) {
+type DeckTableProps = {
+  decks: Deck[];
+  caption?: string;
+};
+
+export function DeckTable({ decks, caption }: DeckTableProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const sort = readSort(searchParams);
 
@@ -158,7 +163,7 @@ export function DeckTable({ decks }: { decks: Deck[] }) {
       </h2>
       <table className="deck-table">
         <caption className="visually-hidden">
-          The top {decks.length} decks, sortable by column
+          {caption ?? `The top ${decks.length} decks, sortable by column`}
         </caption>
         <thead>
           <tr>
@@ -231,7 +236,7 @@ export function DeckTable({ decks }: { decks: Deck[] }) {
                 <ColourPips colours={deck.colours} />
               </td>
               <td className="deck-table__cell deck-table__cell--numeric">
-                {percent(deck.share.rate)}
+                {formatShare(deck.share.rate)}
               </td>
               <td className="deck-table__cell deck-table__cell--numeric">
                 {formatCount(deck.players)}

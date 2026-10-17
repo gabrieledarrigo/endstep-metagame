@@ -1,0 +1,208 @@
+{
+  "provenance": {
+    "schemaVersion": 1,
+    "derivationVersion": 53,
+    "window": {
+      "preset": "30d",
+      "from": "2026-09-18",
+      "to": "2026-10-18",
+      "since": null,
+      "until": null
+    },
+    "population": "rated"
+  },
+  "formatId": "Pauper",
+  "totals": {
+    "registrations": 313606,
+    "players": 10035
+  },
+  "ratingCohorts": {
+    "date": "2026-10-16",
+    "cuts": [1425, 1500, 1550]
+  },
+  "query": {
+    "q": "altar",
+    "sort": "share",
+    "dir": "desc"
+  },
+  "decks": {
+    "items": [
+      {
+        "id": "4c9eff28-28db-4756-83ce-173c4d7dc2c4",
+        "slug": "boros-mardu-synth-synthless-4c9eff28",
+        "name": "Boros + Mardu Synth/Synthless",
+        "machineNamed": false,
+        "colours": ["W", "U", "B", "R"],
+        "art": {
+          "cardName": "Ragged Short Spear",
+          "setCode": null,
+          "collectorNumber": null,
+          "pinned": false
+        },
+        "keyCards": [
+          "Ragged Short Spear",
+          "Shattered Landscape",
+          "Kabira Crossroads"
+        ],
+        "share": {
+          "registrations": 7675,
+          "totalRegistrations": 313606,
+          "rate": 0.024473383800054847
+        },
+        "players": 799,
+        "matchWinRate": {
+          "wins": 4116,
+          "losses": 3559,
+          "rate": 0.5362866449511401,
+          "low": 0.5225652154737781,
+          "high": 0.5499533484725894,
+          "deff": 1.5077396745932417
+        },
+        "shareChange": {
+          "points": -0.17134209141207238,
+          "previousRate": 0.02618680471417557,
+          "reason": null
+        }
+      },
+      {
+        "id": "4ad158da-47de-4938-bad9-80e468f301ea",
+        "slug": "gardens-4ad158da",
+        "name": "Gardens",
+        "machineNamed": false,
+        "colours": ["B", "G"],
+        "art": {
+          "cardName": "Defile",
+          "setCode": null,
+          "collectorNumber": null,
+          "pinned": false
+        },
+        "keyCards": ["Haunted Mire", "Defile", "Witch's Cottage"],
+        "share": {
+          "registrations": 6792,
+          "totalRegistrations": 313606,
+          "rate": 0.021657748895110424
+        },
+        "players": 708,
+        "matchWinRate": {
+          "wins": 3233,
+          "losses": 3559,
+          "rate": 0.4760011778563015,
+          "low": 0.46144722272385413,
+          "high": 0.49059600835640776,
+          "deff": 1.507
+        },
+        "shareChange": {
+          "points": -0.0605165522777007,
+          "previousRate": 0.02226291441788743,
+          "reason": null
+        }
+      },
+      {
+        "id": "0b4d9ce7-e728-464a-afa1-971866257f4d",
+        "slug": "altar-tron-0b4d9ce7",
+        "name": "Altar Tron",
+        "machineNamed": false,
+        "colours": ["B", "G"],
+        "art": {
+          "cardName": "Myr Kinsmith",
+          "setCode": null,
+          "collectorNumber": null,
+          "pinned": false
+        },
+        "keyCards": ["Myr Kinsmith", "Golem Foundry", "Myr Retriever"],
+        "share": {
+          "registrations": 2285,
+          "totalRegistrations": 313606,
+          "rate": 0.007286212636237827
+        },
+        "players": 307,
+        "matchWinRate": {
+          "wins": 1044,
+          "losses": 1241,
+          "rate": 0.45689277899343544,
+          "low": 0.4330254100406993,
+          "high": 0.48095972271713483,
+          "deff": 1.3801368078175895
+        },
+        "shareChange": {
+          "points": 0.4119564326952664,
+          "previousRate": 0.0031666483092851637,
+          "reason": null
+        }
+      },
+      {
+        "id": "65b7be0d-b14d-4e25-9f4c-ad68811086f3",
+        "slug": "rakdos-hydra-assault-robot-65b7be0d",
+        "name": "Rakdos HYDRA Assault Robot",
+        "machineNamed": true,
+        "colours": ["B", "R"],
+        "art": {
+          "cardName": "HYDRA Assault Robot",
+          "setCode": null,
+          "collectorNumber": null,
+          "pinned": false
+        },
+        "keyCards": [
+          "HYDRA Assault Robot",
+          "Fanatical Offering",
+          "Drossforge Bridge"
+        ],
+        "share": {
+          "registrations": 361,
+          "totalRegistrations": 313606,
+          "rate": 0.0011511259350905276
+        },
+        "players": 51,
+        "matchWinRate": {
+          "wins": 146,
+          "losses": 215,
+          "rate": 0.40443213296398894,
+          "low": 0.3471892540705763,
+          "high": 0.46439895132054254,
+          "deff": 1.3586274509803922
+        },
+        "shareChange": {
+          "points": -0.08039351949898778,
+          "previousRate": 0.0019550611300804053,
+          "reason": null
+        }
+      },
+      {
+        "id": "e46f414a-517a-4955-b6b2-294f9329fb7c",
+        "slug": "yore-tiller-breathless-knight-e46f414a",
+        "name": "Yore-Tiller Breathless Knight",
+        "machineNamed": true,
+        "colours": ["W", "U", "B", "R"],
+        "art": {
+          "cardName": "Breathless Knight",
+          "setCode": null,
+          "collectorNumber": null,
+          "pinned": false
+        },
+        "keyCards": ["Breathless Knight", "Scrapwork Mutt", "Unearth"],
+        "share": {
+          "registrations": 6,
+          "totalRegistrations": 313606,
+          "rate": 1.9132287009814863e-5
+        },
+        "players": 2,
+        "matchWinRate": {
+          "wins": 1,
+          "losses": 5,
+          "rate": 0.16666666666666666,
+          "low": 0.027735136685529405,
+          "high": 0.5837173389552044,
+          "deff": 1.1179999999999999
+        },
+        "shareChange": {
+          "points": 0.0019132287009814863,
+          "previousRate": 0,
+          "reason": null
+        }
+      }
+    ],
+    "total": 5,
+    "page": 1,
+    "pageSize": 24
+  }
+}
