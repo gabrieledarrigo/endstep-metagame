@@ -37,6 +37,37 @@ export function fetchDecks(
 }
 
 /**
+ * Fetches one page of the decks of a window that match a search term, by name or by a card in their lists, sorted by meta share, FR-14.
+ *
+ * @param timeWindow - The window to read.
+ * @param term - The normalised search term.
+ * @param page - The page to read, from 1.
+ * @param signal - Aborts the request.
+ * @returns A Promise resolving to the page of up to `PAGE_SIZE` matching decks, with the number of matches in `decks.total`.
+ * @throws The errors `getJson` throws.
+ */
+export function searchDecks(
+  timeWindow: TimeWindow,
+  term: string,
+  page: number,
+  signal: AbortSignal,
+): Promise<DecksResponse> {
+  return getJson<DecksResponse>(
+    `${METAGAME}/${FORMAT}/decks`,
+    {
+      window: timeWindow,
+      population: POPULATION,
+      q: term,
+      sort: "share",
+      dir: "desc",
+      page: String(page),
+      pageSize: String(PAGE_SIZE),
+    },
+    signal,
+  );
+}
+
+/**
  * Fetches the daily meta share of the top eight decks in a window.
  *
  * @param timeWindow - The window to read.
