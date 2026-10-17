@@ -1,4 +1,4 @@
-import { type MouseEvent, useRef, useState } from "react";
+import { type MouseEvent, type PointerEvent, useRef, useState } from "react";
 import {
   CartesianGrid,
   ReferenceLine,
@@ -114,6 +114,8 @@ type WinRateMarkProps = {
   size: number;
   payload: WinRatePoint;
   labelled: Set<string>;
+  onPointerDown: (event: PointerEvent<SVGGElement>) => void;
+  onPointerUp: () => void;
   onClick: (event: MouseEvent<HTMLAnchorElement>) => void;
 };
 
@@ -123,6 +125,8 @@ function WinRateMark({
   size,
   payload,
   labelled,
+  onPointerDown,
+  onPointerUp,
   onClick,
 }: WinRateMarkProps) {
   if (cx === undefined || cy === undefined) {
@@ -137,25 +141,27 @@ function WinRateMark({
       label={payload.name}
       onClick={onClick}
     >
-      <circle
-        cx={cx}
-        cy={cy}
-        r={radius}
-        fill={WIN_RATE_MARK}
-        fillOpacity={0.55}
-        stroke={CHART_SURFACE}
-        strokeWidth={2}
-      />
-      {labelled.has(payload.id) && (
-        <text
-          className="win-rate__label"
-          x={cx}
-          y={cy - radius - 7}
-          textAnchor="middle"
-        >
-          {payload.name}
-        </text>
-      )}
+      <g onPointerDown={onPointerDown} onPointerUp={onPointerUp}>
+        <circle
+          cx={cx}
+          cy={cy}
+          r={radius}
+          fill={WIN_RATE_MARK}
+          fillOpacity={0.55}
+          stroke={CHART_SURFACE}
+          strokeWidth={2}
+        />
+        {labelled.has(payload.id) && (
+          <text
+            className="win-rate__label"
+            x={cx}
+            y={cy - radius - 7}
+            textAnchor="middle"
+          >
+            {payload.name}
+          </text>
+        )}
+      </g>
     </ChartLink>
   );
 }
@@ -238,11 +244,20 @@ type ArmedMark = {
   decks: Deck[];
 };
 
+type Tap = {
+  id: string;
+  armed: boolean;
+};
+
 export function WinRateScatter({ decks }: { decks: Deck[] }) {
-  const pointerType = useRef("");
+  const tap = useRef<Tap | null>(null);
   const [armedMark, setArmedMark] = useState<ArmedMark | null>(null);
   const armed = armedMark?.decks === decks ? armedMark.id : null;
   const points = winRatePoints(decks);
+
+  function firstTap(id: string): boolean {
+    return tap.current?.id === id && tap.current?.armed === false;
+  }
   const leftOut = decks.length - points.length;
 
   if (decks.length === 0) {
@@ -281,9 +296,6 @@ export function WinRateScatter({ decks }: { decks: Deck[] }) {
       </p>
 
       <div
-        onPointerDown={(event) => {
-          pointerType.current = event.pointerType;
-        }}
         onClick={(event) => {
           if (!event.defaultPrevented) {
             setArmedMark(null);
@@ -361,14 +373,22 @@ export function WinRateScatter({ decks }: { decks: Deck[] }) {
                   size={size}
                   payload={payload}
                   labelled={labelled}
-                  onClick={(event) => {
-                    if (
-                      pointerType.current === "touch" &&
-                      armed !== payload.id
-                    ) {
-                      event.preventDefault();
+                  onPointerDown={(event) => {
+                    tap.current =
+                      event.pointerType === "touch"
+                        ? { id: payload.id, armed: armed === payload.id }
+                        : null;
+                  }}
+                  onPointerUp={() => {
+                    if (firstTap(payload.id)) {
                       setArmedMark({ id: payload.id, decks });
                     }
+                  }}
+                  onClick={(event) => {
+                    if (firstTap(payload.id)) {
+                      event.preventDefault();
+                    }
+                    tap.current = null;
                   }}
                 />
               )}

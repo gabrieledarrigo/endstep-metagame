@@ -28,16 +28,21 @@ function renderScatter(decks: Deck[]): RenderResult {
   );
 }
 
-function firstMark(container: HTMLElement): HTMLElement {
+function firstMark(container: HTMLElement): Element {
   const mark = container.querySelector(".recharts-scatter-symbol");
   fireEvent.mouseEnter(mark as Element);
 
-  return mark?.querySelector("a") as HTMLElement;
+  return mark?.querySelector("circle") as Element;
 }
 
-function tap(element: Element, pointerType = "touch"): void {
-  fireEvent.pointerDown(element, { pointerType });
-  fireEvent.click(element);
+function press(find: () => Element, pointerType = "touch"): void {
+  fireEvent.pointerDown(find(), { pointerType });
+  fireEvent.pointerUp(find(), { pointerType });
+}
+
+function tap(find: () => Element, pointerType = "touch"): void {
+  press(find, pointerType);
+  fireEvent.click(find());
 }
 
 const AFFINITY_PAGE = `Address: /decks/${DECKS[0].slug}?window=7d`;
@@ -128,7 +133,7 @@ describe("WinRateScatter", () => {
   it("opens the deck at once on a mouse click", () => {
     const { container } = renderScatter(DECKS);
 
-    tap(firstMark(container), "mouse");
+    tap(() => firstMark(container), "mouse");
 
     expect(screen.getByText(AFFINITY_PAGE)).toBeTruthy();
   });
@@ -136,12 +141,33 @@ describe("WinRateScatter", () => {
   it("shows the tooltip on a first tap, and opens the deck on a second tap", () => {
     const { container } = renderScatter(DECKS);
 
-    tap(firstMark(container));
+    tap(() => firstMark(container));
 
     expect(screen.getByText("Tap again to open the deck.")).toBeTruthy();
     expect(screen.queryByText(AFFINITY_PAGE)).toBeNull();
 
-    tap(firstMark(container));
+    tap(() => firstMark(container));
+
+    expect(screen.getByText(AFFINITY_PAGE)).toBeTruthy();
+  });
+
+  it("opens the deck on a second tap when the first tap sent no click, as iOS does when a tap shows a tooltip", () => {
+    const { container } = renderScatter(DECKS);
+
+    press(() => firstMark(container));
+
+    expect(screen.getByText("Tap again to open the deck.")).toBeTruthy();
+
+    tap(() => firstMark(container));
+
+    expect(screen.getByText(AFFINITY_PAGE)).toBeTruthy();
+  });
+
+  it("opens the deck on a click with no pointer before it, even after a tap", () => {
+    const { container } = renderScatter(DECKS);
+
+    tap(() => firstMark(container));
+    fireEvent.click(firstMark(container));
 
     expect(screen.getByText(AFFINITY_PAGE)).toBeTruthy();
   });
@@ -149,9 +175,9 @@ describe("WinRateScatter", () => {
   it("forgets the first tap after a tap off the markers", () => {
     const { container } = renderScatter(DECKS);
 
-    tap(firstMark(container));
-    tap(container.querySelector(".win-rate__frame") as Element);
-    tap(firstMark(container));
+    tap(() => firstMark(container));
+    tap(() => container.querySelector(".win-rate__frame") as Element);
+    tap(() => firstMark(container));
 
     expect(screen.queryByText(AFFINITY_PAGE)).toBeNull();
   });
@@ -159,14 +185,14 @@ describe("WinRateScatter", () => {
   it("forgets the first tap when the decks change", () => {
     const { container, rerender } = renderScatter(DECKS);
 
-    tap(firstMark(container));
+    tap(() => firstMark(container));
     rerender(
       <MemoryRouter initialEntries={["/?window=7d"]}>
         <WinRateScatter decks={[...DECKS]} />
         <Address />
       </MemoryRouter>,
     );
-    tap(firstMark(container));
+    tap(() => firstMark(container));
 
     expect(screen.queryByText(AFFINITY_PAGE)).toBeNull();
   });
