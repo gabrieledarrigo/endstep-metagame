@@ -16,6 +16,13 @@ function decks(): ReactElement {
   );
 }
 
+function fullText(
+  text: string,
+): (content: string, element: Element | null) => boolean {
+  return (content, element) =>
+    element?.tagName === "P" && element.textContent === text;
+}
+
 describe("SearchResults", () => {
   it("shows the field above the decks, with no result line while nothing is searched", () => {
     render(
@@ -31,15 +38,19 @@ describe("SearchResults", () => {
   });
 
   it("counts the matches and names the term", () => {
-    const { container, rerender } = render(
+    const { rerender } = render(
       <SearchResults field={null} found={{ term: "elf", total: 1234 }}>
         {decks()}
       </SearchResults>,
     );
 
-    expect(container.querySelector(".search-results__line")?.textContent).toBe(
-      "1,234 decks match “elf”. Search covers deck names and every card in their lists.",
-    );
+    expect(
+      screen.getByText(
+        fullText(
+          "1,234 decks match “elf”. Search covers deck names and every card in their lists.",
+        ),
+      ),
+    ).toBeTruthy();
 
     rerender(
       <SearchResults field={null} found={{ term: "altar tron", total: 1 }}>
@@ -47,9 +58,13 @@ describe("SearchResults", () => {
       </SearchResults>,
     );
 
-    expect(container.querySelector(".search-results__line")?.textContent).toBe(
-      "1 deck matches “altar tron”. Search covers deck names and every card in their lists.",
-    );
+    expect(
+      screen.getByText(
+        fullText(
+          "1 deck matches “altar tron”. Search covers deck names and every card in their lists.",
+        ),
+      ),
+    ).toBeTruthy();
   });
 
   it("offers the next 24 results, or what is left when fewer remain", () => {
@@ -120,7 +135,7 @@ describe("SearchResults", () => {
     expect(onMore).not.toHaveBeenCalled();
   });
 
-  it("dims and marks busy the results, not the field", () => {
+  it("marks the results busy, not the field", () => {
     render(
       <SearchResults field={<input aria-label="Field" />} busy>
         {decks()}
@@ -131,7 +146,7 @@ describe("SearchResults", () => {
       .getByRole("link", { name: "Gardens" })
       .closest("[aria-busy]");
 
-    expect(results?.classList.contains("busy")).toBe(true);
+    expect(results?.getAttribute("aria-busy")).toBe("true");
     expect(
       screen.getByRole("textbox", { name: "Field" }).closest("[aria-busy]"),
     ).toBeNull();
