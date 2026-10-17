@@ -1,0 +1,24 @@
+@layer components {
+  .search-results,
+  .search-results__body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+  }
+
+  .search-results__line {
+    margin: 0;
+    font-size: 14px;
+    color: var(--text-600);
+  }
+
+  .search-results__count {
+    color: var(--text-900);
+    font-weight: 600;
+  }
+
+  .search-results__more {
+    align-self: flex-start;
+  }
+}
