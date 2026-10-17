@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { matchText, searchTerm } from "./search";
+import { matchText, quoted, searchTerm } from "./search";
 
 describe("searchTerm", () => {
   it("trims the term, collapses its inner spaces and lowercases it", () => {
@@ -35,5 +35,11 @@ describe("matchText", () => {
       count: "1 deck",
       rest: "matches \u201caltar tron\u201d.",
     });
+  });
+});
+
+describe("quoted", () => {
+  it("puts the term in curly quotes", () => {
+    expect(quoted("altar tron")).toBe("\u201caltar tron\u201d");
   });
 });

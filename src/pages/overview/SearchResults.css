@@ -7,12 +7,7 @@
     min-width: 0;
   }
 
-  .search-results__line {
-    margin: 0;
-    font-size: 14px;
-    color: var(--text-600);
-  }
-
+  .search-results__line,
   .search-results__note {
     margin: 0;
     font-size: 14px;

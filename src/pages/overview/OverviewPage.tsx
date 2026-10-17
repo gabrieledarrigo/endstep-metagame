@@ -9,7 +9,7 @@ import { Section } from "../../components/Section";
 import { SegmentedControl } from "../../components/SegmentedControl";
 import { StatePanel } from "../../components/StatePanel";
 import { WINDOWS } from "../../config";
-import { formatCount, matchText, searchTerm } from "../../helpers";
+import { formatCount, matchText, quoted, searchTerm } from "../../helpers";
 import { useTimeWindow } from "../../hooks/useTimeWindow";
 import { DeckGrid, DeckGridSkeleton } from "./DeckGrid";
 import { DeckSearch, type DeckSearchHandle } from "./DeckSearch";
@@ -42,10 +42,6 @@ function uniqueDecks(pages: DecksResponse[]): Deck[] {
       seen.add(deck.id);
       return true;
     });
-}
-
-function quoted(term: string): string {
-  return `\u201c${term}\u201d`;
 }
 
 export function OverviewPage() {

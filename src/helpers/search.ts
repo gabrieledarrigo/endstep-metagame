@@ -23,6 +23,16 @@ export function searchTerm(raw: string | null): string | null {
 }
 
 /**
+ * Puts a search term in curly quotes, the way the overview names it in its copy.
+ *
+ * @param term - The search term.
+ * @returns The term in curly quotes, such as `“altar”`.
+ */
+export function quoted(term: string): string {
+  return `\u201c${term}\u201d`;
+}
+
+/**
  * Words the count of a deck search's matches, once for the result line and the status line, FR-14.
  *
  * @param total - The number of decks that match.
@@ -34,11 +44,11 @@ export function matchText(
   term: string,
 ): { count: string; rest: string } {
   if (total === 1) {
-    return { count: "1 deck", rest: `matches \u201c${term}\u201d.` };
+    return { count: "1 deck", rest: `matches ${quoted(term)}.` };
   }
 
   return {
     count: `${formatCount(total)} decks`,
-    rest: `match \u201c${term}\u201d.`,
+    rest: `match ${quoted(term)}.`,
   };
 }
