@@ -55,7 +55,7 @@ afterEach(() => {
 });
 
 describe("the overview page", () => {
-  it("loads through the proxy, recovers on retry, shows a window it has seen at once, and ignores a late response for a window the reader left", async () => {
+  it("loads through the proxy, recovers on retry, keeps the page while another window loads, shows a window it has seen at once, and ignores a late response for a window the reader left", async () => {
     const api = stubApi();
     document.body.innerHTML = '<div id="root"></div>';
 
@@ -89,11 +89,15 @@ describe("the overview page", () => {
     api.hold("7d");
     fireEvent.click(screen.getByRole("button", { name: "7d" }));
 
-    expect(screen.queryAllByText("Monster Tron")).toHaveLength(0);
+    expect(screen.getAllByText("Monster Tron").length).toBeGreaterThan(1);
+    expect(screen.getByRole("status").textContent).toBe(
+      "Loading the 7d window.",
+    );
 
-    fireEvent.click(await screen.findByRole("button", { name: "30d" }));
+    fireEvent.click(screen.getByRole("button", { name: "30d" }));
 
     expect(screen.getAllByText("Monster Tron").length).toBeGreaterThan(1);
+    expect(screen.getByRole("status").textContent).toBe("");
     expect(decksRequests("30d")).toBe(2);
 
     api.release("7d");

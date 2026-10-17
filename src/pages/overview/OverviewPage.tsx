@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { fetchDecks, fetchSeries } from "../../api/endpoints";
 import { PageTitle } from "../../components/PageTitle";
 import { Section } from "../../components/Section";
@@ -18,13 +18,16 @@ export function OverviewPage() {
   const decks = useQuery({
     queryKey: ["decks", timeWindow],
     queryFn: ({ signal }) => fetchDecks(timeWindow, signal),
+    placeholderData: keepPreviousData,
   });
   const series = useQuery({
     queryKey: ["series", timeWindow],
     queryFn: ({ signal }) => fetchSeries(timeWindow, signal),
+    placeholderData: keepPreviousData,
   });
 
-  const loading = decks.isPending || series.isPending;
+  const loadingWindow = decks.isPlaceholderData || series.isPlaceholderData;
+  const loading = decks.isPending || series.isPending || loadingWindow;
 
   return (
     <>
@@ -44,59 +47,69 @@ export function OverviewPage() {
         {loading ? `Loading the ${timeWindow} window.` : ""}
       </p>
 
-      <Section
-        query={decks}
-        skeleton={<SummarySkeleton />}
-        title="The summary could not be loaded"
+      <div
+        className={loadingWindow ? "page__body page__body--busy" : "page__body"}
+        aria-busy={loadingWindow || undefined}
       >
-        {(data) => <Summary decks={data} />}
-      </Section>
+        <Section
+          query={decks}
+          skeleton={<SummarySkeleton />}
+          title="The summary could not be loaded"
+        >
+          {(data) => <Summary decks={data} loading={decks.isPlaceholderData} />}
+        </Section>
 
-      <Section
-        query={decks}
-        skeleton={<DeckGridSkeleton />}
-        title="The deck grid could not be loaded"
-      >
-        {(data) =>
-          data.decks.items.length === 0 ? (
-            <EmptyWindow timeWindow={timeWindow} onSelect={selectTimeWindow} />
-          ) : (
-            <DeckGrid decks={data.decks.items} />
-          )
-        }
-      </Section>
+        <Section
+          query={decks}
+          skeleton={<DeckGridSkeleton />}
+          title="The deck grid could not be loaded"
+        >
+          {(data) =>
+            data.decks.items.length > 0 ? (
+              <DeckGrid decks={data.decks.items} />
+            ) : decks.isPlaceholderData ? (
+              <DeckGridSkeleton />
+            ) : (
+              <EmptyWindow
+                timeWindow={timeWindow}
+                onSelect={selectTimeWindow}
+              />
+            )
+          }
+        </Section>
 
-      <Section
-        query={decks}
-        skeleton={<DeckTableSkeleton />}
-        title="The deck table could not be loaded"
-      >
-        {(data) => <DeckTable decks={data.decks.items} />}
-      </Section>
+        <Section
+          query={decks}
+          skeleton={<DeckTableSkeleton />}
+          title="The deck table could not be loaded"
+        >
+          {(data) => <DeckTable decks={data.decks.items} />}
+        </Section>
 
-      <Section
-        query={series}
-        skeleton={<ShareOverTimeSkeleton />}
-        title="Share over time could not be loaded"
-      >
-        {(data) => <ShareOverTime series={data.series} />}
-      </Section>
+        <Section
+          query={series}
+          skeleton={<ShareOverTimeSkeleton />}
+          title="Share over time could not be loaded"
+        >
+          {(data) => <ShareOverTime series={data.series} />}
+        </Section>
 
-      <Section
-        query={decks}
-        skeleton={<RankedBarsSkeleton />}
-        title="Meta share by deck could not be loaded"
-      >
-        {(data) => <RankedBars decks={data.decks} />}
-      </Section>
+        <Section
+          query={decks}
+          skeleton={<RankedBarsSkeleton />}
+          title="Meta share by deck could not be loaded"
+        >
+          {(data) => <RankedBars decks={data.decks} />}
+        </Section>
 
-      <Section
-        query={decks}
-        skeleton={<WinRateScatterSkeleton />}
-        title="Win rate against share could not be loaded"
-      >
-        {(data) => <WinRateScatter decks={data.decks.items} />}
-      </Section>
+        <Section
+          query={decks}
+          skeleton={<WinRateScatterSkeleton />}
+          title="Win rate against share could not be loaded"
+        >
+          {(data) => <WinRateScatter decks={data.decks.items} />}
+        </Section>
+      </div>
     </>
   );
 }

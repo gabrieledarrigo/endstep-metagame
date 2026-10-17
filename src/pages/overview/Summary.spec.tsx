@@ -25,6 +25,18 @@ describe("Summary", () => {
       ["Population", "Rated"],
     ]);
   });
+
+  it("holds back the window's dates while another window loads, and keeps the rest", () => {
+    render(<Summary decks={decks as DecksResponse} loading />);
+
+    expect(tiles()).toEqual([
+      ["Registrations", "236,728"],
+      ["Players", "8,355"],
+      ["Archetypes", "252"],
+      ["Window", ""],
+      ["Population", "Rated"],
+    ]);
+  });
 });
 
 describe("SummarySkeleton", () => {
