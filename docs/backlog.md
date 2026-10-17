@@ -763,8 +763,8 @@ Nineteen items. Four design items, two enablers, twelve user stories and one har
 | 17 | S15 | No |
 | 18 | D4 | No |
 | 19 | S19, S20, S21 | Yes, three ways |
-| 20 | D5, E13, E14 | Yes, three ways |
-| 21 | S22, S23, S24, H4 | Yes, four ways |
+| 20 | D5, E13, E14, H4 | Yes, four ways |
+| 21 | S22, S23, S24 | Yes, three ways |
 
 ```
 D2 design ─┬─► S16 find a deck in the matchup table ──► S15 matchup table on a phone
@@ -1212,14 +1212,14 @@ Covers FR-11 and NFR-6. The owner found the gaps on 2026-10-17 and chose the col
 
 **Tasks**
 
-1. The Games table fills its panel's width, as the design system draws it. It still scrolls inside its panel on a narrow phone.
-2. "Daily share as a table" becomes "Daily share, day by day": a description list, one `div` per day holding its `dt` and `dd`, flowing into columns at least 9.5em wide and 32px apart, with no pair split across columns. A day with no data reads "no data" in `--text-400`.
+1. The Games table fills its panel's width, as the design system draws it.
+2. "Daily share as a table" becomes "Daily share, day by day": a description list, one `div` per day holding its `dt` and `dd`, named "Meta share by day", flowing into columns at least 9.5em wide and 32px apart, with no pair split across columns. A day with no data reads "no data" in `--text-600`.
 3. A spec beside each component it changes.
 
 **Done when**
 
-- On a desktop, the Games table spans its panel, and the daily share shows 30 days in about four columns.
-- At 360px the daily share is one column, and the Games table scrolls inside its panel.
+- On a desktop, the Games table spans its panel, and the daily share shows 30 days in four columns.
+- At 360px the daily share is one column and the Games table fits its panel. At 390px the daily share is two columns.
 
 **Blocked by** nothing. **Blocks** nothing.
 
