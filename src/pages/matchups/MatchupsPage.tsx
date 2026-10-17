@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
 import {
   NavigationType,
   useLocation,
@@ -17,7 +17,23 @@ import { findDeck, formatWindow } from "../../helpers";
 import { useMatchups } from "../../hooks/useMatchups";
 import { useTimeWindow } from "../../hooks/useTimeWindow";
 import { DeckPicker } from "./DeckPicker";
+import { MatchupList, MatchupListSkeleton } from "./MatchupList";
 import { MatchupTable, MatchupTableSkeleton } from "./MatchupTable";
+
+const TABLE_WIDTH = "(min-width: 640px)";
+
+function subscribeToWidth(onChange: () => void): () => void {
+  const query = window.matchMedia(TABLE_WIDTH);
+  query.addEventListener("change", onChange);
+
+  return (): void => {
+    query.removeEventListener("change", onChange);
+  };
+}
+
+function fitsTable(): boolean {
+  return window.matchMedia(TABLE_WIDTH).matches;
+}
 
 export function MatchupsPage() {
   const [timeWindow, selectTimeWindow] = useTimeWindow();
@@ -25,6 +41,7 @@ export function MatchupsPage() {
   const navigationType = useNavigationType();
   const { key, pathname, search, hash } = useLocation();
   const navigate = useNavigate();
+  const wide = useSyncExternalStore(subscribeToWidth, fitsTable);
   const matchups = useMatchups(timeWindow);
   const loadingWindow = matchups.isPlaceholderData;
   const loading = matchups.isPending || loadingWindow;
@@ -34,6 +51,7 @@ export function MatchupsPage() {
   const outside =
     slug !== null && decks.length > 0 && spotlit === undefined ? slug : null;
   const missing = loadingWindow ? null : outside;
+  const shown = spotlit ?? decks.at(0);
   const [revealing, setRevealing] = useState(
     navigationType !== NavigationType.Pop || key === "default" ? slug : null,
   );
@@ -46,10 +64,13 @@ export function MatchupsPage() {
       previousQuery?.queryKey[1] === outside ? previous : undefined,
   });
   const missingName = detail.data?.deck.name ?? "This deck";
+  const outsideLine = `${missingName} isn't in the top ${decks.length} for the selected time window.`;
   const notice =
     missing === null
       ? undefined
-      : `${missingName} isn't in the top ${decks.length} for the selected time window.`;
+      : wide
+        ? outsideLine
+        : `${outsideLine} The table shows ${shown?.name} by default.`;
   const named =
     detail.isError || (detail.isSuccess && !detail.isPlaceholderData);
 
@@ -58,6 +79,10 @@ export function MatchupsPage() {
     matchups.data !== undefined &&
     findDeck(decks, revealing) === undefined
   ) {
+    setRevealing(null);
+  }
+
+  if (!wide && revealing !== null) {
     setRevealing(null);
   }
 
@@ -100,12 +125,17 @@ export function MatchupsPage() {
         {decks.length > 0 && (
           <DeckPicker
             decks={decks}
-            value={spotlit?.slug ?? outside}
+            value={
+              wide
+                ? (spotlit?.slug ?? outside)
+                : (outside ?? shown?.slug ?? null)
+            }
             missing={
               outside === null
                 ? undefined
                 : { slug: outside, name: missingName }
             }
+            stacked={!wide}
             onChange={selectDeck}
           />
         )}
@@ -130,11 +160,31 @@ export function MatchupsPage() {
       >
         <Section
           query={matchups}
-          skeleton={<MatchupTableSkeleton />}
+          skeleton={wide ? <MatchupTableSkeleton /> : <MatchupListSkeleton />}
           title="The matchup table could not be loaded"
         >
-          {(data) =>
-            data.decks.length > 0 ? (
+          {(data) => {
+            if (data.decks.length === 0) {
+              return (
+                <EmptyWindow
+                  timeWindow={timeWindow}
+                  onSelect={selectTimeWindow}
+                />
+              );
+            }
+
+            if (!wide) {
+              return (
+                <MatchupList
+                  matrix={data}
+                  deck={spotlit ?? data.decks[0]}
+                  timeWindow={loadingWindow ? undefined : timeWindow}
+                  notice={notice}
+                />
+              );
+            }
+
+            return (
               <MatchupTable
                 key={data.decks.map((deck) => deck.slug).join(" ")}
                 matrix={data}
@@ -146,13 +196,8 @@ export function MatchupsPage() {
                 onReveal={revealed}
                 notice={notice}
               />
-            ) : (
-              <EmptyWindow
-                timeWindow={timeWindow}
-                onSelect={selectTimeWindow}
-              />
-            )
-          }
+            );
+          }}
         </Section>
       </div>
     </>
