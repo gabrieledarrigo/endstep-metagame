@@ -159,11 +159,7 @@ export function DeckPage() {
       {hero}
       {loadingStatus}
       <div
-        className={
-          loadingWindow
-            ? "deck-page__body busy"
-            : "deck-page__body"
-        }
+        className={loadingWindow ? "deck-page__body busy" : "deck-page__body"}
         aria-busy={loadingWindow || undefined}
       >
         <DeckStats deck={detail.deck} />
@@ -172,7 +168,7 @@ export function DeckPage() {
             <DeckSection title="Share over time">
               <DeckShare
                 name={detail.deck.name}
-                dates={dates}
+                dates={loadingWindow ? undefined : dates}
                 points={detail.shareSeries.points}
               />
             </DeckSection>

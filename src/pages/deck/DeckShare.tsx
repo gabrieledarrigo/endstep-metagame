@@ -46,7 +46,7 @@ function ShareTooltip({ active, payload, label }: TooltipContentProps) {
 
 type DeckShareProps = {
   name: string;
-  dates: string;
+  dates?: string;
   points: SharePoint[];
 };
 
@@ -63,7 +63,7 @@ export function DeckShare({ name, dates, points }: DeckShareProps) {
         className="deck-share__scroll"
         tabIndex={0}
         role="region"
-        aria-label={`Daily meta share of ${name}, ${dates}`}
+        aria-label={`Daily meta share of ${name}${dates ? `, ${dates}` : ""}`}
       >
         <ChartFrame className="deck-share__frame">
           <LineChart
