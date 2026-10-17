@@ -287,7 +287,7 @@ async function lookUpArt(names: Map<string, string>): Promise<boolean> {
  *
  * @param segments - The allow-listed path segments.
  * @param text - Endstep's response body.
- * @returns A Promise resolving to the new body and whether every deck's card has an answer, or to `null` when the response carries no decks to add art to.
+ * @returns A Promise resolving to the body and whether every deck's card has an answer, or to `null` when the response carries no decks to add art to. The body is Endstep's own text when no deck got an address.
  */
 async function withArt(
   segments: string[],
@@ -318,13 +318,19 @@ async function withArt(
   }
 
   const complete = await lookUpArt(names);
+  let added = false;
 
   for (const deck of decks) {
     const address = artByName.get(nameKey(deck.art.cardName));
 
     if (address) {
       deck.art.imageUrl = address;
+      added = true;
     }
+  }
+
+  if (!added) {
+    return { body: text, complete };
   }
 
   return { body: JSON.stringify(body), complete };

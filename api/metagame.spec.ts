@@ -92,7 +92,10 @@ function endstepAndScryfall(
       return scryfall();
     }
 
-    return new Response(JSON.stringify(endstep), {
+    const text =
+      typeof endstep === "string" ? endstep : JSON.stringify(endstep);
+
+    return new Response(text, {
       status,
       headers: { "content-type": "application/json" },
     });
@@ -448,6 +451,15 @@ describe("the metagame proxy's card art", () => {
     expect(await artOf(first)).toEqual([undefined]);
     expect(second.headers.get("cache-control")).toBe(FIVE_MINUTES);
     expect(scryfallNames(fetchMock)).toEqual([["Lim-Dul's Vault"]]);
+  });
+
+  it("sends Endstep's own text when no deck gets an address", async () => {
+    const text = JSON.stringify(deckList("Fire // Ice"), null, 2);
+    endstepAndScryfall(text, collection([], ["Fire // Ice"]));
+
+    const response = await metagame.fetch(request(DECKS));
+
+    expect(await response.text()).toBe(text);
   });
 
   it("asks Scryfall only for the names it has not seen", async () => {
