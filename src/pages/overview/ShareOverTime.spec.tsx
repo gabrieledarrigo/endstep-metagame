@@ -165,6 +165,17 @@ describe("ShareOverTime", () => {
     expect(end(container, "Affinity").hasAttribute("opacity")).toBe(false);
   });
 
+  it("paints the highlighted deck's end dot and label after the others, so no faded end covers it", () => {
+    sizeCharts();
+
+    const container = renderAt(`/?window=30d&highlight=${MADNESS}`);
+
+    expect(endLabels(container).map((label) => label.textContent)).toEqual([
+      "Affinity",
+      "Mono Red Madness",
+    ]);
+  });
+
   it("fades the other lines' hover dots, and not the highlighted deck's", async () => {
     sizeCharts();
     const container = renderAt(`/?window=30d&highlight=${AFFINITY}`);

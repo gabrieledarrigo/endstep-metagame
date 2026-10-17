@@ -128,10 +128,14 @@ function SeriesEnds({ ends }: { ends: SeriesEnd[] }) {
     }),
     plot.y + plot.height,
   );
+  const painted = [
+    ...placed.filter((end) => end.faded),
+    ...placed.filter((end) => !end.faded),
+  ];
 
   return (
     <g aria-hidden="true">
-      {placed.map((end) => (
+      {painted.map((end) => (
         <g key={end.key} opacity={end.faded ? LINE_FADE : undefined}>
           <circle
             cx={end.x}
