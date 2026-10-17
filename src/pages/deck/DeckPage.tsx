@@ -141,7 +141,9 @@ export function DeckPage() {
         {hero}
         {loadingStatus}
         {loadingWindow ? (
-          <Skeleton className="deck-page__skeleton deck-page__skeleton--section" />
+          <div aria-busy="true">
+            <Skeleton className="deck-page__skeleton deck-page__skeleton--section" />
+          </div>
         ) : (
           <EmptyWindow
             timeWindow={timeWindow}
