@@ -237,6 +237,26 @@ function onCdn(address: string | undefined): string | null {
 }
 
 /**
+ * Remembers a name's art crop when the name was asked, the address is on Scryfall's CDN, and no earlier match gave the name an address.
+ *
+ * @param asked - The memory keys of the names sent to Scryfall.
+ * @param name - A card's full name, or one face's name.
+ * @param address - The art crop address that goes with that name, if any.
+ */
+function rememberArt(
+  asked: Set<string>,
+  name: string,
+  address: string | undefined,
+): void {
+  const key = nameKey(name);
+  const art = onCdn(address);
+
+  if (art && asked.has(key) && !artByName.has(key)) {
+    artByName.set(key, art);
+  }
+}
+
+/**
  * Remembers the addresses in a collection response, for the names that were asked, and every other name asked as not found.
  *
  * A card matches a name by its full name or by any face's name, ignoring case. The first match with an art crop on Scryfall's CDN wins, and a later match never replaces it. A face's name takes that face's art crop, or the card's when the faces share one image, as an adventure does. The full name takes the card's art crop, or its first face's. A name that matches no card counts as not found, whether Scryfall lists it in `not_found` or answers with another spelling, such as "Lim-Dûl's Vault" for "Lim-Dul's Vault". So does a card without an art crop on Scryfall's CDN. Its deck falls back to Endstep's endpoint.
@@ -247,21 +267,19 @@ function onCdn(address: string | undefined): string | null {
 function remember(asked: Set<string>, cards: ScryfallCard[]): void {
   for (const card of cards) {
     const faces = card.card_faces ?? [];
-    const names: [string, string | undefined][] = [
-      [card.name, card.image_uris?.art_crop ?? faces[0]?.image_uris?.art_crop],
-      ...faces.map((face): [string, string | undefined] => [
+
+    rememberArt(
+      asked,
+      card.name,
+      card.image_uris?.art_crop ?? faces[0]?.image_uris?.art_crop,
+    );
+
+    for (const face of faces) {
+      rememberArt(
+        asked,
         face.name,
         face.image_uris?.art_crop ?? card.image_uris?.art_crop,
-      ]),
-    ];
-
-    for (const [name, address] of names) {
-      const key = nameKey(name);
-      const art = onCdn(address);
-
-      if (art && asked.has(key) && !artByName.has(key)) {
-        artByName.set(key, art);
-      }
+      );
     }
   }
 
