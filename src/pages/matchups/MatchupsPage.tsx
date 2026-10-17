@@ -64,10 +64,10 @@ export function MatchupsPage() {
   const revealed = useCallback(() => setRevealing(null), []);
 
   useEffect(() => {
-    if (key === "default") {
+    if (key === "default" && slug !== null) {
       navigate({ pathname, search, hash }, { replace: true });
     }
-  }, [key, pathname, search, hash, navigate]);
+  }, [key, slug, pathname, search, hash, navigate]);
 
   const selectDeck = (next: string | null): void => {
     setSearchParams(

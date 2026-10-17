@@ -386,6 +386,15 @@ describe("MatchupsPage", () => {
     expect(scrollIntoView).toHaveBeenCalledTimes(1);
   });
 
+  it("leaves a first history entry with no deck as it is", async () => {
+    stubRoutes();
+    renderAt("/matchups?window=30d");
+
+    await screen.findByRole("grid");
+
+    expect(screen.getByText("Address: ?window=30d, POP")).toBeTruthy();
+  });
+
   it("does not reveal the deck on a return to a later history entry", async () => {
     stubRoutes();
     stubWidth(true);
