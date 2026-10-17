@@ -1,6 +1,6 @@
 # Endstep Pauper Metagame Viewer: Requirements
 
-**Status:** Draft v6 · **Date:** 2026-10-17
+**Status:** Draft v7 · **Date:** 2026-10-17
 **Scope:** three pages. The overview, a deck page with its numbers, a sample list and its matchups against the top 24, and a matchup table. Other deck page sections are out of scope, see §8.
 **Visual design** is specified in [`design-system.html`](./design-system.html). This document covers structure, content and behaviour.
 
@@ -36,6 +36,8 @@ The application is read-only. It stores nothing but the reader's theme choice, F
 | Deck links | Our deck page. It links to the same deck on endstep.cc |
 | Order of work | The Vite refactor first, then the deck page and the matchup table, so the new pages are written once |
 | Matchup table | Its own page. Top 24 decks. Colour only clear pairs. One deck's list below 640px, FR-12 |
+| Install | Installable as an app, with no offline caching and no service worker, FR-16 |
+| Sharing | Each deck page shares with its own title, figures and art. Every other page shares the site card, FR-15 |
 
 ---
 
@@ -134,6 +136,7 @@ Public CORS proxies were tested on 2026-09-20 and rejected. All six failed. allo
 2. **`api/metagame.ts`**. The proxy. It forwards `GET` requests to `https://endstep.cc/api/metagame/v1/...`, keeps the allow-listed query parameters, and returns the upstream body with CORS headers.
 3. **`api/matchups.ts`**. The matchup aggregator. It builds the top-24 matrix on the server and returns it in one response. See §4.4. It is a separate function so the proxy stays a pass-through.
 4. **`api/_shared.ts`**. The code both functions share: the upstream address and timeout, the CORS headers, the method rules, the error responses and the cache rules. Vercel does not deploy a file in `api/` whose name starts with an underscore, so it is not a function of its own.
+5. **`api/deck-page.ts`**. The deck page's HTML. It writes the deck's title, description and image into the built `index.html` for link previews, FR-15. `vercel.json` sends `/decks/:slug` to it in place of the static rewrite.
 
 ### 4.3 Proxy behaviour
 
@@ -185,7 +188,7 @@ The front end uses **React Router 8 in declarative mode**: `BrowserRouter`, `Rou
 | `/decks/{slug}` | Deck page |
 | `/matchups` | Matchup table |
 
-- `vercel.json` rewrites `/decks/:slug` and `/matchups` to `/index.html`. Vercel applies rewrites after it checks for real files, so built assets are not affected.
+- `vercel.json` rewrites `/matchups` to `/index.html`, and sends `/decks/:slug` to the deck page's HTML function, which serves the same `index.html` with the deck's link preview, FR-15. Vercel applies rewrites after it checks for real files, so built assets are not affected.
 - `?window=` belongs to every page and carries across links. Pages read and write it with `useSearchParams`. See FR-1.
 - The layout route replaces a missing or unknown window with the default, with a replace navigation, so the address always names the window on screen.
 - The view state lives in the address too: the overview's view in `view` and the deck table's sort in `sort` and `dir`, FR-4, the overview's search in `q`, FR-14, the share chart's highlighted deck in `highlight`, FR-5, and the matchup table's chosen deck in `deck`, FR-12. A change replaces the history entry, so Back leaves the page rather than undoing a sort. The default view leaves the parameters out.
@@ -205,6 +208,9 @@ Vercel runs `npm run build` and serves `dist/`. The functions in `api/` are buil
 
 - `vercel.json` pins `"framework": "vite"`. The project was created with the "Other" preset. Without the pin, Vercel may skip the build and serve the source `index.html`, which renders a blank page.
 - `vercel.json` also carries the proxy rewrite (§4.3) and the page rewrites (§4.5).
+- `public/` holds the icons, the web app manifest, the site card image and `robots.txt`. Vite copies it into `dist/` as it is.
+- Hashed files under `/assets/` are served with `public, max-age=31536000, immutable`, because their names change with every build. `index.html` keeps a short cache, so a deploy reaches readers at once.
+- Every response carries security headers set in `vercel.json`: a Content Security Policy, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin` and `frame-ancestors 'none'`. The policy allows scripts from the site and the inline theme script by its hash, images from the site, `endstep.cc` and `cards.scryfall.io`, connections to the site only, and inline style attributes, which the charts set.
 - Only `dist/` is served. Source files, `docs/` and the development files are no longer reachable from the public site.
 - Vercel deploys every file in `api/` as a function. `.vercelignore` therefore excludes `api/**/*.spec.ts`, so the specs beside the functions are never deployed.
 - **Production waits for CI.** The project's Deployment Checks require the `ci` job from NFR-1. Vercel still builds every push to `main`, but assigns the production domain only after `ci` passes on that commit. Preview deployments do not wait. The setting lives in the Vercel dashboard, not in `vercel.json`. See open item 6.
@@ -397,6 +403,22 @@ The overview finds any deck in the window, by its name or by a card in its lists
 - A window change keeps the query and searches the new window, under the loading rules of §4.8.
 - Every result links to its deck page, FR-10, which works for a deck outside the top 24.
 
+### FR-15. Page metadata and link previews
+Every page carries what browsers, search engines and chat apps read without running the script.
+
+- `index.html` has a description, a canonical link to `/`, Open Graph and Twitter card tags, the icon set, FR-16, and `theme-color` for each theme. The theme toggle updates `theme-color` with the theme, FR-13. `robots.txt` allows every page.
+- The overview and the matchup table share the site card: the site's name, the description, and a 1200 by 630 image with the site mark, from the design system.
+- A deck page shares its own preview. Its title reads "{deck} · Pauper Endstep metagame". Its description reads "{share} of the Pauper field over the {window}, {win rate} match win rate, {players} players.", with the link's window, 30 days by default. Its image is the deck's art. A win rate under 20 decided matches reads as too few to call, §6.8.
+- A server function, §4.2, writes these into the built `index.html` for `/decks/:slug`. It fetches the deck detail through the same cache rules as the proxy, §4.3. When the call fails, or takes longer than one second, it returns the page with the site card, so a reader never waits on it. The edge caches each page for five minutes.
+- The page then loads as before. The function changes nothing a reader sees.
+
+### FR-16. Installable app
+The site installs as an app on phones and desktops, from the browser's own install prompt or "Add to Home Screen".
+
+- A web app manifest names the app "Pauper Endstep metagame", with a short name from the design system for the home screen. It opens `/` in a standalone window and carries the icons at 192px and 512px, with a maskable 512px version.
+- The icon set comes from the site mark, the design system's: an SVG favicon, a 32px ICO for older browsers, a 180px Apple touch icon, and the app icons.
+- There is no service worker and no offline caching. The installed app needs the network, as the site does, and always shows current data.
+
 ---
 
 ## 6. Data caveats the UI must handle
@@ -563,10 +585,15 @@ Recharts covers the overview's three charts: `LineChart` for FR-5, a horizontal 
 - Back, forward or a window switch to data fetched in the last five minutes renders from memory, with no request and no loading state, §4.8.
 
 ### NFR-4. Respecting the upstream service
-The application must not put meaningful load on Endstep. Edge caching (§4.3) means repeat visits and repeated window switches cost no upstream requests. Within five minutes, the client's own cache (§4.8) sends no request at all. The client must not poll. It must not retry more than twice. It must back off on 429. Total upstream traffic should stay well below the limit of 300 per 60 seconds. The matchup function costs 25 upstream calls per cold window, so warming all five windows costs 125 in each edge region that serves a request. The deck page's matchups row requests the same URL, so it adds no upstream calls once a window is warm. A search costs one upstream call for each distinct normalised query, window and page. It runs 300ms after typing stops, from 2 characters, and the edge caches each query like any other deck list. Several regions warming every window inside one minute would pass the limit. At this site's traffic that is unlikely, and §4.4 holds a 429 at the edge for the full minute when it happens.
+The application must not put meaningful load on Endstep. Edge caching (§4.3) means repeat visits and repeated window switches cost no upstream requests. Within five minutes, the client's own cache (§4.8) sends no request at all. The client must not poll. It must not retry more than twice. It must back off on 429. Total upstream traffic should stay well below the limit of 300 per 60 seconds. The matchup function costs 25 upstream calls per cold window, so warming all five windows costs 125 in each edge region that serves a request. The deck page's matchups row requests the same URL, so it adds no upstream calls once a window is warm. The deck page's HTML function, FR-15, adds one deck detail call per deck and window on an edge cache miss, the same call the page itself makes. A search costs one upstream call for each distinct normalised query, window and page. It runs 300ms after typing stops, from 2 characters, and the edge caches each query like any other deck list. Several regions warming every window inside one minute would pass the limit. At this site's traffic that is unlikely, and §4.4 holds a 429 at the edge for the full minute when it happens.
 
 ### NFR-5. Attribution
-The page states that the data comes from Endstep and links to `https://endstep.cc/metagame`. It does not present itself as an official Endstep product.
+The page states that the data comes from Endstep and links to `https://endstep.cc/metagame`. It does not present itself as an official Endstep product. The footer, laid out as the design system shows, carries:
+
+- the data source, and that the site is not affiliated with Endstep;
+- the Fan Content notice in the policy's own words: "Pauper Endstep metagame is unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.", with a link to the policy;
+- the author, Gabriele D'Arrigo, linking to `https://github.com/gabrieledarrigo`, and a link to the source code;
+- a credit to Scryfall for the card images, which reach the browser from Scryfall's servers, §3.4.
 
 ### NFR-6. Accessibility
 - All content reachable and operable by keyboard. A chart's bars and markers open deck pages on a click, but are not tab stops: every page they open is reachable by keyboard through the deck grid or the deck table, whichever view the overview shows.
