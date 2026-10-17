@@ -1,0 +1,9 @@
+@layer components {
+  .chart-link {
+    cursor: pointer;
+  }
+
+  .chart-link:focus {
+    outline: none;
+  }
+}
