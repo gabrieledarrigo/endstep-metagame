@@ -83,6 +83,19 @@ describe("WinRateScatter", () => {
     expect(mark?.getAttribute("fill-opacity")).toBe("var(--mark-opacity)");
   });
 
+  it("gives every marker's circle the class that its pointed and armed look style", () => {
+    renderScatter(DECKS);
+
+    for (const deck of DECKS) {
+      expect(
+        screen
+          .getByRole("link", { name: deck.name })
+          .querySelector("circle")
+          ?.classList.contains("win-rate__dot"),
+      ).toBe(true);
+    }
+  });
+
   it("drops the label of a deck that would overlap a label already placed", () => {
     const crowded = {
       ...DECKS[1],
@@ -264,6 +277,87 @@ describe("WinRateScatter", () => {
     tap(() => firstMark(container));
 
     expect(screen.queryByText(AFFINITY_PAGE)).toBeNull();
+  });
+
+  it("marks a marker armed by a first tap, and no other", () => {
+    const { container } = renderScatter(DECKS);
+
+    press(() => firstMark(container));
+
+    expect(
+      screen
+        .getByRole("link", { name: "Affinity" })
+        .querySelector(".win-rate__mark--armed"),
+    ).not.toBeNull();
+    expect(container.querySelectorAll(".win-rate__mark--armed")).toHaveLength(
+      1,
+    );
+  });
+
+  it("marks nothing on a mouse press", () => {
+    const { container } = renderScatter(DECKS);
+
+    press(() => firstMark(container), "mouse");
+
+    expect(container.querySelector(".win-rate__mark--armed")).toBeNull();
+  });
+
+  it("clears the armed mark after a tap elsewhere", () => {
+    const { container } = renderScatter(DECKS);
+
+    press(() => firstMark(container));
+    fireEvent.pointerDown(document.body, { pointerType: "touch" });
+
+    expect(container.querySelector(".win-rate__mark--armed")).toBeNull();
+  });
+
+  it("clears the armed mark once a mouse moves over the chart, so only one marker looks pointed", () => {
+    const { container } = renderScatter(DECKS);
+
+    press(() => firstMark(container));
+    fireEvent.pointerMove(
+      screen.getByRole("link", { name: "Mono Red Madness" }),
+      { pointerType: "mouse" },
+    );
+
+    expect(container.querySelector(".win-rate__mark--armed")).toBeNull();
+    expect(screen.queryByText("Tap again to open the deck.")).toBeNull();
+  });
+
+  it("follows a click with no tap before it once a mouse has disarmed the marker", () => {
+    const { container } = renderScatter(DECKS);
+
+    press(() => firstMark(container));
+    fireEvent.pointerMove(
+      screen.getByRole("link", { name: "Mono Red Madness" }),
+      { pointerType: "mouse" },
+    );
+    fireEvent.click(firstMark(container));
+
+    expect(screen.getByText(AFFINITY_PAGE)).toBeTruthy();
+  });
+
+  it("keeps the armed mark while a finger moves over the chart", () => {
+    const { container } = renderScatter(DECKS);
+
+    press(() => firstMark(container));
+    fireEvent.pointerMove(firstMark(container), { pointerType: "touch" });
+
+    expect(container.querySelector(".win-rate__mark--armed")).not.toBeNull();
+  });
+
+  it("clears the armed mark when the decks change", () => {
+    const { container, rerender } = renderScatter(DECKS);
+
+    press(() => firstMark(container));
+    rerender(
+      <MemoryRouter initialEntries={["/?window=7d"]}>
+        <WinRateScatter decks={[...DECKS]} />
+        <Address />
+      </MemoryRouter>,
+    );
+
+    expect(container.querySelector(".win-rate__mark--armed")).toBeNull();
   });
 
   it("leaves out a deck with fewer than 20 decided matches", () => {

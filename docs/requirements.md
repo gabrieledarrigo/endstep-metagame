@@ -273,14 +273,14 @@ A **ranked horizontal bar chart**. The top 24 decks plus an **`Other`** bar, sor
 
 This is not a pie. Twenty-five categories exceed the eight-hue ceiling of a categorical palette, and a pie with 25 slices cannot be read at any size. Bars encode magnitude by length, so they use one hue, sequential blue. The `Other` bar uses `--text-400` to mark it as a residual rather than a deck.
 
-A click on a deck's bar or its name opens the deck's page, FR-11, keeping the selected time window as every deck link does, FR-10. `Other` is not a deck and opens nothing. Pointing at a deck's row underlines its name and fills its bar with `--seq-600`, one step darker, so the row reads as a link. `Other` does not react. The deck grid and the deck table stay the keyboard path to the same pages, NFR-6.
+A click on a deck's bar or its name opens the deck's page, FR-11, keeping the selected time window as every deck link does, FR-10. `Other` is not a deck and opens nothing. Pointing at a deck's row underlines its name, in `--text-900`, and fills its bar with `--seq-600`, one step darker, so the row reads as a link. `Other` does not react. The deck grid and the deck table stay the keyboard path to the same pages, NFR-6.
 
 ### FR-7. Win rate against share
 A scatter plot. Meta share on the x-axis, match win rate on the y-axis, marker size proportional to player count. A reference line at 50% win rate separates decks above the field from decks below it. This is the main analytical view on the page. It shows which decks are good and which are only popular.
 
 All markers use **one hue**. A scatter invites comparison between any two points, and under all-pairs comparison only three hues stay separable. Colouring 24 decks individually is therefore not available. Identity comes from position, from labels on selected decks, and from hover.
 
-A click on a marker or its label opens the deck's page, FR-11, keeping the selected time window as every deck link does, FR-10. The tooltip says so. On a touch screen the first tap on a marker shows its tooltip, and a second tap on the same marker opens the page, so the tooltip still identifies unlabelled markers. Pointing at a marker fills it with `--seq-600` at full opacity and underlines its label, when it has one. The deck grid and the deck table stay the keyboard path to the same pages, NFR-6.
+A click on a marker or its label opens the deck's page, FR-11, keeping the selected time window as every deck link does, FR-10. The tooltip says so. On a touch screen the first tap on a marker shows its tooltip, and a second tap on the same marker opens the page, so the tooltip still identifies unlabelled markers. Pointing at a marker fills it with `--seq-600` at full opacity and underlines its label, which stays in `--text-900`, when it has one. A marker armed by a first tap looks the same. A mouse or pen moving over the chart disarms it. The deck grid and the deck table stay the keyboard path to the same pages, NFR-6.
 
 ### FR-8. Share change
 Where `shareChange.points` is present, the grid and table show the movement against the previous window, with its direction. Where it is `null`, the UI states that no comparison is available. It must not show a zero or a blank. See §6.3.

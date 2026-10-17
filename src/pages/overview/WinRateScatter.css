@@ -11,6 +11,17 @@
     fill: var(--text-900);
   }
 
+  .win-rate__mark:hover .win-rate__dot,
+  .win-rate__mark--armed .win-rate__dot {
+    fill: var(--seq-600);
+    fill-opacity: 1;
+  }
+
+  .win-rate__mark:hover .win-rate__label,
+  .win-rate__mark--armed .win-rate__label {
+    text-decoration: underline;
+  }
+
   @media (min-width: 640px) {
     .win-rate__label {
       display: inline;
