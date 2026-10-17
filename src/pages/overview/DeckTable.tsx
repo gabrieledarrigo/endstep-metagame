@@ -153,6 +153,7 @@ export function DeckTable({ decks }: { decks: Deck[] }) {
       role="region"
       aria-label="Deck table"
     >
+      <h2 className="visually-hidden">Deck table</h2>
       <table className="deck-table">
         <caption className="visually-hidden">
           The top {decks.length} decks, sortable by column
