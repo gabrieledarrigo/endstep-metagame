@@ -77,6 +77,7 @@ describe("ThemeToggle", () => {
     fireEvent.click(toggle());
 
     expect(toggle().getAttribute("aria-pressed")).toBe("false");
+    expect(icon()).toBe("sun");
     expect(document.documentElement.dataset.theme).toBe("light");
     expect(localStorage.getItem("theme")).toBe("light");
   });
@@ -91,6 +92,7 @@ describe("ThemeToggle", () => {
     fireEvent.click(toggle());
 
     expect(toggle().getAttribute("aria-pressed")).toBe("true");
+    expect(icon()).toBe("moon");
     expect(document.documentElement.dataset.theme).toBe("dark");
   });
 
