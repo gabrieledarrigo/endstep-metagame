@@ -543,6 +543,44 @@ describe("the metagame proxy's card art", () => {
     },
   );
 
+  it.each([
+    ["no data", {}],
+    ["data that is not a list", { data: null }],
+    ["a card that is not an object", { data: [null] }],
+    ["a name that is not a string", { data: [{ name: 5 }] }],
+    [
+      "faces that are not a list",
+      { data: [{ name: "Guttersnipe", card_faces: {} }] },
+    ],
+    ["no faces", { data: [{ name: "Guttersnipe", card_faces: null }] }],
+    [
+      "images that are not an object",
+      { data: [{ name: "Guttersnipe", image_uris: "guttersnipe.jpg" }] },
+    ],
+    [
+      "an art crop that is not a string",
+      { data: [{ name: "Guttersnipe", image_uris: { art_crop: 5 } }] },
+    ],
+  ])(
+    "treats a 200 with %s as a failed lookup: the fallback for a minute, and nothing remembered",
+    async (_, payload) => {
+      const fetchMock = endstepAndScryfall(deckList("Guttersnipe"), async () =>
+        Response.json(payload),
+      );
+
+      const first = await metagame.fetch(request(DECKS));
+      await metagame.fetch(request(DECKS));
+
+      expect(first.status).toBe(200);
+      expect(first.headers.get("cache-control")).toBe(ONE_MINUTE);
+      expect(await artOf(first)).toEqual([undefined]);
+      expect(scryfallNames(fetchMock)).toEqual([
+        ["Guttersnipe"],
+        ["Guttersnipe"],
+      ]);
+    },
+  );
+
   it("sends Scryfall nothing for 30 seconds after a 429, and keeps the art it already has", async () => {
     vi.useFakeTimers({ toFake: ["Date"] });
     const fetchMock = endstepAndScryfall(

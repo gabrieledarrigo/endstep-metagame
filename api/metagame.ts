@@ -58,15 +58,9 @@ type ArtDeck = {
 
 type ScryfallImages = { art_crop?: string };
 
-type ScryfallCard = {
-  name: string;
-  image_uris?: ScryfallImages;
-  card_faces?: { name: string; image_uris?: ScryfallImages }[];
-};
+type ScryfallFace = { name: string; image_uris?: ScryfallImages };
 
-type ScryfallCollection = {
-  data: ScryfallCard[];
-};
+type ScryfallCard = ScryfallFace & { card_faces?: ScryfallFace[] };
 
 const artByName = new Map<string, string | null>();
 let pausedUntil = 0;
@@ -183,6 +177,51 @@ function nameKey(name: string): string {
 }
 
 /**
+ * Checks whether a value is a card or a face as Scryfall describes it: a string name, and images with a string art crop when present.
+ *
+ * @param value - An entry of a collection response's `data`, or one of its faces.
+ * @returns `true` when the shape is one `remember` can read.
+ */
+function isScryfallFace(value: unknown): value is ScryfallFace {
+  if (!isRecord(value) || typeof value.name !== "string") {
+    return false;
+  }
+
+  if (value.image_uris === undefined) {
+    return true;
+  }
+
+  return (
+    isRecord(value.image_uris) &&
+    (value.image_uris.art_crop === undefined ||
+      typeof value.image_uris.art_crop === "string")
+  );
+}
+
+/**
+ * Checks whether a value is a well-formed card, with its faces well-formed too when it has any.
+ *
+ * @param value - An entry of a collection response's `data`.
+ * @returns `true` when `remember` can read the card.
+ */
+function isScryfallCard(value: unknown): value is ScryfallCard {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  const faces = value.card_faces;
+
+  if (
+    faces !== undefined &&
+    (!Array.isArray(faces) || !faces.every(isScryfallFace))
+  ) {
+    return false;
+  }
+
+  return isScryfallFace(value);
+}
+
+/**
  * Keeps an art crop address only when it is on Scryfall's CDN, the one image host besides Endstep that the site's policy allows.
  *
  * @param address - An `art_crop` address from Scryfall, if any.
@@ -202,10 +241,10 @@ function onCdn(address: string | undefined): string | null {
  * A card matches a name by its full name or by any face's name, ignoring case. A face's name takes that face's art crop, or the card's when the faces share one image, as an adventure does. The full name takes the card's art crop, or its first face's. A name that matches no card counts as not found, whether Scryfall lists it in `not_found` or answers with another spelling, such as "Lim-Dûl's Vault" for "Lim-Dul's Vault". So does a card without an art crop on Scryfall's CDN. Its deck falls back to Endstep's endpoint.
  *
  * @param asked - The memory keys of the names sent to Scryfall.
- * @param collection - Scryfall's collection response.
+ * @param cards - The cards of Scryfall's collection response.
  */
-function remember(asked: Set<string>, collection: ScryfallCollection): void {
-  for (const card of collection.data) {
+function remember(asked: Set<string>, cards: ScryfallCard[]): void {
+  for (const card of cards) {
     const faces = card.card_faces ?? [];
     const names: [string, string | undefined][] = [
       [card.name, card.image_uris?.art_crop ?? faces[0]?.image_uris?.art_crop],
@@ -235,7 +274,7 @@ function remember(asked: Set<string>, collection: ScryfallCollection): void {
  * Never retries. After a 429 it sends nothing for 30 seconds, Scryfall's own lockout.
  *
  * @param names - The card names by memory key, each in the spelling Endstep sent.
- * @returns A Promise resolving to `true` when every name has an address or a not-found answer in memory, and `false` when the lookup failed, timed out, met a 429 or was paused.
+ * @returns A Promise resolving to `true` when every name has an address or a not-found answer in memory, and `false` when the lookup failed, timed out, met a 429, was paused, or got a body it could not read. A failed lookup stores nothing.
  * @see https://scryfall.com/docs/api/cards/collection
  */
 async function lookUpArt(names: Map<string, string>): Promise<boolean> {
@@ -248,8 +287,6 @@ async function lookUpArt(names: Map<string, string>): Promise<boolean> {
   if (Date.now() < pausedUntil) {
     return false;
   }
-
-  let collection: ScryfallCollection;
 
   try {
     const response = await fetch(SCRYFALL_COLLECTION, {
@@ -270,14 +307,20 @@ async function lookUpArt(names: Map<string, string>): Promise<boolean> {
       return false;
     }
 
-    const { data = [] } =
-      (await response.json()) as Partial<ScryfallCollection>;
-    collection = { data };
+    const collection: unknown = await response.json();
+
+    if (
+      !isRecord(collection) ||
+      !Array.isArray(collection.data) ||
+      !collection.data.every(isScryfallCard)
+    ) {
+      return false;
+    }
+
+    remember(new Set(missing.map(([key]) => key)), collection.data);
   } catch {
     return false;
   }
-
-  remember(new Set(missing.map(([key]) => key)), collection);
 
   return true;
 }
