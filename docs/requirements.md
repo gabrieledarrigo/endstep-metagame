@@ -1,6 +1,6 @@
 # Endstep Pauper Metagame Viewer: Requirements
 
-**Status:** Draft v7 · **Date:** 2026-10-17
+**Status:** Draft v8 · **Date:** 2026-10-17
 **Scope:** three pages. The overview, a deck page with its numbers, a sample list and its matchups against the top 24, and a matchup table. Other deck page sections are out of scope, see §8.
 **Visual design** is specified in [`design-system.html`](./design-system.html). This document covers structure, content and behaviour.
 
@@ -36,6 +36,7 @@ The application is read-only. It stores nothing but the reader's theme choice, F
 | Deck links | Our deck page. It links to the same deck on endstep.cc |
 | Order of work | The Vite refactor first, then the deck page and the matchup table, so the new pages are written once |
 | Matchup table | Its own page. Top 24 decks. Colour only clear pairs. One deck's list below 640px, FR-12 |
+| Card art | From Scryfall by name, added by the metagame function. Endstep's image endpoint is the fallback, §3.4 |
 | Install | Installable as an app, with no offline caching and no service worker, FR-16 |
 | Sharing | Each deck page shares with its own title, figures and art. Every other page shares the site card, FR-15 |
 
@@ -76,7 +77,13 @@ Extracted from the Endstep client bundle. These are the authoritative values, no
 
 `https://endstep.cc/api/cards/image?name=<Card Name>&_v=2` returns a 302 redirect to the Scryfall CDN. Optional parameters: `version`, `face=back`, `set` with `cn`.
 
-`<img>` tags are not CORS requests. Card art therefore loads directly from `endstep.cc` on any origin and **does not need the proxy**.
+`<img>` tags are not CORS requests, so card art loads on any origin with no proxy.
+
+**The art comes from Scryfall by name.** The metagame function adds `art.imageUrl` to every deck in the deck list and the deck detail, §4.3. It is the `art_crop` address on Scryfall's CDN, `cards.scryfall.io`, which has no rate limit, so the browser loads the art with no redirect. Scryfall picks its default printing, which can differ from Endstep's choice. When `art.imageUrl` is missing, the browser falls back to Endstep's endpoint with `version=art_crop`, as before.
+
+- The function sends one `POST https://api.scryfall.com/cards/collection` per response, with up to 75 `{ "name": … }` identifiers, the deck list's 24 key cards at most. It reads `image_uris.art_crop`, or `card_faces[0].image_uris.art_crop` for a double-faced card.
+- Scryfall allows 2 requests per second on that endpoint and requires a `User-Agent` naming the application and an `Accept` header. A 429 limits access for 30 seconds.
+- The function remembers each card's address in memory for as long as its instance lives, so a warm instance asks Scryfall only for names it has not seen.
 
 ### 3.5 Measured characteristics
 
@@ -133,7 +140,7 @@ Public CORS proxies were tested on 2026-09-20 and rejected. All six failed. allo
 ### 4.2 Components
 
 1. **The front end**. A Vite application in `src/`, built to `dist/` on Vercel. It serves all three pages from one `index.html`.
-2. **`api/metagame.ts`**. The proxy. It forwards `GET` requests to `https://endstep.cc/api/metagame/v1/...`, keeps the allow-listed query parameters, and returns the upstream body with CORS headers.
+2. **`api/metagame.ts`**. The proxy. It forwards `GET` requests to `https://endstep.cc/api/metagame/v1/...`, keeps the allow-listed query parameters, and returns the upstream body with CORS headers. For the deck list and the deck detail it adds each deck's art address from Scryfall, §3.4, so it is no longer a pure pass-through.
 3. **`api/matchups.ts`**. The matchup aggregator. It builds the top-24 matrix on the server and returns it in one response. See §4.4. It is a separate function so the proxy stays a pass-through.
 4. **`api/_shared.ts`**. The code the functions share: the upstream address and timeout, the CORS headers, the method rules, the error responses and the cache rules. Vercel does not deploy a file in `api/` whose name starts with an underscore, so it is not a function of its own.
 5. **`api/deck-page.ts`**. The deck page's HTML. It writes the deck's title, description and image into the built `index.html` for link previews, FR-15. `vercel.json` sends `/decks/:slug` to it in place of the static rewrite.
@@ -145,6 +152,8 @@ Public CORS proxies were tested on 2026-09-20 and rejected. All six failed. allo
 - **Allow-lists** the upstream path prefix, so the function cannot be used as an open proxy to arbitrary hosts.
 - Sets `Cache-Control` by status. A success gets `public, s-maxage=300, stale-while-revalidate=600`, so the Vercel edge serves repeat requests without calling Endstep. A 429 gets `public, s-maxage=10`. Any other error gets `no-store`.
 - Passes upstream non-2xx status codes through unchanged, so the client can tell a rate limit from a server error.
+- **Adds the art.** For a successful deck list or deck detail, it looks up the key cards on Scryfall, §3.4, and adds `art.imageUrl` to each deck it resolves. The lookup has a one-second bound. When it fails, times out or meets a 429, the response goes out without the addresses it could not resolve, with `s-maxage=60` in place of the usual five minutes, so the art returns soon. A lookup never fails the response and is never retried within it.
+- The Scryfall request carries `User-Agent: PauperEndstepMetagame/1.0 (+https://github.com/gabrieledarrigo/endstep-metagame)` and `Accept: application/json`. That is the only identifying header the functions send upstream.
 - Sends no cookies, credentials or client identifying headers upstream.
 
 ### 4.4 Matchup function
@@ -242,7 +251,7 @@ Shows the format, the resolved window dates, total registrations and total playe
 ### FR-3. Deck grid
 The top 24 decks by share, each as a card showing:
 
-- the archetype's key card art, from `art.cardName` via the image endpoint
+- the archetype's key card art, from `art.imageUrl`, or Endstep's image endpoint for `art.cardName` when it is missing, §3.4
 - deck name
 - colour identity, from the `colours` array, as WUBRG pips
 - **meta share** as a percentage
@@ -408,7 +417,7 @@ Every page carries what browsers, search engines and chat apps read without runn
 
 - `index.html` has a description, Open Graph tags, a `summary_large_image` Twitter card, the icon set, FR-16, and `theme-color` for each theme. The theme toggle updates `theme-color` with the theme, FR-13. `robots.txt` allows every page. `index.html` carries no canonical link and no `og:url`, because the same file serves every path.
 - The overview and the matchup table share the site card: the site's name, the description, and a 1200 by 630 image with the site mark, from the design system.
-- A deck page shares its own preview. Its title reads "{deck} · Pauper Endstep metagame". Its description reads "{share} of the Pauper field {period}, {win rate} match win rate, {players} players.", where the period follows the link's window: "over the last day", "over the last 7 days", "over the last 14 days", "over the last 30 days" or "this season", and 30 days by default. A win rate under 20 decided matches reads as too few to call, §6.8. Its image is the deck's art crop, Endstep's image endpoint with `version=art_crop`, §3.4. Its canonical link and `og:url` are `/decks/{slug}`, with no query string, so every window of one deck counts as one page.
+- A deck page shares its own preview. Its title reads "{deck} · Pauper Endstep metagame". Its description reads "{share} of the Pauper field {period}, {win rate} match win rate, {players} players.", where the period follows the link's window: "over the last day", "over the last 7 days", "over the last 14 days", "over the last 30 days" or "this season", and 30 days by default. A win rate under 20 decided matches reads as too few to call, §6.8. Its image is the deck's art crop: `art.imageUrl` from the deck detail, or Endstep's image endpoint with `version=art_crop` when it is missing, §3.4. Its canonical link and `og:url` are `/decks/{slug}`, with no query string, so every window of one deck counts as one page.
 - A server function, §4.2, writes these into `index.html` for `/decks/:slug`:
   - It reads `index.html` from the files deployed with it, never over HTTP, so a protected preview deployment does not break it.
   - It accepts only a slug the proxy would accept, §4.3, and only a known window. Anything else gets the page with the site card.
@@ -583,7 +592,7 @@ Recharts renders SVG rather than canvas, so chart content stays in the DOM. That
 Recharts covers the overview's three charts: `LineChart` for FR-5, a horizontal `BarChart` with `LabelList` for FR-6, and `ScatterChart` with `ZAxis` for the bubble sizing in FR-7. The deck page's share line in FR-11 is a `LineChart`. The matchup table in FR-12 is an HTML table, not a chart.
 
 ### NFR-3. Performance
-- Page interactive within 3 seconds on a normal broadband connection.
+- Page interactive within 3 seconds on a normal broadband connection. The art lookup adds at most one second to an uncached deck list, §4.3.
 - Initial render API calls: exactly **two** on the overview, `decks` at `pageSize=24` and `share-series`, and a third when the address restores a search, FR-14. **Two** on the deck page: the deck detail and `/api/matchups`. The second is the matchup table's own request, so it shares that page's edge cache entry. **One** on the matchup table.
 - Script payload is a reference, not a gate. Draft v2 shipped about 743 KB brotli, 544 KB of it Babel Standalone. The mechanical Vite port measured 156 KB of script and 2 KB of CSS, brotli, on 2026-10-03.
 - Card art is lazy-loaded with `loading="lazy"` and sized to prevent layout shift.
@@ -591,6 +600,8 @@ Recharts covers the overview's three charts: `LineChart` for FR-5, a horizontal 
 
 ### NFR-4. Respecting the upstream service
 The application must not put meaningful load on Endstep. Edge caching (§4.3) means repeat visits and repeated window switches cost no upstream requests. Within five minutes, the client's own cache (§4.8) sends no request at all. The client must not poll. It must not retry more than twice. It must back off on 429. Total upstream traffic should stay well below the limit of 300 per 60 seconds. The matchup function costs 25 upstream calls per cold window, so warming all five windows costs 125 in each edge region that serves a request. The deck page's matchups row requests the same URL, so it adds no upstream calls once a window is warm. The deck page's HTML function, FR-15, adds one deck detail call per deck and window on an edge cache miss, the same call the page itself makes. A search costs one upstream call for each distinct normalised query, window and page. It runs 300ms after typing stops, from 2 characters, and the edge caches each query like any other deck list. Several regions warming every window inside one minute would pass the limit. At this site's traffic that is unlikely, and §4.4 holds a 429 at the edge for the full minute when it happens.
+
+The same care applies to Scryfall, §3.4. The metagame function sends one collection request per uncached deck list or deck detail, within Scryfall's 2 per second, and fewer once an instance has seen the cards. Each distinct search query is its own deck list, so the search's 300ms pause and its two-character floor, FR-14, also bound the Scryfall requests. A 429 is never retried, and the response goes out without the art.
 
 ### NFR-5. Attribution
 The page states that the data comes from Endstep and links to `https://endstep.cc/metagame`. It does not present itself as an official Endstep product. The footer, laid out as the design system shows, carries:
@@ -616,7 +627,7 @@ Current versions of Chrome, Firefox, Safari and Edge. No IE, no polyfills.
 The code targets ES2025: `target` and `lib` in the three TypeScript configs, and Vite's `build.target`. Older browser versions are not supported.
 
 ### NFR-9. Privacy
-No analytics, no cookies, no local storage of personal data, no third-party requests beyond the card-art host. The theme choice, FR-13, is the one value the app keeps in local storage. It is a display preference, not personal data, and it never leaves the browser.
+No analytics, no cookies, no local storage of personal data, no third-party requests beyond the card-art hosts: Scryfall's CDN, and Endstep's image endpoint as the fallback. The theme choice, FR-13, is the one value the app keeps in local storage. It is a display preference, not personal data, and it never leaves the browser.
 
 ### NFR-10. Deployment
 Deployed on Vercel from the Git repository. A Vite build and two serverless functions. No environment variables and no secrets. Production waits until CI passes, §4.7.
@@ -691,8 +702,4 @@ A later layer overrides an earlier one, whatever the selectors' specificity and 
 8. ~~Finding a deck in the matchup table.~~ Settled: `?deck=` puts one deck in the spotlight and fades the other cells. A picker chooses it, and the deck page's row links to it. No hover crosshair. FR-11 and FR-12.
 9. ~~Cards or a table on the overview.~~ Settled: one view at a time, chosen with a switch kept in `view`. Cards by default. FR-3 and FR-4.
 10. ~~The dark palette.~~ Settled: Soft graphite, chosen by the owner on 2026-10-16 over warm stone. NFR-1a gives its figures and the design system its tokens.
-11. **Card art from our server.** Today the browser loads each card's art from Endstep's image endpoint, `/api/cards/image`, which answers with a redirect to Scryfall's CDN, §3.4. That is one redirect per image. The metagame function could add each deck's image address to the deck list and the deck detail, so the browser loads the art straight from the CDN and never calls a resolver. A lookup that fails, or takes longer than a fixed bound of about one second, would leave the address out, and the browser would fall back to today's URL. Two ways to resolve the addresses, measured on 2026-10-17 by comparing art crops for the 30-day top 24:
-    - **A. Scryfall, by name.** One `/cards/collection` request covers up to 75 names, within Scryfall's limit of 2 per second. It returns Scryfall's default printing, which differs from Endstep's choice for 11 of the 24 decks, so their art would change. Endstep's choice follows no rule found: neither the oldest nor the newest printing, and `art.setCode` and `art.collectorNumber` are null. Scryfall requires a `User-Agent` and an `Accept` header, which §4.3's rule on identifying headers would have to allow. A double-faced card keeps its art under `card_faces`.
-    - **B. Endstep's resolver, called by the function.** The function reads where `/api/cards/image` redirects, and keeps Endstep's art. It costs up to 24 Endstep calls for each uncached deck list. Warming the five windows would then cost about 120 calls for art on top of the matchup function's 125, close to the 300 per minute in NFR-4. A function's memory lasts only as long as its instance, so remembering addresses for a day would need a store, which NFR-10 rules out.
-
-    Both ways put upstream calls behind each uncached deck list, and the proxy accepts several parameters, each its own cache entry. The enrichment would have to apply to one fixed query, the way §4.4 locks the matchup query, or any client could multiply the calls. The function would stop being a pure pass-through. §3.4, §4.2, §4.3, FR-3, FR-11, NFR-3, NFR-4, NFR-9 and a Scryfall credit under NFR-5 would change. The owner decides between A and B, or keeping today's endpoint.
+11. ~~Card art from our server.~~ Settled on 2026-10-17: Scryfall, by name. The owner accepted that the art may differ from Endstep's, for 11 of the 24 decks when measured, because the site presents its own view of the data. §3.4 and §4.3 give the rules, E14 builds it.
