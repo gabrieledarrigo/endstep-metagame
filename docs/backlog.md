@@ -879,7 +879,7 @@ Covers FR-15's text tags and §4.7. Needs no design.
 
 **Tasks**
 
-1. In `index.html`: the description, the canonical link to `/`, and the Open Graph and Twitter card text tags. `robots.txt` in `public/`.
+1. In `index.html`: the description, and the Open Graph and `summary_large_image` Twitter card text tags, with no canonical link and no `og:url`. `robots.txt` in `public/`.
 2. In `vercel.json`: `public, max-age=31536000, immutable` for `/assets/*`.
 3. In `vercel.json`: the security headers of §4.7, with the inline theme script allowed by its hash.
 4. Check on a production build that every page, chart, card image and the theme script still load with the policy on.
@@ -1146,11 +1146,11 @@ Covers FR-15.
 
 **Tasks**
 
-1. `api/deck-page.ts`: for `/decks/:slug`, fetch the built `index.html` and the deck detail for the link's window, and write the deck's title, description and image tags into the head. Return the page with the site card when the call fails or takes longer than one second.
+1. `api/deck-page.ts`: for `/decks/:slug`, read `index.html` from the files deployed with the function, fetch the deck detail through our proxy at the deck page's own address, and write the deck's title, description, art-crop image, canonical link and `og:url` into the head, escaped. Accept only a valid slug and a known window. Return the page with the site card, sent with `no-store`, when the call fails or takes longer than one second.
 2. The site card's image tag in `index.html`, for every other page.
 3. `vercel.json` sends `/decks/:slug` to the function, and the edge caches each page for five minutes.
 4. Check the previews in Discord, Slack and WhatsApp, including that each follows the art's redirect to Scryfall.
-5. A spec beside the function, on the injected tags, the fallback and the timeout.
+5. A spec beside the function, on the injected tags, the escaping, a rejected slug, the fallback and its `no-store`, and the timeout.
 
 **Done when**
 
@@ -1170,13 +1170,13 @@ Covers NFR-5.
 
 **Tasks**
 
-1. The footer, F1, as the design system shows: the site and its author, with the source code link, on one side; the data source, the independence from Endstep, the Scryfall credit and the Fan Content notice on the other.
+1. The footer, F1, as the design system shows: the site, the author and the source code link on one side; the data source, the independence from Endstep, the Scryfall credit and the Fan Content notice on the other. These are NFR-5's five items.
 2. Stacked below 640px.
 3. A spec beside the footer.
 
 **Done when**
 
-- Every page's footer carries the five items of NFR-5, with working links, in both themes and at 360px.
+- Every page's footer carries NFR-5's five items, with working links, in both themes and at 360px.
 
 **Blocked by** D5. **Blocks** nothing.
 
@@ -1192,4 +1192,4 @@ Covers NFR-5.
 
 **S20 and S21 wait for S18.** S18 turns the chart colours into CSS variables, and both stories change how the charts draw. S19 touches only the overview's deck list and can start as soon as D4 lands.
 
-**E13 before S23.** The deck page's function writes into the head that E13 fills, and the security policy must allow the art the preview points at. D5's mark is the owner's to finish, so S22 and S24 wait for it.
+**E13 before S23.** The deck page's function writes into the head that E13 fills. D5's mark is the owner's to finish, so S22 and S24 wait for it.

@@ -135,7 +135,7 @@ Public CORS proxies were tested on 2026-09-20 and rejected. All six failed. allo
 1. **The front end**. A Vite application in `src/`, built to `dist/` on Vercel. It serves all three pages from one `index.html`.
 2. **`api/metagame.ts`**. The proxy. It forwards `GET` requests to `https://endstep.cc/api/metagame/v1/...`, keeps the allow-listed query parameters, and returns the upstream body with CORS headers.
 3. **`api/matchups.ts`**. The matchup aggregator. It builds the top-24 matrix on the server and returns it in one response. See §4.4. It is a separate function so the proxy stays a pass-through.
-4. **`api/_shared.ts`**. The code both functions share: the upstream address and timeout, the CORS headers, the method rules, the error responses and the cache rules. Vercel does not deploy a file in `api/` whose name starts with an underscore, so it is not a function of its own.
+4. **`api/_shared.ts`**. The code the functions share: the upstream address and timeout, the CORS headers, the method rules, the error responses and the cache rules. Vercel does not deploy a file in `api/` whose name starts with an underscore, so it is not a function of its own.
 5. **`api/deck-page.ts`**. The deck page's HTML. It writes the deck's title, description and image into the built `index.html` for link previews, FR-15. `vercel.json` sends `/decks/:slug` to it in place of the static rewrite.
 
 ### 4.3 Proxy behaviour
@@ -210,7 +210,7 @@ Vercel runs `npm run build` and serves `dist/`. The functions in `api/` are buil
 - `vercel.json` also carries the proxy rewrite (§4.3) and the page rewrites (§4.5).
 - `public/` holds the icons, the web app manifest, the site card image and `robots.txt`. Vite copies it into `dist/` as it is.
 - Hashed files under `/assets/` are served with `public, max-age=31536000, immutable`, because their names change with every build. `index.html` keeps a short cache, so a deploy reaches readers at once.
-- Every response carries security headers set in `vercel.json`: a Content Security Policy, `X-Content-Type-Options: nosniff`, `Referrer-Policy: strict-origin-when-cross-origin` and `frame-ancestors 'none'`. The policy allows scripts from the site and the inline theme script by its hash, images from the site, `endstep.cc` and `cards.scryfall.io`, connections to the site only, and inline style attributes, which the charts set.
+- Every response carries security headers set in `vercel.json`: a Content Security Policy, `X-Content-Type-Options: nosniff` and `Referrer-Policy: strict-origin-when-cross-origin`. The policy forbids framing with `frame-ancestors 'none'`. It allows scripts from the site and the inline theme script by its hash, images from the site, `endstep.cc` and `cards.scryfall.io`, connections to the site only, and inline style attributes, which the charts set.
 - Only `dist/` is served. Source files, `docs/` and the development files are no longer reachable from the public site.
 - Vercel deploys every file in `api/` as a function. `.vercelignore` therefore excludes `api/**/*.spec.ts`, so the specs beside the functions are never deployed.
 - **Production waits for CI.** The project's Deployment Checks require the `ci` job from NFR-1. Vercel still builds every push to `main`, but assigns the production domain only after `ci` passes on that commit. Preview deployments do not wait. The setting lives in the Vercel dashboard, not in `vercel.json`. See open item 6.
@@ -406,10 +406,15 @@ The overview finds any deck in the window, by its name or by a card in its lists
 ### FR-15. Page metadata and link previews
 Every page carries what browsers, search engines and chat apps read without running the script.
 
-- `index.html` has a description, a canonical link to `/`, Open Graph and Twitter card tags, the icon set, FR-16, and `theme-color` for each theme. The theme toggle updates `theme-color` with the theme, FR-13. `robots.txt` allows every page.
+- `index.html` has a description, Open Graph tags, a `summary_large_image` Twitter card, the icon set, FR-16, and `theme-color` for each theme. The theme toggle updates `theme-color` with the theme, FR-13. `robots.txt` allows every page. `index.html` carries no canonical link and no `og:url`, because the same file serves every path.
 - The overview and the matchup table share the site card: the site's name, the description, and a 1200 by 630 image with the site mark, from the design system.
-- A deck page shares its own preview. Its title reads "{deck} · Pauper Endstep metagame". Its description reads "{share} of the Pauper field over the {window}, {win rate} match win rate, {players} players.", with the link's window, 30 days by default. Its image is the deck's art. A win rate under 20 decided matches reads as too few to call, §6.8.
-- A server function, §4.2, writes these into the built `index.html` for `/decks/:slug`. It fetches the deck detail through the same cache rules as the proxy, §4.3. When the call fails, or takes longer than one second, it returns the page with the site card, so a reader never waits on it. The edge caches each page for five minutes.
+- A deck page shares its own preview. Its title reads "{deck} · Pauper Endstep metagame". Its description reads "{share} of the Pauper field {period}, {win rate} match win rate, {players} players.", where the period follows the link's window: "over the last day", "over the last 7 days", "over the last 14 days", "over the last 30 days" or "this season", and 30 days by default. A win rate under 20 decided matches reads as too few to call, §6.8. Its image is the deck's art crop, Endstep's image endpoint with `version=art_crop`, §3.4. Its canonical link and `og:url` are `/decks/{slug}`, with no query string, so every window of one deck counts as one page.
+- A server function, §4.2, writes these into `index.html` for `/decks/:slug`:
+  - It reads `index.html` from the files deployed with it, never over HTTP, so a protected preview deployment does not break it.
+  - It accepts only a slug the proxy would accept, §4.3, and only a known window. Anything else gets the page with the site card.
+  - It fetches the deck detail through our own proxy, at the exact address the deck page requests: `/api/metagame/Pauper/decks/{slug}` with the window and the population. The browser's later request then hits the same edge cache entry, and upstream calls stay one per deck and window.
+  - It escapes every value it writes into the HTML, and URL-encodes the card name in the image address.
+  - When the call fails, or takes longer than one second, it returns the page with the site card, so a reader never waits on it. That fallback is sent with `no-store`, so a slow moment is never cached. A preview is cached at the edge for five minutes.
 - The page then loads as before. The function changes nothing a reader sees.
 
 ### FR-16. Installable app
@@ -590,10 +595,11 @@ The application must not put meaningful load on Endstep. Edge caching (§4.3) me
 ### NFR-5. Attribution
 The page states that the data comes from Endstep and links to `https://endstep.cc/metagame`. It does not present itself as an official Endstep product. The footer, laid out as the design system shows, carries:
 
-- the data source, and that the site is not affiliated with Endstep;
-- the Fan Content notice in the policy's own words: "Pauper Endstep metagame is unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.", with a link to the policy;
-- the author, Gabriele D'Arrigo, linking to `https://github.com/gabrieledarrigo`, and a link to the source code;
-- a credit to Scryfall for the card images, which reach the browser from Scryfall's servers, §3.4.
+1. the data source, linking to Endstep;
+2. that the site is not affiliated with Endstep;
+3. the Fan Content notice in the policy's own words: "Pauper Endstep metagame is unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.", with a link to the policy;
+4. the author, Gabriele D'Arrigo, linking to `https://github.com/gabrieledarrigo`, beside a link to the source code;
+5. a credit to Scryfall for the card images, which reach the browser from Scryfall's servers, §3.4.
 
 ### NFR-6. Accessibility
 - All content reachable and operable by keyboard. A chart's bars and markers open deck pages on a click, but are not tab stops: every page they open is reachable by keyboard through the deck grid or the deck table, whichever view the overview shows.
