@@ -128,10 +128,7 @@ function SeriesEnds({ ends }: { ends: SeriesEnd[] }) {
     }),
     plot.y + plot.height,
   );
-  const painted = [
-    ...placed.filter((end) => end.faded),
-    ...placed.filter((end) => !end.faded),
-  ];
+  const painted = placed.toSorted((a, b) => Number(b.faded) - Number(a.faded));
 
   return (
     <g aria-hidden="true">
