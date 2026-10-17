@@ -1,4 +1,4 @@
-import type { Deck, TimeWindow } from "../../api/types";
+import type { Deck, MatchupMatrix, TimeWindow } from "../../api/types";
 import { MatchupGrid } from "../../components/MatchupGrid";
 import { MatchupLegend } from "../../components/MatchupLegend";
 import { Panel } from "../../components/Panel";
@@ -11,6 +11,61 @@ import { DeckSection } from "./DeckSection";
 import "./DeckMatchups.css";
 
 const TOP = 24;
+
+type MatchupRowProps = {
+  deck: Deck;
+  matrix: MatchupMatrix;
+  loading: boolean;
+  timeWindow: TimeWindow;
+};
+
+function MatchupRow({ deck, matrix, loading, timeWindow }: MatchupRowProps) {
+  const row = matrix.decks.find((item) => item.id === deck.id);
+
+  if (row) {
+    const others = matrix.decks.filter((item) => item.id !== deck.id);
+    const scope = loading ? "" : `, ${timeWindow} window`;
+
+    return (
+      <>
+        <MatchupGrid
+          key={others.map((item) => item.slug).join(" ")}
+          rows={[row]}
+          columns={others}
+          cells={matrix.cells}
+          label={`Match win rate of ${row.name} against the other ${others.length} decks in the top ${matrix.decks.length}${scope}, rated.`}
+          linkRows={false}
+          contained
+        />
+        <MatchupLegend mirror={false} />
+      </>
+    );
+  }
+
+  if (loading) {
+    return <Skeleton className="deck-matchups__skeleton" />;
+  }
+
+  if (matrix.decks.length > 0) {
+    return (
+      <Panel>
+        <p className="deck-matchups__outside">
+          {deck.name} is not in the top {matrix.decks.length} for this window,
+          so it has no row in the matchup table.{" "}
+          <WindowLink to="/matchups">See the matchup table</WindowLink>
+        </p>
+      </Panel>
+    );
+  }
+
+  return (
+    <Panel>
+      <p className="deck-matchups__outside">
+        No matchups are recorded for this window yet.
+      </p>
+    </Panel>
+  );
+}
 
 type DeckMatchupsProps = {
   deck: Deck;
@@ -28,8 +83,6 @@ export function DeckMatchups({
   const matchups = useMatchups(timeWindow);
   const matrix = matchups.data;
   const loading = matchups.isPlaceholderData;
-  const row = matrix?.decks.find((item) => item.id === deck.id);
-  const others = matrix?.decks.filter((item) => item.id !== deck.id) ?? [];
   const otherDates =
     matrix !== undefined &&
     !loading &&
@@ -60,38 +113,14 @@ export function DeckMatchups({
           skeleton={<Skeleton className="deck-matchups__skeleton" />}
           title="The matchups could not be loaded"
         >
-          {(data) =>
-            row ? (
-              <>
-                <MatchupGrid
-                  key={others.map((item) => item.slug).join(" ")}
-                  rows={[row]}
-                  columns={others}
-                  cells={data.cells}
-                  label={`Match win rate of ${row.name} against the other ${others.length} decks in the top ${data.decks.length}${loading ? "" : `, ${timeWindow} window`}, rated.`}
-                  linkRows={false}
-                  contained
-                />
-                <MatchupLegend mirror={false} />
-              </>
-            ) : loading ? (
-              <Skeleton className="deck-matchups__skeleton" />
-            ) : data.decks.length > 0 ? (
-              <Panel>
-                <p className="deck-matchups__outside">
-                  {deck.name} is not in the top {data.decks.length} for this
-                  window, so it has no row in the matchup table.{" "}
-                  <WindowLink to="/matchups">See the matchup table</WindowLink>
-                </p>
-              </Panel>
-            ) : (
-              <Panel>
-                <p className="deck-matchups__outside">
-                  No matchups are recorded for this window yet.
-                </p>
-              </Panel>
-            )
-          }
+          {(data) => (
+            <MatchupRow
+              deck={deck}
+              matrix={data}
+              loading={loading}
+              timeWindow={timeWindow}
+            />
+          )}
         </Section>
       </div>
     </DeckSection>
