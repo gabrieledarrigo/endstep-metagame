@@ -35,6 +35,42 @@ describe("MatchupTable", () => {
       }),
     ).toBeTruthy();
   });
+
+  it("puts the deck it is given in the spotlight", () => {
+    render(
+      <MemoryRouter>
+        <MatchupTable
+          matrix={matrix as MatchupMatrix}
+          timeWindow="30d"
+          spotlight="monster-tron-1bc68613"
+        />
+      </MemoryRouter>,
+    );
+
+    expect(
+      screen.getByRole("rowheader", { name: "Monster Tron" }).className,
+    ).toContain("matchup__row--spotlit");
+    expect(screen.queryByRole("status")).toBeNull();
+  });
+
+  it("says when the deck in the address is not in the top decks", () => {
+    render(
+      <MemoryRouter>
+        <MatchupTable
+          matrix={matrix as MatchupMatrix}
+          timeWindow="30d"
+          missing="Mono Green Stompy"
+        />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByRole("status").textContent).toBe(
+      "Mono Green Stompy isn't in the top 4 for the selected time window.",
+    );
+    expect(
+      screen.getByRole("grid").querySelectorAll("[class*='--spotlit']"),
+    ).toHaveLength(0);
+  });
 });
 
 describe("MatchupTableSkeleton", () => {
