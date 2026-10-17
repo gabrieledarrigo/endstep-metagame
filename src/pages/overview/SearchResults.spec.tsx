@@ -135,7 +135,7 @@ describe("SearchResults", () => {
     expect(onMore).not.toHaveBeenCalled();
   });
 
-  it("marks the results busy, not the field", () => {
+  it("marks the results busy and dims them, not the field", () => {
     render(
       <SearchResults field={<input aria-label="Field" />} busy>
         {decks()}
@@ -147,6 +147,7 @@ describe("SearchResults", () => {
       .closest("[aria-busy]");
 
     expect(results?.getAttribute("aria-busy")).toBe("true");
+    expect(results?.classList.contains("busy")).toBe(true);
     expect(
       screen.getByRole("textbox", { name: "Field" }).closest("[aria-busy]"),
     ).toBeNull();
