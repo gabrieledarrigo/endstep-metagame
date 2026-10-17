@@ -4,6 +4,16 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Pauper Endstep metagame</title>
+    <script>
+      try {
+        const stored = localStorage.getItem("theme");
+        if (stored === "light" || stored === "dark") {
+          document.documentElement.dataset.theme = stored;
+        }
+      } catch {
+        document.documentElement.removeAttribute("data-theme");
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>
