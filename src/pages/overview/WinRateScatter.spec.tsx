@@ -83,6 +83,19 @@ describe("WinRateScatter", () => {
     expect(mark?.getAttribute("fill-opacity")).toBe("var(--mark-opacity)");
   });
 
+  it("gives every marker's circle the class that its pointed and armed look style", () => {
+    renderScatter(DECKS);
+
+    for (const deck of DECKS) {
+      expect(
+        screen
+          .getByRole("link", { name: deck.name })
+          .querySelector("circle")
+          ?.classList.contains("win-rate__dot"),
+      ).toBe(true);
+    }
+  });
+
   it("drops the label of a deck that would overlap a label already placed", () => {
     const crowded = {
       ...DECKS[1],
