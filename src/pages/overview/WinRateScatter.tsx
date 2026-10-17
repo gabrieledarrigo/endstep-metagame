@@ -52,7 +52,7 @@ type WinRatePoint = {
 };
 
 function winRatePoints(decks: Deck[]): WinRatePoint[] {
-  const points = decks.flatMap((deck) => {
+  return decks.flatMap((deck) => {
     const read = readRate(deck.matchWinRate);
 
     if (read.gated) {
@@ -72,8 +72,6 @@ function winRatePoints(decks: Deck[]): WinRatePoint[] {
       },
     ];
   });
-
-  return points.sort((a, b) => b.players - a.players);
 }
 
 function labelledPoints(
@@ -254,6 +252,7 @@ export function WinRateScatter({ decks }: { decks: Deck[] }) {
   const [armedMark, setArmedMark] = useState<ArmedMark | null>(null);
   const armed = armedMark?.decks === decks ? armedMark.id : null;
   const points = winRatePoints(decks);
+  const drawn = [...points].sort((a, b) => b.players - a.players);
 
   function firstTap(id: string): boolean {
     return tap.current?.id === id && tap.current?.armed === false;
@@ -365,7 +364,7 @@ export function WinRateScatter({ decks }: { decks: Deck[] }) {
               content={(props) => <WinRateTooltip {...props} armed={armed} />}
             />
             <Scatter
-              data={points}
+              data={drawn}
               shape={({ cx, cy, size, payload }) => (
                 <WinRateMark
                   cx={cx}
