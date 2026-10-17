@@ -531,6 +531,44 @@ describe("MatchupsPage", () => {
     );
   });
 
+  it("does not judge the deck missing from the previous window while another one loads", async () => {
+    let answer: (response: Response) => void = () => {};
+    const fetchMock = stubRoutes(
+      undefined,
+      () => Response.json(matrix),
+      () => new Promise<Response>((resolve) => (answer = resolve)),
+    );
+    renderAt("/matchups?window=30d&deck=stompy-12345678");
+    await screen.findByText(
+      "Mono Green Stompy isn't in the top 4 for the selected time window.",
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "7d" }));
+
+    expect(await screen.findByText("Loading the 7d window.")).toBeTruthy();
+    expect(screen.queryByText(/isn't in the top/)).toBeNull();
+    expect(screen.queryByRole("option", { name: /not in the top/ })).toBeNull();
+    expect(
+      fetchMock.mock.calls.filter(([input]) =>
+        String(input).startsWith("/api/metagame/"),
+      ),
+    ).toHaveLength(1);
+
+    answer(Response.json(matrix));
+
+    expect(
+      await screen.findByText(
+        "Mono Green Stompy isn't in the top 4 for the selected time window.",
+      ),
+    ).toBeTruthy();
+    expect(chosen()).toBe("Mono Green Stompy (not in the top 4)");
+    await waitFor(() => {
+      expect(String(fetchMock.mock.calls.at(-1)?.[0])).toBe(
+        "/api/metagame/Pauper/decks/stompy-12345678?window=7d&population=rated",
+      );
+    });
+  });
+
   it("names the deck This deck when its detail fails", async () => {
     stubRoutes(() => Response.json({ error: "Unknown deck" }, { status: 404 }));
     renderAt("/matchups?window=30d&deck=stompy-12345678");

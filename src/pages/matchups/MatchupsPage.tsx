@@ -32,7 +32,9 @@ export function MatchupsPage() {
   const slug = searchParams.get("deck") || null;
   const spotlit = slug === null ? undefined : findDeck(decks, slug);
   const missing =
-    slug !== null && decks.length > 0 && spotlit === undefined ? slug : null;
+    slug !== null && !loadingWindow && decks.length > 0 && spotlit === undefined
+      ? slug
+      : null;
   const [revealing, setRevealing] = useState(
     navigationType !== NavigationType.Pop || key === "default" ? slug : null,
   );
