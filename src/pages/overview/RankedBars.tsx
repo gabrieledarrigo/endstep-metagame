@@ -1,3 +1,4 @@
+import { type PointerEvent, useState } from "react";
 import {
   Bar,
   BarChart,
@@ -22,9 +23,14 @@ import { axisShare, tooltipShare } from "../../helpers";
 import "./RankedBars.css";
 
 const CHART_BAR = "var(--seq-500)";
+const CHART_BAR_POINTED = "var(--seq-600)";
 const CHART_RESIDUAL = "var(--text-400)";
 const CHART_LABEL = "var(--text-900)";
-const CHART_NAME = "var(--text-600)";
+const CHART_NAME = { fill: "var(--text-600)" };
+const CHART_NAME_POINTED = {
+  fill: "var(--text-900)",
+  textDecoration: "underline",
+};
 
 type ShareBar = {
   name: string;
@@ -54,17 +60,33 @@ function shareBars({ items, total }: Page<Deck>): ShareBar[] {
   ];
 }
 
+function barFill(bar: ShareBar, pointed: string | null): string {
+  if (bar.slug === null) {
+    return CHART_RESIDUAL;
+  }
+
+  if (bar.slug === pointed) {
+    return CHART_BAR_POINTED;
+  }
+
+  return CHART_BAR;
+}
+
 type DeckTickProps = TextProps & {
   payload: { value: string; index: number; coordinate: number };
   bars: ShareBar[];
+  pointed: string | null;
+  onPoint: (slug: string | null) => void;
 };
 
-function DeckTick({ payload, bars, ...text }: DeckTickProps) {
+function DeckTick({ payload, bars, pointed, onPoint, ...text }: DeckTickProps) {
   const plot = usePlotArea();
   const width = useChartWidth();
   const { name: deck, slug } = bars[payload.index];
+  const look =
+    slug !== null && slug === pointed ? CHART_NAME_POINTED : CHART_NAME;
   const name = (
-    <Text {...text} {...CHART_AXIS.tick} fill={CHART_NAME}>
+    <Text {...text} {...CHART_AXIS.tick} {...look}>
       {payload.value}
     </Text>
   );
@@ -77,14 +99,25 @@ function DeckTick({ payload, bars, ...text }: DeckTickProps) {
 
   return (
     <ChartLink to={`/decks/${slug}`} label={deck}>
-      <rect
-        x={0}
-        y={payload.coordinate - band / 2}
-        width={width}
-        height={band}
-        fill="transparent"
-      />
-      {name}
+      <g
+        onPointerMove={(event: PointerEvent<SVGGElement>) => {
+          if (event.pointerType === "touch" || slug === pointed) {
+            return;
+          }
+
+          onPoint(slug);
+        }}
+        onPointerLeave={() => onPoint(null)}
+      >
+        <rect
+          x={0}
+          y={payload.coordinate - band / 2}
+          width={width}
+          height={band}
+          fill="transparent"
+        />
+        {name}
+      </g>
     </ChartLink>
   );
 }
@@ -107,10 +140,22 @@ export function RankedBarsSkeleton() {
   );
 }
 
+type PointedRow = {
+  slug: string;
+  decks: Page<Deck>;
+};
+
 export function RankedBars({ decks }: { decks: Page<Deck> }) {
+  const [pointedRow, setPointedRow] = useState<PointedRow | null>(null);
+  const pointed = pointedRow?.decks === decks ? pointedRow.slug : null;
+
   if (decks.items.length === 0) {
     return null;
   }
+
+  const point = (slug: string | null): void => {
+    setPointedRow(slug === null ? null : { slug, decks });
+  };
 
   const bars = shareBars(decks);
   const axisMax = Math.ceil(Math.max(...bars.map((bar) => bar.share)) / 5) * 5;
@@ -154,7 +199,14 @@ export function RankedBars({ decks }: { decks: Page<Deck> }) {
                 width={210}
                 interval={0}
                 {...CHART_AXIS}
-                tick={(props) => <DeckTick {...props} bars={bars} />}
+                tick={(props) => (
+                  <DeckTick
+                    {...props}
+                    bars={bars}
+                    pointed={pointed}
+                    onPoint={point}
+                  />
+                )}
               />
               <Bar
                 dataKey="share"
@@ -163,10 +215,7 @@ export function RankedBars({ decks }: { decks: Page<Deck> }) {
                 isAnimationActive={false}
               >
                 {bars.map((bar) => (
-                  <Cell
-                    key={bar.name}
-                    fill={bar.slug === null ? CHART_RESIDUAL : CHART_BAR}
-                  />
+                  <Cell key={bar.name} fill={barFill(bar, pointed)} />
                 ))}
                 <LabelList
                   dataKey="share"

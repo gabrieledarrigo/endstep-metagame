@@ -34,6 +34,19 @@ function renderBars(decks: Page<Deck>): void {
   );
 }
 
+function barFills(): (string | null)[] {
+  return [...document.querySelectorAll(".recharts-bar-rectangle path")].map(
+    (bar) => bar.getAttribute("fill"),
+  );
+}
+
+const RESTING = [
+  "var(--seq-500)",
+  "var(--seq-500)",
+  "var(--seq-500)",
+  "var(--text-400)",
+];
+
 beforeEach(() => {
   sizeCharts();
 });
@@ -64,15 +77,70 @@ describe("RankedBars", () => {
   it("draws in the theme's colours, so a change of theme recolours it", () => {
     renderBars(PAGE);
 
-    const fills = [
-      ...document.querySelectorAll(".recharts-bar-rectangle path"),
-    ].map((bar) => bar.getAttribute("fill"));
-    expect(fills).toEqual([
+    expect(barFills()).toEqual(RESTING);
+  });
+
+  it("underlines a pointed deck's name in --text-900 and fills its bar with --seq-600, until the pointer leaves", () => {
+    renderBars(PAGE);
+    const link = screen.getByRole("link", { name: PAGE.items[1].name });
+    const row = link.querySelector("rect") as Element;
+    const name = link.querySelector("text") as Element;
+
+    fireEvent.pointerMove(row, { pointerType: "mouse" });
+
+    expect(barFills()).toEqual([
       "var(--seq-500)",
-      "var(--seq-500)",
+      "var(--seq-600)",
       "var(--seq-500)",
       "var(--text-400)",
     ]);
+    expect(name.getAttribute("fill")).toBe("var(--text-900)");
+    expect(name.getAttribute("text-decoration")).toBe("underline");
+
+    fireEvent.pointerLeave(row, { pointerType: "mouse" });
+
+    expect(barFills()).toEqual(RESTING);
+    expect(name.getAttribute("fill")).toBe("var(--text-600)");
+    expect(name.getAttribute("text-decoration")).toBeNull();
+  });
+
+  it("leaves a row as it is under a finger, which opens the deck at once", () => {
+    renderBars(PAGE);
+    const link = screen.getByRole("link", { name: PAGE.items[1].name });
+
+    fireEvent.pointerMove(link.querySelector("rect") as Element, {
+      pointerType: "touch",
+    });
+
+    expect(barFills()).toEqual(RESTING);
+    expect(
+      link.querySelector("text")?.getAttribute("text-decoration"),
+    ).toBeNull();
+  });
+
+  it("forgets the pointed deck when the decks change, and points again once the pointer moves", () => {
+    const { rerender } = render(
+      <MemoryRouter initialEntries={["/?window=7d"]}>
+        <RankedBars decks={PAGE} />
+      </MemoryRouter>,
+    );
+    const row = (): Element =>
+      screen
+        .getByRole("link", { name: PAGE.items[1].name })
+        .querySelector("rect") as Element;
+
+    fireEvent.pointerMove(row(), { pointerType: "mouse" });
+    rerender(
+      <MemoryRouter initialEntries={["/?window=7d"]}>
+        <RankedBars decks={{ ...PAGE }} />
+      </MemoryRouter>,
+    );
+
+    expect(barFills()).toEqual(RESTING);
+
+    fireEvent.pointerMove(row(), { pointerType: "mouse" });
+
+    expect(barFills()[1]).toBe("var(--seq-600)");
   });
 
   it("leaves the rest of the field out when the decks cover all of it", () => {
