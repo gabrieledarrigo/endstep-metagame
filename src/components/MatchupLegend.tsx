@@ -1,4 +1,5 @@
 import type { CellState } from "../helpers";
+import { MatchupSwatch } from "./MatchupSwatch";
 import "./MatchupLegend.css";
 
 const ITEMS: { state: CellState; sample: string; label: string }[] = [
@@ -15,12 +16,7 @@ export function MatchupLegend({ mirror = true }: { mirror?: boolean }) {
     <ul className="matchup-legend" aria-label="Legend">
       {ITEMS.filter((item) => mirror || item.state !== "mirror").map((item) => (
         <li key={item.state} className="matchup-legend__item">
-          <span
-            className={`matchup-legend__swatch matchup-legend__swatch--${item.state}`}
-            aria-hidden="true"
-          >
-            {item.sample}
-          </span>
+          <MatchupSwatch state={item.state} text={item.sample} hidden />
           {item.label}
         </li>
       ))}

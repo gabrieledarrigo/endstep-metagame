@@ -1,0 +1,46 @@
+@layer components {
+  .matchup-swatch {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 32px;
+    height: 28px;
+    border-radius: 3px;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-600);
+  }
+
+  .matchup-swatch--win,
+  .matchup-swatch--loss {
+    color: var(--text-900);
+    font-weight: 700;
+  }
+
+  .matchup-swatch--win {
+    background: var(--win);
+  }
+
+  .matchup-swatch--loss {
+    background: var(--loss);
+  }
+
+  .matchup-swatch--neutral {
+    box-shadow: inset 0 0 0 1px var(--rule);
+  }
+
+  .matchup-swatch--gated {
+    background: var(--hatch);
+  }
+
+  .matchup-swatch--none {
+    color: var(--text-400);
+    font-weight: 700;
+    box-shadow: inset 0 0 0 1px var(--rule);
+  }
+
+  .matchup-swatch--mirror {
+    background: var(--mirror);
+  }
+}
