@@ -7,21 +7,38 @@ import "./MatchupTable.css";
 type MatchupTableProps = {
   matrix: MatchupMatrix;
   timeWindow?: TimeWindow;
+  spotlight?: string;
+  reveal?: boolean;
+  onReveal?: () => void;
+  notice?: string;
 };
 
-export function MatchupTable({ matrix, timeWindow }: MatchupTableProps) {
+export function MatchupTable({
+  matrix,
+  timeWindow,
+  spotlight,
+  reveal,
+  onReveal,
+  notice,
+}: MatchupTableProps) {
   const { decks, cells } = matrix;
   const scope = timeWindow ? `, ${timeWindow} window` : "";
 
   return (
     <div className="bleed matchup-table">
       <div className="matchup-table__inner">
+        {notice !== undefined && (
+          <p className="matchup-table__notice">{notice}</p>
+        )}
         <MatchupGrid
           className="matchup-table__grid"
           rows={decks}
           columns={decks}
           cells={cells}
           label={`Match win rate of the row deck against the column deck. Top ${decks.length} decks by share${scope}, rated.`}
+          spotlight={spotlight}
+          reveal={reveal}
+          onReveal={onReveal}
         />
         <MatchupLegend />
       </div>

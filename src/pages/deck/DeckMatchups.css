@@ -20,6 +20,11 @@
     height: 276px;
   }
 
+  .deck-matchups__more {
+    margin: 0;
+    font-size: 14px;
+  }
+
   .deck-matchups__outside {
     margin: 0;
     font-size: 14px;

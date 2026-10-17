@@ -8,6 +8,11 @@
     gap: 14px;
   }
 
+  .matchup-table__notice {
+    font-size: 14px;
+    color: var(--text-600);
+  }
+
   .matchup-table__grid,
   .matchup-table__skeleton {
     --matchup-size: round(

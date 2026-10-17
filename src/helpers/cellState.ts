@@ -113,3 +113,25 @@ export function cellSummary(
 
   return `${rowName} against ${columnName}:${rate} ${VERDICT[state]}${count}`;
 }
+
+/**
+ * Writes what a cell of the matchup table shows, FR-12.
+ *
+ * @param state - The cell's state.
+ * @param cell - The row deck's record against the column deck, when there is one.
+ * @returns The rate as a whole percentage without its sign, such as `57`. A dot for no data, and nothing for a gated cell or the mirror.
+ */
+export function cellText(
+  state: CellState,
+  cell: MatchupCell | undefined,
+): string {
+  if (state === "none") {
+    return "·";
+  }
+
+  if (state === "mirror" || cell === undefined || cell.rate === null) {
+    return "";
+  }
+
+  return String(Math.round(cell.rate * 100));
+}
