@@ -19,6 +19,16 @@ function inlineScripts(page: string): string[] {
     .map(([, , body]) => body);
 }
 
+function directives(policy: string): Record<string, string[]> {
+  return Object.fromEntries(
+    policy
+      .split(";")
+      .map((directive) => directive.trim().split(/\s+/))
+      .filter(([name]) => name !== "")
+      .map(([name, ...tokens]) => [name, tokens.toSorted()]),
+  );
+}
+
 function sha256(text: string): string {
   return `'sha256-${createHash("sha256").update(text).digest("base64")}'`;
 }
@@ -35,10 +45,24 @@ describe("vercel.json", () => {
 
     expect(headers["X-Content-Type-Options"]).toBe("nosniff");
     expect(headers["Referrer-Policy"]).toBe("strict-origin-when-cross-origin");
-    expect(headers["Content-Security-Policy"]).toContain(
-      "frame-ancestors 'none'",
-    );
     expect(headers).not.toHaveProperty("Cache-Control");
+  });
+
+  it("sends the agreed Content Security Policy", () => {
+    const hashes = inlineScripts(html).map(sha256);
+
+    expect(directives(headersFor("/(.*)")["Content-Security-Policy"])).toEqual({
+      "default-src": ["'self'"],
+      "script-src": ["'self'", ...hashes].toSorted(),
+      "style-src": ["'self'"],
+      "style-src-attr": ["'unsafe-inline'"],
+      "img-src": ["'self'", "https://cards.scryfall.io", "https://endstep.cc"],
+      "connect-src": ["'self'"],
+      "frame-ancestors": ["'none'"],
+      "base-uri": ["'self'"],
+      "form-action": ["'self'"],
+      "object-src": ["'none'"],
+    });
   });
 
   it("finds one inline script in index.html, the theme script", () => {
