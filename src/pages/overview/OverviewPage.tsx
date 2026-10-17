@@ -92,7 +92,9 @@ export function OverviewPage() {
             searchDecks(timeWindow, term, pageParam, signal),
     initialPageParam: 1,
     getNextPageParam: (last, pages) =>
-      loadedCount(pages) < last.decks.total ? last.decks.page + 1 : undefined,
+      last.decks.items.length > 0 && loadedCount(pages) < last.decks.total
+        ? last.decks.page + 1
+        : undefined,
     placeholderData: (previous, previousQuery) =>
       previous?.pages[0]?.decks.items.length &&
       (previousQuery?.queryKey[2] === term || !fromTopList)

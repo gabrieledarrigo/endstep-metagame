@@ -825,6 +825,26 @@ describe("OverviewPage search", () => {
     ).toBe("30");
   });
 
+  it("stops offering more results when a page comes back empty", async () => {
+    const fetchMock = stubApi(
+      () => Response.json(decks),
+      (url) =>
+        url.searchParams.get("page") === "1"
+          ? matches(url, numberedDecks(1, 24), 30)
+          : matches(url, [], 30),
+    );
+    renderAt("/?window=30d&q=deck");
+    await statusReads("30 decks match \u201cdeck\u201d.");
+
+    fireEvent.click(screen.getByRole("button", { name: "Show 6 more" }));
+
+    await waitFor(() => {
+      expect(screen.queryByRole("button", { name: /more/ })).toBeNull();
+    });
+    expect(screen.getByRole("link", { name: "Deck 24" })).toBeTruthy();
+    expect(searchRequests(fetchMock)).toHaveLength(2);
+  });
+
   it("lists a deck once when the next page repeats it", async () => {
     stubApi(
       () => Response.json(decks),
