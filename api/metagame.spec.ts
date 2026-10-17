@@ -399,6 +399,58 @@ describe("the metagame proxy's card art", () => {
     ]);
   });
 
+  it.each([
+    [
+      "a second card without art",
+      [card("Guttersnipe", GUTTERSNIPE_ART), { name: "Guttersnipe" }],
+    ],
+    [
+      "a second card off the CDN",
+      [
+        card("Guttersnipe", GUTTERSNIPE_ART),
+        card("Guttersnipe", "https://example.com/guttersnipe.jpg"),
+      ],
+    ],
+    [
+      "a second card with other art",
+      [
+        card("Guttersnipe", GUTTERSNIPE_ART),
+        card("Guttersnipe", GUTTERSNIPE_ART.replace("/front/", "/back/")),
+      ],
+    ],
+    [
+      "a first card without art",
+      [{ name: "Guttersnipe" }, card("Guttersnipe", GUTTERSNIPE_ART)],
+    ],
+    [
+      "a reversible card's second face",
+      [
+        {
+          name: "Guttersnipe // Guttersnipe",
+          card_faces: [
+            { name: "Guttersnipe", image_uris: { art_crop: GUTTERSNIPE_ART } },
+            {
+              name: "Guttersnipe",
+              image_uris: {
+                art_crop: GUTTERSNIPE_ART.replace("/front/", "/back/"),
+              },
+            },
+          ],
+        },
+      ],
+    ],
+  ])(
+    "gives a name the first art crop on the CDN that matches it, with %s",
+    async (_, cards) => {
+      endstepAndScryfall(deckList("Guttersnipe"), collection(cards));
+
+      const response = await metagame.fetch(request(DECKS));
+
+      expect(response.headers.get("cache-control")).toBe(FIVE_MINUTES);
+      expect(await artOf(response)).toEqual([GUTTERSNIPE_ART]);
+    },
+  );
+
   it("gives a face without its own image the card's art, as for an adventure", async () => {
     const giant =
       "https://cards.scryfall.io/art_crop/front/1/a/1a8bdc8b-bonecrusher-giant.jpg?1";

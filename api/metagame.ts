@@ -238,7 +238,7 @@ function onCdn(address: string | undefined): string | null {
 /**
  * Remembers the addresses in a collection response, for the names that were asked, and every other name asked as not found.
  *
- * A card matches a name by its full name or by any face's name, ignoring case. A face's name takes that face's art crop, or the card's when the faces share one image, as an adventure does. The full name takes the card's art crop, or its first face's. A name that matches no card counts as not found, whether Scryfall lists it in `not_found` or answers with another spelling, such as "Lim-Dûl's Vault" for "Lim-Dul's Vault". So does a card without an art crop on Scryfall's CDN. Its deck falls back to Endstep's endpoint.
+ * A card matches a name by its full name or by any face's name, ignoring case. The first match with an art crop on Scryfall's CDN wins, and a later match never replaces it. A face's name takes that face's art crop, or the card's when the faces share one image, as an adventure does. The full name takes the card's art crop, or its first face's. A name that matches no card counts as not found, whether Scryfall lists it in `not_found` or answers with another spelling, such as "Lim-Dûl's Vault" for "Lim-Dul's Vault". So does a card without an art crop on Scryfall's CDN. Its deck falls back to Endstep's endpoint.
  *
  * @param asked - The memory keys of the names sent to Scryfall.
  * @param cards - The cards of Scryfall's collection response.
@@ -255,8 +255,11 @@ function remember(asked: Set<string>, cards: ScryfallCard[]): void {
     ];
 
     for (const [name, address] of names) {
-      if (asked.has(nameKey(name))) {
-        artByName.set(nameKey(name), onCdn(address));
+      const key = nameKey(name);
+      const art = onCdn(address);
+
+      if (art && asked.has(key) && !artByName.has(key)) {
+        artByName.set(key, art);
       }
     }
   }
