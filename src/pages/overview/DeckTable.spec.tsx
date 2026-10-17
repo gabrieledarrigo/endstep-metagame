@@ -33,9 +33,11 @@ describe("DeckTable", () => {
     renderAt("/?window=30d");
 
     const region = screen.getByRole("region", { name: "Deck table" });
-    expect(
-      within(region).getByRole("heading", { level: 2, name: "Deck table" }),
-    ).toBeTruthy();
+    const heading = within(region).getByRole("heading", {
+      level: 2,
+      name: "Deck table",
+    });
+    expect(region.getAttribute("aria-labelledby")).toBe(heading.id);
   });
 
   it("sorts by share, descending, when the address names no sort", () => {
