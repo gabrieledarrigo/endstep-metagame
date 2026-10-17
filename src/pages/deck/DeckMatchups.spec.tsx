@@ -1,10 +1,13 @@
-import { screen, within } from "@testing-library/react";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { render, screen, within } from "@testing-library/react";
+import type { ReactNode } from "react";
 import { MemoryRouter } from "react-router";
 import { type Mock, afterEach, describe, expect, it, vi } from "vitest";
 import detail from "../../../test/fixtures/deck.json";
 import matrix from "../../../test/fixtures/matchups.json";
 import { renderWithQueries } from "../../../test/renderWithQueries";
-import type { Deck, DeckDetail } from "../../api/types";
+import { createQueryClient } from "../../api/queryClient";
+import type { Deck, DeckDetail, TimeWindow } from "../../api/types";
 import { DeckMatchups } from "./DeckMatchups";
 
 const DECK: Deck = (detail as DeckDetail).deck;
@@ -31,6 +34,40 @@ function renderRow(
   );
 
   return fetchMock;
+}
+
+function renderSwitching(
+  answers: (() => Response | Promise<Response>)[],
+  detailWindow = MATRIX_WINDOW,
+): (timeWindow: TimeWindow, detailLoading?: boolean) => void {
+  let calls = 0;
+  vi.stubGlobal(
+    "fetch",
+    vi.fn<typeof fetch>(async () =>
+      answers[Math.min(calls++, answers.length - 1)](),
+    ),
+  );
+  const client = createQueryClient();
+  const tree = (timeWindow: TimeWindow, detailLoading: boolean): ReactNode => (
+    <QueryClientProvider client={client}>
+      <MemoryRouter initialEntries={[`/decks/${DECK.slug}?window=30d`]}>
+        <DeckMatchups
+          deck={DECK}
+          detailWindow={detailWindow}
+          detailLoading={detailLoading}
+          timeWindow={timeWindow}
+        />
+      </MemoryRouter>
+    </QueryClientProvider>
+  );
+  const { rerender } = render(tree("30d", false));
+
+  return (timeWindow, detailLoading = false) =>
+    rerender(tree(timeWindow, detailLoading));
+}
+
+function hold(): Promise<Response> {
+  return new Promise<Response>(() => {});
 }
 
 afterEach(() => {
@@ -132,5 +169,102 @@ describe("DeckMatchups", () => {
     ).toBeTruthy();
     expect(screen.getByRole("button", { name: "Retry" })).toBeTruthy();
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the row on screen, dimmed and busy, while another window loads, and names no window", async () => {
+    const switchTo = renderSwitching([
+      (): Response => Response.json(matrix),
+      hold,
+    ]);
+    await screen.findByRole("grid", {
+      name: "Match win rate of Affinity against the other 3 decks in the top 4, 30d window, rated.",
+    });
+
+    switchTo("7d");
+
+    const body = screen
+      .getByRole("grid", {
+        name: "Match win rate of Affinity against the other 3 decks in the top 4, rated.",
+      })
+      .closest("[aria-busy]");
+    expect(body?.classList.contains("busy")).toBe(true);
+  });
+
+  it("does not dim again while the deck's own window loads, and dims alone once it lands", async () => {
+    const switchTo = renderSwitching([
+      (): Response => Response.json(matrix),
+      hold,
+    ]);
+    await screen.findByRole("grid");
+
+    switchTo("7d", true);
+
+    const body = screen.getByRole("grid").closest("[aria-busy]");
+    expect(body).toBeTruthy();
+    expect(body?.classList.contains("busy")).toBe(false);
+
+    switchTo("7d", false);
+
+    expect(
+      screen
+        .getByRole("grid")
+        .closest("[aria-busy]")
+        ?.classList.contains("busy"),
+    ).toBe(true);
+  });
+
+  it("holds back the row's own dates while another window loads", async () => {
+    const switchTo = renderSwitching(
+      [(): Response => Response.json(matrix), hold],
+      {
+        from: "2026-09-10",
+        to: "2026-10-10",
+      },
+    );
+    await screen.findByText("These matchups cover 11 Sept to 10 Oct 2026.");
+
+    switchTo("7d");
+
+    expect(screen.queryByText(/^These matchups cover/)).toBeNull();
+  });
+
+  it("does not judge the next window empty from the previous one while it loads", async () => {
+    const switchTo = renderSwitching([
+      (): Response => Response.json({ ...matrix, decks: [], cells: {} }),
+      hold,
+    ]);
+    await screen.findByText("No matchups are recorded for this window yet.");
+
+    switchTo("7d");
+
+    const region = screen.getByRole("region", {
+      name: "Matchups against the top 24",
+    });
+    expect(
+      screen.queryByText("No matchups are recorded for this window yet."),
+    ).toBeNull();
+    expect(
+      region.querySelector(".skeleton")?.closest('[aria-busy="true"]'),
+    ).toBeTruthy();
+  });
+
+  it("holds back that the deck is outside the top while another window loads", async () => {
+    const switchTo = renderSwitching([
+      (): Response =>
+        Response.json({
+          ...matrix,
+          decks: matrix.decks.filter((item) => item.id !== DECK.id),
+        }),
+      hold,
+    ]);
+    await screen.findByText(/^Affinity is not in the top 3 for this window/);
+
+    switchTo("7d");
+
+    const region = screen.getByRole("region", {
+      name: "Matchups against the top 3",
+    });
+    expect(screen.queryByText(/^Affinity is not in the top/)).toBeNull();
+    expect(region.querySelector(".skeleton")).toBeTruthy();
   });
 });

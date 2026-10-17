@@ -6,11 +6,12 @@ import "./MatchupTable.css";
 
 type MatchupTableProps = {
   matrix: MatchupMatrix;
-  timeWindow: TimeWindow;
+  timeWindow?: TimeWindow;
 };
 
 export function MatchupTable({ matrix, timeWindow }: MatchupTableProps) {
   const { decks, cells } = matrix;
+  const scope = timeWindow ? `, ${timeWindow} window` : "";
 
   return (
     <div className="bleed matchup-table">
@@ -20,7 +21,7 @@ export function MatchupTable({ matrix, timeWindow }: MatchupTableProps) {
           rows={decks}
           columns={decks}
           cells={cells}
-          label={`Match win rate of the row deck against the column deck. Top ${decks.length} decks by share, ${timeWindow} window, rated.`}
+          label={`Match win rate of the row deck against the column deck. Top ${decks.length} decks by share${scope}, rated.`}
         />
         <MatchupLegend />
       </div>

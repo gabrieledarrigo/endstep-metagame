@@ -274,6 +274,9 @@ describe("DeckPage", () => {
     expect(
       screen.queryByRole("heading", { name: "No matches in this window" }),
     ).toBeNull();
+    expect(
+      document.querySelector('[aria-busy="true"] > .deck-page__skeleton'),
+    ).toBeTruthy();
   });
 
   it("clears the sample list's copy status when the window changes", async () => {

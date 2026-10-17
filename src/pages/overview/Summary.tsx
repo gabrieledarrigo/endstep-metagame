@@ -35,7 +35,12 @@ export function SummarySkeleton() {
   );
 }
 
-export function Summary({ decks }: { decks: DecksResponse }) {
+type SummaryProps = {
+  decks: DecksResponse;
+  loading?: boolean;
+};
+
+export function Summary({ decks, loading }: SummaryProps) {
   const { provenance, totals } = decks;
 
   return (
@@ -48,7 +53,16 @@ export function Summary({ decks }: { decks: DecksResponse }) {
         />
         <StatTile label="Players" value={formatCount(totals.players)} />
         <StatTile label="Archetypes" value={formatCount(decks.decks.total)} />
-        <StatTile label="Window" value={formatWindow(provenance.window)} />
+        <StatTile
+          label="Window"
+          value={
+            loading ? (
+              <Skeleton width={167} height="1.6em" />
+            ) : (
+              formatWindow(provenance.window)
+            )
+          }
+        />
         <StatTile
           label="Population"
           value={formatPopulation(provenance.population)}

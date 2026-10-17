@@ -27,6 +27,17 @@
   font-variant-numeric: tabular-nums;
 }
 
+.page__body {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  min-width: 0;
+}
+
+.busy {
+  opacity: 0.55;
+}
+
 .bleed {
   width: 100cqw;
   margin-inline: calc(50% - 50cqw);

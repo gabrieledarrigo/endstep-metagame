@@ -21,6 +21,20 @@ describe("MatchupTable", () => {
       within(screen.getByRole("list", { name: "Legend" })).getByText("Mirror"),
     ).toBeTruthy();
   });
+
+  it("names no window when given none, as while another window loads", () => {
+    render(
+      <MemoryRouter>
+        <MatchupTable matrix={matrix as MatchupMatrix} />
+      </MemoryRouter>,
+    );
+
+    expect(
+      screen.getByRole("grid", {
+        name: "Match win rate of the row deck against the column deck. Top 4 decks by share, rated.",
+      }),
+    ).toBeTruthy();
+  });
 });
 
 describe("MatchupTableSkeleton", () => {

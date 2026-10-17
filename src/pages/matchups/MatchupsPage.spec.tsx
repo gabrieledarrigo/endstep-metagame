@@ -5,7 +5,9 @@ import matrix from "../../../test/fixtures/matchups.json";
 import { renderWithQueries } from "../../../test/renderWithQueries";
 import { MatchupsPage } from "./MatchupsPage";
 
-function stubApi(...responses: (() => Response)[]): Mock<typeof fetch> {
+function stubApi(
+  ...responses: (() => Response | Promise<Response>)[]
+): Mock<typeof fetch> {
   let calls = 0;
   const fetchMock = vi.fn<typeof fetch>(async () => {
     const answer = responses[Math.min(calls, responses.length - 1)];
@@ -60,6 +62,63 @@ describe("MatchupsPage", () => {
         "/api/matchups?window=7d",
       );
     });
+  });
+
+  it("keeps the table on screen, dimmed and busy, while another window loads, and holds back the window's name and dates", async () => {
+    let answer: (response: Response) => void = () => {};
+    stubApi(
+      () => Response.json(matrix),
+      () => new Promise<Response>((resolve) => (answer = resolve)),
+    );
+    renderAt("/matchups?window=30d");
+    await screen.findByText("11 Sept to 10 Oct 2026");
+
+    fireEvent.click(screen.getByRole("button", { name: "7d" }));
+
+    expect(await screen.findByText("Loading the 7d window.")).toBeTruthy();
+    expect(
+      screen
+        .getByRole("group", { name: "Time window" })
+        .getAttribute("data-busy"),
+    ).toBe("true");
+    const grid = screen.getByRole("grid", {
+      name: "Match win rate of the row deck against the column deck. Top 4 decks by share, rated.",
+    });
+    expect(grid.closest("[aria-busy]")).toBeTruthy();
+    expect(screen.queryByText("11 Sept to 10 Oct 2026")).toBeNull();
+
+    answer(Response.json(matrix));
+
+    expect(await screen.findByText("11 Sept to 10 Oct 2026")).toBeTruthy();
+    expect(
+      screen
+        .getByRole("grid", {
+          name: "Match win rate of the row deck against the column deck. Top 4 decks by share, 7d window, rated.",
+        })
+        .closest("[aria-busy]"),
+    ).toBeNull();
+  });
+
+  it("does not judge the next window empty from the previous one while it loads", async () => {
+    stubApi(
+      () => Response.json({ ...matrix, decks: [], cells: {} }),
+      () => new Promise<Response>(() => {}),
+    );
+    renderAt("/matchups?window=1d");
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Switch to 7d" }),
+    );
+
+    expect(await screen.findByText("Loading the 7d window.")).toBeTruthy();
+    expect(
+      screen.queryByRole("heading", { name: "No decks in this window" }),
+    ).toBeNull();
+    expect(
+      screen
+        .getByRole("list", { name: "Legend" })
+        .closest('[aria-busy="true"]'),
+    ).toBeTruthy();
   });
 
   it("does not retry a failed build on its own, and retries when asked", async () => {

@@ -11,6 +11,8 @@ import { MatchupTable, MatchupTableSkeleton } from "./MatchupTable";
 export function MatchupsPage() {
   const [timeWindow, selectTimeWindow] = useTimeWindow();
   const matchups = useMatchups(timeWindow);
+  const loadingWindow = matchups.isPlaceholderData;
+  const loading = matchups.isPending || loadingWindow;
 
   return (
     <>
@@ -21,10 +23,10 @@ export function MatchupsPage() {
           label="Time window"
           options={WINDOWS}
           value={timeWindow}
-          onChange={(next) => selectTimeWindow(next, matchups.isPending)}
-          busy={matchups.isPending}
+          onChange={(next) => selectTimeWindow(next, loading)}
+          busy={loading}
         />
-        {matchups.data && (
+        {matchups.data && !loadingWindow && (
           <span className="page__dates">
             {formatWindow(matchups.data.window)}
           </span>
@@ -32,26 +34,34 @@ export function MatchupsPage() {
       </div>
 
       <p className="visually-hidden" role="status">
-        {matchups.isPending ? `Loading the ${timeWindow} window.` : ""}
+        {loading ? `Loading the ${timeWindow} window.` : ""}
       </p>
 
-      <Section
-        query={matchups}
-        skeleton={<MatchupTableSkeleton />}
-        title="The matchup table could not be loaded"
+      <div
+        className={loadingWindow ? "page__body busy" : "page__body"}
+        aria-busy={loadingWindow || undefined}
       >
-        {(data) =>
-          data.decks.length === 0 ? (
-            <EmptyWindow timeWindow={timeWindow} onSelect={selectTimeWindow} />
-          ) : (
-            <MatchupTable
-              key={data.decks.map((deck) => deck.slug).join(" ")}
-              matrix={data}
-              timeWindow={timeWindow}
-            />
-          )
-        }
-      </Section>
+        <Section
+          query={matchups}
+          skeleton={<MatchupTableSkeleton />}
+          title="The matchup table could not be loaded"
+        >
+          {(data) =>
+            data.decks.length > 0 ? (
+              <MatchupTable
+                key={data.decks.map((deck) => deck.slug).join(" ")}
+                matrix={data}
+                timeWindow={loadingWindow ? undefined : timeWindow}
+              />
+            ) : (
+              <EmptyWindow
+                timeWindow={timeWindow}
+                onSelect={selectTimeWindow}
+              />
+            )
+          }
+        </Section>
+      </div>
     </>
   );
 }

@@ -26,6 +26,14 @@ afterEach(() => {
 });
 
 describe("DeckShare", () => {
+  it("names no dates when given none, as while another window loads", () => {
+    render(<DeckShare name="Affinity" points={POINTS} />);
+
+    expect(
+      screen.getByRole("region", { name: "Daily meta share of Affinity" }),
+    ).toBeTruthy();
+  });
+
   it("draws one line, labelled with the last day's share", () => {
     const container = renderShare();
 

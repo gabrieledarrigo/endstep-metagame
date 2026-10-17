@@ -15,7 +15,7 @@ import { renderWithQueries } from "../../../test/renderWithQueries";
 import { sizeCharts } from "../../../test/sizeCharts";
 import { OverviewPage } from "./OverviewPage";
 
-type Answer = (window: string | null) => Response;
+type Answer = (window: string | null) => Response | Promise<Response>;
 
 function stubApi(answerDecks: Answer): Mock<typeof fetch> {
   const fetchMock = vi.fn<typeof fetch>(async (input) => {
@@ -101,6 +101,104 @@ describe("OverviewPage", () => {
         );
       }),
     ).toBe(true);
+  });
+
+  it("keeps every section on screen, dimmed and busy, while another window loads, and holds back the window's dates", async () => {
+    let answer: (response: Response) => void = () => {};
+    stubApi((window) =>
+      window === "7d"
+        ? new Promise<Response>((resolve) => (answer = resolve))
+        : Response.json(decks),
+    );
+    renderAt("/?window=30d");
+    await screen.findByText("06 Sept to 05 Oct 2026");
+
+    fireEvent.click(screen.getByRole("button", { name: "7d" }));
+
+    expect(await screen.findByText("Loading the 7d window.")).toBeTruthy();
+    expect(
+      screen
+        .getByRole("group", { name: "Time window" })
+        .getAttribute("data-busy"),
+    ).toBe("true");
+    expect(
+      screen
+        .getByRole("region", { name: "Decks by meta share" })
+        .closest("[aria-busy]"),
+    ).toBeTruthy();
+    expect(screen.getByText("236,728")).toBeTruthy();
+    expect(screen.getByRole("table")).toBeTruthy();
+    expect(screen.queryByText("06 Sept to 05 Oct 2026")).toBeNull();
+
+    answer(Response.json(decks));
+
+    expect(await screen.findByText("06 Sept to 05 Oct 2026")).toBeTruthy();
+    expect(
+      screen
+        .getByRole("region", { name: "Decks by meta share" })
+        .closest("[aria-busy]"),
+    ).toBeNull();
+    expect(screen.getByRole("status").textContent).toBe("");
+  });
+
+  it("does not judge the next window empty from the previous one while it loads", async () => {
+    stubApi((window) =>
+      window === "30d"
+        ? Response.json({
+            ...decks,
+            decks: { ...decks.decks, items: [], total: 0 },
+          })
+        : new Promise<Response>(() => {}),
+    );
+    renderAt("/?window=30d");
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Switch to season" }),
+    );
+
+    expect(await screen.findByText("Loading the season window.")).toBeTruthy();
+    expect(
+      screen.queryByRole("heading", { name: "No decks in this window" }),
+    ).toBeNull();
+    expect(screen.queryByText("236,728")).toBeNull();
+  });
+
+  it("ends the busy state when one request fails, and shows its error", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>(async (input) => {
+        const url = new URL(String(input), "http://localhost");
+
+        if (url.pathname.endsWith("/decks")) {
+          return Response.json(decks);
+        }
+
+        return url.searchParams.get("window") === "7d"
+          ? Response.json({ error: "Not found" }, { status: 404 })
+          : Response.json(series);
+      }),
+    );
+    renderAt("/?window=30d");
+    await screen.findByText("06 Sept to 05 Oct 2026");
+
+    fireEvent.click(screen.getByRole("button", { name: "7d" }));
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "Share over time could not be loaded",
+      }),
+    ).toBeTruthy();
+    expect(screen.getByRole("status").textContent).toBe("");
+    expect(
+      screen
+        .getByRole("group", { name: "Time window" })
+        .getAttribute("data-busy"),
+    ).toBeNull();
+    expect(
+      screen
+        .getByRole("region", { name: "Decks by meta share" })
+        .closest("[aria-busy]"),
+    ).toBeNull();
   });
 
   it("offers a longer window when this one has no decks", async () => {

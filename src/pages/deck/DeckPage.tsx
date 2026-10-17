@@ -141,7 +141,9 @@ export function DeckPage() {
         {hero}
         {loadingStatus}
         {loadingWindow ? (
-          <Skeleton className="deck-page__skeleton deck-page__skeleton--section" />
+          <div aria-busy="true">
+            <Skeleton className="deck-page__skeleton deck-page__skeleton--section" />
+          </div>
         ) : (
           <EmptyWindow
             timeWindow={timeWindow}
@@ -159,11 +161,7 @@ export function DeckPage() {
       {hero}
       {loadingStatus}
       <div
-        className={
-          loadingWindow
-            ? "deck-page__body deck-page__body--busy"
-            : "deck-page__body"
-        }
+        className={loadingWindow ? "deck-page__body busy" : "deck-page__body"}
         aria-busy={loadingWindow || undefined}
       >
         <DeckStats deck={detail.deck} />
@@ -172,7 +170,7 @@ export function DeckPage() {
             <DeckSection title="Share over time">
               <DeckShare
                 name={detail.deck.name}
-                dates={dates}
+                dates={loadingWindow ? undefined : dates}
                 points={detail.shareSeries.points}
               />
             </DeckSection>
