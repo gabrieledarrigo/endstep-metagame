@@ -752,9 +752,9 @@ Covers NFR-1: an exported function with a consumer has a spec beside it. E10 set
 
 # Milestone 3: connected pages
 
-**Date:** 2026-10-13. Derived from Draft v4 of the requirements. D3 and S18 were added on 2026-10-14, from Draft v5. D4, S19, S20 and S21 were added on 2026-10-17, from Draft v6.
+**Date:** 2026-10-13. Derived from Draft v4 of the requirements. D3 and S18 were added on 2026-10-14, from Draft v5. D4, S19, S20 and S21 were added on 2026-10-17, from Draft v6. D5, E12, S22, S23 and S24 were added the same day, from Draft v7.
 
-Twelve items. Three design items, nine user stories. Two stories need no design and start at once. The others wait for D2, D3 or D4, because each changes how a page looks, and the owner chooses the design first.
+Seventeen items. Four design items, one enabler, twelve user stories. Two stories and the enabler need no design and start at once. The others wait for D2, D3, D4 or D5, because each changes how a page looks, and the owner chooses the design first.
 
 | Wave | Items | Runs in parallel |
 |---|---|---|
@@ -763,6 +763,8 @@ Twelve items. Three design items, nine user stories. Two stories need no design 
 | 17 | S15 | No |
 | 18 | D4 | No |
 | 19 | S19, S20, S21 | Yes, three ways |
+| 20 | D5, E12 | Yes, two ways |
+| 21 | S22, S23, S24 | Yes, three ways |
 
 ```
 D2 design ─┬─► S16 find a deck in the matchup table ──► S15 matchup table on a phone
@@ -773,6 +775,10 @@ D3 design ──► S18 light and dark theme ──┬─► S20 highlight a dec
 D4 design ──┬─► S19 search for any deck
             ├─► S20
             └─► S21
+D5 design ──┬─► S22 install as an app
+            ├─► S23 a preview per deck
+            └─► S24 the footer
+E12 metadata and headers ──► S23
 S13 every page kept on a window change
 S14 charts open the deck pages
 ```
@@ -842,6 +848,49 @@ Covers FR-5, FR-6, FR-7 and FR-14 in the requirements. The owner chose the optio
 - The requirements describe the search, the highlight and the hover.
 
 **Blocked by** nothing. **Blocks** S19, S20, S21.
+
+---
+
+## D5. Design the site mark, the icon set, the site card and the footer
+
+Covers FR-15, FR-16 and NFR-5. The owner chose on 2026-10-17: the ranked-bars mark, M1, which they are refining; the two-column footer, F1; and art-only deck previews. Changes `docs/design-system.html`. No code.
+
+**Tasks**
+
+1. The site mark from the owner's final SVG, in both themes, with its sizes and its clear space.
+2. The icon set: the SVG favicon, the 32px ICO, the 180px Apple touch icon, and the 192px, 512px and maskable 512px app icons. The app's short name for the home screen.
+3. The site card: the 1200 by 630 image shared by every page but the deck pages.
+4. The footer, F1: the site and its author on one side, the notices on the other, stacked below 640px, in both themes.
+5. Add the icons and the site card to the repository's `public/` folder, ready for S22 and S23.
+6. Republish the artifact.
+
+**Done when**
+
+- The design system specifies the mark, the icons, the site card and the footer, with specimens in both themes.
+- The icon files and the site card are in `public/`.
+
+**Blocked by** nothing. **Blocks** S22, S23, S24.
+
+---
+
+## E12. Add the page description, the asset cache and the security headers
+
+Covers FR-15's text tags and §4.7. Needs no design.
+
+**Tasks**
+
+1. In `index.html`: the description, the canonical link to `/`, and the Open Graph and Twitter card text tags. `robots.txt` in `public/`.
+2. In `vercel.json`: `public, max-age=31536000, immutable` for `/assets/*`.
+3. In `vercel.json`: the security headers of §4.7, with the inline theme script allowed by its hash.
+4. Check on a production build that every page, chart, card image and the theme script still load with the policy on.
+
+**Done when**
+
+- A shared link to the site shows its title and description.
+- A second visit loads the hashed files from the browser cache, with no request.
+- The response headers carry the policy, and the browser console reports no violation on any page.
+
+**Blocked by** nothing. **Blocks** S23.
 
 ---
 
@@ -1065,6 +1114,74 @@ Covers FR-6 and FR-7.
 
 ---
 
+## S22. Install the site as an app
+
+As a Pauper player, I want to add the site to my home screen, so I can open it like an app.
+
+Covers FR-16 and FR-15's icons.
+
+**Tasks**
+
+1. The web app manifest, with the name, the short name, the icons, the standalone display and `/` as the start address.
+2. The icon links in `index.html`: the SVG favicon, the ICO and the Apple touch icon.
+3. `theme-color` for each theme, updated by the theme toggle.
+4. No service worker.
+5. A spec beside each component it changes, such as the toggle updating `theme-color`.
+
+**Done when**
+
+- Chrome on Android and desktop offers to install the site, and Safari on iOS adds it to the home screen with its icon.
+- The installed app opens in its own window on the overview.
+- Browser tabs show the favicon in both themes.
+
+**Blocked by** D5. **Blocks** nothing.
+
+---
+
+## S23. Share a deck with its own preview
+
+As a Pauper player, I want a deck page's link to show that deck in a chat app, so the people I share it with see what it is.
+
+Covers FR-15.
+
+**Tasks**
+
+1. `api/deck-page.ts`: for `/decks/:slug`, fetch the built `index.html` and the deck detail for the link's window, and write the deck's title, description and image tags into the head. Return the page with the site card when the call fails or takes longer than one second.
+2. The site card's image tag in `index.html`, for every other page.
+3. `vercel.json` sends `/decks/:slug` to the function, and the edge caches each page for five minutes.
+4. Check the previews in Discord, Slack and WhatsApp, including that each follows the art's redirect to Scryfall.
+5. A spec beside the function, on the injected tags, the fallback and the timeout.
+
+**Done when**
+
+- A shared deck link shows the deck's name, figures and art in Discord, Slack and WhatsApp.
+- A shared link to the overview or the matchup table shows the site card.
+- With Endstep unreachable, a deck page still loads, with the site card.
+
+**Blocked by** D5, E12. **Blocks** nothing.
+
+---
+
+## S24. Credit the data, the author and Wizards in the footer
+
+As a Pauper player, I want to see where the data comes from and who made the site, and the site needs the notice Wizards asks of fan content.
+
+Covers NFR-5.
+
+**Tasks**
+
+1. The footer, F1, as the design system shows: the site and its author, with the source code link, on one side; the data source, the independence from Endstep, the Scryfall credit and the Fan Content notice on the other.
+2. Stacked below 640px.
+3. A spec beside the footer.
+
+**Done when**
+
+- Every page's footer carries the five items of NFR-5, with working links, in both themes and at 360px.
+
+**Blocked by** D5. **Blocks** nothing.
+
+---
+
 ## Notes on sequencing, milestone 3
 
 **S13 and S14 need no design.** They change behaviour, not appearance, so they start beside D2. S13 reuses the deck page's dimmed, busy state.
@@ -1074,3 +1191,5 @@ Covers FR-6 and FR-7.
 **D3 does not wait for D2.** The theme changes colours, not layout. S18 and S14 both touch the chart code, so whichever lands second rebases onto the first.
 
 **S20 and S21 wait for S18.** S18 turns the chart colours into CSS variables, and both stories change how the charts draw. S19 touches only the overview's deck list and can start as soon as D4 lands.
+
+**E12 before S23.** The deck page's function writes into the head that E12 fills, and the security policy must allow the art the preview points at. D5's mark is the owner's to finish, so S22 and S24 wait for it.
