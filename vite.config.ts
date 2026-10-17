@@ -9,6 +9,8 @@ const METAGAME = "/api/metagame";
 const METAGAME_PREFIX = `${METAGAME}/`;
 const MATCHUPS = "/api/matchups";
 
+export const CATCH_ALL_SOURCE = "/(.*)";
+
 /**
  * Reads the headers that `vercel.json` sets for one source pattern.
  *
@@ -29,7 +31,7 @@ export function vercelHeaders(source: string): Record<string, string> {
  * @returns A Vite plugin whose preview middleware sets the headers and passes the request on. It must come before the plugins that answer requests.
  */
 export function previewSecurityHeaders(): Plugin {
-  const headers = vercelHeaders("/(.*)");
+  const headers = vercelHeaders(CATCH_ALL_SOURCE);
 
   return {
     name: "preview-security-headers",

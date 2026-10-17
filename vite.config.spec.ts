@@ -1,6 +1,7 @@
 import type { Plugin, PreviewServer } from "vite";
 import { describe, expect, it, vi } from "vitest";
 import config, {
+  CATCH_ALL_SOURCE,
   previewSecurityHeaders,
   vercelHeaders,
 } from "./vite.config.ts";
@@ -46,7 +47,7 @@ describe("previewSecurityHeaders", () => {
     const next = vi.fn();
     use.mock.calls[0][0]({}, response, next);
 
-    const headers = vercelHeaders("/(.*)");
+    const headers = vercelHeaders(CATCH_ALL_SOURCE);
     expect(headers).toHaveProperty("Content-Security-Policy");
     expect(Object.fromEntries(response.setHeader.mock.calls)).toEqual(headers);
     expect(next).toHaveBeenCalledOnce();

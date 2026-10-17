@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
-import { vercelHeaders } from "./vite.config.ts";
+import { CATCH_ALL_SOURCE, vercelHeaders } from "./vite.config.ts";
 
 const html = readFileSync(new URL("./index.html", import.meta.url), "utf8");
 
@@ -35,7 +35,7 @@ describe("vercel.json", () => {
   });
 
   it("sends the security headers on every response, with no cache rule", () => {
-    const headers = vercelHeaders("/(.*)");
+    const headers = vercelHeaders(CATCH_ALL_SOURCE);
 
     expect(headers["X-Content-Type-Options"]).toBe("nosniff");
     expect(headers["Referrer-Policy"]).toBe("strict-origin-when-cross-origin");
@@ -44,7 +44,7 @@ describe("vercel.json", () => {
 
   it("names each directive of the policy once", () => {
     const names = directiveList(
-      vercelHeaders("/(.*)")["Content-Security-Policy"],
+      vercelHeaders(CATCH_ALL_SOURCE)["Content-Security-Policy"],
     ).map(([name]) => name);
 
     expect(names).toEqual([...new Set(names)]);
@@ -54,7 +54,7 @@ describe("vercel.json", () => {
     const hashes = inlineScripts(html).map(sha256);
 
     expect(
-      directives(vercelHeaders("/(.*)")["Content-Security-Policy"]),
+      directives(vercelHeaders(CATCH_ALL_SOURCE)["Content-Security-Policy"]),
     ).toEqual({
       "default-src": ["'self'"],
       "script-src": ["'self'", ...hashes].toSorted(),
@@ -74,16 +74,6 @@ describe("vercel.json", () => {
 
     expect(scripts).toHaveLength(1);
     expect(scripts[0]).toContain('localStorage.getItem("theme")');
-  });
-
-  it("allows every inline script in index.html by its hash", () => {
-    const scriptSources = directives(
-      vercelHeaders("/(.*)")["Content-Security-Policy"],
-    )["script-src"];
-
-    inlineScripts(html).forEach((script) => {
-      expect(scriptSources).toContain(sha256(script));
-    });
   });
 });
 
