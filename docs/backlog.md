@@ -752,21 +752,27 @@ Covers NFR-1: an exported function with a consumer has a spec beside it. E10 set
 
 # Milestone 3: connected pages
 
-**Date:** 2026-10-13. Derived from Draft v4 of the requirements. D3 and S18 were added on 2026-10-14, from Draft v5.
+**Date:** 2026-10-13. Derived from Draft v4 of the requirements. D3 and S18 were added on 2026-10-14, from Draft v5. D4, S19, S20 and S21 were added on 2026-10-17, from Draft v6.
 
-Eight items. Two design items, six user stories. Two stories need no design and start at once. The other four wait for D2 or D3, because each changes how a page looks, and the owner chooses the design first.
+Twelve items. Three design items, nine user stories. Two stories need no design and start at once. The others wait for D2, D3 or D4, because each changes how a page looks, and the owner chooses the design first.
 
 | Wave | Items | Runs in parallel |
 |---|---|---|
 | 15 | D2, D3, S13, S14 | Yes, four ways |
 | 16 | S16, S17, S18 | Yes, three ways |
 | 17 | S15 | No |
+| 18 | D4 | No |
+| 19 | S19, S20, S21 | Yes, three ways |
 
 ```
 D2 design ─┬─► S16 find a deck in the matchup table ──► S15 matchup table on a phone
            ├─► S17 cards or table on the overview
            └─► S15
-D3 design ──► S18 light and dark theme
+D3 design ──► S18 light and dark theme ──┬─► S20 highlight a deck in Share over time
+                                         └─► S21 show the pointed deck on the charts
+D4 design ──┬─► S19 search for any deck
+            ├─► S20
+            └─► S21
 S13 every page kept on a window change
 S14 charts open the deck pages
 ```
@@ -814,6 +820,28 @@ Covers FR-13 and open item 10 in the requirements. Changes `docs/design-system.h
 - NFR-1a and open item 10 name the chosen palette.
 
 **Blocked by** nothing. **Blocks** S18.
+
+---
+
+## D4. Design the deck search, the share chart's highlight and the chart hover
+
+Covers FR-5, FR-6, FR-7 and FR-14 in the requirements. The owner chose the options on 2026-10-17: search as a filter on the overview, the legend's highlight in place of hiding, and the hover on both deck charts. Changes `docs/design-system.html` and `docs/requirements.md`. No code.
+
+**Tasks**
+
+1. Deck search: the field, its clear button, the result line, the "Show more" button and the no-results panel, with their states. A 14px gap between the field, the line and the decks.
+2. Share over time: the legend's highlight, which replaces hiding. The highlighted line, the faded lines and labels, and the pressed legend entry.
+3. Hover on the ranked bars and the scatter: the underlined name or label, and the `--seq-600` fill.
+4. Check the faded lines' contrast in both themes, and record the exception under NFR-6.
+5. Write FR-14 and the changes to FR-5, FR-6, FR-7, §3, §4.5, NFR-4 and §8.
+6. Republish the artifact.
+
+**Done when**
+
+- Each design has a specimen with its states, in both themes.
+- The requirements describe the search, the highlight and the hover.
+
+**Blocked by** nothing. **Blocks** S19, S20, S21.
 
 ---
 
@@ -965,6 +993,77 @@ Covers FR-13, NFR-1a and NFR-9.
 
 ---
 
+## S19. Search for any deck on the overview
+
+As a Pauper player, I want to search the decks by name or by a card they play, so I can find a deck outside the top 24.
+
+Covers FR-14 and NFR-4.
+
+**Tasks**
+
+1. The search field above the decks, with its visually hidden label and its clear button. Escape clears it.
+2. From 2 characters and 300ms after the last keystroke, request `/decks` with `q`, in share order, 24 per page. Keep the query in `?q=`, replacing the history entry.
+3. Show the results in the chosen view, cards or table, under the result line. The page's status line announces the count.
+4. "Show more" loads the next page of 24 while results remain.
+5. No results: the panel with "Clear the search", which returns focus to the field.
+6. The summary and the charts stay on the top 24.
+7. A spec beside each component, hook and helper it adds or changes.
+
+**Done when**
+
+- "altar" lists Altar Tron, outside the top 24, in both views, and its card opens its deck page.
+- `?q=altar` on load shows the same results, and clearing the search removes `q`.
+- A search with no match shows the panel, and its button clears the search.
+- One character searches nothing.
+
+**Blocked by** D4. **Blocks** nothing.
+
+---
+
+## S20. Highlight a deck in Share over time
+
+As a Pauper player, I want to click a deck in the chart's legend to bring its line forward, so I can follow it among the others.
+
+Covers FR-5.
+
+**Tasks**
+
+1. Each legend entry is a toggle button with `aria-pressed`. A click highlights that deck, a second click on it clears the highlight, and a click on another deck moves it.
+2. The highlighted line draws at 3px, on top. Every other line, its end dot and its end label fade to 25% opacity.
+3. Keep the highlighted deck's slug in `?highlight=`, replacing the history entry. A slug that is not in the chart shows no highlight.
+4. Remove hiding and the `hide` parameter.
+5. A spec beside each component it changes.
+
+**Done when**
+
+- A click highlights a deck, and a second click clears it.
+- `?highlight=` survives a reload.
+- No control hides a line.
+
+**Blocked by** D4, S18. **Blocks** nothing.
+
+---
+
+## S21. Show the pointed deck on the deck charts
+
+As a Pauper player, I want the deck charts to show which deck I am pointing at, so I can tell that it is a link.
+
+Covers FR-6 and FR-7.
+
+**Tasks**
+
+1. Ranked bars: pointing at a deck's row underlines its name and fills its bar with `--seq-600`. `Other` does not react.
+2. Scatter: pointing at a marker fills it with `--seq-600` at full opacity, and underlines its label when it has one.
+3. A spec beside each component it changes, where the behaviour can be tested.
+
+**Done when**
+
+- In both themes, bars and markers react to the pointer as the design system shows.
+
+**Blocked by** D4, S18. **Blocks** nothing.
+
+---
+
 ## Notes on sequencing, milestone 3
 
 **S13 and S14 need no design.** They change behaviour, not appearance, so they start beside D2. S13 reuses the deck page's dimmed, busy state.
@@ -972,3 +1071,5 @@ Covers FR-13, NFR-1a and NFR-9.
 **S16 comes before S15.** Both change the matchup page, and the phone view can open on the deck the address names.
 
 **D3 does not wait for D2.** The theme changes colours, not layout. S18 and S14 both touch the chart code, so whichever lands second rebases onto the first.
+
+**S20 and S21 wait for S18.** S18 turns the chart colours into CSS variables, and both stories change how the charts draw. S19 touches only the overview's deck list and can start as soon as D4 lands.
