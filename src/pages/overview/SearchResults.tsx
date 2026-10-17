@@ -8,7 +8,7 @@ type SearchResultsProps = {
   field: ReactNode;
   found?: { term: string; total: number };
   more?: { remaining: number; loading: boolean; onMore: () => void };
-  moreError?: string;
+  note?: string;
   busy?: boolean;
   focus?: string;
   onFocused?: () => void;
@@ -19,7 +19,7 @@ export function SearchResults({
   field,
   found,
   more,
-  moreError,
+  note,
   busy,
   focus,
   onFocused,
@@ -67,7 +67,7 @@ export function SearchResults({
           </p>
         )}
         {children}
-        {moreError && <p className="search-results__error">{moreError}</p>}
+        {note && <p className="search-results__note">{note}</p>}
         {more && (
           <Button
             variant="secondary"

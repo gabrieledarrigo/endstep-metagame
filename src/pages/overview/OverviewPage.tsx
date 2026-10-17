@@ -9,7 +9,7 @@ import { Section } from "../../components/Section";
 import { SegmentedControl } from "../../components/SegmentedControl";
 import { StatePanel } from "../../components/StatePanel";
 import { WINDOWS } from "../../config";
-import { matchText, searchTerm } from "../../helpers";
+import { formatCount, matchText, searchTerm } from "../../helpers";
 import { useTimeWindow } from "../../hooks/useTimeWindow";
 import { DeckGrid, DeckGridSkeleton } from "./DeckGrid";
 import { DeckSearch, type DeckSearchHandle } from "./DeckSearch";
@@ -156,6 +156,16 @@ export function OverviewPage() {
       ? `The next decks could not be loaded. ${search.error.message}`
       : undefined;
 
+  const shortfall =
+    searching &&
+    found !== undefined &&
+    !search.isPlaceholderData &&
+    !search.hasNextPage &&
+    results.length > 0 &&
+    results.length < total
+      ? `Endstep returned ${formatCount(results.length)} of the ${formatCount(total)} decks it counted.`
+      : undefined;
+
   let status = "";
   if (loading) {
     status = `Loading the ${timeWindow} window.`;
@@ -163,6 +173,8 @@ export function OverviewPage() {
     status = `Searching for ${quoted(term)}.`;
   } else if (moreError) {
     status = moreError;
+  } else if (shortfall) {
+    status = shortfall;
   } else if (searching && results.length === 0) {
     status = found ? `No deck or card matches ${quoted(term)}.` : "";
   } else if (searching) {
@@ -242,12 +254,12 @@ export function OverviewPage() {
                 }
               : undefined
           }
-          moreError={moreError}
+          note={moreError ?? shortfall}
           busy={loadingTerm && (found !== undefined || topList.length > 0)}
           focus={
             focusFrom === null || search.hasNextPage
               ? undefined
-              : results[focusFrom]?.slug
+              : (results[focusFrom] ?? results.at(-1))?.slug
           }
           onFocused={() => setFocusFrom(null)}
         >

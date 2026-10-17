@@ -13,7 +13,7 @@
     color: var(--text-600);
   }
 
-  .search-results__error {
+  .search-results__note {
     margin: 0;
     font-size: 14px;
     color: var(--text-600);

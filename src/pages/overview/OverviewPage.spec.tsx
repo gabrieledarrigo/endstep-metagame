@@ -878,14 +878,46 @@ describe("OverviewPage search", () => {
     );
     renderAt("/?window=30d&q=deck");
     await statusReads("30 decks match \u201cdeck\u201d.");
+    const more = screen.getByRole("button", { name: "Show 6 more" });
+    more.focus();
 
-    fireEvent.click(screen.getByRole("button", { name: "Show 6 more" }));
+    fireEvent.click(more);
 
-    await waitFor(() => {
-      expect(screen.queryByRole("button", { name: /more/ })).toBeNull();
-    });
-    expect(screen.getByRole("link", { name: "Deck 24" })).toBeTruthy();
+    const shortfall = "Endstep returned 24 of the 30 decks it counted.";
+    await statusReads(shortfall);
+    expect(screen.queryByRole("button", { name: /more/ })).toBeNull();
+    expect(
+      screen
+        .getAllByText(shortfall)
+        .filter((line) => line.getAttribute("role") !== "status"),
+    ).toHaveLength(1);
+    expect(document.activeElement).toBe(
+      screen.getByRole("link", { name: "Deck 24" }),
+    );
     expect(searchRequests(fetchMock)).toHaveLength(2);
+  });
+
+  it("says how many decks came back when the next page only repeats shown decks", async () => {
+    stubApi(
+      () => Response.json(decks),
+      (url) =>
+        url.searchParams.get("page") === "1"
+          ? matches(url, numberedDecks(1, 24), 30)
+          : matches(url, numberedDecks(1, 6), 30),
+    );
+    renderAt("/?window=30d&q=deck");
+    await statusReads("30 decks match \u201cdeck\u201d.");
+    const more = screen.getByRole("button", { name: "Show 6 more" });
+    more.focus();
+
+    fireEvent.click(more);
+
+    await statusReads("Endstep returned 24 of the 30 decks it counted.");
+    expect(screen.queryByRole("button", { name: /more/ })).toBeNull();
+    expect(screen.getAllByRole("link", { name: "Deck 1" })).toHaveLength(1);
+    expect(document.activeElement).toBe(
+      screen.getByRole("link", { name: "Deck 24" }),
+    );
   });
 
   it.each([

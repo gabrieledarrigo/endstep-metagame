@@ -100,7 +100,7 @@ describe("SearchResults", () => {
       <SearchResults
         field={null}
         more={{ remaining: 6, loading: false, onMore }}
-        moreError="The next decks could not be loaded. Endstep did not respond."
+        note="The next decks could not be loaded. Endstep did not respond."
       >
         {decks()}
       </SearchResults>,
