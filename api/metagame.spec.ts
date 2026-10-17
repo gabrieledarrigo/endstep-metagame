@@ -452,17 +452,28 @@ describe("the metagame proxy's card art", () => {
     expect(scryfallNames(limited)).toEqual([["Guttersnipe"], ["Guttersnipe"]]);
   });
 
-  it("drops an address outside Scryfall's CDN", async () => {
-    endstepAndScryfall(
-      deckList("Guttersnipe"),
-      collection([card("Guttersnipe", "https://example.com/guttersnipe.jpg")]),
-    );
+  it.each([
+    [
+      "an address outside Scryfall's CDN",
+      { art_crop: "https://example.com/guttersnipe.jpg" },
+    ],
+    ["no art crop", {}],
+  ])(
+    "treats a card with %s as not found: the fallback, the usual cache time, and no second request",
+    async (_, imageUris) => {
+      const fetchMock = endstepAndScryfall(
+        deckList("Guttersnipe"),
+        collection([{ name: "Guttersnipe", image_uris: imageUris }]),
+      );
 
-    const response = await metagame.fetch(request(DECKS));
+      const response = await metagame.fetch(request(DECKS));
+      await metagame.fetch(request(DECKS));
 
-    expect(response.headers.get("cache-control")).toBe(ONE_MINUTE);
-    expect(await artOf(response)).toEqual([undefined]);
-  });
+      expect(response.headers.get("cache-control")).toBe(FIVE_MINUTES);
+      expect(await artOf(response)).toEqual([undefined]);
+      expect(scryfallNames(fetchMock)).toEqual([["Guttersnipe"]]);
+    },
+  );
 
   it.each([
     [

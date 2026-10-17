@@ -201,19 +201,14 @@ function artCrop(card: ScryfallCard): string | undefined {
 /**
  * Remembers the addresses and the names not found in a collection response, for the names that were asked.
  *
- * A card matches a name by its full name or by any face's name, ignoring case.
+ * A card matches a name by its full name or by any face's name, ignoring case. A card without an art crop on Scryfall's CDN counts as not found, so its deck falls back to Endstep's endpoint.
  *
  * @param asked - The memory keys of the names sent to Scryfall.
  * @param collection - Scryfall's collection response.
  */
 function remember(asked: Set<string>, collection: ScryfallCollection): void {
   for (const card of collection.data) {
-    const address = artCrop(card);
-
-    if (!address) {
-      continue;
-    }
-
+    const address = artCrop(card) ?? null;
     const names = [
       card.name,
       ...(card.card_faces ?? []).map((face) => face.name),
