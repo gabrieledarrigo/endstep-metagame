@@ -1,4 +1,10 @@
-import { type MouseEvent, type PointerEvent, useRef, useState } from "react";
+import {
+  type MouseEvent,
+  type PointerEvent,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   CartesianGrid,
   ReferenceLine,
@@ -39,6 +45,7 @@ const SCATTER_LABEL = token("--text-600");
 const LABEL_PLOT_WIDTH = 590;
 const LABEL_CHAR_WIDTH = 6.6;
 const LABEL_GAP_Y = 0.18;
+const TAP_CLICK_WINDOW = 1000;
 
 type WinRatePoint = {
   id: string;
@@ -112,8 +119,7 @@ type WinRateMarkProps = {
   size: number;
   payload: WinRatePoint;
   labelled: Set<string>;
-  onPointerDown: (event: PointerEvent<SVGGElement>) => void;
-  onPointerUp: () => void;
+  onPointerUp: (event: PointerEvent<SVGGElement>) => void;
   onClick: (event: MouseEvent<HTMLAnchorElement>) => void;
 };
 
@@ -123,7 +129,6 @@ function WinRateMark({
   size,
   payload,
   labelled,
-  onPointerDown,
   onPointerUp,
   onClick,
 }: WinRateMarkProps) {
@@ -139,7 +144,7 @@ function WinRateMark({
       label={payload.name}
       onClick={onClick}
     >
-      <g onPointerDown={onPointerDown} onPointerUp={onPointerUp}>
+      <g className="win-rate__mark" onPointerUp={onPointerUp}>
         <circle
           cx={cx}
           cy={cy}
@@ -242,21 +247,37 @@ type ArmedMark = {
   decks: Deck[];
 };
 
-type Tap = {
+type Arming = {
   id: string;
-  armed: boolean;
+  at: number;
 };
 
 export function WinRateScatter({ decks }: { decks: Deck[] }) {
-  const tap = useRef<Tap | null>(null);
+  const arming = useRef<Arming | null>(null);
   const [armedMark, setArmedMark] = useState<ArmedMark | null>(null);
   const armed = armedMark?.decks === decks ? armedMark.id : null;
+
+  useEffect(() => {
+    if (armed === null) {
+      return;
+    }
+
+    function disarm(event: Event): void {
+      if (
+        !(event.target instanceof Element) ||
+        event.target.closest(".win-rate__mark") === null
+      ) {
+        setArmedMark(null);
+      }
+    }
+
+    document.addEventListener("pointerdown", disarm);
+
+    return (): void => document.removeEventListener("pointerdown", disarm);
+  }, [armed]);
+
   const points = winRatePoints(decks);
   const drawn = [...points].sort((a, b) => b.players - a.players);
-
-  function firstTap(id: string): boolean {
-    return tap.current?.id === id && tap.current?.armed === false;
-  }
   const leftOut = decks.length - points.length;
 
   if (decks.length === 0) {
@@ -294,108 +315,102 @@ export function WinRateScatter({ decks }: { decks: Deck[] }) {
           : WIN_RATE_NOTE}
       </p>
 
-      <div
-        onClick={(event) => {
-          if (!event.defaultPrevented) {
-            setArmedMark(null);
-          }
-        }}
-      >
-        <ChartFrame className="win-rate__frame">
-          <ScatterChart
-            margin={{ top: 28, right: 24, bottom: 20, left: 24 }}
-            aria-label="Match win rate against meta share"
-            accessibilityLayer
-          >
-            <CartesianGrid {...CHART_CARTESIAN_GRID} />
-            <XAxis
-              type="number"
-              dataKey="share"
-              domain={[0, shareMax]}
-              ticks={axisTicks(0, shareMax, 2)}
-              tickFormatter={axisShare}
-              label={{
-                value: "meta share",
-                position: "insideBottom",
-                offset: -14,
-                fill: CHART_TICK,
-                fontSize: 12,
-              }}
-              {...CHART_AXIS}
-            />
-            <YAxis
-              type="number"
-              dataKey="winRate"
-              domain={[rateMin, rateMax]}
-              ticks={axisTicks(rateMin, rateMax, 5)}
-              tickFormatter={axisShare}
-              width={46}
-              label={{
-                value: "match win rate",
-                position: "top",
-                offset: 14,
-                fill: CHART_TICK,
-                fontSize: 12,
-              }}
-              {...CHART_AXIS}
-            />
-            <ZAxis
-              type="number"
-              dataKey="players"
-              domain={[0, "dataMax"]}
-              range={[0, 1020]}
-              name="Players"
-            />
-            <ReferenceLine
-              y={50}
-              stroke={CHART_TICK}
-              strokeWidth={1.5}
-              strokeDasharray="5 4"
-              label={{
-                value: "50% win rate",
-                position: "insideBottomRight",
-                fill: SCATTER_LABEL,
-                fontSize: 12,
-                pointerEvents: "none",
-              }}
-            />
-            <Tooltip
-              cursor={{ stroke: CHART_BASELINE, strokeDasharray: "3 3" }}
-              content={(props) => <WinRateTooltip {...props} armed={armed} />}
-            />
-            <Scatter
-              data={drawn}
-              shape={({ cx, cy, size, payload }) => (
-                <WinRateMark
-                  cx={cx}
-                  cy={cy}
-                  size={size}
-                  payload={payload}
-                  labelled={labelled}
-                  onPointerDown={(event) => {
-                    tap.current =
-                      event.pointerType === "touch"
-                        ? { id: payload.id, armed: armed === payload.id }
-                        : null;
-                  }}
-                  onPointerUp={() => {
-                    if (firstTap(payload.id)) {
-                      setArmedMark({ id: payload.id, decks });
-                    }
-                  }}
-                  onClick={(event) => {
-                    if (firstTap(payload.id)) {
-                      event.preventDefault();
-                    }
-                    tap.current = null;
-                  }}
-                />
-              )}
-              isAnimationActive={false}
-            />
-          </ScatterChart>
-        </ChartFrame>
-      </div>
+      <ChartFrame className="win-rate__frame">
+        <ScatterChart
+          margin={{ top: 28, right: 24, bottom: 20, left: 24 }}
+          aria-label="Match win rate against meta share"
+          accessibilityLayer
+        >
+          <CartesianGrid {...CHART_CARTESIAN_GRID} />
+          <XAxis
+            type="number"
+            dataKey="share"
+            domain={[0, shareMax]}
+            ticks={axisTicks(0, shareMax, 2)}
+            tickFormatter={axisShare}
+            label={{
+              value: "meta share",
+              position: "insideBottom",
+              offset: -14,
+              fill: CHART_TICK,
+              fontSize: 12,
+            }}
+            {...CHART_AXIS}
+          />
+          <YAxis
+            type="number"
+            dataKey="winRate"
+            domain={[rateMin, rateMax]}
+            ticks={axisTicks(rateMin, rateMax, 5)}
+            tickFormatter={axisShare}
+            width={46}
+            label={{
+              value: "match win rate",
+              position: "top",
+              offset: 14,
+              fill: CHART_TICK,
+              fontSize: 12,
+            }}
+            {...CHART_AXIS}
+          />
+          <ZAxis
+            type="number"
+            dataKey="players"
+            domain={[0, "dataMax"]}
+            range={[0, 1020]}
+            name="Players"
+          />
+          <ReferenceLine
+            y={50}
+            stroke={CHART_TICK}
+            strokeWidth={1.5}
+            strokeDasharray="5 4"
+            label={{
+              value: "50% win rate",
+              position: "insideBottomRight",
+              fill: SCATTER_LABEL,
+              fontSize: 12,
+              pointerEvents: "none",
+            }}
+          />
+          <Tooltip
+            cursor={{ stroke: CHART_BASELINE, strokeDasharray: "3 3" }}
+            content={(props) => <WinRateTooltip {...props} armed={armed} />}
+          />
+          <Scatter
+            data={drawn}
+            shape={({ cx, cy, size, payload }) => (
+              <WinRateMark
+                cx={cx}
+                cy={cy}
+                size={size}
+                payload={payload}
+                labelled={labelled}
+                onPointerUp={(event) => {
+                  if (event.pointerType === "touch" && armed !== payload.id) {
+                    setArmedMark({ id: payload.id, decks });
+                    arming.current = { id: payload.id, at: event.timeStamp };
+                  } else {
+                    arming.current = null;
+                  }
+                }}
+                onClick={(event) => {
+                  const tap = arming.current;
+                  arming.current = null;
+                  if (
+                    tap !== null &&
+                    tap.id === payload.id &&
+                    event.timeStamp - tap.at < TAP_CLICK_WINDOW
+                  ) {
+                    event.preventDefault();
+                  }
+                }}
+              />
+            )}
+            isAnimationActive={false}
+          />
+        </ScatterChart>
+      </ChartFrame>
     </Panel>
   );
 }

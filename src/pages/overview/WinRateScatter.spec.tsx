@@ -188,6 +188,50 @@ describe("WinRateScatter", () => {
     expect(screen.getByText(AFFINITY_PAGE)).toBeTruthy();
   });
 
+  it("follows a stray click on an armed marker that no tap sent", () => {
+    const now = Date.now();
+    const clock = vi.spyOn(Date, "now").mockReturnValue(now);
+    const { container } = renderScatter(DECKS);
+
+    press(() => firstMark(container));
+    clock.mockReturnValue(now + 2000);
+    fireEvent.click(firstMark(container));
+
+    expect(screen.getByText(AFFINITY_PAGE)).toBeTruthy();
+  });
+
+  it("forgets the first tap after a tap outside the chart", () => {
+    const { container } = renderScatter(DECKS);
+
+    press(() => firstMark(container));
+    fireEvent.pointerDown(document.body, { pointerType: "touch" });
+    tap(() => firstMark(container));
+
+    expect(screen.queryByText(AFFINITY_PAGE)).toBeNull();
+  });
+
+  it("listens for a tap elsewhere only while a marker is armed", () => {
+    const added = vi.spyOn(document, "addEventListener");
+    const removed = vi.spyOn(document, "removeEventListener");
+    const pointerdowns = (spy: typeof added): number =>
+      spy.mock.calls.filter(([type]) => type === "pointerdown").length;
+    const { container, unmount } = renderScatter(DECKS);
+
+    expect(pointerdowns(added)).toBe(0);
+
+    press(() => firstMark(container));
+    fireEvent.pointerDown(document.body);
+
+    expect(pointerdowns(added)).toBe(1);
+    expect(pointerdowns(removed)).toBe(1);
+
+    press(() => firstMark(container));
+    unmount();
+
+    expect(pointerdowns(added)).toBe(2);
+    expect(pointerdowns(removed)).toBe(2);
+  });
+
   it("forgets the first tap after a tap off the markers", () => {
     const { container } = renderScatter(DECKS);
 
