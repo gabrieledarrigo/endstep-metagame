@@ -51,7 +51,7 @@ export function MatchupsPage() {
   const outside =
     slug !== null && decks.length > 0 && spotlit === undefined ? slug : null;
   const missing = loadingWindow ? null : outside;
-  const shown = spotlit ?? decks.at(0);
+  const shown = spotlit ?? decks[0];
   const [revealing, setRevealing] = useState(
     navigationType !== NavigationType.Pop || key === "default" ? slug : null,
   );
@@ -71,7 +71,7 @@ export function MatchupsPage() {
   const notice =
     outsideLine === undefined || wide
       ? outsideLine
-      : `${outsideLine} The table shows ${shown?.name} by default.`;
+      : `${outsideLine} The table shows ${shown.name} by default.`;
   const named =
     detail.isError || (detail.isSuccess && !detail.isPlaceholderData);
 
@@ -126,11 +126,7 @@ export function MatchupsPage() {
         {decks.length > 0 && (
           <DeckPicker
             decks={decks}
-            value={
-              wide
-                ? (spotlit?.slug ?? outside)
-                : (outside ?? shown?.slug ?? null)
-            }
+            value={wide ? (spotlit?.slug ?? outside) : (outside ?? shown.slug)}
             missing={
               outside === null
                 ? undefined
@@ -178,7 +174,7 @@ export function MatchupsPage() {
               return (
                 <MatchupList
                   matrix={data}
-                  deck={spotlit ?? data.decks[0]}
+                  deck={shown}
                   timeWindow={loadingWindow ? undefined : timeWindow}
                   notice={notice}
                 />
