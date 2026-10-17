@@ -10,9 +10,7 @@
         if (stored === "light" || stored === "dark") {
           document.documentElement.dataset.theme = stored;
         }
-      } catch {
-        document.documentElement.removeAttribute("data-theme");
-      }
+      } catch {}
     </script>
   </head>
   <body>
