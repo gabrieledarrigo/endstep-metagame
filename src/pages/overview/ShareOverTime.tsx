@@ -274,30 +274,35 @@ export function ShareOverTime({ series }: { series: ShareSeries[] }) {
                 cursor={{ stroke: CHART_BASELINE }}
                 content={ShareTooltip}
               />
-              {drawOrder.map((item) => (
-                <Line
-                  key={item.deck.id}
-                  type="linear"
-                  dataKey={item.deck.id}
-                  name={item.deck.name}
-                  stroke={colours.get(item.deck.id)}
-                  strokeWidth={item === highlighted ? 3 : 2}
-                  strokeOpacity={faded(item) ? LINE_FADE : undefined}
-                  zIndex={
-                    item === highlighted
-                      ? DefaultZIndexes.line + 1
-                      : DefaultZIndexes.line
-                  }
-                  dot={false}
-                  activeDot={{
-                    r: 3.5,
-                    strokeWidth: 2,
-                    stroke: CHART_SURFACE,
-                    opacity: faded(item) ? LINE_FADE : undefined,
-                  }}
-                  isAnimationActive={false}
-                />
-              ))}
+              {drawOrder.map((item) => {
+                const isHighlighted = item === highlighted;
+                const isFaded = faded(item);
+
+                return (
+                  <Line
+                    key={item.deck.id}
+                    type="linear"
+                    dataKey={item.deck.id}
+                    name={item.deck.name}
+                    stroke={colours.get(item.deck.id)}
+                    strokeWidth={isHighlighted ? 3 : 2}
+                    strokeOpacity={isFaded ? LINE_FADE : undefined}
+                    zIndex={
+                      isHighlighted
+                        ? DefaultZIndexes.line + 1
+                        : DefaultZIndexes.line
+                    }
+                    dot={false}
+                    activeDot={{
+                      r: 3.5,
+                      strokeWidth: 2,
+                      stroke: CHART_SURFACE,
+                      opacity: isFaded ? LINE_FADE : undefined,
+                    }}
+                    isAnimationActive={false}
+                  />
+                );
+              })}
               <Customized component={<SeriesEnds ends={ends} />} />
             </LineChart>
           </ChartFrame>
