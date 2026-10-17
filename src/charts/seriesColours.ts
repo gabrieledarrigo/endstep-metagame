@@ -1,15 +1,13 @@
-import { token } from "./theme";
-
 const SERIES_COLOURS = [
-  "--s1",
-  "--s2",
-  "--s3",
-  "--s4",
-  "--s5",
-  "--s6",
-  "--s7",
-  "--s8",
-].map(token);
+  "var(--s1)",
+  "var(--s2)",
+  "var(--s3)",
+  "var(--s4)",
+  "var(--s5)",
+  "var(--s6)",
+  "var(--s7)",
+  "var(--s8)",
+];
 
 const seriesSlots = new Map<string, number>();
 

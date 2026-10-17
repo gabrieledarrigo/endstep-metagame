@@ -74,6 +74,14 @@ describe("WinRateScatter", () => {
     }
   });
 
+  it("draws in the theme's colours, so a change of theme recolours it", () => {
+    const { container } = renderScatter(DECKS);
+
+    const mark = container.querySelector(".recharts-scatter-symbol circle");
+    expect(mark?.getAttribute("fill")).toBe("var(--s1)");
+    expect(mark?.getAttribute("stroke")).toBe("var(--surface)");
+  });
+
   it("drops the label of a deck that would overlap a label already placed", () => {
     const crowded = {
       ...DECKS[1],

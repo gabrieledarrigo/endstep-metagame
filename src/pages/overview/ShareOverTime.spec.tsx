@@ -90,6 +90,20 @@ describe("ShareOverTime", () => {
     expect(lower - upper).toBeGreaterThanOrEqual(16);
   });
 
+  it("draws each series in one of the theme's series colours, so a change of theme recolours it", () => {
+    sizeCharts();
+
+    const container = renderAt("/?window=30d");
+
+    const strokes = [...container.querySelectorAll(".recharts-line-curve")].map(
+      (line) => line.getAttribute("stroke"),
+    );
+    expect(strokes).toHaveLength(2);
+    strokes.forEach((stroke) => {
+      expect(stroke).toMatch(/^var\(--s[1-8]\)$/);
+    });
+  });
+
   it("leaves a hidden series out of the chart but keeps it in the legend", () => {
     sizeCharts();
 

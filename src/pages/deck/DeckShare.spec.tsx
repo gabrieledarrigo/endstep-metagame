@@ -48,6 +48,19 @@ describe("DeckShare", () => {
     );
   });
 
+  it("draws in the theme's colours, so a change of theme recolours it", () => {
+    const container = renderShare();
+
+    expect(
+      container.querySelector(".recharts-line-curve")?.getAttribute("stroke"),
+    ).toBe("var(--s1)");
+    expect(
+      container
+        .querySelector(".recharts-cartesian-grid line")
+        ?.getAttribute("stroke"),
+    ).toBe("var(--rule)");
+  });
+
   it("shows the day and the share in the tooltip", () => {
     const container = renderShare();
     const chart = container.querySelector(".recharts-surface") as Element;
