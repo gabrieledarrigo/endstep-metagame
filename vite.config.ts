@@ -3,10 +3,17 @@ import { defineConfig, type Connect, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import matchups from "./api/matchups.ts";
 import metagame from "./api/metagame.ts";
+import vercel from "./vercel.json" with { type: "json" };
 
 const METAGAME = "/api/metagame";
 const METAGAME_PREFIX = `${METAGAME}/`;
 const MATCHUPS = "/api/matchups";
+
+const SECURITY_HEADERS = Object.fromEntries(
+  (vercel.headers.find((rule) => rule.source === "/(.*)")?.headers ?? []).map(
+    ({ key, value }) => [key, value],
+  ),
+);
 
 type FunctionTarget = {
   handler: { fetch: (req: Request) => Promise<Response> };
@@ -135,6 +142,9 @@ export default defineConfig({
   plugins: [react(), api()],
   build: {
     target: "es2025",
+  },
+  preview: {
+    headers: SECURITY_HEADERS,
   },
   test: {
     projects: [
