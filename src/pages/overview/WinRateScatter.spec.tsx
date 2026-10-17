@@ -298,6 +298,28 @@ describe("WinRateScatter", () => {
     expect(container.querySelector(".win-rate__mark--armed")).toBeNull();
   });
 
+  it("clears the armed mark once a mouse moves over the chart, so only one marker looks pointed", () => {
+    const { container } = renderScatter(DECKS);
+
+    press(() => firstMark(container));
+    fireEvent.pointerMove(
+      screen.getByRole("link", { name: "Mono Red Madness" }),
+      { pointerType: "mouse" },
+    );
+
+    expect(container.querySelector(".win-rate__mark--armed")).toBeNull();
+    expect(screen.queryByText("Tap again to open the deck.")).toBeNull();
+  });
+
+  it("keeps the armed mark while a finger moves over the chart", () => {
+    const { container } = renderScatter(DECKS);
+
+    press(() => firstMark(container));
+    fireEvent.pointerMove(firstMark(container), { pointerType: "touch" });
+
+    expect(container.querySelector(".win-rate__mark--armed")).not.toBeNull();
+  });
+
   it("clears the armed mark when the decks change", () => {
     const { container, rerender } = renderScatter(DECKS);
 

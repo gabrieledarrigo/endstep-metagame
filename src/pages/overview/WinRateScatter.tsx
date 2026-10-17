@@ -314,7 +314,16 @@ export function WinRateScatter({ decks }: { decks: Deck[] }) {
   const labelled = labelledPoints(points, shareMax, rateMax - rateMin);
 
   return (
-    <Panel className="chart-section win-rate">
+    <Panel
+      className="chart-section win-rate"
+      onPointerMove={(event) => {
+        if (event.pointerType === "touch" || armed === null) {
+          return;
+        }
+
+        setArmedMark(null);
+      }}
+    >
       <h2 className="chart-section__title">Win rate against share</h2>
       <p className="chart-section__note">
         {leftOut > 0
