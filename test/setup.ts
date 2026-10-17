@@ -1,5 +1,6 @@
 import { cleanup } from "@testing-library/react";
-import { afterEach } from "vitest";
+import { afterEach, beforeEach } from "vitest";
+import { stubWidth } from "./stubWidth";
 
 globalThis.ResizeObserver = class {
   observe(): void {}
@@ -13,6 +14,10 @@ Object.defineProperty(globalThis, "navigator", {
     languages: ["en-GB"],
   },
   writable: true,
+});
+
+beforeEach(() => {
+  stubWidth(1280);
 });
 
 afterEach(() => {

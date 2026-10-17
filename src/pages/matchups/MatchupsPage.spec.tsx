@@ -19,6 +19,7 @@ import { type Mock, afterEach, describe, expect, it, vi } from "vitest";
 import detail from "../../../test/fixtures/deck.json";
 import matrix from "../../../test/fixtures/matchups.json";
 import { renderWithQueries } from "../../../test/renderWithQueries";
+import { stubWidth } from "../../../test/stubWidth";
 import { createQueryClient } from "../../api/queryClient";
 import { Layout } from "../../Layout";
 import { MatchupsPage } from "./MatchupsPage";
@@ -93,13 +94,6 @@ function renderAt(path: string | string[]): void {
       <MatchupsPage />
       <Address />
     </MemoryRouter>,
-  );
-}
-
-function stubWidth(wide: boolean): void {
-  vi.stubGlobal(
-    "matchMedia",
-    vi.fn((query: string) => ({ matches: wide, media: query })),
   );
 }
 
@@ -297,7 +291,7 @@ describe("MatchupsPage", () => {
 
   it("opens with the deck in the address in the spotlight, and reveals its row from 1,100px", async () => {
     stubRoutes();
-    stubWidth(true);
+    stubWidth(1280);
     const scrollIntoView = stubScroll();
     renderAt("/matchups?window=30d&deck=monster-tron-1bc68613");
 
@@ -314,7 +308,7 @@ describe("MatchupsPage", () => {
 
   it("reveals the deck's column below 1,100px", async () => {
     stubRoutes();
-    stubWidth(false);
+    stubWidth(800);
     const scrollIntoView = stubScroll();
     renderAt("/matchups?window=30d&deck=monster-tron-1bc68613");
 
@@ -327,7 +321,7 @@ describe("MatchupsPage", () => {
 
   it("finds a deck under an old name by its suffix, and leaves the address as it is", async () => {
     const fetchMock = stubRoutes();
-    stubWidth(true);
+    stubWidth(1280);
     stubScroll();
     renderAt("/matchups?window=30d&deck=renamed-1bc68613");
 
@@ -343,7 +337,7 @@ describe("MatchupsPage", () => {
 
   it("does not reveal the deck again on a return to the first history entry, which keeps the browser's scroll position", async () => {
     stubRoutes();
-    stubWidth(true);
+    stubWidth(1280);
     const scrollIntoView = stubScroll();
     renderWithQueries(
       <MemoryRouter
@@ -397,7 +391,7 @@ describe("MatchupsPage", () => {
 
   it("does not reveal the deck on a return to a later history entry", async () => {
     stubRoutes();
-    stubWidth(true);
+    stubWidth(1280);
     const scrollIntoView = stubScroll();
     renderAt(["/", "/matchups?window=30d&deck=monster-tron-1bc68613"]);
 
@@ -409,7 +403,7 @@ describe("MatchupsPage", () => {
 
   it("gives the first history entry a key of its own without moving focus or scrolling to the top", async () => {
     stubRoutes();
-    stubWidth(true);
+    stubWidth(1280);
     stubScroll();
     const scrollTo = vi.spyOn(window, "scrollTo").mockImplementation(() => {});
     renderWithQueries(
@@ -445,7 +439,7 @@ describe("MatchupsPage", () => {
 
   it("writes a chosen deck in place of the history entry and reveals it, and All decks removes it", async () => {
     stubRoutes();
-    stubWidth(true);
+    stubWidth(1280);
     const scrollIntoView = stubScroll();
     renderAt("/matchups?window=30d");
 
@@ -483,7 +477,7 @@ describe("MatchupsPage", () => {
 
   it("keeps the deck through a window change, without revealing it again", async () => {
     stubRoutes(undefined, () => Response.json(matrix));
-    stubWidth(true);
+    stubWidth(1280);
     const scrollIntoView = stubScroll();
     renderAt("/matchups?window=30d&deck=monster-tron-1bc68613");
     await screen.findByText("11 Sept to 10 Oct 2026");
@@ -514,7 +508,7 @@ describe("MatchupsPage", () => {
       () => Response.json(matrix),
       () => Response.json(withStompy),
     );
-    stubWidth(true);
+    stubWidth(1280);
     const scrollIntoView = stubScroll();
     renderAt("/matchups?window=30d&deck=stompy-12345678");
     await waitForNotice(
@@ -536,7 +530,7 @@ describe("MatchupsPage", () => {
       () => Response.json(matrix),
       () => new Promise<Response>((resolve) => (answer = resolve)),
     );
-    stubWidth(true);
+    stubWidth(1280);
     const scrollIntoView = stubScroll();
     renderAt("/matchups?window=30d");
     await screen.findByText("11 Sept to 10 Oct 2026");
@@ -746,7 +740,7 @@ describe("MatchupsPage", () => {
 
   it("requests no deck detail for a deck in the top decks", async () => {
     const fetchMock = stubRoutes();
-    stubWidth(true);
+    stubWidth(1280);
     stubScroll();
     renderAt("/matchups?window=30d&deck=affinity-e93f5f74");
 
@@ -761,7 +755,7 @@ describe("MatchupsPage", () => {
     vi.spyOn(window, "scrollTo").mockImplementation(() => {
       order.push("top");
     });
-    stubWidth(true);
+    stubWidth(1280);
     stubScroll().mockImplementation(() => {
       order.push("deck");
     });
