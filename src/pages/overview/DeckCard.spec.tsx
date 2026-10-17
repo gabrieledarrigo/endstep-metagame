@@ -20,6 +20,22 @@ describe("DeckCard", () => {
     ).toBe("/decks/affinity-e93f5f74?window=7d");
   });
 
+  it("writes a share above zero that two decimals would round to zero as under 0.01%", () => {
+    render(
+      <MemoryRouter>
+        <DeckCard
+          deck={{ ...AFFINITY, share: { ...AFFINITY.share, rate: 0.0000191 } }}
+        />
+      </MemoryRouter>,
+    );
+
+    expect(
+      within(screen.getByRole("link", { name: "Affinity" })).getByText(
+        "<0.01%",
+      ),
+    ).toBeTruthy();
+  });
+
   it("shows the art, the name, the colours, the stats and the key cards", () => {
     render(
       <MemoryRouter>
