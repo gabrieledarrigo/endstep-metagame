@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, useLocation, useNavigationType } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import series from "../../../test/fixtures/share-series.json";
@@ -16,10 +16,13 @@ function Address() {
   );
 }
 
-function renderAt(path: string): HTMLElement {
+function renderAt(
+  path: string,
+  shown: ShareSeries[] = series.series as ShareSeries[],
+): HTMLElement {
   return render(
     <MemoryRouter initialEntries={[path]}>
-      <ShareOverTime series={series.series as ShareSeries[]} />
+      <ShareOverTime series={shown} />
       <Address />
     </MemoryRouter>,
   ).container;
@@ -37,43 +40,243 @@ function pressed(name: string): string | null {
   return screen.getByRole("button", { name }).getAttribute("aria-pressed");
 }
 
-describe("ShareOverTime", () => {
-  it("shows every series when the address hides none", () => {
-    renderAt("/?window=30d");
+const AFFINITY = "affinity-e93f5f74";
+const MADNESS = "mono-red-madness-60596e8a";
 
-    expect(pressed("Affinity")).toBe("true");
-    expect(pressed("Mono Red Madness")).toBe("true");
+function curve(container: HTMLElement, name: string): Element {
+  return container.querySelector(
+    `.recharts-line-curve[name="${name}"]`,
+  ) as Element;
+}
+
+async function drawn(container: HTMLElement, name: string): Promise<Element> {
+  await waitFor(() => {
+    expect(curve(container, name)).toBeTruthy();
   });
 
-  it("reads the hidden series from the address", () => {
-    renderAt("/?window=30d&hide=affinity-e93f5f74");
+  return curve(container, name);
+}
+
+function end(container: HTMLElement, name: string): Element {
+  return endLabels(container).find((label) => label.textContent === name)
+    ?.parentElement as Element;
+}
+
+function hoverFirstDay(container: HTMLElement): void {
+  const chart = container.querySelector(".recharts-surface") as Element;
+  fireEvent.focus(chart);
+  fireEvent.keyDown(chart, { key: "ArrowRight" });
+}
+
+function activeDot(container: HTMLElement, name: string): Element {
+  const colour = curve(container, name).getAttribute("stroke");
+
+  return container.querySelector(
+    `.recharts-active-dot circle[fill="${colour}"]`,
+  ) as Element;
+}
+
+function tiedSeries(): ShareSeries[] {
+  const [affinity, madness] = series.series as ShareSeries[];
+
+  return [affinity, { ...madness, points: affinity.points }];
+}
+
+function threeSeries(): ShareSeries[] {
+  const [affinity, madness] = series.series as ShareSeries[];
+
+  return [
+    affinity,
+    madness,
+    {
+      ...affinity,
+      deck: {
+        ...affinity.deck,
+        id: "elves",
+        slug: "elves-0a1b2c3d",
+        name: "Elves",
+      },
+      points: affinity.points.map((point) => ({
+        ...point,
+        rate: point.rate === null ? null : point.rate / 2,
+      })),
+    },
+  ];
+}
+
+function tooltipNames(container: HTMLElement): (string | null)[] {
+  return [...container.querySelectorAll(".chart-tooltip__name")].map(
+    (name) => name.textContent,
+  );
+}
+
+describe("ShareOverTime", () => {
+  it("highlights no deck when the address names none", () => {
+    sizeCharts();
+
+    const container = renderAt("/?window=30d");
 
     expect(pressed("Affinity")).toBe("false");
-    expect(pressed("Mono Red Madness")).toBe("true");
+    expect(pressed("Mono Red Madness")).toBe("false");
+    expect(container.querySelector('[stroke-opacity="var(--line-fade)"]')).toBe(
+      null,
+    );
+    expect(container.querySelector('[opacity="var(--line-fade)"]')).toBe(null);
   });
 
-  it("writes each toggle into the address, replacing the history entry", () => {
-    renderAt("/?window=30d&hide=affinity-e93f5f74");
+  it("reads the highlighted deck from the address", () => {
+    renderAt(`/?window=30d&highlight=${AFFINITY}`);
 
-    fireEvent.click(screen.getByRole("button", { name: "Mono Red Madness" }));
+    expect(pressed("Affinity")).toBe("true");
+    expect(pressed("Mono Red Madness")).toBe("false");
+  });
 
-    expect(
-      screen.getByText(
-        "Address: ?window=30d&hide=affinity-e93f5f74&hide=mono-red-madness-60596e8a by REPLACE",
-      ),
-    ).toBeTruthy();
+  it("highlights on a click, clears on a second click, and moves on a click on another deck, replacing the history entry", () => {
+    renderAt("/?window=30d");
 
     fireEvent.click(screen.getByRole("button", { name: "Affinity" }));
 
     expect(
-      screen.getByText(
-        "Address: ?window=30d&hide=mono-red-madness-60596e8a by REPLACE",
-      ),
+      screen.getByText(`Address: ?window=30d&highlight=${AFFINITY} by REPLACE`),
     ).toBeTruthy();
     expect(pressed("Affinity")).toBe("true");
+
+    fireEvent.click(screen.getByRole("button", { name: "Mono Red Madness" }));
+
+    expect(
+      screen.getByText(`Address: ?window=30d&highlight=${MADNESS} by REPLACE`),
+    ).toBeTruthy();
+    expect(pressed("Affinity")).toBe("false");
+    expect(pressed("Mono Red Madness")).toBe("true");
+
+    fireEvent.click(screen.getByRole("button", { name: "Mono Red Madness" }));
+
+    expect(screen.getByText("Address: ?window=30d by REPLACE")).toBeTruthy();
+    expect(pressed("Mono Red Madness")).toBe("false");
   });
 
-  it("draws a line and an end label for each shown series, kept apart", () => {
+  it("shows no highlight for a deck that is not in the chart", () => {
+    sizeCharts();
+
+    const container = renderAt("/?window=30d&highlight=elves-0a1b2c3d");
+
+    expect(pressed("Affinity")).toBe("false");
+    expect(pressed("Mono Red Madness")).toBe("false");
+    expect(container.querySelector('[stroke-opacity="var(--line-fade)"]')).toBe(
+      null,
+    );
+  });
+
+  it("draws the highlighted line at 3px in a layer above the other lines", async () => {
+    sizeCharts();
+
+    const container = renderAt(`/?window=30d&highlight=${AFFINITY}`);
+
+    const highlighted = await drawn(container, "Affinity");
+    const other = curve(container, "Mono Red Madness");
+    expect(highlighted.getAttribute("stroke-width")).toBe("3");
+    expect(other.getAttribute("stroke-width")).toBe("2");
+    expect(highlighted.closest(".recharts-zIndex-layer_401")).toBeTruthy();
+    expect(other.closest(".recharts-zIndex-layer_400")).toBeTruthy();
+    expect(
+      other.compareDocumentPosition(highlighted) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it("fades every other line, its end dot and its end label, and leaves the highlighted deck at full strength", async () => {
+    sizeCharts();
+
+    const container = renderAt(`/?window=30d&highlight=${AFFINITY}`);
+    await drawn(container, "Affinity");
+
+    expect(
+      curve(container, "Mono Red Madness").getAttribute("stroke-opacity"),
+    ).toBe("var(--line-fade)");
+    expect(end(container, "Mono Red Madness").getAttribute("opacity")).toBe(
+      "var(--line-fade)",
+    );
+    expect(curve(container, "Affinity").hasAttribute("stroke-opacity")).toBe(
+      false,
+    );
+    expect(end(container, "Affinity").hasAttribute("opacity")).toBe(false);
+  });
+
+  it("paints the highlighted deck's end dot and label after the others, so no faded end covers it", () => {
+    sizeCharts();
+
+    const container = renderAt(`/?window=30d&highlight=${MADNESS}`);
+
+    expect(endLabels(container).map((label) => label.textContent)).toEqual([
+      "Affinity",
+      "Mono Red Madness",
+    ]);
+  });
+
+  it("fades the other lines' hover dots, and not the highlighted deck's", async () => {
+    sizeCharts();
+    const container = renderAt(`/?window=30d&highlight=${AFFINITY}`);
+    await drawn(container, "Affinity");
+
+    hoverFirstDay(container);
+
+    expect(
+      activeDot(container, "Mono Red Madness").getAttribute("opacity"),
+    ).toBe("var(--line-fade)");
+    expect(activeDot(container, "Affinity").hasAttribute("opacity")).toBe(
+      false,
+    );
+  });
+
+  it("paints the highlighted deck's hover dot after the others, in the same layer", async () => {
+    sizeCharts();
+    const container = renderAt(`/?window=30d&highlight=${AFFINITY}`);
+    await drawn(container, "Affinity");
+
+    hoverFirstDay(container);
+
+    const dots = [
+      ...container.querySelectorAll(
+        ".recharts-zIndex-layer_1200 .recharts-active-dot circle",
+      ),
+    ];
+    expect(dots).toHaveLength(2);
+    expect(dots.at(-1)).toBe(activeDot(container, "Affinity"));
+  });
+
+  it("paints the highlighted deck's hover dot last when the highlight moves while the dots show", async () => {
+    sizeCharts();
+    const container = renderAt("/?window=30d", threeSeries());
+    hoverFirstDay(container);
+
+    for (const name of ["Mono Red Madness", "Affinity", "Elves"]) {
+      fireEvent.click(screen.getByRole("button", { name }));
+      await waitFor(() => {
+        expect(
+          curve(container, name).closest(".recharts-zIndex-layer_401"),
+        ).toBeTruthy();
+      });
+    }
+
+    const dots = [
+      ...container.querySelectorAll(
+        ".recharts-zIndex-layer_1200 .recharts-active-dot circle",
+      ),
+    ];
+    expect(dots).toHaveLength(3);
+    expect(dots.at(-1)).toBe(activeDot(container, "Elves"));
+  });
+
+  it("draws every line whatever the address says about hiding", () => {
+    sizeCharts();
+
+    const container = renderAt(`/?window=30d&hide=${AFFINITY}`);
+
+    expect(container.querySelectorAll(".recharts-line-curve")).toHaveLength(2);
+    expect(endLabels(container)).toHaveLength(2);
+  });
+
+  it("draws a line and an end label for each series, kept apart", () => {
     sizeCharts();
 
     const container = renderAt("/?window=30d");
@@ -104,18 +307,6 @@ describe("ShareOverTime", () => {
     });
   });
 
-  it("leaves a hidden series out of the chart but keeps it in the legend", () => {
-    sizeCharts();
-
-    const container = renderAt("/?window=30d&hide=affinity-e93f5f74");
-
-    expect(container.querySelectorAll(".recharts-line-curve")).toHaveLength(1);
-    expect(endLabels(container).map((label) => label.textContent)).toEqual([
-      "Mono Red Madness",
-    ]);
-    expect(screen.getByRole("button", { name: "Affinity" })).toBeTruthy();
-  });
-
   it("shows the day and each series' share in the tooltip, highest first", () => {
     sizeCharts();
     const container = renderAt("/?window=30d");
@@ -129,6 +320,34 @@ describe("ShareOverTime", () => {
     expect(container.querySelector(".chart-tooltip")?.textContent).toBe(
       "05 October 2026Mono Red Madness6.82%Affinity6.65%",
     );
+  });
+
+  it("lists decks tied on a day in series order when the highlight comes from the address", async () => {
+    sizeCharts();
+    const container = renderAt(
+      `/?window=30d&highlight=${AFFINITY}`,
+      tiedSeries(),
+    );
+    await drawn(container, "Affinity");
+
+    hoverFirstDay(container);
+
+    expect(tooltipNames(container)).toEqual(["Affinity", "Mono Red Madness"]);
+  });
+
+  it("lists decks tied on a day in series order when the highlight comes from a click", async () => {
+    sizeCharts();
+    const container = renderAt("/?window=30d", tiedSeries());
+
+    fireEvent.click(screen.getByRole("button", { name: "Affinity" }));
+    await waitFor(() => {
+      expect(
+        curve(container, "Affinity").closest(".recharts-zIndex-layer_401"),
+      ).toBeTruthy();
+    });
+    hoverFirstDay(container);
+
+    expect(tooltipNames(container)).toEqual(["Affinity", "Mono Red Madness"]);
   });
 
   it("draws nothing without series", () => {

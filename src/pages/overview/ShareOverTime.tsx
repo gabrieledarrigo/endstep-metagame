@@ -1,6 +1,7 @@
 import {
   CartesianGrid,
   Customized,
+  DefaultZIndexes,
   Line,
   LineChart,
   Tooltip,
@@ -36,6 +37,7 @@ type SeriesEnd = {
   day: string;
   share: number;
   colour: string | undefined;
+  faded: boolean;
 };
 
 function shareRows(series: ShareSeries[]): ShareRow[] {
@@ -57,6 +59,7 @@ function shareRows(series: ShareSeries[]): ShareRow[] {
 const END_LABEL_OFFSET = 10;
 const END_LABEL_GAP = 16;
 const END_LABEL_CHAR_WIDTH = 8;
+const LINE_FADE = "var(--line-fade)";
 
 function endLabelGutter(series: ShareSeries[]): number {
   const longest = series.reduce(
@@ -67,7 +70,9 @@ function endLabelGutter(series: ShareSeries[]): number {
   return END_LABEL_OFFSET + longest * END_LABEL_CHAR_WIDTH;
 }
 
-function seriesEnd(item: ShareSeries): Omit<SeriesEnd, "colour"> | null {
+function seriesEnd(
+  item: ShareSeries,
+): Omit<SeriesEnd, "colour" | "faded"> | null {
   const last = item.points.findLast((point) => point.rate !== null);
   if (!last || last.rate === null) {
     return null;
@@ -123,11 +128,12 @@ function SeriesEnds({ ends }: { ends: SeriesEnd[] }) {
     }),
     plot.y + plot.height,
   );
+  const painted = placed.toSorted((a, b) => Number(b.faded) - Number(a.faded));
 
   return (
     <g aria-hidden="true">
-      {placed.map((end) => (
-        <g key={end.key}>
+      {painted.map((end) => (
+        <g key={end.key} opacity={end.faded ? LINE_FADE : undefined}>
           <circle
             cx={end.x}
             cy={end.y}
@@ -150,7 +156,11 @@ function SeriesEnds({ ends }: { ends: SeriesEnd[] }) {
   );
 }
 
-function ShareTooltip({ active, payload, label }: TooltipContentProps) {
+type ShareTooltipProps = TooltipContentProps & {
+  order: string[];
+};
+
+function ShareTooltip({ active, payload, label, order }: ShareTooltipProps) {
   if (!active) {
     return null;
   }
@@ -160,7 +170,11 @@ function ShareTooltip({ active, payload, label }: TooltipContentProps) {
     return null;
   }
 
-  rows.sort((a, b) => Number(b.value) - Number(a.value));
+  rows.sort(
+    (a, b) =>
+      Number(b.value) - Number(a.value) ||
+      order.indexOf(String(a.dataKey)) - order.indexOf(String(b.dataKey)),
+  );
 
   return (
     <ChartTooltip
@@ -175,7 +189,7 @@ function ShareTooltip({ active, payload, label }: TooltipContentProps) {
   );
 }
 
-const SHARE_LEGEND_WIDTHS = [72, 124, 102, 54, 92, 86, 106, 96];
+const SHARE_LEGEND_WIDTHS = [92, 144, 122, 74, 112, 106, 126, 116];
 
 export function ShareOverTimeSkeleton() {
   return (
@@ -195,7 +209,7 @@ export function ShareOverTimeSkeleton() {
 
 export function ShareOverTime({ series }: { series: ShareSeries[] }) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const hidden = new Set(searchParams.getAll("hide"));
+  const highlightedSlug = searchParams.get("highlight");
 
   if (series.length === 0) {
     return null;
@@ -203,19 +217,28 @@ export function ShareOverTime({ series }: { series: ShareSeries[] }) {
 
   const colours = seriesColours(series.map((item) => item.deck.id));
   const rows = shareRows(series);
-  const shown = series.filter((item) => !hidden.has(item.deck.slug));
-  const ends = shown.flatMap((item) => {
+  const highlighted = series.find((item) => item.deck.slug === highlightedSlug);
+  const faded = (item: ShareSeries): boolean =>
+    highlighted !== undefined && item !== highlighted;
+    
+  const drawOrder = highlighted
+    ? [...series.filter((item) => item !== highlighted), highlighted]
+    : series;
+  
+  const ends = series.flatMap((item) => {
     const end = seriesEnd(item);
-    return end ? [{ ...end, colour: colours.get(end.key) }] : [];
+    return end
+      ? [{ ...end, colour: colours.get(end.key), faded: faded(item) }]
+      : [];
   });
 
   const toggle = (slug: string): void =>
     setSearchParams(
       (params) => {
-        if (params.has("hide", slug)) {
-          params.delete("hide", slug);
+        if (params.get("highlight") === slug) {
+          params.delete("highlight");
         } else {
-          params.append("hide", slug);
+          params.set("highlight", slug);
         }
         return params;
       },
@@ -256,21 +279,42 @@ export function ShareOverTime({ series }: { series: ShareSeries[] }) {
               <YAxis tickFormatter={axisShare} width={46} {...CHART_AXIS} />
               <Tooltip
                 cursor={{ stroke: CHART_BASELINE }}
-                content={ShareTooltip}
+                content={(props) => (
+                  <ShareTooltip
+                    {...props}
+                    order={series.map((item) => item.deck.id)}
+                  />
+                )}
               />
-              {shown.map((item) => (
-                <Line
-                  key={item.deck.id}
-                  type="linear"
-                  dataKey={item.deck.id}
-                  name={item.deck.name}
-                  stroke={colours.get(item.deck.id)}
-                  strokeWidth={2}
-                  dot={false}
-                  activeDot={{ r: 3.5, strokeWidth: 2, stroke: CHART_SURFACE }}
-                  isAnimationActive={false}
-                />
-              ))}
+              {drawOrder.map((item) => {
+                const isHighlighted = item === highlighted;
+                const isFaded = faded(item);
+
+                return (
+                  <Line
+                    key={`${item.deck.slug} ${highlighted?.deck.slug ?? ""}`}
+                    type="linear"
+                    dataKey={item.deck.id}
+                    name={item.deck.name}
+                    stroke={colours.get(item.deck.id)}
+                    strokeWidth={isHighlighted ? 3 : 2}
+                    strokeOpacity={isFaded ? LINE_FADE : undefined}
+                    zIndex={
+                      isHighlighted
+                        ? DefaultZIndexes.line + 1
+                        : DefaultZIndexes.line
+                    }
+                    dot={false}
+                    activeDot={{
+                      r: 3.5,
+                      strokeWidth: 2,
+                      stroke: CHART_SURFACE,
+                      opacity: isFaded ? LINE_FADE : undefined,
+                    }}
+                    isAnimationActive={false}
+                  />
+                );
+              })}
               <Customized component={<SeriesEnds ends={ends} />} />
             </LineChart>
           </ChartFrame>
@@ -282,7 +326,7 @@ export function ShareOverTime({ series }: { series: ShareSeries[] }) {
             name: item.deck.name,
             colour: colours.get(item.deck.id),
           }))}
-          hidden={hidden}
+          pressed={highlighted?.deck.slug ?? null}
           onToggle={toggle}
         />
       </Panel>
