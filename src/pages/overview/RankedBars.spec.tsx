@@ -119,9 +119,11 @@ describe("RankedBars", () => {
     expect(barFills()[1]).toBe("var(--seq-600)");
   });
 
-  it("leaves the rest of the field as it is under the pointer, since it is not a deck", () => {
+  it("keeps the rest of the field out of the links, so it stays at rest under the pointer", () => {
     renderBars(PAGE);
     const other = screen.getByText("Other");
+
+    expect(other.closest("a")).toBeNull();
 
     fireEvent.pointerMove(other, { pointerType: "mouse" });
 
