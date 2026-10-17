@@ -8,10 +8,11 @@ function toggle(): HTMLElement {
 }
 
 function icon(): string | undefined {
-  return toggle()
-    .querySelector(".theme-toggle__icon")
-    ?.getAttribute("class")
-    ?.replace("theme-toggle__icon theme-toggle__icon--", "");
+  const drawn = toggle().querySelector(".theme-toggle__icon");
+
+  return ["sun", "moon"].find((name) =>
+    drawn?.classList.contains(`theme-toggle__icon--${name}`),
+  );
 }
 
 afterEach(() => {
