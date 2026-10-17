@@ -33,6 +33,13 @@ function lines(): string[] {
   });
 }
 
+function states(): (string | null)[] {
+  return items().map(
+    (item) =>
+      item.querySelector(".matchup-swatch")?.className.split("--")[1] ?? null,
+  );
+}
+
 function swatches(): (string | null)[] {
   return items().map(
     (item) => item.querySelector(".matchup-swatch")?.textContent ?? null,
@@ -54,6 +61,7 @@ describe("MatchupList", () => {
       "Naya Gates18 of the 20 matches neededToo few to call",
     ]);
     expect(swatches()).toEqual(["57%", "48%", ""]);
+    expect(states()).toEqual(["win", "neutral", "gated"]);
   });
 
   it("puts the opponent's link, its matches, the verdict and the cell on each line", () => {
@@ -91,6 +99,7 @@ describe("MatchupList", () => {
       "Naya GatesNo data",
     ]);
     expect(swatches()).toEqual(["43%", "52%", "·"]);
+    expect(states()).toEqual(["loss", "neutral", "none"]);
     expect(screen.getByText("·").getAttribute("aria-hidden")).toBe("true");
   });
 
