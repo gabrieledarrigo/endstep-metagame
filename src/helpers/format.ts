@@ -39,6 +39,20 @@ export function percent(rate: number): string {
 }
 
 /**
+ * Formats a meta share with one decimal in the user's locales. A share above zero never reads as zero.
+ *
+ * @param rate - A share between 0 and 1.
+ * @returns The share, such as `9.6%`, or `<0.1%` for a share above zero that one decimal would round to zero.
+ */
+export function formatShare(rate: number): string {
+  if (rate > 0 && rate < 0.0005) {
+    return `<${percent(0.001)}`;
+  }
+
+  return percent(rate);
+}
+
+/**
  * Formats a tick on a percentage axis.
  *
  * @param share - A value in percent.
@@ -49,19 +63,24 @@ export function axisShare(share: number): string {
 }
 
 /**
- * Formats a meta share with two decimals in the user's locales.
+ * Formats a meta share with two decimals in the user's locales. A share above zero never reads as zero.
  *
  * @param share - A share in percent.
- * @returns The share, such as `9.59%`.
+ * @returns The share, such as `9.59%`, or `<0.01%` for a share above zero that two decimals would round to zero.
  */
 export function tooltipShare(share: number): string {
   const locales = userLocales();
-
-  return new Intl.NumberFormat(locales, {
+  const format = new Intl.NumberFormat(locales, {
     style: "percent",
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }).format(share / 100);
+  });
+
+  if (share > 0 && share < 0.005) {
+    return `<${format.format(0.0001)}`;
+  }
+
+  return format.format(share / 100);
 }
 
 /**
