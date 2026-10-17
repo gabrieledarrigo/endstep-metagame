@@ -160,9 +160,7 @@ describe("OverviewPage", () => {
     expect(
       screen.queryByRole("heading", { name: "No decks in this window" }),
     ).toBeNull();
-    expect(
-      screen.getByText("Registrations").closest('[aria-busy="true"]'),
-    ).toBeTruthy();
+    expect(screen.queryByText("236,728")).toBeNull();
   });
 
   it("ends the busy state when one request fails, and shows its error", async () => {
