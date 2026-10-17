@@ -14,8 +14,8 @@ function headersFor(source: string): Record<string, string> {
 }
 
 function inlineScripts(page: string): string[] {
-  return [...page.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)]
-    .filter(([, attributes]) => !/\bsrc=/.test(attributes))
+  return [...page.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script\s*>/gi)]
+    .filter(([, attributes]) => !/(^|\s)src\s*=/i.test(attributes))
     .map(([, , body]) => body);
 }
 
@@ -54,5 +54,31 @@ describe("vercel.json", () => {
     inlineScripts(html).forEach((script) => {
       expect(policy).toContain(`script-src 'self' ${sha256(script)}`);
     });
+  });
+});
+
+describe("inlineScripts", () => {
+  it("finds an inline script in upper case", () => {
+    expect(inlineScripts("<SCRIPT>run()</SCRIPT>")).toEqual(["run()"]);
+  });
+
+  it("finds an inline script whose only src is a data attribute", () => {
+    expect(inlineScripts('<script data-src="a.js">run()</script>')).toEqual([
+      "run()",
+    ]);
+  });
+
+  it("finds an inline script with a line break before its closing bracket", () => {
+    expect(
+      inlineScripts('<script\n  type="module"\n>run()</script\n>'),
+    ).toEqual(["run()"]);
+  });
+
+  it("skips an external script, however its src is spaced or cased", () => {
+    expect(
+      inlineScripts(
+        '<script src = "a.js"></script><script\nSRC="b.js"></script>',
+      ),
+    ).toEqual([]);
   });
 });
