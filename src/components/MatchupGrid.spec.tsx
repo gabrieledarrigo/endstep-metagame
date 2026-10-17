@@ -1,6 +1,6 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import matrix from "../../test/fixtures/matchups.json";
 import type { MatchupMatrix } from "../api/types";
 import { MatchupGrid } from "./MatchupGrid";
@@ -33,6 +33,61 @@ function renderTable(): void {
     </MemoryRouter>,
   );
 }
+
+type SpotlightOptions = {
+  spotlight: string;
+  reveal?: boolean;
+  onReveal?: () => void;
+};
+
+function renderSpotlight({
+  spotlight,
+  reveal,
+  onReveal,
+}: SpotlightOptions): void {
+  render(
+    <MemoryRouter initialEntries={["/matchups?window=30d"]}>
+      <MatchupGrid
+        rows={MATRIX.decks}
+        columns={MATRIX.decks}
+        cells={MATRIX.cells}
+        label="Top 4 decks"
+        spotlight={spotlight}
+        reveal={reveal}
+        onReveal={onReveal}
+      />
+    </MemoryRouter>,
+  );
+}
+
+function stubWidth(wide: boolean): ReturnType<typeof vi.fn> {
+  const matchMedia = vi.fn((query: string) => ({
+    matches: wide,
+    media: query,
+  }));
+  vi.stubGlobal("matchMedia", matchMedia);
+
+  return matchMedia;
+}
+
+function stubScroll(): ReturnType<typeof vi.fn> {
+  const scrollIntoView = vi.fn();
+  Element.prototype.scrollIntoView = scrollIntoView;
+
+  return scrollIntoView;
+}
+
+function tabStop(): Element {
+  const stops = screen.getByRole("grid").querySelectorAll("[tabindex='0']");
+  expect(stops).toHaveLength(1);
+
+  return stops[0];
+}
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+  Reflect.deleteProperty(Element.prototype, "scrollIntoView");
+});
 
 function renderRow(): void {
   const [affinity, ...others] = MATRIX.decks;
@@ -324,5 +379,113 @@ describe("MatchupGrid", () => {
     const stops = screen.getByRole("grid").querySelectorAll("[tabindex='0']");
     expect(stops).toHaveLength(1);
     expect(stops[0].textContent).toBe("Affinity");
+  });
+
+  it("puts a deck's row and column in the spotlight, and fades every other cell", () => {
+    renderSpotlight({ spotlight: "monster-tron-1bc68613" });
+
+    const grid = screen.getByRole("grid");
+    expect(grid.closest(".matchup")?.className).toContain("matchup--spotlit");
+    expect(
+      screen.getByRole("rowheader", { name: "Monster Tron" }).className,
+    ).toContain("matchup__row--spotlit");
+    expect(
+      screen.getByRole("columnheader", { name: "Monster Tron" }).className,
+    ).toContain("matchup__col--spotlit");
+    expect(grid.querySelectorAll(".matchup__row--spotlit")).toHaveLength(1);
+    expect(grid.querySelectorAll(".matchup__col--spotlit")).toHaveLength(1);
+    expect(
+      screen
+        .getAllByRole("gridcell")
+        .filter((element) => element.className.includes("--spotlit"))
+        .map((element) => element.getAttribute("aria-label")?.split(":")[0]),
+    ).toEqual([
+      "Affinity against Monster Tron",
+      "Mono Red Madness against Monster Tron",
+      "Monster Tron against Affinity",
+      "Monster Tron against Mono Red Madness",
+      "Monster Tron against Monster Tron",
+      "Monster Tron against Naya Gates",
+      "Naya Gates against Monster Tron",
+    ]);
+  });
+
+  it("has no spotlight for a deck it does not list", () => {
+    renderSpotlight({ spotlight: "elves-00000000" });
+
+    const grid = screen.getByRole("grid");
+    expect(grid.closest(".matchup")?.className).not.toContain(
+      "matchup--spotlit",
+    );
+    expect(grid.querySelectorAll("[class*='--spotlit']")).toHaveLength(0);
+  });
+
+  it("neither scrolls nor moves the tab stop without a reveal", () => {
+    stubWidth(true);
+    const scrollIntoView = stubScroll();
+    renderSpotlight({ spotlight: "monster-tron-1bc68613" });
+
+    expect(scrollIntoView).not.toHaveBeenCalled();
+    expect(tabStop().getAttribute("aria-label")).toBe(
+      "Affinity against Mono Red Madness: 57%, clear result",
+    );
+  });
+
+  it("from 1,100px reveals the deck's row: scrolls to its name and moves the tab stop there, without focus", () => {
+    const matchMedia = stubWidth(true);
+    const scrollIntoView = stubScroll();
+    const onReveal = vi.fn();
+    renderSpotlight({
+      spotlight: "monster-tron-1bc68613",
+      reveal: true,
+      onReveal,
+    });
+
+    const name = screen.getByRole("rowheader", { name: "Monster Tron" });
+    expect(matchMedia).toHaveBeenCalledWith("(min-width: 1100px)");
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
+    expect(scrollIntoView.mock.contexts[0]).toBe(name);
+    expect(scrollIntoView).toHaveBeenCalledWith({
+      block: "start",
+      inline: "nearest",
+    });
+    expect(tabStop()).toBe(name);
+    expect(document.activeElement).toBe(document.body);
+    expect(onReveal).toHaveBeenCalledTimes(1);
+  });
+
+  it("below 1,100px reveals the deck's column: scrolls to its name and moves the tab stop there, without focus", () => {
+    stubWidth(false);
+    const scrollIntoView = stubScroll();
+    const onReveal = vi.fn();
+    renderSpotlight({
+      spotlight: "monster-tron-1bc68613",
+      reveal: true,
+      onReveal,
+    });
+
+    const name = screen.getByRole("columnheader", { name: "Monster Tron" });
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
+    expect(scrollIntoView.mock.contexts[0]).toBe(name);
+    expect(scrollIntoView).toHaveBeenCalledWith({
+      block: "nearest",
+      inline: "start",
+    });
+    expect(tabStop()).toBe(name);
+    expect(document.activeElement).toBe(document.body);
+    expect(onReveal).toHaveBeenCalledTimes(1);
+  });
+
+  it("reports a reveal of a deck it does not list, with no scroll", () => {
+    stubWidth(true);
+    const scrollIntoView = stubScroll();
+    const onReveal = vi.fn();
+    renderSpotlight({ spotlight: "elves-00000000", reveal: true, onReveal });
+
+    expect(scrollIntoView).not.toHaveBeenCalled();
+    expect(onReveal).toHaveBeenCalledTimes(1);
+    expect(tabStop().getAttribute("aria-label")).toBe(
+      "Affinity against Mono Red Madness: 57%, clear result",
+    );
   });
 });

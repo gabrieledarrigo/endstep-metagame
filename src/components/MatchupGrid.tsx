@@ -66,6 +66,14 @@ function elementAt(
   );
 }
 
+function revealTarget(row: number, column: number): Position | null {
+  if (window.matchMedia("(min-width: 1100px)").matches) {
+    return row === -1 ? null : { row, column: -1 };
+  }
+
+  return column === -1 ? null : { row: -1, column };
+}
+
 type MatchupDetailProps = {
   rowName: string;
   columnName: string;
@@ -145,6 +153,9 @@ type MatchupGridProps = {
   label: string;
   linkRows?: boolean;
   contained?: boolean;
+  spotlight?: string;
+  reveal?: boolean;
+  onReveal?: () => void;
   className?: string;
 };
 
@@ -155,6 +166,9 @@ export function MatchupGrid({
   label,
   linkRows = true,
   contained,
+  spotlight,
+  reveal,
+  onReveal,
   className,
 }: MatchupGridProps) {
   const lastRow = rows.length - 1;
@@ -172,6 +186,9 @@ export function MatchupGrid({
   const tooltip = useRef<HTMLDivElement>(null);
   const shown =
     active !== null && active.row >= 0 && active.column >= 0 ? active : null;
+  const spotlitRow = rows.findIndex((deck) => deck.slug === spotlight);
+  const spotlitColumn = columns.findIndex((deck) => deck.slug === spotlight);
+  const spotlit = spotlitRow >= 0 || spotlitColumn >= 0;
 
   useLayoutEffect(() => {
     const cell = shown && elementAt(table.current, shown);
@@ -180,6 +197,36 @@ export function MatchupGrid({
       placeTooltip(tooltip.current, frame.current, cell);
     }
   }, [shown]);
+
+  const target = reveal ? revealTarget(spotlitRow, spotlitColumn) : null;
+  const targetRow = target?.row;
+  const targetColumn = target?.column;
+
+  if (
+    target !== null &&
+    (focus.row !== target.row || focus.column !== target.column)
+  ) {
+    setFocus(target);
+  }
+
+  useEffect(() => {
+    if (!reveal) {
+      return;
+    }
+
+    if (targetRow !== undefined && targetColumn !== undefined) {
+      elementAt(table.current, {
+        row: targetRow,
+        column: targetColumn,
+      })?.scrollIntoView(
+        targetColumn === -1
+          ? { block: "start", inline: "nearest" }
+          : { block: "nearest", inline: "start" },
+      );
+    }
+
+    onReveal?.();
+  }, [reveal, targetRow, targetColumn, onReveal]);
 
   useEffect(() => {
     const hide = (): void => setActive(null);
@@ -278,7 +325,12 @@ export function MatchupGrid({
 
   return (
     <div
-      className={["matchup", contained && "matchup--contained", className]
+      className={[
+        "matchup",
+        contained && "matchup--contained",
+        spotlit && "matchup--spotlit",
+        className,
+      ]
         .filter(Boolean)
         .join(" ")}
     >
@@ -304,11 +356,13 @@ export function MatchupGrid({
                 {columns.map((deck, column) => (
                   <th
                     key={deck.slug}
-                    className={
-                      active?.column === column
-                        ? "matchup__col matchup__col--active"
-                        : "matchup__col"
-                    }
+                    className={[
+                      "matchup__col",
+                      active?.column === column && "matchup__col--active",
+                      spotlitColumn === column && "matchup__col--spotlit",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
                     scope="col"
                     data-row={-1}
                     data-column={column}
@@ -329,11 +383,13 @@ export function MatchupGrid({
               {rows.map((rowDeck, row) => (
                 <tr key={rowDeck.slug}>
                   <th
-                    className={
-                      active?.row === row
-                        ? "matchup__row matchup__row--active"
-                        : "matchup__row"
-                    }
+                    className={[
+                      "matchup__row",
+                      active?.row === row && "matchup__row--active",
+                      spotlitRow === row && "matchup__row--spotlit",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
                     scope="row"
                     data-row={row}
                     data-column={-1}
@@ -362,7 +418,11 @@ export function MatchupGrid({
                     return (
                       <td
                         key={columnDeck.slug}
-                        className={`matchup__cell matchup__cell--${state}`}
+                        className={
+                          spotlitRow === row || spotlitColumn === column
+                            ? `matchup__cell matchup__cell--${state} matchup__cell--spotlit`
+                            : `matchup__cell matchup__cell--${state}`
+                        }
                         role="gridcell"
                         data-row={row}
                         data-column={column}
