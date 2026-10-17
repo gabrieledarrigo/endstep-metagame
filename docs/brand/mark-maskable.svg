@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect id="tile" width="512" height="512" fill="#1c5cab"/>
+  <g transform="translate(256 256) scale(5.2) translate(-32 -32)">
+  <rect id="bar-1" x="14" y="14.5" width="36" height="9" rx="3" fill="#fcfcfb"/>
+  <rect id="bar-2" x="14" y="27.5" width="26" height="9" rx="3" fill="#cfdceb"/>
+  <rect id="bar-3" x="14" y="40.5" width="16" height="9" rx="3" fill="#a2bcdb"/>
+  </g>
+</svg>

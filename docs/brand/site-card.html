@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Site card</title>
+    <style>
+      html, body { margin: 0; }
+      body { width: 1200px; height: 630px; box-sizing: border-box; padding: 0 96px; display: flex; align-items: center; gap: 64px; position: relative;
+        background: #f9f9f7; color: #0b0b0b; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+      svg { width: 240px; height: 240px; flex-shrink: 0; }
+      h1 { margin: 0; font-size: 76px; line-height: 1.05; letter-spacing: -0.02em; }
+      p { margin: 22px 0 0; font-size: 30px; line-height: 1.35; color: #52514e; max-width: 22em; }
+      .rule { position: absolute; left: 0; right: 0; bottom: 0; height: 14px; background: #1c5cab; }
+    </style>
+  </head>
+  <body>
+    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <rect id="tile" width="64" height="64" rx="14" fill="#1c5cab"/>
+  <rect id="bar-1" x="14" y="14.5" width="36" height="9" rx="3" fill="#fcfcfb"/>
+  <rect id="bar-2" x="14" y="27.5" width="26" height="9" rx="3" fill="#cfdceb"/>
+  <rect id="bar-3" x="14" y="40.5" width="16" height="9" rx="3" fill="#a2bcdb"/>
+</svg>
+    <div>
+      <h1>Pauper Endstep metagame</h1>
+      <p>Which Pauper decks are played, how they perform, and how they do against each other.</p>
+    </div>
+    <div class="rule"></div>
+  </body>
+</html>
