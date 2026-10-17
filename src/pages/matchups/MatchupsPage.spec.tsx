@@ -110,6 +110,21 @@ function stubScroll(): Mock<(options?: ScrollIntoViewOptions) => void> {
   return scrollIntoView;
 }
 
+function notices(): string[] {
+  return screen
+    .queryAllByText(/isn't in the top/)
+    .map(
+      (element) =>
+        `${element.getAttribute("role") ?? "line"}: ${element.textContent}`,
+    );
+}
+
+async function waitForNotice(text: string): Promise<void> {
+  await waitFor(() => {
+    expect(notices()).toEqual([`status: ${text}`, `line: ${text}`]);
+  });
+}
+
 function picker(): HTMLSelectElement {
   return screen.getByRole<HTMLSelectElement>("combobox", { name: "Deck" });
 }
@@ -478,7 +493,7 @@ describe("MatchupsPage", () => {
     stubWidth(true);
     const scrollIntoView = stubScroll();
     renderAt("/matchups?window=30d&deck=stompy-12345678");
-    await screen.findByText(
+    await waitForNotice(
       "Mono Green Stompy isn't in the top 4 for the selected time window.",
     );
 
@@ -486,7 +501,7 @@ describe("MatchupsPage", () => {
 
     expect(await screen.findByRole("grid", { name: /7d window/ })).toBeTruthy();
     expect(spotlit()).toEqual(["Mono Green Stompy"]);
-    expect(screen.queryByText(/isn't in the top/)).toBeNull();
+    expect(notices()).toEqual([]);
     expect(scrollIntoView).not.toHaveBeenCalled();
   });
 
@@ -507,21 +522,17 @@ describe("MatchupsPage", () => {
     );
     renderAt("/matchups?window=30d&deck=stompy-12345678");
 
-    expect(
-      await screen.findByText(
-        "This deck isn't in the top 4 for the selected time window.",
-      ),
-    ).toBeTruthy();
+    await waitForNotice(
+      "This deck isn't in the top 4 for the selected time window.",
+    );
     expect(chosen()).toBe("This deck (not in the top 4)");
     expect(spotlit()).toEqual([]);
 
     answer(Response.json(STOMPY));
 
-    expect(
-      await screen.findByText(
-        "Mono Green Stompy isn't in the top 4 for the selected time window.",
-      ),
-    ).toBeTruthy();
+    await waitForNotice(
+      "Mono Green Stompy isn't in the top 4 for the selected time window.",
+    );
     expect(chosen()).toBe("Mono Green Stompy (not in the top 4)");
     expect(
       screen.getByText("Address: ?window=30d&deck=stompy-12345678, REPLACE"),
@@ -539,14 +550,14 @@ describe("MatchupsPage", () => {
       () => new Promise<Response>((resolve) => (answer = resolve)),
     );
     renderAt("/matchups?window=30d&deck=stompy-12345678");
-    await screen.findByText(
+    await waitForNotice(
       "Mono Green Stompy isn't in the top 4 for the selected time window.",
     );
 
     fireEvent.click(screen.getByRole("button", { name: "7d" }));
 
     expect(await screen.findByText("Loading the 7d window.")).toBeTruthy();
-    expect(screen.queryByText(/isn't in the top/)).toBeNull();
+    expect(notices()).toEqual([]);
     expect(screen.queryByRole("option", { name: /not in the top/ })).toBeNull();
     expect(
       fetchMock.mock.calls.filter(([input]) =>
@@ -556,17 +567,28 @@ describe("MatchupsPage", () => {
 
     answer(Response.json(matrix));
 
-    expect(
-      await screen.findByText(
-        "Mono Green Stompy isn't in the top 4 for the selected time window.",
-      ),
-    ).toBeTruthy();
+    await waitForNotice(
+      "Mono Green Stompy isn't in the top 4 for the selected time window.",
+    );
     expect(chosen()).toBe("Mono Green Stompy (not in the top 4)");
     await waitFor(() => {
       expect(String(fetchMock.mock.calls.at(-1)?.[0])).toBe(
         "/api/metagame/Pauper/decks/stompy-12345678?window=7d&population=rated",
       );
     });
+  });
+
+  it("announces the loading window, then that the deck is outside the top decks, on a first visit", async () => {
+    stubRoutes();
+    renderAt("/matchups?window=30d&deck=stompy-12345678");
+
+    expect(screen.getByRole("status").textContent).toBe(
+      "Loading the 30d window.",
+    );
+
+    await waitForNotice(
+      "Mono Green Stompy isn't in the top 4 for the selected time window.",
+    );
   });
 
   it("names the deck This deck when its detail fails", async () => {
@@ -578,17 +600,15 @@ describe("MatchupsPage", () => {
       expect(fetch).toHaveBeenCalledTimes(2);
     });
 
-    expect(
-      screen.getByText(
-        "This deck isn't in the top 4 for the selected time window.",
-      ),
-    ).toBeTruthy();
+    await waitForNotice(
+      "This deck isn't in the top 4 for the selected time window.",
+    );
   });
 
   it("lets any choice replace a deck outside the top decks, All decks included", async () => {
     stubRoutes();
     renderAt("/matchups?window=30d&deck=stompy-12345678");
-    await screen.findByText(
+    await waitForNotice(
       "Mono Green Stompy isn't in the top 4 for the selected time window.",
     );
 
@@ -596,7 +616,7 @@ describe("MatchupsPage", () => {
 
     expect(screen.getByText("Address: ?window=30d, REPLACE")).toBeTruthy();
     expect(chosen()).toBe("All decks");
-    expect(screen.queryByText(/isn't in the top/)).toBeNull();
+    expect(notices()).toEqual([]);
     expect(screen.queryByRole("option", { name: /not in the top/ })).toBeNull();
   });
 
@@ -609,7 +629,7 @@ describe("MatchupsPage", () => {
     await screen.findByRole("grid");
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(screen.queryByText(/isn't in the top/)).toBeNull();
+    expect(notices()).toEqual([]);
   });
 
   it("reveals the deck after a link from another page has scrolled that page to the top", async () => {

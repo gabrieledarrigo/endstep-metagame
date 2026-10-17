@@ -10,7 +10,7 @@ type MatchupTableProps = {
   spotlight?: string;
   reveal?: boolean;
   onReveal?: () => void;
-  missing?: string;
+  notice?: string;
 };
 
 export function MatchupTable({
@@ -19,7 +19,7 @@ export function MatchupTable({
   spotlight,
   reveal,
   onReveal,
-  missing,
+  notice,
 }: MatchupTableProps) {
   const { decks, cells } = matrix;
   const scope = timeWindow ? `, ${timeWindow} window` : "";
@@ -27,11 +27,8 @@ export function MatchupTable({
   return (
     <div className="bleed matchup-table">
       <div className="matchup-table__inner">
-        {missing !== undefined && (
-          <p className="matchup-table__notice" role="status">
-            {missing} isn't in the top {decks.length} for the selected time
-            window.
-          </p>
+        {notice !== undefined && (
+          <p className="matchup-table__notice">{notice}</p>
         )}
         <MatchupGrid
           className="matchup-table__grid"

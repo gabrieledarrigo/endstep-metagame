@@ -47,6 +47,10 @@ export function MatchupsPage() {
       previousQuery?.queryKey[1] === missing ? previous : undefined,
   });
   const missingName = detail.data?.deck.name ?? "This deck";
+  const notice =
+    missing === null
+      ? undefined
+      : `${missingName} isn't in the top ${decks.length} for the selected time window.`;
 
   if (
     revealing !== null &&
@@ -112,7 +116,7 @@ export function MatchupsPage() {
       </div>
 
       <p className="visually-hidden" role="status">
-        {loading ? `Loading the ${timeWindow} window.` : ""}
+        {loading ? `Loading the ${timeWindow} window.` : (notice ?? "")}
       </p>
 
       <div
@@ -133,7 +137,7 @@ export function MatchupsPage() {
                 spotlight={spotlit?.slug}
                 reveal={spotlit !== undefined && revealing === slug}
                 onReveal={revealed}
-                missing={missing === null ? undefined : missingName}
+                notice={notice}
               />
             ) : (
               <EmptyWindow

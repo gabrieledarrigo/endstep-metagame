@@ -53,20 +53,23 @@ describe("MatchupTable", () => {
     expect(screen.queryByRole("status")).toBeNull();
   });
 
-  it("says when the deck in the address is not in the top decks", () => {
+  it("prints the notice it is given above the table, as a plain line", () => {
     render(
       <MemoryRouter>
         <MatchupTable
           matrix={matrix as MatchupMatrix}
           timeWindow="30d"
-          missing="Mono Green Stompy"
+          notice="Mono Green Stompy isn't in the top 4 for the selected time window."
         />
       </MemoryRouter>,
     );
 
-    expect(screen.getByRole("status").textContent).toBe(
-      "Mono Green Stompy isn't in the top 4 for the selected time window.",
-    );
+    expect(
+      screen.getByText(
+        "Mono Green Stompy isn't in the top 4 for the selected time window.",
+      ).tagName,
+    ).toBe("P");
+    expect(screen.queryByRole("status")).toBeNull();
     expect(
       screen.getByRole("grid").querySelectorAll("[class*='--spotlit']"),
     ).toHaveLength(0);
