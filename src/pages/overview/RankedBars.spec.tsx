@@ -219,6 +219,27 @@ describe("RankedBars", () => {
     ).toBeTruthy();
   });
 
+  it("links only the new decks after a switch to a window with fewer bars", () => {
+    const { rerender } = render(
+      <MemoryRouter initialEntries={["/?window=7d"]}>
+        <RankedBars decks={PAGE} />
+      </MemoryRouter>,
+    );
+
+    rerender(
+      <MemoryRouter initialEntries={["/?window=7d"]}>
+        <RankedBars decks={page([0.6, 0.4])} />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByText("60.00%")).toBeTruthy();
+    expect(
+      screen
+        .getAllByRole("link")
+        .map((link) => link.getAttribute("aria-label")),
+    ).toEqual([PAGE.items[0].name, PAGE.items[1].name]);
+  });
+
   it("draws nothing without decks", () => {
     const { container } = render(<RankedBars decks={page([])} />);
 

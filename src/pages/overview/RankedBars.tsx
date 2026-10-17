@@ -82,7 +82,8 @@ type DeckTickProps = TextProps & {
 function DeckTick({ payload, bars, pointed, onPoint, ...text }: DeckTickProps) {
   const plot = usePlotArea();
   const width = useChartWidth();
-  const { name: deck, slug } = bars[payload.index];
+  const bar: ShareBar | undefined = bars[payload.index];
+  const slug = bar?.name === payload.value ? bar.slug : null;
   const look =
     slug !== null && slug === pointed ? CHART_NAME_POINTED : CHART_NAME;
   const name = (
@@ -98,7 +99,7 @@ function DeckTick({ payload, bars, pointed, onPoint, ...text }: DeckTickProps) {
   const band = plot.height / bars.length;
 
   return (
-    <ChartLink to={`/decks/${slug}`} label={deck}>
+    <ChartLink to={`/decks/${slug}`} label={payload.value}>
       <g
         onPointerMove={(event: PointerEvent<SVGGElement>) => {
           if (event.pointerType === "touch") {
