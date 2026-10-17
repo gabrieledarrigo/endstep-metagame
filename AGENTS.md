@@ -113,7 +113,7 @@ The owner has decided these. Reviews do not raise them again. A change goes to t
 - Doc comments go on API functions and exported helpers only, never on types or their properties.
 - Vercel previews sit behind Vercel Authentication. A "Done when" that names a preview is met by an offline `vercel build`, or by production after the merge.
 - Below 1,100px the matchup table's header row scrolls away with the table. Only from 1,100px up does it stay at the top of the window, FR-12.
-- When the matchup table opens on a deck below 1,100px, the page scrolls the table's top into view and the band sideways to the deck's column, not to the deck's row, FR-12. The column names stay on screen.
+- When the matchup table opens on a deck from 640px to 1,099px, the page scrolls the table's top into view and the band sideways to the deck's column, not to the deck's row, FR-12. The column names stay on screen.
 - The matchup function caches a 429 for 60 seconds, §4.4, even when a background revalidation could leave a stale matrix in its place.
 - The matchup table's spotlight fades the other cells to 25% opacity, below WCAG AA, NFR-6. The owner chose it over a fade that keeps the numbers at AA.
 

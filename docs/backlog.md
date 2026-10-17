@@ -897,7 +897,7 @@ Covers FR-11 and FR-12, A deck in the spotlight.
 
 1. A deck picker in the matchup page's controls: "All decks", then the 24 decks in share order. It reads and writes `?deck=` and replaces the history entry, §4.5.
 2. The spotlight: every cell outside the deck's row and column fades to 25% opacity, and returns to full opacity under the pointer or keyboard focus. The deck's two headers turn `--primary` on a `--primary-wash` band.
-3. When a link opens the page with a deck, and on a choice, scroll the deck's row into view under the sticky header row. Below 1,100px scroll the table's top into view instead, and the band sideways to the deck's column. Back and forward keep the browser's scroll position. Move the grid's tab stop to the deck's row header.
+3. When a link opens the page with a deck, and on a choice, scroll to the deck. From 1,100px, scroll its row into view under the sticky header row and move the grid's tab stop to its row header. From 640px to 1,099px, scroll the table's top into view and the band sideways to the deck's column, and move the tab stop to its column header. Back and forward keep the browser's scroll position.
 4. Match the deck by the 8-character suffix of its slug, §6.11.
 5. A window that drops the deck keeps `?deck=`, shows it in the picker as an extra first option, "{name} (not in the top 24)", and shows the line "{name} isn't in the top 24 for the selected time window." The name comes from the deck detail, and the line names "This deck" until it arrives or if it fails.
 6. Under the deck page's row, the link "See {name} in the full table", with `?deck=`.
@@ -905,7 +905,7 @@ Covers FR-11 and FR-12, A deck in the spotlight.
 
 **Done when**
 
-- `/matchups?deck={slug}` opens with that deck in the spotlight and its row in view.
+- `/matchups?deck={slug}` opens with that deck in the spotlight: from 1,100px with its row in view, and from 640px to 1,099px with the table's top and the deck's column in view.
 - "All decks" clears the spotlight and removes `deck` from the address.
 - A deck outside the window's top 24 shows the line and no spotlight, and the address keeps it.
 - The deck page's row links to its deck in the table.

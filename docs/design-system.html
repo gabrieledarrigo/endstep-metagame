@@ -309,9 +309,9 @@ body { container-type:inline-size; }
 .matchup__swatch { display:inline-flex; align-items:center; justify-content:center; width:32px; min-width:32px;
   height:28px; font-size:13px; flex-shrink:0; }
 .matchup__swatch.matchup__cell--neutral, .matchup__swatch.matchup__cell--none { box-shadow:inset 0 0 0 1px var(--rule); }
-@media (max-width:1100px) {
+@media (width < 1100px) {
   .matchup__scroll { overflow-x:auto; }
-  .matchup__cell { scroll-margin-left:250px; }
+  .matchup__cell, .matchup__col { scroll-margin-left:250px; }
 }
 
 .site-header { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:start; gap:10px 16px;
@@ -1265,11 +1265,13 @@ a.button { display:inline-block; text-decoration:none; }
   contrast. The faded numbers fall below 4.5:1, the one contrast exception NFR-6 accepts. A faded cell returns
   to full opacity while it has the pointer or keyboard focus, so its number and its focus ring read in full, and
   the detail works on every cell. "All decks" clears the spotlight. When a link opens the page with a deck, or
-  the picker changes, the page scrolls, and the grid's tab stop moves to the deck's row header. From 1,100px the
-  deck's row scrolls into view: the row header takes the cells' 260px scroll margin, so the row lands below the
-  sticky header row. Below 1,100px the header row is not sticky, so the page scrolls the table's top into view, to
-  keep the column names on screen, and the band scrolls sideways to bring the deck's column next to the first
-  column. Back and forward keep the browser's scroll position. Try the picker above the table.</p>
+  the picker changes, the page scrolls to the deck. From 1,100px the deck's row scrolls into view and takes the
+  grid's tab stop: the row header has the cells' 260px top scroll margin, so the row lands below the sticky header
+  row. From 640px to 1,099px the header row is not sticky, so the page scrolls the table's top into view, keeping
+  the column names on screen, and the band scrolls sideways to the deck's column, which takes the tab stop. The
+  column header has the cells' 250px left scroll margin, so it lands beside the first column rather than under it.
+  Back and forward keep the browser's scroll position. The picker above the table shows the spotlight. This page
+  does not scroll with it.</p>
   <h4 class="sub">A deck outside the top 24</h4>
   <div class="demo col">
     <label class="deck-picker"><span class="deck-picker__label">Deck</span>
