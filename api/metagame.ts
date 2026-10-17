@@ -40,6 +40,38 @@ const QUERY_PARAMS = [
 
 const SEGMENT = /^[A-Za-z0-9_-]+$/;
 
+const SCRYFALL_COLLECTION = "https://api.scryfall.com/cards/collection";
+const SCRYFALL_TIMEOUT_MS = 1000;
+const SCRYFALL_PAUSE_MS = 30_000;
+const SCRYFALL_HEADERS: Readonly<Record<string, string>> = {
+  "User-Agent":
+    "PauperEndstepMetagame/1.0 (+https://github.com/gabrieledarrigo/endstep-metagame)",
+  Accept: "application/json",
+  "Content-Type": "application/json",
+};
+const ART_HOST = "https://cards.scryfall.io/";
+const PARTIAL_ART_CACHE = "public, s-maxage=60, stale-while-revalidate=600";
+
+type ArtDeck = {
+  art: { cardName: string; imageUrl?: string };
+};
+
+type ScryfallImages = { art_crop?: string };
+
+type ScryfallCard = {
+  name: string;
+  image_uris?: ScryfallImages;
+  card_faces?: { name: string; image_uris?: ScryfallImages }[];
+};
+
+type ScryfallCollection = {
+  data: ScryfallCard[];
+  not_found: { name?: string }[];
+};
+
+const artByName = new Map<string, string | null>();
+let pausedUntil = 0;
+
 /**
  * Checks whether the path segments match one of the allow-listed Endstep endpoints.
  *
@@ -86,12 +118,229 @@ function forwardedQuery(query: URLSearchParams): string {
   return search ? `?${search}` : "";
 }
 
+/**
+ * Checks whether a value is a plain object, so its properties can be read.
+ *
+ * @param value - Any parsed JSON value.
+ * @returns `true` for an object that is not `null`.
+ */
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+/**
+ * Checks whether a value is a deck with a key card name.
+ *
+ * @param value - A deck from a deck list or a deck detail.
+ * @returns `true` when `art.cardName` is a string.
+ */
+function isArtDeck(value: unknown): value is ArtDeck {
+  return (
+    isRecord(value) &&
+    isRecord(value.art) &&
+    typeof value.art.cardName === "string"
+  );
+}
+
+/**
+ * Finds the decks that get art in an Endstep response, by the path's shape: `decks.items` for a deck list, `deck` for a deck detail.
+ *
+ * @param segments - The allow-listed path segments.
+ * @param body - The parsed response body.
+ * @returns The decks, or `null` for any other path or a body without the expected decks.
+ */
+function decksIn(segments: string[], body: unknown): ArtDeck[] | null {
+  if (segments[1] !== "decks" || !isRecord(body)) {
+    return null;
+  }
+
+  let decks: unknown[] = [];
+
+  if (segments.length === 2 && isRecord(body.decks)) {
+    decks = Array.isArray(body.decks.items) ? body.decks.items : [];
+  }
+
+  if (segments.length === 3) {
+    decks = [body.deck];
+  }
+
+  if (decks.length === 0 || !decks.every(isArtDeck)) {
+    return null;
+  }
+
+  return decks;
+}
+
+/**
+ * Builds the memory key of a card name. Scryfall matches names ignoring case, §3.4.
+ *
+ * @param name - A card name, or one face's name.
+ * @returns The name in lower case.
+ */
+function nameKey(name: string): string {
+  return name.toLowerCase();
+}
+
+/**
+ * Reads a card's art crop address, from the card or from its first face for a double-faced card.
+ *
+ * @param card - A card from Scryfall's collection response.
+ * @returns The address when it is on Scryfall's CDN, otherwise `undefined`.
+ */
+function artCrop(card: ScryfallCard): string | undefined {
+  const address =
+    card.image_uris?.art_crop ?? card.card_faces?.[0]?.image_uris?.art_crop;
+
+  if (!address?.startsWith(ART_HOST)) {
+    return undefined;
+  }
+
+  return address;
+}
+
+/**
+ * Remembers the addresses and the names not found in a collection response, for the names that were asked.
+ *
+ * A card matches a name by its full name or by any face's name, ignoring case.
+ *
+ * @param asked - The memory keys of the names sent to Scryfall.
+ * @param collection - Scryfall's collection response.
+ */
+function remember(asked: Set<string>, collection: ScryfallCollection): void {
+  for (const card of collection.data) {
+    const address = artCrop(card);
+
+    if (!address) {
+      continue;
+    }
+
+    const names = [
+      card.name,
+      ...(card.card_faces ?? []).map((face) => face.name),
+    ];
+
+    for (const key of names.map(nameKey)) {
+      if (asked.has(key)) {
+        artByName.set(key, address);
+      }
+    }
+  }
+
+  for (const { name } of collection.not_found) {
+    if (typeof name === "string" && asked.has(nameKey(name))) {
+      artByName.set(nameKey(name), null);
+    }
+  }
+}
+
+/**
+ * Asks Scryfall, in one collection request, for the card names this instance has not seen yet.
+ *
+ * Never retries. After a 429 it sends nothing for 30 seconds, Scryfall's own lockout.
+ *
+ * @param names - The card names by memory key, each in the spelling Endstep sent.
+ * @returns A Promise resolving to `true` when every name has an address or a not-found answer in memory, and `false` when the lookup failed, timed out, met a 429 or was paused.
+ * @see https://scryfall.com/docs/api/cards/collection
+ */
+async function lookUpArt(names: Map<string, string>): Promise<boolean> {
+  const missing = [...names].filter(([key]) => !artByName.has(key));
+
+  if (missing.length === 0) {
+    return true;
+  }
+
+  if (Date.now() < pausedUntil) {
+    return false;
+  }
+
+  let collection: ScryfallCollection;
+
+  try {
+    const response = await fetch(SCRYFALL_COLLECTION, {
+      method: "POST",
+      headers: SCRYFALL_HEADERS,
+      body: JSON.stringify({
+        identifiers: missing.map(([, name]) => ({ name })),
+      }),
+      signal: AbortSignal.timeout(SCRYFALL_TIMEOUT_MS),
+    });
+
+    if (response.status === 429) {
+      pausedUntil = Date.now() + SCRYFALL_PAUSE_MS;
+      return false;
+    }
+
+    if (!response.ok) {
+      return false;
+    }
+
+    const { data = [], not_found = [] } =
+      (await response.json()) as Partial<ScryfallCollection>;
+    collection = { data, not_found };
+  } catch {
+    return false;
+  }
+
+  remember(new Set(missing.map(([key]) => key)), collection);
+
+  return missing.every(([key]) => artByName.has(key));
+}
+
+/**
+ * Adds `art.imageUrl` to each deck of a deck list or a deck detail, from Scryfall, §3.4.
+ *
+ * @param segments - The allow-listed path segments.
+ * @param text - Endstep's response body.
+ * @returns A Promise resolving to the new body and whether every deck's card has an answer, or to `null` when the response carries no decks to add art to.
+ */
+async function withArt(
+  segments: string[],
+  text: string,
+): Promise<{ body: string; complete: boolean } | null> {
+  let body: unknown;
+
+  try {
+    body = JSON.parse(text);
+  } catch {
+    return null;
+  }
+
+  const decks = decksIn(segments, body);
+
+  if (!decks) {
+    return null;
+  }
+
+  const names = new Map<string, string>();
+
+  for (const deck of decks) {
+    const key = nameKey(deck.art.cardName);
+
+    if (!names.has(key)) {
+      names.set(key, deck.art.cardName);
+    }
+  }
+
+  const complete = await lookUpArt(names);
+
+  for (const deck of decks) {
+    const address = artByName.get(nameKey(deck.art.cardName));
+
+    if (address) {
+      deck.art.imageUrl = address;
+    }
+  }
+
+  return { body: JSON.stringify(body), complete };
+}
+
 export default {
   /**
    * Proxies a metagame request to the Endstep API and returns the response with CORS headers.
    *
    * The endpoint path arrives in the `path` query parameter, set by the rewrite in `vercel.json`.
    * GET and HEAD are forwarded. OPTIONS answers the CORS preflight with 204.
+   * A successful GET of a deck list or a deck detail gets each deck's art address from Scryfall, §4.3. When the lookup fails, the response goes out without the missing addresses and is cached for 60 seconds.
    *
    * @param req - The incoming request.
    * @returns A Promise resolving to the upstream response, or to a JSON error: 400 for a path outside the allow-list, 405 for any other method, 502 when Endstep is unreachable.
@@ -133,11 +382,25 @@ export default {
       return errorResponse(502, "Endstep is unreachable");
     }
 
+    let cache = cacheControl(status, RATE_LIMIT_SECONDS);
+    const enriched =
+      req.method === "GET" && status >= 200 && status < 300
+        ? await withArt(segments, body)
+        : null;
+
+    if (enriched) {
+      body = enriched.body;
+    }
+
+    if (enriched && !enriched.complete) {
+      cache = PARTIAL_ART_CACHE;
+    }
+
     return new Response(hasNoBody(status) ? null : body, {
       headers: {
         ...BASE_HEADERS,
         "Content-Type": contentType ?? "application/json",
-        "Cache-Control": cacheControl(status, RATE_LIMIT_SECONDS),
+        "Cache-Control": cache,
       },
       status,
     });
