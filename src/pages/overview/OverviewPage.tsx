@@ -166,23 +166,38 @@ export function OverviewPage() {
       ? `Endstep returned ${formatCount(results.length)} of the ${formatCount(total)} decks it counted.`
       : undefined;
 
-  let status = "";
-  if (loading) {
-    status = `Loading the ${timeWindow} window.`;
-  } else if (loadingTerm) {
-    status = `Searching for ${quoted(term)}.`;
-  } else if (moreError) {
-    status = moreError;
-  } else if (shortfall) {
-    status = shortfall;
-  } else if (searching && search.isError && found === undefined) {
-    status = "The search could not be loaded.";
-  } else if (searching && results.length === 0) {
-    status = found ? `No deck or card matches ${quoted(term)}.` : "";
-  } else if (searching) {
+  const statusText = (): string => {
+    if (loading) {
+      return `Loading the ${timeWindow} window.`;
+    }
+
+    if (loadingTerm) {
+      return `Searching for ${quoted(term)}.`;
+    }
+
+    if (moreError) {
+      return moreError;
+    }
+
+    if (shortfall) {
+      return shortfall;
+    }
+
+    if (!searching) {
+      return "";
+    }
+
+    if (found === undefined) {
+      return search.isError ? "The search could not be loaded." : "";
+    }
+
+    if (results.length === 0) {
+      return `No deck or card matches ${quoted(term)}.`;
+    }
+
     const { count, rest } = matchText(total, foundTerm);
-    status = `${count} ${rest}`;
-  }
+    return `${count} ${rest}`;
+  };
 
   const selectView = (next: View): void => {
     const written = next === "Table" ? "table" : null;
@@ -225,7 +240,7 @@ export function OverviewPage() {
       </div>
 
       <p className="visually-hidden" role="status">
-        {status}
+        {statusText()}
       </p>
 
       <div
