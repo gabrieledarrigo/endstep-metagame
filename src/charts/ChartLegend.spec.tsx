@@ -8,32 +8,42 @@ const ITEMS = [
 ];
 
 describe("ChartLegend", () => {
-  it("shows a toggle for each series, pressed unless the series is hidden", () => {
-    render(
-      <ChartLegend
-        items={ITEMS}
-        hidden={new Set(["madness"])}
-        onToggle={() => {}}
-      />,
-    );
+  it("groups the toggles under the name of what they do", () => {
+    render(<ChartLegend items={ITEMS} pressed={null} onToggle={() => {}} />);
+
+    expect(
+      screen.getByRole("group", { name: "Highlight a deck" }),
+    ).toBeTruthy();
+  });
+
+  it("presses no toggle when no series is highlighted", () => {
+    render(<ChartLegend items={ITEMS} pressed={null} onToggle={() => {}} />);
+
+    expect(
+      screen
+        .getAllByRole("button")
+        .map((button) => button.getAttribute("aria-pressed")),
+    ).toEqual(["false", "false"]);
+  });
+
+  it("presses the toggle of the highlighted series only", () => {
+    render(<ChartLegend items={ITEMS} pressed="madness" onToggle={() => {}} />);
 
     expect(
       screen
         .getByRole("button", { name: "Affinity" })
         .getAttribute("aria-pressed"),
-    ).toBe("true");
+    ).toBe("false");
     expect(
       screen
         .getByRole("button", { name: "Mono Red Madness" })
         .getAttribute("aria-pressed"),
-    ).toBe("false");
+    ).toBe("true");
   });
 
   it("reports the toggled series by its key", () => {
     const onToggle = vi.fn<(key: string) => void>();
-    render(
-      <ChartLegend items={ITEMS} hidden={new Set()} onToggle={onToggle} />,
-    );
+    render(<ChartLegend items={ITEMS} pressed={null} onToggle={onToggle} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Mono Red Madness" }));
 

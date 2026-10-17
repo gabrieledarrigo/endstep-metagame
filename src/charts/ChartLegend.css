@@ -9,8 +9,9 @@
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    padding: 0;
-    border: 0;
+    padding: 3px 10px 3px 8px;
+    border: 1px solid transparent;
+    border-radius: 999px;
     background: none;
     font: inherit;
     font-size: 13px;
@@ -20,11 +21,14 @@
 
   .chart-legend__item:hover {
     color: var(--text-900);
+    background: var(--hover);
   }
 
-  .chart-legend__item--off {
-    opacity: 0.4;
-    text-decoration: line-through;
+  .chart-legend__item[aria-pressed="true"] {
+    color: var(--text-900);
+    font-weight: 600;
+    border-color: var(--edge);
+    background: var(--surface);
   }
 
   .chart-legend__swatch {

@@ -175,7 +175,7 @@ function ShareTooltip({ active, payload, label }: TooltipContentProps) {
   );
 }
 
-const SHARE_LEGEND_WIDTHS = [72, 124, 102, 54, 92, 86, 106, 96];
+const SHARE_LEGEND_WIDTHS = [92, 144, 122, 74, 112, 106, 126, 116];
 
 export function ShareOverTimeSkeleton() {
   return (
@@ -195,7 +195,7 @@ export function ShareOverTimeSkeleton() {
 
 export function ShareOverTime({ series }: { series: ShareSeries[] }) {
   const [searchParams, setSearchParams] = useSearchParams();
-  const hidden = new Set(searchParams.getAll("hide"));
+  const highlightedSlug = searchParams.get("highlight");
 
   if (series.length === 0) {
     return null;
@@ -203,8 +203,8 @@ export function ShareOverTime({ series }: { series: ShareSeries[] }) {
 
   const colours = seriesColours(series.map((item) => item.deck.id));
   const rows = shareRows(series);
-  const shown = series.filter((item) => !hidden.has(item.deck.slug));
-  const ends = shown.flatMap((item) => {
+  const highlighted = series.find((item) => item.deck.slug === highlightedSlug);
+  const ends = series.flatMap((item) => {
     const end = seriesEnd(item);
     return end ? [{ ...end, colour: colours.get(end.key) }] : [];
   });
@@ -212,10 +212,10 @@ export function ShareOverTime({ series }: { series: ShareSeries[] }) {
   const toggle = (slug: string): void =>
     setSearchParams(
       (params) => {
-        if (params.has("hide", slug)) {
-          params.delete("hide", slug);
+        if (params.get("highlight") === slug) {
+          params.delete("highlight");
         } else {
-          params.append("hide", slug);
+          params.set("highlight", slug);
         }
         return params;
       },
@@ -258,7 +258,7 @@ export function ShareOverTime({ series }: { series: ShareSeries[] }) {
                 cursor={{ stroke: CHART_BASELINE }}
                 content={ShareTooltip}
               />
-              {shown.map((item) => (
+              {series.map((item) => (
                 <Line
                   key={item.deck.id}
                   type="linear"
@@ -282,7 +282,7 @@ export function ShareOverTime({ series }: { series: ShareSeries[] }) {
             name: item.deck.name,
             colour: colours.get(item.deck.id),
           }))}
-          hidden={hidden}
+          pressed={highlighted?.deck.slug ?? null}
           onToggle={toggle}
         />
       </Panel>

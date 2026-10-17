@@ -37,43 +37,65 @@ function pressed(name: string): string | null {
   return screen.getByRole("button", { name }).getAttribute("aria-pressed");
 }
 
+const AFFINITY = "affinity-e93f5f74";
+const MADNESS = "mono-red-madness-60596e8a";
+
 describe("ShareOverTime", () => {
-  it("shows every series when the address hides none", () => {
+  it("highlights no deck when the address names none", () => {
     renderAt("/?window=30d");
 
-    expect(pressed("Affinity")).toBe("true");
-    expect(pressed("Mono Red Madness")).toBe("true");
-  });
-
-  it("reads the hidden series from the address", () => {
-    renderAt("/?window=30d&hide=affinity-e93f5f74");
-
     expect(pressed("Affinity")).toBe("false");
-    expect(pressed("Mono Red Madness")).toBe("true");
+    expect(pressed("Mono Red Madness")).toBe("false");
   });
 
-  it("writes each toggle into the address, replacing the history entry", () => {
-    renderAt("/?window=30d&hide=affinity-e93f5f74");
+  it("reads the highlighted deck from the address", () => {
+    renderAt(`/?window=30d&highlight=${AFFINITY}`);
 
-    fireEvent.click(screen.getByRole("button", { name: "Mono Red Madness" }));
+    expect(pressed("Affinity")).toBe("true");
+    expect(pressed("Mono Red Madness")).toBe("false");
+  });
 
-    expect(
-      screen.getByText(
-        "Address: ?window=30d&hide=affinity-e93f5f74&hide=mono-red-madness-60596e8a by REPLACE",
-      ),
-    ).toBeTruthy();
+  it("highlights on a click, clears on a second click, and moves on a click on another deck, replacing the history entry", () => {
+    renderAt("/?window=30d");
 
     fireEvent.click(screen.getByRole("button", { name: "Affinity" }));
 
     expect(
-      screen.getByText(
-        "Address: ?window=30d&hide=mono-red-madness-60596e8a by REPLACE",
-      ),
+      screen.getByText(`Address: ?window=30d&highlight=${AFFINITY} by REPLACE`),
     ).toBeTruthy();
     expect(pressed("Affinity")).toBe("true");
+
+    fireEvent.click(screen.getByRole("button", { name: "Mono Red Madness" }));
+
+    expect(
+      screen.getByText(`Address: ?window=30d&highlight=${MADNESS} by REPLACE`),
+    ).toBeTruthy();
+    expect(pressed("Affinity")).toBe("false");
+    expect(pressed("Mono Red Madness")).toBe("true");
+
+    fireEvent.click(screen.getByRole("button", { name: "Mono Red Madness" }));
+
+    expect(screen.getByText("Address: ?window=30d by REPLACE")).toBeTruthy();
+    expect(pressed("Mono Red Madness")).toBe("false");
   });
 
-  it("draws a line and an end label for each shown series, kept apart", () => {
+  it("shows no highlight for a deck that is not in the chart", () => {
+    renderAt("/?window=30d&highlight=elves-0a1b2c3d");
+
+    expect(pressed("Affinity")).toBe("false");
+    expect(pressed("Mono Red Madness")).toBe("false");
+  });
+
+  it("draws every line whatever the address says about hiding", () => {
+    sizeCharts();
+
+    const container = renderAt(`/?window=30d&hide=${AFFINITY}`);
+
+    expect(container.querySelectorAll(".recharts-line-curve")).toHaveLength(2);
+    expect(endLabels(container)).toHaveLength(2);
+  });
+
+  it("draws a line and an end label for each series, kept apart", () => {
     sizeCharts();
 
     const container = renderAt("/?window=30d");
@@ -102,18 +124,6 @@ describe("ShareOverTime", () => {
     strokes.forEach((stroke) => {
       expect(stroke).toMatch(/^var\(--s[1-8]\)$/);
     });
-  });
-
-  it("leaves a hidden series out of the chart but keeps it in the legend", () => {
-    sizeCharts();
-
-    const container = renderAt("/?window=30d&hide=affinity-e93f5f74");
-
-    expect(container.querySelectorAll(".recharts-line-curve")).toHaveLength(1);
-    expect(endLabels(container).map((label) => label.textContent)).toEqual([
-      "Mono Red Madness",
-    ]);
-    expect(screen.getByRole("button", { name: "Affinity" })).toBeTruthy();
   });
 
   it("shows the day and each series' share in the tooltip, highest first", () => {

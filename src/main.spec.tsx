@@ -67,7 +67,7 @@ describe("the overview page", () => {
     await screen.findByRole("heading", {
       name: "The deck grid could not be loaded",
     });
-    await screen.findByRole("button", { name: "Affinity", pressed: true });
+    await screen.findByRole("button", { name: "Affinity", pressed: false });
 
     fireEvent.click(screen.getAllByRole("button", { name: "Retry" })[0]);
 
