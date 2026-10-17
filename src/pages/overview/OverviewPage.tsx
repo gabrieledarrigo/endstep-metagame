@@ -39,16 +39,18 @@ export function OverviewPage() {
   const loading = decks.isPending || series.isPending || loadingWindow;
 
   const selectView = (next: View): void => {
-    if (next === view) {
+    const written = next === "Table" ? "table" : null;
+
+    if (searchParams.get("view") === written) {
       return;
     }
 
     setSearchParams(
       (params) => {
-        if (next === "Table") {
-          params.set("view", "table");
-        } else {
+        if (written === null) {
           params.delete("view");
+        } else {
+          params.set("view", written);
         }
         return params;
       },

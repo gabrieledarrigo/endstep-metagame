@@ -324,6 +324,16 @@ describe("OverviewPage", () => {
     ).toBeTruthy();
   });
 
+  it("removes an unknown view from the address when the cards are picked", async () => {
+    stubApi(() => Response.json(decks));
+    renderAt("/?window=30d&view=list");
+    await screen.findByRole("region", { name: "Decks by meta share" });
+
+    fireEvent.click(screen.getByRole("button", { name: "Cards" }));
+
+    expect(screen.getByText("Address: ?window=30d by REPLACE")).toBeTruthy();
+  });
+
   it("switches between the cards and the table, replacing the history entry", async () => {
     stubApi(() => Response.json(decks));
     renderAt("/?window=30d");
