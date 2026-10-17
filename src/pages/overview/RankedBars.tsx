@@ -101,7 +101,7 @@ function DeckTick({ payload, bars, pointed, onPoint, ...text }: DeckTickProps) {
     <ChartLink to={`/decks/${slug}`} label={deck}>
       <g
         onPointerMove={(event: PointerEvent<SVGGElement>) => {
-          if (event.pointerType === "touch" || slug === pointed) {
+          if (event.pointerType === "touch") {
             return;
           }
 
@@ -154,7 +154,16 @@ export function RankedBars({ decks }: { decks: Page<Deck> }) {
   }
 
   const point = (slug: string | null): void => {
-    setPointedRow(slug === null ? null : { slug, decks });
+    if (slug === null) {
+      setPointedRow(null);
+      return;
+    }
+
+    setPointedRow((previous) =>
+      previous?.slug === slug && previous.decks === decks
+        ? previous
+        : { slug, decks },
+    );
   };
 
   const bars = shareBars(decks);

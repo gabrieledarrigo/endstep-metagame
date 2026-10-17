@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter, useLocation } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import decks from "../../../test/fixtures/decks.json";
@@ -102,6 +102,21 @@ describe("RankedBars", () => {
     expect(barFills()).toEqual(RESTING);
     expect(name.getAttribute("fill")).toBe("var(--text-600)");
     expect(name.getAttribute("text-decoration")).toBeNull();
+  });
+
+  it("points at a row again when the pointer slips off and back before the chart redraws", () => {
+    renderBars(PAGE);
+    const row = screen
+      .getByRole("link", { name: PAGE.items[1].name })
+      .querySelector("rect") as Element;
+
+    fireEvent.pointerMove(row, { pointerType: "mouse" });
+    act(() => {
+      fireEvent.pointerLeave(row, { pointerType: "mouse" });
+      fireEvent.pointerMove(row, { pointerType: "mouse" });
+    });
+
+    expect(barFills()[1]).toBe("var(--seq-600)");
   });
 
   it("leaves a row as it is under a finger, which opens the deck at once", () => {
