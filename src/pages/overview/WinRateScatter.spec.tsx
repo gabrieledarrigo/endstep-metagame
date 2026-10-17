@@ -89,6 +89,22 @@ describe("WinRateScatter", () => {
     expect(screen.queryByText("Crowded")).toBeNull();
   });
 
+  it("keeps the label of the deck listed first when two decks tie, whatever their player counts", () => {
+    const tied = {
+      ...DECKS[1],
+      id: "tied",
+      name: "Tied",
+      players: DECKS[0].players + 1,
+      share: { ...DECKS[0].share },
+      matchWinRate: { ...DECKS[0].matchWinRate },
+    };
+
+    renderScatter([DECKS[0], tied, DECKS[2]]);
+
+    expect(screen.getByText("Affinity")).toBeTruthy();
+    expect(screen.queryByText("Tied")).toBeNull();
+  });
+
   it("shows a deck's numbers in the tooltip", () => {
     const { container } = renderScatter(DECKS);
 
