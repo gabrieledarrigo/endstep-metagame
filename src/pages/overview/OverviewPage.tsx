@@ -12,7 +12,7 @@ import { WINDOWS } from "../../config";
 import { formatCount, searchTerm } from "../../helpers";
 import { useTimeWindow } from "../../hooks/useTimeWindow";
 import { DeckGrid, DeckGridSkeleton } from "./DeckGrid";
-import { DeckSearch } from "./DeckSearch";
+import { DeckSearch, type DeckSearchHandle } from "./DeckSearch";
 import { DeckTable, DeckTableSkeleton } from "./DeckTable";
 import { EmptyWindow } from "../../components/EmptyWindow";
 import { RankedBars, RankedBarsSkeleton } from "./RankedBars";
@@ -73,7 +73,7 @@ export function OverviewPage() {
 
   const term = searchTerm(searchParams.get("q"));
   const searching = term !== null;
-  const inputRef = useRef<HTMLInputElement>(null);
+  const searchField = useRef<DeckSearchHandle>(null);
   const [previousTerm, setPreviousTerm] = useState(term);
   const [previousWindow, setPreviousWindow] = useState(timeWindow);
   const [fromTopList, setFromTopList] = useState(false);
@@ -151,8 +151,7 @@ export function OverviewPage() {
   );
 
   const clearSearch = (): void => {
-    onSearch(null);
-    inputRef.current?.focus();
+    searchField.current?.clear();
   };
 
   const showMore = (): void => {
@@ -246,7 +245,7 @@ export function OverviewPage() {
 
         <SearchResults
           field={
-            <DeckSearch term={term} onSearch={onSearch} inputRef={inputRef} />
+            <DeckSearch term={term} onSearch={onSearch} ref={searchField} />
           }
           found={
             results.length > 0 ? { term: foundTerm, total: total } : undefined

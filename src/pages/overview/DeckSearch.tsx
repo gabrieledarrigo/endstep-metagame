@@ -1,17 +1,30 @@
-import { type RefObject, useCallback, useEffect, useId, useState } from "react";
+import {
+  type Ref,
+  useCallback,
+  useEffect,
+  useId,
+  useImperativeHandle,
+  useRef,
+  useState,
+} from "react";
 import { searchTerm } from "../../helpers";
 import "./DeckSearch.css";
 
 const DELAY_MS = 300;
 
+export type DeckSearchHandle = {
+  clear: () => void;
+};
+
 type DeckSearchProps = {
   term: string | null;
   onSearch: (term: string | null) => void;
-  inputRef: RefObject<HTMLInputElement | null>;
+  ref?: Ref<DeckSearchHandle>;
 };
 
-export function DeckSearch({ term, onSearch, inputRef }: DeckSearchProps) {
+export function DeckSearch({ term, onSearch, ref }: DeckSearchProps) {
   const id = useId();
+  const input = useRef<HTMLInputElement>(null);
   const [text, setText] = useState(term ?? "");
   const [shownTerm, setShownTerm] = useState(term);
   const [sentTerm, setSentTerm] = useState(term);
@@ -49,8 +62,10 @@ export function DeckSearch({ term, onSearch, inputRef }: DeckSearchProps) {
   const clear = (): void => {
     setText("");
     send(null);
-    inputRef.current?.focus();
+    input.current?.focus();
   };
+
+  useImperativeHandle(ref, () => ({ clear }));
 
   return (
     <div className="deck-search" role="search">
@@ -62,7 +77,7 @@ export function DeckSearch({ term, onSearch, inputRef }: DeckSearchProps) {
         <path d="M15.5 15.5 20 20" />
       </svg>
       <input
-        ref={inputRef}
+        ref={input}
         className="deck-search__input"
         id={id}
         type="search"

@@ -725,6 +725,32 @@ describe("OverviewPage search", () => {
     expect(screen.queryByRole("button", { name: /more/ })).toBeNull();
   });
 
+  it("clears an edit the pause has not sent yet with the panel's button", async () => {
+    const fetchMock = stubApi(
+      () => Response.json(decks),
+      (url) => matches(url, []),
+    );
+    renderAt("/?window=30d&q=xyzzy");
+    const heading = await screen.findByRole("heading", {
+      name: "No deck or card matches \u201cxyzzy\u201d",
+    });
+
+    type("xyzzyz");
+    fireEvent.click(
+      within(heading.parentElement as HTMLElement).getByRole("button", {
+        name: "Clear the search",
+      }),
+    );
+    await pause(400);
+
+    expect(
+      searchRequests(fetchMock).map((url) => url.searchParams.get("q")),
+    ).toEqual(["xyzzy"]);
+    expect(screen.getByText("Address: ?window=30d by REPLACE")).toBeTruthy();
+    expect(field().value).toBe("");
+    expect(document.activeElement).toBe(field());
+  });
+
   it("loads the next page of results, and moves focus to the first new deck", async () => {
     const fetchMock = stubApi(
       () => Response.json(decks),

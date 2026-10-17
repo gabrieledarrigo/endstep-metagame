@@ -1,24 +1,30 @@
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { createRef } from "react";
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
+import { type RefObject, createRef } from "react";
 import { describe, expect, it, vi } from "vitest";
-import { DeckSearch } from "./DeckSearch";
+import { DeckSearch, type DeckSearchHandle } from "./DeckSearch";
 
 function renderSearch(term: string | null = null): {
   onSearch: ReturnType<typeof vi.fn<(term: string | null) => void>>;
   rerender: (term: string | null) => void;
+  handle: RefObject<DeckSearchHandle | null>;
 } {
   const onSearch = vi.fn<(term: string | null) => void>();
-  const inputRef = createRef<HTMLInputElement>();
+  const handle = createRef<DeckSearchHandle>();
   const { rerender } = render(
-    <DeckSearch term={term} onSearch={onSearch} inputRef={inputRef} />,
+    <DeckSearch term={term} onSearch={onSearch} ref={handle} />,
   );
 
   return {
     onSearch,
+    handle,
     rerender: (next) =>
-      rerender(
-        <DeckSearch term={next} onSearch={onSearch} inputRef={inputRef} />,
-      ),
+      rerender(<DeckSearch term={next} onSearch={onSearch} ref={handle} />),
   };
 }
 
@@ -112,6 +118,19 @@ describe("DeckSearch", () => {
     fireEvent.keyDown(field(), { key: "Escape" });
 
     expect(onSearch).toHaveBeenCalledWith(null);
+    expect(field().value).toBe("");
+    expect(document.activeElement).toBe(field());
+  });
+
+  it("clears from outside at once, cancelling the pause, and keeps focus in the field", async () => {
+    const { onSearch, handle, rerender } = renderSearch("xyzzy");
+
+    type("xyzzyz");
+    act(() => handle.current?.clear());
+    rerender(null);
+    await pause(400);
+
+    expect(onSearch.mock.calls).toEqual([[null]]);
     expect(field().value).toBe("");
     expect(document.activeElement).toBe(field());
   });
