@@ -159,7 +159,11 @@ function SeriesEnds({ ends }: { ends: SeriesEnd[] }) {
   );
 }
 
-function ShareTooltip({ active, payload, label }: TooltipContentProps) {
+type ShareTooltipProps = TooltipContentProps & {
+  order: string[];
+};
+
+function ShareTooltip({ active, payload, label, order }: ShareTooltipProps) {
   if (!active) {
     return null;
   }
@@ -169,7 +173,11 @@ function ShareTooltip({ active, payload, label }: TooltipContentProps) {
     return null;
   }
 
-  rows.sort((a, b) => Number(b.value) - Number(a.value));
+  rows.sort(
+    (a, b) =>
+      Number(b.value) - Number(a.value) ||
+      order.indexOf(String(a.dataKey)) - order.indexOf(String(b.dataKey)),
+  );
 
   return (
     <ChartTooltip
@@ -272,7 +280,12 @@ export function ShareOverTime({ series }: { series: ShareSeries[] }) {
               <YAxis tickFormatter={axisShare} width={46} {...CHART_AXIS} />
               <Tooltip
                 cursor={{ stroke: CHART_BASELINE }}
-                content={ShareTooltip}
+                content={(props) => (
+                  <ShareTooltip
+                    {...props}
+                    order={series.map((item) => item.deck.id)}
+                  />
+                )}
               />
               {drawOrder.map((item) => {
                 const isHighlighted = item === highlighted;

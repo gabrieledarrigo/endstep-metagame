@@ -16,10 +16,13 @@ function Address() {
   );
 }
 
-function renderAt(path: string): HTMLElement {
+function renderAt(
+  path: string,
+  shown: ShareSeries[] = series.series as ShareSeries[],
+): HTMLElement {
   return render(
     <MemoryRouter initialEntries={[path]}>
-      <ShareOverTime series={series.series as ShareSeries[]} />
+      <ShareOverTime series={shown} />
       <Address />
     </MemoryRouter>,
   ).container;
@@ -71,6 +74,18 @@ function activeDot(container: HTMLElement, name: string): Element {
   return container.querySelector(
     `.recharts-active-dot circle[fill="${colour}"]`,
   ) as Element;
+}
+
+function tiedSeries(): ShareSeries[] {
+  const [affinity, madness] = series.series as ShareSeries[];
+
+  return [affinity, { ...madness, points: affinity.points }];
+}
+
+function tooltipNames(container: HTMLElement): (string | null)[] {
+  return [...container.querySelectorAll(".chart-tooltip__name")].map(
+    (name) => name.textContent,
+  );
 }
 
 describe("ShareOverTime", () => {
@@ -260,6 +275,34 @@ describe("ShareOverTime", () => {
     expect(container.querySelector(".chart-tooltip")?.textContent).toBe(
       "05 October 2026Mono Red Madness6.82%Affinity6.65%",
     );
+  });
+
+  it("lists decks tied on a day in series order when the highlight comes from the address", async () => {
+    sizeCharts();
+    const container = renderAt(
+      `/?window=30d&highlight=${AFFINITY}`,
+      tiedSeries(),
+    );
+    await drawn(container, "Affinity");
+
+    hoverFirstDay(container);
+
+    expect(tooltipNames(container)).toEqual(["Affinity", "Mono Red Madness"]);
+  });
+
+  it("lists decks tied on a day in series order when the highlight comes from a click", async () => {
+    sizeCharts();
+    const container = renderAt("/?window=30d", tiedSeries());
+
+    fireEvent.click(screen.getByRole("button", { name: "Affinity" }));
+    await waitFor(() => {
+      expect(
+        curve(container, "Affinity").closest(".recharts-zIndex-layer_401"),
+      ).toBeTruthy();
+    });
+    hoverFirstDay(container);
+
+    expect(tooltipNames(container)).toEqual(["Affinity", "Mono Red Madness"]);
   });
 
   it("draws nothing without series", () => {
