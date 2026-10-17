@@ -1,0 +1,35 @@
+@layer components {
+  .deck-picker {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 100%;
+  }
+
+  .deck-picker__label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-400);
+    white-space: nowrap;
+  }
+
+  .deck-picker__select {
+    font-family: inherit;
+    font-size: 16px;
+    color: var(--text-900);
+    background: var(--surface);
+    border: 1px solid var(--edge);
+    border-radius: 8px;
+    padding: 7px 10px;
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  @media (min-width: 640px) {
+    .deck-picker__select {
+      font-size: 14px;
+    }
+  }
+}
