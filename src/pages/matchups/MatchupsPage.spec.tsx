@@ -1,5 +1,6 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import {
+  act,
   fireEvent,
   render,
   screen,
@@ -789,5 +790,147 @@ describe("MatchupsPage", () => {
 
     expect(screen.getByRole("grid")).toBeTruthy();
     expect(order).toEqual(["top", "deck"]);
+  });
+});
+
+describe("MatchupsPage below 640px", () => {
+  function list(name: string): HTMLElement {
+    return screen.getByRole("list", {
+      name: new RegExp(`^Match win rate of ${name} against`),
+    });
+  }
+
+  function options(): string[] {
+    return Array.from(picker().options).map(
+      (option) => option.textContent ?? "",
+    );
+  }
+
+  it("shows the top deck's list with no deck in the address, and writes nothing", async () => {
+    stubRoutes();
+    stubWidth(360);
+    renderAt("/matchups?window=30d");
+
+    expect(
+      await screen.findByRole("list", {
+        name: "Match win rate of Affinity against the other 3 decks in the top 4, 30d window, rated.",
+      }),
+    ).toBeTruthy();
+    expect(screen.queryByRole("grid")).toBeNull();
+    expect(screen.queryByRole("list", { name: "Legend" })).toBeNull();
+    expect(chosen()).toBe("Affinity");
+    expect(options()).toEqual([
+      "Affinity",
+      "Mono Red Madness",
+      "Monster Tron",
+      "Naya Gates",
+    ]);
+    expect(screen.getByText("Address: ?window=30d, POP")).toBeTruthy();
+  });
+
+  it("shows the deck in the address, found by the suffix of its slug, and scrolls nowhere", async () => {
+    stubRoutes();
+    stubWidth(360);
+    const scrollIntoView = stubScroll();
+    renderAt("/matchups?window=30d&deck=renamed-1bc68613");
+
+    await screen.findByRole("list", { name: /^Match win rate of/ });
+
+    expect(list("Monster Tron")).toBeTruthy();
+    expect(chosen()).toBe("Monster Tron");
+    expect(scrollIntoView).not.toHaveBeenCalled();
+  });
+
+  it("writes a chosen deck in place of the history entry, and shows its list without scrolling", async () => {
+    stubRoutes();
+    stubWidth(360);
+    const scrollIntoView = stubScroll();
+    renderAt("/matchups?window=30d");
+    await screen.findByRole("list", { name: /^Match win rate of/ });
+
+    fireEvent.change(picker(), { target: { value: "naya-gates-af060ab8" } });
+
+    expect(
+      screen.getByText(
+        "Address: ?window=30d&deck=naya-gates-af060ab8, REPLACE",
+      ),
+    ).toBeTruthy();
+    expect(list("Naya Gates")).toBeTruthy();
+    expect(chosen()).toBe("Naya Gates");
+    expect(scrollIntoView).not.toHaveBeenCalled();
+  });
+
+  it("shows the top deck's list under a line that names a deck outside the top decks", async () => {
+    stubRoutes();
+    stubWidth(360);
+    renderAt("/matchups?window=30d&deck=stompy-12345678");
+
+    await waitForNotice(
+      "Mono Green Stompy isn't in the top 4 for the selected time window. The table shows Affinity by default.",
+    );
+    expect(list("Affinity")).toBeTruthy();
+    expect(chosen()).toBe("Mono Green Stompy (not in the top 4)");
+    expect(options()).toEqual([
+      "Mono Green Stompy (not in the top 4)",
+      "Affinity",
+      "Mono Red Madness",
+      "Monster Tron",
+      "Naya Gates",
+    ]);
+    expect(
+      screen.getByText("Address: ?window=30d&deck=stompy-12345678, REPLACE"),
+    ).toBeTruthy();
+  });
+
+  it("switches between the list and the table as the window crosses 640px, and does not scroll to the deck", async () => {
+    stubRoutes();
+    const resize = stubWidth(360);
+    const scrollIntoView = stubScroll();
+    renderAt("/matchups?window=30d&deck=monster-tron-1bc68613");
+    await screen.findByRole("list", { name: /^Match win rate of/ });
+
+    act(() => resize(800));
+
+    expect(spotlit()).toEqual(["Monster Tron"]);
+    expect(chosen()).toBe("Monster Tron");
+    expect(options()[0]).toBe("All decks");
+    expect(scrollIntoView).not.toHaveBeenCalled();
+
+    act(() => resize(360));
+
+    expect(screen.queryByRole("grid")).toBeNull();
+    expect(list("Monster Tron")).toBeTruthy();
+  });
+
+  it("keeps the list on screen, dimmed and busy, while another window loads", async () => {
+    let answer: (response: Response) => void = () => {};
+    stubApi(
+      () => Response.json(matrix),
+      () => new Promise<Response>((resolve) => (answer = resolve)),
+    );
+    stubWidth(360);
+    renderAt("/matchups?window=30d");
+    await screen.findByText("11 Sept to 10 Oct 2026");
+
+    fireEvent.click(screen.getByRole("button", { name: "7d" }));
+
+    expect(await screen.findByText("Loading the 7d window.")).toBeTruthy();
+    expect(
+      screen
+        .getByRole("list", {
+          name: "Match win rate of Affinity against the other 3 decks in the top 4, rated.",
+        })
+        .closest("[aria-busy]"),
+    ).toBeTruthy();
+
+    answer(Response.json(matrix));
+
+    expect(
+      (
+        await screen.findByRole("list", {
+          name: "Match win rate of Affinity against the other 3 decks in the top 4, 7d window, rated.",
+        })
+      ).closest("[aria-busy]"),
+    ).toBeNull();
   });
 });
