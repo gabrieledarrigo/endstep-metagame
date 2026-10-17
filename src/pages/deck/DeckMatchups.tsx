@@ -53,7 +53,7 @@ export function DeckMatchups({
             ? "deck-matchups__body busy"
             : "deck-matchups__body"
         }
-        aria-busy={loading || undefined}
+        aria-busy={loading || matchups.isPending || undefined}
       >
         <Section
           query={matchups}

@@ -243,7 +243,9 @@ describe("DeckMatchups", () => {
     expect(
       screen.queryByText("No matchups are recorded for this window yet."),
     ).toBeNull();
-    expect(region.querySelector(".skeleton")).toBeTruthy();
+    expect(
+      region.querySelector(".skeleton")?.closest('[aria-busy="true"]'),
+    ).toBeTruthy();
   });
 
   it("holds back that the deck is outside the top while another window loads", async () => {
