@@ -29,14 +29,19 @@ export function DeckSearch({ term, onSearch, ref }: DeckSearchProps) {
   const [shownTerm, setShownTerm] = useState(term);
   const [sentTerm, setSentTerm] = useState(term);
 
-  if (term !== shownTerm) {
+  const termChanged = term !== shownTerm;
+  const termFromOutside = termChanged && term !== sentTerm;
+
+  if (termChanged) {
     setShownTerm(term);
-    if (term !== sentTerm) {
-      setSentTerm(term);
-      if (searchTerm(text) === shownTerm) {
-        setText(term ?? "");
-      }
-    }
+  }
+
+  if (termFromOutside) {
+    setSentTerm(term);
+  }
+
+  if (termFromOutside && searchTerm(text) === shownTerm) {
+    setText(term ?? "");
   }
 
   const send = (next: string | null): void => {
