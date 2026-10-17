@@ -49,6 +49,12 @@ export function DeckSearch({ term, onSearch, ref }: DeckSearchProps) {
     onSearch(next);
   };
 
+  const clear = (): void => {
+    setText("");
+    send(null);
+    input.current?.focus();
+  };
+
   const sendAfterPause = useEffectEvent(send);
 
   useEffect(() => {
@@ -62,12 +68,6 @@ export function DeckSearch({ term, onSearch, ref }: DeckSearchProps) {
 
     return (): void => clearTimeout(timer);
   }, [text, term]);
-
-  const clear = (): void => {
-    setText("");
-    send(null);
-    input.current?.focus();
-  };
 
   useImperativeHandle(ref, () => ({ clear }));
 
