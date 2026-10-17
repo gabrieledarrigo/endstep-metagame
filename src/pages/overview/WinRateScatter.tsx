@@ -149,7 +149,7 @@ function WinRateMark({
           cy={cy}
           r={radius}
           fill={WIN_RATE_MARK}
-          fillOpacity={0.55}
+          fillOpacity="var(--mark-opacity)"
           stroke={CHART_SURFACE}
           strokeWidth={2}
         />

@@ -80,6 +80,7 @@ describe("WinRateScatter", () => {
     const mark = container.querySelector(".recharts-scatter-symbol circle");
     expect(mark?.getAttribute("fill")).toBe("var(--s1)");
     expect(mark?.getAttribute("stroke")).toBe("var(--surface)");
+    expect(mark?.getAttribute("fill-opacity")).toBe("var(--mark-opacity)");
   });
 
   it("drops the label of a deck that would overlap a label already placed", () => {

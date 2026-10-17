@@ -19,7 +19,7 @@
   --hover:#f1f0ec; --row-hover:#f5f4f0; --shadow:rgba(11,11,11,.09); --wash-text:#173f73;
   --up:#006300; --down:#d03b3b;
   --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100;
-  --s5:#e87ba4; --s6:#008300; --s7:#4a3aa7; --s8:#e34948;
+  --s5:#e87ba4; --s6:#008300; --s7:#4a3aa7; --s8:#e34948; --mark-opacity:0.55;
   --win:#9ec5f4; --loss:#f7aba4; --mirror:#efeee9;
   --seq-500:#256abf;
   --hatch:repeating-linear-gradient(135deg, var(--baseline) 0 1px, transparent 1px 5px);
@@ -35,7 +35,7 @@
   --hover:#424244; --row-hover:#404143; --shadow:rgba(0,0,0,.32); --wash-text:#dbe8fb;
   --up:#7ac07c; --down:#f8968e;
   --s1:#4f8ddd; --s2:#da6d44; --s3:#38a276; --s4:#bd8003;
-  --s5:#ca7091; --s6:#499e44; --s7:#8581e0; --s8:#e3635e;
+  --s5:#ca7091; --s6:#499e44; --s7:#8581e0; --s8:#e3635e; --mark-opacity:0.63;
   --win:#385c8a; --loss:#844645; --mirror:#444547;
     --seq-500:#689bdb;
     --hatch:repeating-linear-gradient(135deg, var(--baseline) 0 1px, transparent 1px 5px);
@@ -50,7 +50,7 @@
   --hover:#424244; --row-hover:#404143; --shadow:rgba(0,0,0,.32); --wash-text:#dbe8fb;
   --up:#7ac07c; --down:#f8968e;
   --s1:#4f8ddd; --s2:#da6d44; --s3:#38a276; --s4:#bd8003;
-  --s5:#ca7091; --s6:#499e44; --s7:#8581e0; --s8:#e3635e;
+  --s5:#ca7091; --s6:#499e44; --s7:#8581e0; --s8:#e3635e; --mark-opacity:0.63;
   --win:#385c8a; --loss:#844645; --mirror:#444547;
   --seq-500:#689bdb;
   --hatch:repeating-linear-gradient(135deg, var(--baseline) 0 1px, transparent 1px 5px);
@@ -647,6 +647,7 @@ a.button { display:inline-block; text-decoration:none; }
 <tr><td class="mono">--loss</td><td class="mono">#f7aba4</td><td class="mono">#844645</td><td><span class="chip" style="background:#844645;box-shadow:inset 0 0 0 1px rgba(11,11,11,.14)"></span></td><td class="num">n/a</td><td class="nm">Unfavoured, clear result</td></tr>
 <tr><td class="mono">--mirror</td><td class="mono">#efeee9</td><td class="mono">#444547</td><td><span class="chip" style="background:#444547;box-shadow:inset 0 0 0 1px rgba(11,11,11,.14)"></span></td><td class="num">n/a</td><td class="nm">The diagonal</td></tr>
 <tr><td class="mono">--shadow</td><td class="mono">rgba(11,11,11,.09)</td><td class="mono">rgba(0,0,0,.32)</td><td></td><td class="num">n/a</td><td class="nm">Tooltip shadow. New, was a literal</td></tr>
+<tr><td class="mono">--mark-opacity</td><td class="mono">0.55</td><td class="mono">0.63</td><td></td><td class="num">2.12:1</td><td class="nm">Fill opacity of the scatter's marks, measured as --s1 on the surface. New, was a literal</td></tr>
 <tr><td class="mono">--edge</td><td class="mono">rgba(11,11,11,.10)</td><td class="mono">rgba(255,255,255,.09)</td><td></td><td class="num">n/a</td><td class="nm">Panel and control borders</td></tr>
       </tbody>
     </table>
@@ -680,8 +681,10 @@ a.button { display:inline-block; text-decoration:none; }
   <span class="mono">--baseline</span>, as in the light theme.</p>
   <p class="spec"><b>What fades by opacity.</b> Measured on each theme's surface, light first: the spotlight's faded
   cells, NFR-6's one exception, read at 1.5:1 and 1.7:1. A hidden legend entry at 40% reads at 1.9:1 and 2.4:1. A busy
-  section at 55% keeps its body text at 4.4:1 and 4.0:1. The dark theme fades no further than the light one, so the
-  owner's settled exception holds as accepted.</p>
+  section at 55% keeps its body text at 4.4:1 and 4.0:1. The scatter's marks fill <span class="mono">--s1</span> at
+  <span class="mono">--mark-opacity</span>, 55% in light and 63% in dark, and read at 2.11:1 and 2.12:1. At 55% the
+  dark marks would read at 1.93:1. The dark theme fades no further than the light one, so the owner's settled
+  exception holds as accepted.</p>
   <p class="spec"><b>What stays.</b> Card art and the colour pips are the same in both themes. The pips' fills and their
   <span class="mono">#1a1714</span> letters are the cards' own colours, and each pip has its own outline, so it holds on
   either surface. <span class="mono">color-scheme</span> follows the theme, so native controls, such as the deck picker,
@@ -868,30 +871,30 @@ a.button { display:inline-block; text-decoration:none; }
 <text x="10" y="18" class="tick" text-anchor="start">match win rate</text>
 <line x1="56" y1="208.8" x2="980" y2="208.8" stroke="var(--text-400)" stroke-width="1.5" stroke-dasharray="5 4"/>
 <text x="974" y="200.8" text-anchor="end" class="lbl" fill="var(--text-600)">50% win rate</text>
-<circle cx="916.2" cy="178.1" r="18.0" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
-<circle cx="717.1" cy="196.0" r="16.6" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
-<circle cx="649.0" cy="263.7" r="16.3" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
-<circle cx="426.4" cy="148.8" r="13.0" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
-<circle cx="408.0" cy="192.2" r="14.2" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
-<circle cx="400.4" cy="100.2" r="12.9" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
-<circle cx="393.7" cy="138.5" r="13.5" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
-<circle cx="392.0" cy="173.0" r="13.0" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
-<circle cx="392.0" cy="104.1" r="13.0" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
-<circle cx="357.6" cy="169.2" r="13.4" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
-<circle cx="354.2" cy="171.7" r="13.6" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
-<circle cx="307.2" cy="185.8" r="12.7" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
-<circle cx="276.1" cy="127.0" r="11.7" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
-<circle cx="264.3" cy="330.1" r="12.5" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
-<circle cx="256.8" cy="148.8" r="11.8" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
-<circle cx="227.4" cy="239.4" r="11.4" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
-<circle cx="226.5" cy="161.5" r="11.2" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
-<circle cx="162.7" cy="199.8" r="10.5" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
-<circle cx="155.1" cy="164.1" r="9.5" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
-<circle cx="151.8" cy="68.3" r="9.6" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
-<circle cx="135.8" cy="230.5" r="9.1" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
-<circle cx="132.4" cy="192.2" r="9.1" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
-<circle cx="130.8" cy="294.3" r="9.5" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
-<circle cx="129.1" cy="323.7" r="9.6" fill="var(--s1)" fill-opacity="0.55" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="916.2" cy="178.1" r="18.0" fill="var(--s1)" fill-opacity="var(--mark-opacity)" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="717.1" cy="196.0" r="16.6" fill="var(--s1)" fill-opacity="var(--mark-opacity)" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="649.0" cy="263.7" r="16.3" fill="var(--s1)" fill-opacity="var(--mark-opacity)" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="426.4" cy="148.8" r="13.0" fill="var(--s1)" fill-opacity="var(--mark-opacity)" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="408.0" cy="192.2" r="14.2" fill="var(--s1)" fill-opacity="var(--mark-opacity)" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="400.4" cy="100.2" r="12.9" fill="var(--s1)" fill-opacity="var(--mark-opacity)" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="393.7" cy="138.5" r="13.5" fill="var(--s1)" fill-opacity="var(--mark-opacity)" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="392.0" cy="173.0" r="13.0" fill="var(--s1)" fill-opacity="var(--mark-opacity)" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="392.0" cy="104.1" r="13.0" fill="var(--s1)" fill-opacity="var(--mark-opacity)" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="357.6" cy="169.2" r="13.4" fill="var(--s1)" fill-opacity="var(--mark-opacity)" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="354.2" cy="171.7" r="13.6" fill="var(--s1)" fill-opacity="var(--mark-opacity)" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="307.2" cy="185.8" r="12.7" fill="var(--s1)" fill-opacity="var(--mark-opacity)" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="276.1" cy="127.0" r="11.7" fill="var(--s1)" fill-opacity="var(--mark-opacity)" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="264.3" cy="330.1" r="12.5" fill="var(--s1)" fill-opacity="var(--mark-opacity)" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="256.8" cy="148.8" r="11.8" fill="var(--s1)" fill-opacity="var(--mark-opacity)" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="227.4" cy="239.4" r="11.4" fill="var(--s1)" fill-opacity="var(--mark-opacity)" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="226.5" cy="161.5" r="11.2" fill="var(--s1)" fill-opacity="var(--mark-opacity)" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="162.7" cy="199.8" r="10.5" fill="var(--s1)" fill-opacity="var(--mark-opacity)" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="155.1" cy="164.1" r="9.5" fill="var(--s1)" fill-opacity="var(--mark-opacity)" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="151.8" cy="68.3" r="9.6" fill="var(--s1)" fill-opacity="var(--mark-opacity)" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="135.8" cy="230.5" r="9.1" fill="var(--s1)" fill-opacity="var(--mark-opacity)" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="132.4" cy="192.2" r="9.1" fill="var(--s1)" fill-opacity="var(--mark-opacity)" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="130.8" cy="294.3" r="9.5" fill="var(--s1)" fill-opacity="var(--mark-opacity)" stroke="var(--surface)" stroke-width="2"/>
+<circle cx="129.1" cy="323.7" r="9.6" fill="var(--s1)" fill-opacity="var(--mark-opacity)" stroke="var(--surface)" stroke-width="2"/>
 <text x="916.2" y="154.1" text-anchor="middle" class="lbl" fill="var(--text-900)">Affinity</text>
 <text x="717.1" y="173.4" text-anchor="middle" class="lbl" fill="var(--text-900)">Mono-Red Madness</text>
 <text x="649.0" y="241.4" text-anchor="middle" class="lbl" fill="var(--text-900)">Monster Tron</text>
@@ -1797,6 +1800,7 @@ a.button { display:inline-block; text-decoration:none; }
   <b>/* chart series, fixed order, no cycling */</b>
   --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100;
   --s5:#e87ba4; --s6:#008300; --s7:#4a3aa7; --s8:#e34948;
+  --mark-opacity:  0.55;   /* scatter marks, --s1 at 2.11:1 */
 
   <b>/* sequential blue, bars and heatmaps */</b>
   --seq-100:#cde2fb; --seq-200:#9ec5f4; --seq-300:#6da7ec; --seq-400:#3987e5;
@@ -1825,6 +1829,7 @@ a.button { display:inline-block; text-decoration:none; }
   --up:#7ac07c; --down:#f8968e;
   --s1:#4f8ddd; --s2:#da6d44; --s3:#38a276; --s4:#bd8003;
   --s5:#ca7091; --s6:#499e44; --s7:#8581e0; --s8:#e3635e;
+  --mark-opacity:0.63;  /* 2.12:1 */
   --seq-100:#164781; --seq-200:#2b5c97; --seq-300:#3f70ad; --seq-400:#5485c4;
   --seq-500:#689bdb; --seq-600:#7eb1f3; --seq-700:#93c7ff;
   --win:#385c8a; --loss:#844645; --mirror:#444547;
