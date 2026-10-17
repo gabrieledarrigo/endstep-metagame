@@ -125,13 +125,14 @@ function isRecord(value: unknown): value is Record<string, unknown> {
  * Checks whether a value is a deck with a key card name.
  *
  * @param value - A deck from a deck list or a deck detail.
- * @returns `true` when `art.cardName` is a string.
+ * @returns `true` when `art.cardName` is a string that is not blank.
  */
 function isArtDeck(value: unknown): value is ArtDeck {
   return (
     isRecord(value) &&
     isRecord(value.art) &&
-    typeof value.art.cardName === "string"
+    typeof value.art.cardName === "string" &&
+    value.art.cardName.trim() !== ""
   );
 }
 
