@@ -1,7 +1,7 @@
 import { type ReactNode, useEffect, useRef } from "react";
 import { Button } from "../../components/Button";
 import { PAGE_SIZE } from "../../config";
-import { formatCount } from "../../helpers";
+import { matchText } from "../../helpers";
 import "./SearchResults.css";
 
 type SearchResultsProps = {
@@ -26,6 +26,7 @@ export function SearchResults({
   children,
 }: SearchResultsProps) {
   const body = useRef<HTMLDivElement>(null);
+  const line = found && matchText(found.total, found.term);
 
   useEffect(() => {
     if (focus === undefined || body.current === null) {
@@ -52,14 +53,10 @@ export function SearchResults({
         className={busy ? "search-results__body busy" : "search-results__body"}
         aria-busy={busy || undefined}
       >
-        {found && (
+        {line && (
           <p className="search-results__line">
-            <b className="search-results__count">
-              {formatCount(found.total)} {found.total === 1 ? "deck" : "decks"}
-            </b>{" "}
-            {found.total === 1 ? "matches" : "match"} {"“"}
-            {found.term}
-            {"”"}. Search covers deck names and every card in their lists.
+            <b className="search-results__count">{line.count}</b> {line.rest}{" "}
+            Search covers deck names and every card in their lists.
           </p>
         )}
         {children}

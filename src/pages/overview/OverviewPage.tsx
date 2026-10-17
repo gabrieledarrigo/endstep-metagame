@@ -9,7 +9,7 @@ import { Section } from "../../components/Section";
 import { SegmentedControl } from "../../components/SegmentedControl";
 import { StatePanel } from "../../components/StatePanel";
 import { WINDOWS } from "../../config";
-import { formatCount, searchTerm } from "../../helpers";
+import { matchText, searchTerm } from "../../helpers";
 import { useTimeWindow } from "../../hooks/useTimeWindow";
 import { DeckGrid, DeckGridSkeleton } from "./DeckGrid";
 import { DeckSearch, type DeckSearchHandle } from "./DeckSearch";
@@ -46,12 +46,6 @@ function uniqueDecks(pages: DecksResponse[]): Deck[] {
 
 function quoted(term: string): string {
   return `\u201c${term}\u201d`;
-}
-
-function matchLine(total: number, term: string): string {
-  return total === 1
-    ? `1 deck matches ${quoted(term)}.`
-    : `${formatCount(total)} decks match ${quoted(term)}.`;
 }
 
 export function OverviewPage() {
@@ -131,10 +125,6 @@ export function OverviewPage() {
 
   const onSearch = useCallback(
     (next: string | null): void => {
-      if (searchParams.get("q") === next) {
-        return;
-      }
-
       setSearchParams(
         (params) => {
           if (next === null) {
@@ -147,7 +137,7 @@ export function OverviewPage() {
         { replace: true },
       );
     },
-    [searchParams, setSearchParams],
+    [setSearchParams],
   );
 
   const clearSearch = (): void => {
@@ -180,11 +170,11 @@ export function OverviewPage() {
     status = `Searching for ${quoted(term)}.`;
   } else if (moreError) {
     status = moreError;
-  } else if (searching && found) {
-    status =
-      total === 0
-        ? `No deck or card matches ${quoted(term)}.`
-        : matchLine(total, term);
+  } else if (searching && results.length === 0) {
+    status = found ? `No deck or card matches ${quoted(term)}.` : "";
+  } else if (searching) {
+    const { count, rest } = matchText(total, foundTerm);
+    status = `${count} ${rest}`;
   }
 
   const selectView = (next: View): void => {
@@ -274,8 +264,8 @@ export function OverviewPage() {
               skeleton={topList.length > 0 ? deckView(topList) : viewSkeleton}
               title="The search could not be loaded"
             >
-              {(data) => {
-                if (data.pages[0]?.decks.items.length === 0) {
+              {() => {
+                if (results.length === 0) {
                   return (
                     <StatePanel
                       title={`No deck or card matches ${quoted(term)}`}
@@ -290,7 +280,7 @@ export function OverviewPage() {
                 }
 
                 return deckView(
-                  uniqueDecks(data.pages),
+                  results,
                   `Decks that match ${quoted(foundTerm)}, sortable by column`,
                 );
               }}

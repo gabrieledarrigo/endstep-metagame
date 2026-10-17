@@ -79,6 +79,20 @@ describe("DeckSearch", () => {
     expect(onSearch).toHaveBeenCalledTimes(1);
   });
 
+  it("keeps the pause running when the page hands it a new callback", async () => {
+    const first = vi.fn<(term: string | null) => void>();
+    const second = vi.fn<(term: string | null) => void>();
+    const { rerender } = render(<DeckSearch term={null} onSearch={first} />);
+
+    type("altar");
+    await pause(200);
+    rerender(<DeckSearch term={null} onSearch={second} />);
+    await pause(170);
+
+    expect(first).not.toHaveBeenCalled();
+    expect(second).toHaveBeenCalledWith("altar");
+  });
+
   it("searches nothing for one character", async () => {
     const { onSearch } = renderSearch();
 

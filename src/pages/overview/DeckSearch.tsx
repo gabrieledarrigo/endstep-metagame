@@ -1,7 +1,7 @@
 import {
   type Ref,
-  useCallback,
   useEffect,
+  useEffectEvent,
   useId,
   useImperativeHandle,
   useRef,
@@ -39,13 +39,12 @@ export function DeckSearch({ term, onSearch, ref }: DeckSearchProps) {
     }
   }
 
-  const send = useCallback(
-    (next: string | null): void => {
-      setSentTerm(next);
-      onSearch(next);
-    },
-    [onSearch],
-  );
+  const send = (next: string | null): void => {
+    setSentTerm(next);
+    onSearch(next);
+  };
+
+  const sendAfterPause = useEffectEvent(send);
 
   useEffect(() => {
     const next = searchTerm(text);
@@ -54,10 +53,10 @@ export function DeckSearch({ term, onSearch, ref }: DeckSearchProps) {
       return;
     }
 
-    const timer = setTimeout(() => send(next), DELAY_MS);
+    const timer = setTimeout(() => sendAfterPause(next), DELAY_MS);
 
     return (): void => clearTimeout(timer);
-  }, [text, term, send]);
+  }, [text, term]);
 
   const clear = (): void => {
     setText("");

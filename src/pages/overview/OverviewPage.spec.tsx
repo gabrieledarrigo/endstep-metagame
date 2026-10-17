@@ -632,6 +632,21 @@ describe("OverviewPage search", () => {
     });
   });
 
+  it("keeps the pause running when the view changes during it", async () => {
+    stubApi(() => Response.json(decks));
+    renderAt("/?window=30d");
+    await screen.findByRole("region", { name: "Decks by meta share" });
+
+    type("altar");
+    await pause(150);
+    fireEvent.click(screen.getByRole("button", { name: "Table" }));
+    await pause(220);
+
+    expect(
+      screen.getByText("Address: ?window=30d&view=table&q=altar by REPLACE"),
+    ).toBeTruthy();
+  });
+
   it("searches nothing for one character, and keeps the top 24", async () => {
     const fetchMock = stubApi(() => Response.json(decks));
     renderAt("/?window=30d");
