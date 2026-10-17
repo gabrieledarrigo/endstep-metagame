@@ -56,7 +56,12 @@ export default defineConfig([
     languageOptions: { globals: globals.browser },
   },
   {
-    files: ["api/**", "*.config.{js,ts}"],
+    files: [
+      "api/**",
+      "*.config.{js,ts}",
+      "vercel.spec.ts",
+      "vite.config.spec.ts",
+    ],
     languageOptions: { globals: globals.node },
   },
   {

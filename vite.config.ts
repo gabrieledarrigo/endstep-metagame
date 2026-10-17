@@ -3,10 +3,48 @@ import { defineConfig, type Connect, type Plugin } from "vite";
 import react from "@vitejs/plugin-react";
 import matchups from "./api/matchups.ts";
 import metagame from "./api/metagame.ts";
+import vercel from "./vercel.json" with { type: "json" };
 
 const METAGAME = "/api/metagame";
 const METAGAME_PREFIX = `${METAGAME}/`;
 const MATCHUPS = "/api/matchups";
+
+export const CATCH_ALL_SOURCE = "/(.*)";
+
+/**
+ * Reads the headers that `vercel.json` sets for one source pattern.
+ *
+ * @param source - The rule's `source`, such as `/(.*)`.
+ * @returns The rule's headers by name, or an empty object when no rule has that source.
+ */
+export function vercelHeaders(source: string): Record<string, string> {
+  const rule = vercel.headers.find((candidate) => candidate.source === source);
+
+  return Object.fromEntries(
+    (rule?.headers ?? []).map(({ key, value }) => [key, value]),
+  );
+}
+
+/**
+ * Sends the headers of the catch-all rule in `vercel.json` on every `vite preview` response, as production does.
+ *
+ * @returns A Vite plugin whose preview middleware sets the headers and passes the request on. It must come before the plugins that answer requests.
+ */
+export function previewSecurityHeaders(): Plugin {
+  const headers = vercelHeaders(CATCH_ALL_SOURCE);
+
+  return {
+    name: "preview-security-headers",
+    configurePreviewServer(server): void {
+      server.middlewares.use((_req, res, next) => {
+        Object.entries(headers).forEach(([name, value]) => {
+          res.setHeader(name, value);
+        });
+        next();
+      });
+    },
+  };
+}
 
 type FunctionTarget = {
   handler: { fetch: (req: Request) => Promise<Response> };
@@ -132,7 +170,7 @@ function api(): Plugin {
 }
 
 export default defineConfig({
-  plugins: [react(), api()],
+  plugins: [react(), previewSecurityHeaders(), api()],
   build: {
     target: "es2025",
   },
@@ -143,7 +181,11 @@ export default defineConfig({
         test: {
           name: "api",
           environment: "node",
-          include: ["api/**/*.spec.ts"],
+          include: [
+            "api/**/*.spec.ts",
+            "vercel.spec.ts",
+            "vite.config.spec.ts",
+          ],
         },
       },
       {
