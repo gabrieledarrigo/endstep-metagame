@@ -6,6 +6,17 @@
     font-variant-numeric: tabular-nums;
   }
 
+  .deck-matchups__body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .deck-matchups__body--busy {
+    opacity: 0.55;
+  }
+
   .deck-matchups__skeleton {
     display: block;
     width: 100%;

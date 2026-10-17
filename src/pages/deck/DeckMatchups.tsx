@@ -27,10 +27,12 @@ export function DeckMatchups({
 }: DeckMatchupsProps) {
   const matchups = useMatchups(timeWindow);
   const matrix = matchups.data;
+  const loading = matchups.isPlaceholderData;
   const row = matrix?.decks.find((item) => item.id === deck.id);
   const others = matrix?.decks.filter((item) => item.id !== deck.id) ?? [];
   const otherDates =
     matrix !== undefined &&
+    !loading &&
     !detailLoading &&
     (matrix.window.from !== detailWindow.from ||
       matrix.window.to !== detailWindow.to);
@@ -45,42 +47,53 @@ export function DeckMatchups({
           These matchups cover {formatWindow(matrix.window)}.
         </p>
       )}
-      <Section
-        query={matchups}
-        skeleton={<Skeleton className="deck-matchups__skeleton" />}
-        title="The matchups could not be loaded"
-      >
-        {(data) =>
-          data.decks.length === 0 ? (
-            <Panel>
-              <p className="deck-matchups__outside">
-                No matchups are recorded for this window yet.
-              </p>
-            </Panel>
-          ) : row ? (
-            <>
-              <MatchupGrid
-                key={others.map((item) => item.slug).join(" ")}
-                rows={[row]}
-                columns={others}
-                cells={data.cells}
-                label={`Match win rate of ${row.name} against the other ${others.length} decks in the top ${data.decks.length}, ${timeWindow} window, rated.`}
-                linkRows={false}
-                contained
-              />
-              <MatchupLegend mirror={false} />
-            </>
-          ) : (
-            <Panel>
-              <p className="deck-matchups__outside">
-                {deck.name} is not in the top {data.decks.length} for this
-                window, so it has no row in the matchup table.{" "}
-                <WindowLink to="/matchups">See the matchup table</WindowLink>
-              </p>
-            </Panel>
-          )
+      <div
+        className={
+          loading && !detailLoading
+            ? "deck-matchups__body deck-matchups__body--busy"
+            : "deck-matchups__body"
         }
-      </Section>
+        aria-busy={loading || undefined}
+      >
+        <Section
+          query={matchups}
+          skeleton={<Skeleton className="deck-matchups__skeleton" />}
+          title="The matchups could not be loaded"
+        >
+          {(data) =>
+            row ? (
+              <>
+                <MatchupGrid
+                  key={others.map((item) => item.slug).join(" ")}
+                  rows={[row]}
+                  columns={others}
+                  cells={data.cells}
+                  label={`Match win rate of ${row.name} against the other ${others.length} decks in the top ${data.decks.length}${loading ? "" : `, ${timeWindow} window`}, rated.`}
+                  linkRows={false}
+                  contained
+                />
+                <MatchupLegend mirror={false} />
+              </>
+            ) : data.decks.length > 0 ? (
+              <Panel>
+                <p className="deck-matchups__outside">
+                  {deck.name} is not in the top {data.decks.length} for this
+                  window, so it has no row in the matchup table.{" "}
+                  <WindowLink to="/matchups">See the matchup table</WindowLink>
+                </p>
+              </Panel>
+            ) : loading ? (
+              <Skeleton className="deck-matchups__skeleton" />
+            ) : (
+              <Panel>
+                <p className="deck-matchups__outside">
+                  No matchups are recorded for this window yet.
+                </p>
+              </Panel>
+            )
+          }
+        </Section>
+      </div>
     </DeckSection>
   );
 }
