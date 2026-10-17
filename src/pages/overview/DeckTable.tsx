@@ -151,8 +151,11 @@ export function DeckTable({ decks }: { decks: Deck[] }) {
       className="deck-table__scroll"
       tabIndex={0}
       role="region"
-      aria-label="Deck table"
+      aria-labelledby="deck-table-heading"
     >
+      <h2 className="visually-hidden" id="deck-table-heading">
+        Deck table
+      </h2>
       <table className="deck-table">
         <caption className="visually-hidden">
           The top {decks.length} decks, sortable by column

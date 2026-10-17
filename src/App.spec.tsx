@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import detail from "../test/fixtures/deck.json";
 import decks from "../test/fixtures/decks.json";
@@ -70,10 +70,15 @@ describe("App", () => {
     ).toBeTruthy();
     expect(vi.mocked(fetch).mock.calls.length).toBe(requestsOnOverview + 2);
 
-    const [, tableName] = screen.getAllByRole("link", {
-      name: "Monster Tron",
-    });
-    fireEvent.click(tableName);
+    fireEvent.click(screen.getByRole("button", { name: "Table" }));
+    expect(location.pathname + location.search).toBe("/?window=7d&view=table");
+
+    fireEvent.click(
+      within(screen.getByRole("region", { name: "Deck table" })).getByRole(
+        "link",
+        { name: "Monster Tron" },
+      ),
+    );
 
     expect(
       await screen.findByRole("heading", {

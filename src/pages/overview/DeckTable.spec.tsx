@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { MemoryRouter, useLocation, useNavigationType } from "react-router";
 import { describe, expect, it } from "vitest";
 import decks from "../../../test/fixtures/decks.json";
@@ -29,6 +29,17 @@ function deckOrder(): (string | null)[] {
 }
 
 describe("DeckTable", () => {
+  it("names itself with a heading, as the deck grid does", () => {
+    renderAt("/?window=30d");
+
+    const region = screen.getByRole("region", { name: "Deck table" });
+    const heading = within(region).getByRole("heading", {
+      level: 2,
+      name: "Deck table",
+    });
+    expect(region.getAttribute("aria-labelledby")).toBe(heading.id);
+  });
+
   it("sorts by share, descending, when the address names no sort", () => {
     renderAt("/?window=30d");
 

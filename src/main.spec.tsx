@@ -68,9 +68,7 @@ describe("the overview page", () => {
 
     fireEvent.click(screen.getAllByRole("button", { name: "Retry" })[0]);
 
-    expect((await screen.findAllByText("Monster Tron")).length).toBeGreaterThan(
-      1,
-    );
+    expect(await screen.findByText("Monster Tron")).toBeTruthy();
     expect(
       screen.queryByRole("heading", {
         name: "The deck grid could not be loaded",
@@ -89,14 +87,14 @@ describe("the overview page", () => {
     api.hold("7d");
     fireEvent.click(screen.getByRole("button", { name: "7d" }));
 
-    expect(screen.getAllByText("Monster Tron").length).toBeGreaterThan(1);
+    expect(screen.getByText("Monster Tron")).toBeTruthy();
     expect(screen.getByRole("status").textContent).toBe(
       "Loading the 7d window.",
     );
 
     fireEvent.click(screen.getByRole("button", { name: "30d" }));
 
-    expect(screen.getAllByText("Monster Tron").length).toBeGreaterThan(1);
+    expect(screen.getByText("Monster Tron")).toBeTruthy();
     expect(screen.getByRole("status").textContent).toBe("");
     expect(decksRequests("30d")).toBe(2);
 
@@ -106,7 +104,7 @@ describe("the overview page", () => {
     expect(
       screen.getByRole("button", { name: "30d", pressed: true }),
     ).toBeTruthy();
-    expect(screen.getAllByText("Monster Tron").length).toBeGreaterThan(1);
+    expect(screen.getByText("Monster Tron")).toBeTruthy();
 
     const requested = api.fetchMock.mock.calls.map(([input]) => String(input));
     expect(requested.every((url) => url.startsWith("/api/metagame/"))).toBe(

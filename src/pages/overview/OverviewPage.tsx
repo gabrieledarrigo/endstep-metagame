@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useSearchParams } from "react-router";
 import { fetchDecks, fetchSeries } from "../../api/endpoints";
 import { PageTitle } from "../../components/PageTitle";
 import { Section } from "../../components/Section";
@@ -13,8 +14,14 @@ import { ShareOverTime, ShareOverTimeSkeleton } from "./ShareOverTime";
 import { Summary, SummarySkeleton } from "./Summary";
 import { WinRateScatter, WinRateScatterSkeleton } from "./WinRateScatter";
 
+const VIEWS = ["Cards", "Table"] as const;
+
+type View = (typeof VIEWS)[number];
+
 export function OverviewPage() {
   const [timeWindow, selectTimeWindow] = useTimeWindow();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const view: View = searchParams.get("view") === "table" ? "Table" : "Cards";
   const decks = useQuery({
     queryKey: ["decks", timeWindow],
     queryFn: ({ signal }) => fetchDecks(timeWindow, signal),
@@ -31,6 +38,26 @@ export function OverviewPage() {
   const loadingWindow = decks.isPlaceholderData || series.isPlaceholderData;
   const loading = decks.isPending || series.isPending || loadingWindow;
 
+  const selectView = (next: View): void => {
+    const written = next === "Table" ? "table" : null;
+
+    if (searchParams.get("view") === written) {
+      return;
+    }
+
+    setSearchParams(
+      (params) => {
+        if (written === null) {
+          params.delete("view");
+        } else {
+          params.set("view", written);
+        }
+        return params;
+      },
+      { replace: true },
+    );
+  };
+
   return (
     <>
       <PageTitle title="Overview" />
@@ -42,6 +69,12 @@ export function OverviewPage() {
           value={timeWindow}
           onChange={(next) => selectTimeWindow(next, loading)}
           busy={loading}
+        />
+        <SegmentedControl
+          label="View"
+          options={VIEWS}
+          value={view}
+          onChange={selectView}
         />
       </div>
 
@@ -63,27 +96,31 @@ export function OverviewPage() {
 
         <Section
           query={decks}
-          skeleton={<DeckGridSkeleton />}
-          title="The deck grid could not be loaded"
-        >
-          {(data) =>
-            data.decks.items.length > 0 ? (
-              <DeckGrid decks={data.decks.items} />
-            ) : (
-              <EmptyWindow
-                timeWindow={timeWindow}
-                onSelect={selectTimeWindow}
-              />
-            )
+          skeleton={
+            view === "Table" ? <DeckTableSkeleton /> : <DeckGridSkeleton />
           }
-        </Section>
-
-        <Section
-          query={decks}
-          skeleton={<DeckTableSkeleton />}
-          title="The deck table could not be loaded"
+          title={
+            view === "Table"
+              ? "The deck table could not be loaded"
+              : "The deck grid could not be loaded"
+          }
         >
-          {(data) => <DeckTable decks={data.decks.items} />}
+          {(data) => {
+            if (data.decks.items.length === 0) {
+              return (
+                <EmptyWindow
+                  timeWindow={timeWindow}
+                  onSelect={selectTimeWindow}
+                />
+              );
+            }
+
+            return view === "Table" ? (
+              <DeckTable decks={data.decks.items} />
+            ) : (
+              <DeckGrid decks={data.decks.items} />
+            );
+          }}
         </Section>
 
         <Section
