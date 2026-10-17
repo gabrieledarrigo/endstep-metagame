@@ -135,7 +135,9 @@ export function MatchupsPage() {
                 matrix={data}
                 timeWindow={loadingWindow ? undefined : timeWindow}
                 spotlight={spotlit?.slug}
-                reveal={spotlit !== undefined && revealing === slug}
+                reveal={
+                  !loadingWindow && spotlit !== undefined && revealing === slug
+                }
                 onReveal={revealed}
                 notice={notice}
               />

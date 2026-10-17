@@ -505,6 +505,34 @@ describe("MatchupsPage", () => {
     expect(scrollIntoView).not.toHaveBeenCalled();
   });
 
+  it("waits for the window to load before it reveals a deck chosen during the load", async () => {
+    let answer: (response: Response) => void = () => {};
+    stubRoutes(
+      undefined,
+      () => Response.json(matrix),
+      () => new Promise<Response>((resolve) => (answer = resolve)),
+    );
+    stubWidth(true);
+    const scrollIntoView = stubScroll();
+    renderAt("/matchups?window=30d");
+    await screen.findByText("11 Sept to 10 Oct 2026");
+
+    fireEvent.click(screen.getByRole("button", { name: "7d" }));
+    await screen.findByText("Loading the 7d window.");
+    fireEvent.change(picker(), { target: { value: "naya-gates-af060ab8" } });
+
+    expect(spotlit()).toEqual(["Naya Gates"]);
+    expect(scrollIntoView).not.toHaveBeenCalled();
+
+    answer(Response.json(matrix));
+
+    expect(await screen.findByRole("grid", { name: /7d window/ })).toBeTruthy();
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
+    expect(scrollIntoView.mock.contexts[0]).toBe(
+      screen.getByRole("rowheader", { name: "Naya Gates" }),
+    );
+  });
+
   it("counts an empty deck as none", async () => {
     stubRoutes();
     renderAt("/matchups?window=30d&deck=");
