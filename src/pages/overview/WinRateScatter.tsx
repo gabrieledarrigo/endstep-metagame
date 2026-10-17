@@ -52,7 +52,7 @@ type WinRatePoint = {
 };
 
 function winRatePoints(decks: Deck[]): WinRatePoint[] {
-  return decks.flatMap((deck) => {
+  const points = decks.flatMap((deck) => {
     const read = readRate(deck.matchWinRate);
 
     if (read.gated) {
@@ -72,6 +72,8 @@ function winRatePoints(decks: Deck[]): WinRatePoint[] {
       },
     ];
   });
+
+  return points.sort((a, b) => b.players - a.players);
 }
 
 function labelledPoints(

@@ -104,6 +104,14 @@ describe("WinRateScatter", () => {
     ).toEqual(DECKS.map((deck) => `/decks/${deck.slug}?window=7d`));
   });
 
+  it("draws the decks with fewer players last, so a large marker never hides a small one", () => {
+    renderScatter([DECKS[2], DECKS[0], DECKS[1]]);
+
+    expect(
+      screen.getAllByRole("link").map((link) => link.getAttribute("href")),
+    ).toEqual(DECKS.map((deck) => `/decks/${deck.slug}?window=7d`));
+  });
+
   it("opens the deck at once on a mouse click", () => {
     const { container } = renderScatter(DECKS);
 
