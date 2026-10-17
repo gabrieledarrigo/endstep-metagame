@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   NavigationType,
   useLocation,
+  useNavigate,
   useNavigationType,
   useSearchParams,
 } from "react-router";
@@ -22,7 +23,8 @@ export function MatchupsPage() {
   const [timeWindow, selectTimeWindow] = useTimeWindow();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigationType = useNavigationType();
-  const { key } = useLocation();
+  const { key, pathname, search, hash } = useLocation();
+  const navigate = useNavigate();
   const matchups = useMatchups(timeWindow);
   const loadingWindow = matchups.isPlaceholderData;
   const loading = matchups.isPending || loadingWindow;
@@ -53,6 +55,12 @@ export function MatchupsPage() {
   }
 
   const revealed = useCallback(() => setRevealing(null), []);
+
+  useEffect(() => {
+    if (key === "default") {
+      navigate({ pathname, search, hash }, { replace: true });
+    }
+  }, [key, pathname, search, hash, navigate]);
 
   const selectDeck = (next: string | null): void => {
     setSearchParams(

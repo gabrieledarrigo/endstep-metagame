@@ -1,11 +1,18 @@
 import { QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import {
   Link,
   MemoryRouter,
   Route,
   Routes,
   useLocation,
+  useNavigate,
   useNavigationType,
 } from "react-router";
 import { type Mock, afterEach, describe, expect, it, vi } from "vitest";
@@ -65,6 +72,16 @@ function Address() {
     <p>
       Address: {search}, {navigationType}
     </p>
+  );
+}
+
+function Back() {
+  const navigate = useNavigate();
+
+  return (
+    <button type="button" onClick={() => navigate(-1)}>
+      Back
+    </button>
   );
 }
 
@@ -289,12 +306,57 @@ describe("MatchupsPage", () => {
     expect(spotlit()).toEqual(["Monster Tron"]);
     expect(chosen()).toBe("Monster Tron");
     expect(
-      screen.getByText("Address: ?window=30d&deck=renamed-1bc68613, POP"),
+      screen.getByText("Address: ?window=30d&deck=renamed-1bc68613, REPLACE"),
     ).toBeTruthy();
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
-  it("does not reveal the deck on back, forward or reload, which keep the browser's scroll position", async () => {
+  it("does not reveal the deck again on a return to the first history entry, which keeps the browser's scroll position", async () => {
+    stubRoutes();
+    stubWidth(true);
+    const scrollIntoView = stubScroll();
+    renderWithQueries(
+      <MemoryRouter
+        initialEntries={["/matchups?window=30d&deck=monster-tron-1bc68613"]}
+      >
+        <Routes>
+          <Route
+            path="matchups"
+            element={
+              <>
+                <MatchupsPage />
+                <Address />
+              </>
+            }
+          />
+          <Route path="decks/:slug" element={<Back />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    await screen.findByRole("grid");
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
+    expect(
+      screen.getByText(
+        "Address: ?window=30d&deck=monster-tron-1bc68613, REPLACE",
+      ),
+    ).toBeTruthy();
+
+    fireEvent.click(
+      within(screen.getByRole("rowheader", { name: "Affinity" })).getByRole(
+        "link",
+      ),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Back" }));
+
+    expect(
+      screen.getByText("Address: ?window=30d&deck=monster-tron-1bc68613, POP"),
+    ).toBeTruthy();
+    expect(spotlit()).toEqual(["Monster Tron"]);
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not reveal the deck on a return to a later history entry", async () => {
     stubRoutes();
     stubWidth(true);
     const scrollIntoView = stubScroll();
@@ -304,6 +366,42 @@ describe("MatchupsPage", () => {
 
     expect(spotlit()).toEqual(["Monster Tron"]);
     expect(scrollIntoView).not.toHaveBeenCalled();
+  });
+
+  it("gives the first history entry a key of its own without moving focus or scrolling to the top", async () => {
+    stubRoutes();
+    stubWidth(true);
+    stubScroll();
+    const scrollTo = vi.spyOn(window, "scrollTo").mockImplementation(() => {});
+    renderWithQueries(
+      <MemoryRouter
+        initialEntries={["/matchups?window=30d&deck=monster-tron-1bc68613"]}
+      >
+        <Routes>
+          <Route element={<Layout />}>
+            <Route
+              path="matchups"
+              element={
+                <>
+                  <MatchupsPage />
+                  <Address />
+                </>
+              }
+            />
+          </Route>
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    await screen.findByRole("grid");
+
+    expect(
+      screen.getByText(
+        "Address: ?window=30d&deck=monster-tron-1bc68613, REPLACE",
+      ),
+    ).toBeTruthy();
+    expect(scrollTo).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(document.body);
   });
 
   it("writes a chosen deck in place of the history entry and reveals it, and All decks removes it", async () => {
@@ -426,7 +524,7 @@ describe("MatchupsPage", () => {
     ).toBeTruthy();
     expect(chosen()).toBe("Mono Green Stompy (not in the top 4)");
     expect(
-      screen.getByText("Address: ?window=30d&deck=stompy-12345678, POP"),
+      screen.getByText("Address: ?window=30d&deck=stompy-12345678, REPLACE"),
     ).toBeTruthy();
     expect(String(fetchMock.mock.calls[1][0])).toBe(
       "/api/metagame/Pauper/decks/stompy-12345678?window=30d&population=rated",
