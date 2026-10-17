@@ -160,12 +160,19 @@ export function OverviewPage() {
   const viewSkeleton =
     view === "Table" ? <DeckTableSkeleton /> : <DeckGridSkeleton />;
 
+  const moreError =
+    searching && search.isFetchNextPageError && !search.isFetchingNextPage
+      ? `The next decks could not be loaded. ${search.error.message}`
+      : undefined;
+
   let status = "";
   if (loading) {
     status = `Loading the ${timeWindow} window.`;
   } else if (loadingTerm) {
     status = `Searching for ${quoted(term)}.`;
-  } else if (searching && search.isSuccess) {
+  } else if (moreError) {
+    status = moreError;
+  } else if (searching && found) {
     status =
       total === 0
         ? `No deck or card matches ${quoted(term)}.`
@@ -244,6 +251,7 @@ export function OverviewPage() {
                 }
               : undefined
           }
+          moreError={moreError}
           busy={loadingTerm && (found !== undefined || topList.length > 0)}
           focus={
             focusFrom === null || search.hasNextPage

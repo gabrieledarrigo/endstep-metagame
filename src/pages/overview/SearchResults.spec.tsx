@@ -79,6 +79,29 @@ describe("SearchResults", () => {
     expect(screen.getByRole("button", { name: "Show 6 more" })).toBeTruthy();
   });
 
+  it("says when the next decks could not be loaded, and keeps the button as the retry", () => {
+    const onMore = vi.fn();
+    render(
+      <SearchResults
+        field={null}
+        more={{ remaining: 6, loading: false, onMore }}
+        moreError="The next decks could not be loaded. Endstep did not respond."
+      >
+        {decks()}
+      </SearchResults>,
+    );
+
+    expect(
+      screen.getByText(
+        "The next decks could not be loaded. Endstep did not respond.",
+      ),
+    ).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: "Show 6 more" }));
+
+    expect(onMore).toHaveBeenCalledTimes(1);
+  });
+
   it("marks the button busy while the next page loads, and ignores a second click", () => {
     const onMore = vi.fn();
     render(

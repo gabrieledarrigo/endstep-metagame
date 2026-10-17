@@ -13,6 +13,12 @@
     color: var(--text-600);
   }
 
+  .search-results__error {
+    margin: 0;
+    font-size: 14px;
+    color: var(--text-600);
+  }
+
   .search-results__count {
     color: var(--text-900);
     font-weight: 600;

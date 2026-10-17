@@ -750,6 +750,55 @@ describe("OverviewPage search", () => {
     ).toEqual(["1", "2"]);
   });
 
+  it("says when the next page fails, announces it, and keeps Show more as the retry", async () => {
+    stubApi(
+      () => Response.json(decks),
+      (url) =>
+        url.searchParams.get("page") === "1"
+          ? matches(url, numberedDecks(1, 24), 30)
+          : Response.json({ error: "Not found" }, { status: 404 }),
+    );
+    renderAt("/?window=30d&q=deck");
+    await statusReads("30 decks match \u201cdeck\u201d.");
+
+    fireEvent.click(screen.getByRole("button", { name: "Show 6 more" }));
+
+    const failure =
+      "The next decks could not be loaded. The request failed with status 404.";
+    await statusReads(failure);
+    expect(
+      screen
+        .getAllByText(failure)
+        .filter((line) => line.getAttribute("role") !== "status"),
+    ).toHaveLength(1);
+    expect(screen.getByRole("button", { name: "Show 6 more" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Deck 24" })).toBeTruthy();
+  });
+
+  it("names the rate limit when the next page is refused after its retries", async () => {
+    stubApi(
+      () => Response.json(decks),
+      (url) =>
+        url.searchParams.get("page") === "1"
+          ? matches(url, numberedDecks(1, 24), 30)
+          : Response.json({ error: "Too many requests" }, { status: 429 }),
+    );
+    renderAt("/?window=30d&q=deck");
+    await statusReads("30 decks match \u201cdeck\u201d.");
+
+    fireEvent.click(screen.getByRole("button", { name: "Show 6 more" }));
+
+    const failure =
+      "The next decks could not be loaded. Endstep's rate limit was reached. It resets within a minute, so a retry after that usually works.";
+    await waitFor(
+      () => {
+        expect(screen.getByRole("status").textContent).toBe(failure);
+      },
+      { timeout: 4000 },
+    );
+    expect(screen.getAllByText(failure)).toHaveLength(2);
+  });
+
   it("sorts the loaded results in the table, and sorts again once the next page is added", async () => {
     stubApi(
       () => Response.json(decks),
