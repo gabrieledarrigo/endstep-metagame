@@ -21,7 +21,7 @@
   --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100;
   --s5:#e87ba4; --s6:#008300; --s7:#4a3aa7; --s8:#e34948; --mark-opacity:0.55;
   --win:#9ec5f4; --loss:#f7aba4; --mirror:#efeee9;
-  --seq-500:#256abf;
+  --seq-500:#256abf; --seq-600:#184f95;
   --hatch:repeating-linear-gradient(135deg, var(--baseline) 0 1px, transparent 1px 5px);
   --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
@@ -37,7 +37,7 @@
   --s1:#4f8ddd; --s2:#da6d44; --s3:#38a276; --s4:#bd8003;
   --s5:#ca7091; --s6:#499e44; --s7:#8581e0; --s8:#e3635e; --mark-opacity:0.63;
   --win:#385c8a; --loss:#844645; --mirror:#444547;
-    --seq-500:#689bdb;
+    --seq-500:#689bdb; --seq-600:#7eb1f3;
     --hatch:repeating-linear-gradient(135deg, var(--baseline) 0 1px, transparent 1px 5px);
   }
 }
@@ -52,7 +52,7 @@
   --s1:#4f8ddd; --s2:#da6d44; --s3:#38a276; --s4:#bd8003;
   --s5:#ca7091; --s6:#499e44; --s7:#8581e0; --s8:#e3635e; --mark-opacity:0.63;
   --win:#385c8a; --loss:#844645; --mirror:#444547;
-  --seq-500:#689bdb;
+  --seq-500:#689bdb; --seq-600:#7eb1f3;
   --hatch:repeating-linear-gradient(135deg, var(--baseline) 0 1px, transparent 1px 5px);
 }
 .scope-light, .scope-dark { background:var(--background); color:var(--text-900); }
@@ -251,9 +251,11 @@ pre b { color:var(--text-900); font-weight:600; }
 .chart-tooltip__name { color:var(--text-600); flex:1; }
 .chart-tooltip__value { font-weight:600; font-variant-numeric:tabular-nums; }
 .chart-legend { display:flex; flex-wrap:wrap; gap:8px 18px; }
-.chart-legend__item { all:unset; cursor:pointer; display:inline-flex; align-items:center; gap:7px; font-size:13px; color:var(--text-600); }
-.chart-legend__item:hover { color:var(--text-900); }
-.chart-legend__item--off { opacity:.4; text-decoration:line-through; }
+.chart-legend__item { all:unset; cursor:pointer; display:inline-flex; align-items:center; gap:7px; font-size:13px; color:var(--text-600);
+  padding:3px 10px 3px 8px; border:1px solid transparent; border-radius:999px; }
+.chart-legend__item:hover { color:var(--text-900); background:var(--hover); }
+.chart-legend__item[aria-pressed="true"] { color:var(--text-900); font-weight:600; border-color:var(--edge); background:var(--surface); }
+.chart-legend__item:focus-visible { outline:2px solid var(--primary); outline-offset:2px; }
 .chart-legend__swatch { width:12px; height:3px; border-radius:2px; flex-shrink:0; }
 
 .skeleton { background:var(--rule); border-radius:5px; animation:pulse 1.5s ease-in-out infinite; }
@@ -458,6 +460,44 @@ a.button { display:inline-block; text-decoration:none; }
 .matchup-list__verdict { font-size:12px; color:var(--text-600); text-align:right; white-space:nowrap; }
 .deck-strip__more { font-size:14px; }
 
+.deck-search { position:relative; display:flex; align-items:center; width:100%; max-width:420px; }
+.deck-search__icon { position:absolute; left:11px; width:17px; height:17px; fill:none; stroke:var(--text-400); stroke-width:2;
+  stroke-linecap:round; pointer-events:none; }
+.deck-search__input { width:100%; font-family:inherit; font-size:16px; padding:8px 40px 8px 36px; border:1px solid var(--edge);
+  border-radius:8px; background:var(--surface); color:var(--text-900); }
+@media (min-width:640px) { .deck-search__input { font-size:15px; } }
+.deck-search__input::placeholder { color:var(--text-600); }
+.deck-search__input::-webkit-search-cancel-button { display:none; }
+.deck-search__clear { position:absolute; right:6px; width:28px; height:28px; display:grid; place-items:center; padding:0;
+  border:0; border-radius:50%; background:transparent; color:var(--text-600); font-size:18px; line-height:1; cursor:pointer; }
+.deck-search__clear:hover { background:var(--hover); color:var(--text-900); }
+.search-results { display:flex; flex-direction:column; gap:14px; min-width:0; }
+.search-results__line { font-size:14px; color:var(--text-600); }
+.search-results__line b { color:var(--text-900); font-weight:600; }
+.search-results__more { align-self:flex-start; }
+.search-demo { display:flex; flex-direction:column; gap:26px; }
+.deck__art--placeholder { background:var(--rule); }
+.share-highlight { display:block; width:100%; max-width:760px; height:auto; }
+.share-highlight__line { fill:none; stroke-width:2; stroke-linejoin:round; stroke-linecap:round; }
+.share-highlight__end { font:600 11px var(--sans); fill:var(--text-900); }
+.share-highlight--on .share-highlight__series:not(.share-highlight__series--on),
+.share-highlight--on .share-highlight__end:not(.share-highlight__end--on) { opacity:.25; }
+.share-highlight__series--on .share-highlight__line { stroke-width:3; }
+.fig-tick { font:400 11px var(--sans); fill:var(--text-400); }
+.hover-fig { display:block; width:100%; max-width:640px; height:auto; }
+.bar-hover { cursor:pointer; }
+.bar-hover__hit { fill:transparent; }
+.bar-hover__name { font:400 12px var(--sans); fill:var(--text-600); }
+.bar-hover__value { font:600 12px var(--sans); fill:var(--text-900); font-variant-numeric:tabular-nums; }
+.bar-hover__bar { fill:var(--seq-500); }
+.bar-hover:hover .bar-hover__name { fill:var(--text-900); text-decoration:underline; }
+.bar-hover:hover .bar-hover__bar { fill:var(--seq-600); }
+.scatter-hover { cursor:pointer; }
+.scatter-hover__mark { fill:var(--s1); fill-opacity:.55; stroke:var(--surface); stroke-width:2; }
+.scatter-hover__label { font:600 12px var(--sans); fill:var(--text-900); }
+.scatter-hover:hover .scatter-hover__mark { fill:var(--seq-600); fill-opacity:1; }
+.scatter-hover:hover .scatter-hover__label { text-decoration:underline; }
+
 @media (prefers-reduced-motion:reduce) { .skeleton { animation:none; } * { transition:none !important; } }
 @media (max-width:640px) {
   .srow { grid-template-columns:1fr; gap:5px; }
@@ -480,7 +520,7 @@ a.button { display:inline-block; text-decoration:none; }
   </div>
 </header>
 
-<nav class="toc" aria-label="Contents"><div class="navgroup"><a class="navhead" href="#foundations">Foundations</a><a href="#type">Typeface and scale</a><a href="#neutrals">Text and neutrals</a><a href="#action">Action colours</a><a href="#palette">Chart palette</a><a href="#dark">Dark theme</a><a href="#charts">The three charts</a></div><div class="navgroup"><a class="navhead" href="#components">Components</a><a href="#panel">Panel</a><a href="#buttons">Buttons</a><a href="#window">Window selector</a><a href="#viewswitch">View switch</a><a href="#pips">Colour identity</a><a href="#deckcard">Deck card</a><a href="#summary">Summary header</a><a href="#table">Table</a><a href="#matchups">Matchup table</a><a href="#pageheader">Page header</a><a href="#deckpage">Deck page</a><a href="#deckstates">Deck page states</a><a href="#delta">Share change</a><a href="#chrome">Chart chrome</a><a href="#states">Loading, error and empty</a></div><div class="navgroup"><a class="navhead" href="#tokens">Tokens</a></div></nav>
+<nav class="toc" aria-label="Contents"><div class="navgroup"><a class="navhead" href="#foundations">Foundations</a><a href="#type">Typeface and scale</a><a href="#neutrals">Text and neutrals</a><a href="#action">Action colours</a><a href="#palette">Chart palette</a><a href="#dark">Dark theme</a><a href="#charts">The three charts</a></div><div class="navgroup"><a class="navhead" href="#components">Components</a><a href="#panel">Panel</a><a href="#buttons">Buttons</a><a href="#window">Window selector</a><a href="#viewswitch">View switch</a><a href="#search">Deck search</a><a href="#pips">Colour identity</a><a href="#deckcard">Deck card</a><a href="#summary">Summary header</a><a href="#table">Table</a><a href="#matchups">Matchup table</a><a href="#pageheader">Page header</a><a href="#deckpage">Deck page</a><a href="#deckstates">Deck page states</a><a href="#delta">Share change</a><a href="#chrome">Chart chrome</a><a href="#states">Loading, error and empty</a></div><div class="navgroup"><a class="navhead" href="#tokens">Tokens</a></div></nav>
 
 <div class="part" id="foundations">
   <h2>Part one. Foundations</h2>
@@ -989,6 +1029,80 @@ a.button { display:inline-block; text-decoration:none; }
   too narrow. <b>Cards</b> is the default and shows the deck grid. <b>Table</b> shows the deck table with its
   sort. The summary panel stays above both, and the charts below. While the decks load, only the chosen
   view's skeleton shows. The address carries <span class="mono">?view=table</span> for the table only, FR-4.</p>
+</section>
+<section id="search">
+  <div class="shead"><h3>Deck search</h3>
+  <p class="why">FR-14. A field above the overview's decks finds any deck in the window, by its name or by a card in its
+  lists, through Endstep's <span class="mono">q</span> parameter. The results take the top 24's place in the chosen view.
+  Live results for &ldquo;altar&rdquo; from the 30-day rated window. The art is left out.</p></div>
+  <div class="panel search-demo">
+    <div class="search-results">
+      <div class="deck-search" role="search"><label class="visually-hidden" for="search-a">Search decks or cards</label><svg class="deck-search__icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 20 20"/></svg><input class="deck-search__input" id="search-a" type="search" value="altar" placeholder="Search decks or cards" autocomplete="off"><button type="button" class="deck-search__clear" aria-label="Clear the search">&times;</button></div>
+      <p class="search-results__line"><b>9 decks</b> match &ldquo;altar&rdquo;. Search covers deck names and every card in their lists.</p>
+      <div class="deck-grid"><article class="deck">
+  <div class="deck__art deck__art--placeholder" role="img" aria-label="Ragged Short Spear"></div>
+  <div class="deck__body">
+    <div class="deck__top"><h4 class="deck__name">Boros + Mardu Synth/Synthless</h4><span class="colour-pips"><span class="visually-hidden">Colours: white, blue, black, red</span><svg class="colour-pips__pip" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#fffbd5" stroke="rgba(11,11,11,.22)" stroke-width="1"/><text x="10" y="14.3" text-anchor="middle">W</text></svg><svg class="colour-pips__pip" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#aae0fa" stroke="rgba(11,11,11,.22)" stroke-width="1"/><text x="10" y="14.3" text-anchor="middle">U</text></svg><svg class="colour-pips__pip" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#cbc2bf" stroke="rgba(11,11,11,.22)" stroke-width="1"/><text x="10" y="14.3" text-anchor="middle">B</text></svg><svg class="colour-pips__pip" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#f9aa8f" stroke="rgba(11,11,11,.22)" stroke-width="1"/><text x="10" y="14.3" text-anchor="middle">R</text></svg></span></div>
+    <dl class="deck__stats">
+      <div><dt>Share</dt><dd>2.45%</dd></div>
+      <div><dt>Players</dt><dd>799</dd></div>
+      <div><dt>Match win rate</dt><dd>53.6%</dd></div>
+    </dl>
+    <p class="deck__keys">Ragged Short Spear&nbsp;&middot; Shattered Landscape&nbsp;&middot; Kabira Crossroads</p>
+  </div>
+</article><article class="deck">
+  <div class="deck__art deck__art--placeholder" role="img" aria-label="Defile"></div>
+  <div class="deck__body">
+    <div class="deck__top"><h4 class="deck__name">Gardens</h4><span class="colour-pips"><span class="visually-hidden">Colours: black, green</span><svg class="colour-pips__pip" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#cbc2bf" stroke="rgba(11,11,11,.22)" stroke-width="1"/><text x="10" y="14.3" text-anchor="middle">B</text></svg><svg class="colour-pips__pip" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#9bd3ae" stroke="rgba(11,11,11,.22)" stroke-width="1"/><text x="10" y="14.3" text-anchor="middle">G</text></svg></span></div>
+    <dl class="deck__stats">
+      <div><dt>Share</dt><dd>2.16%</dd></div>
+      <div><dt>Players</dt><dd>707</dd></div>
+      <div><dt>Match win rate</dt><dd>47.6%</dd></div>
+    </dl>
+    <p class="deck__keys">Haunted Mire&nbsp;&middot; Defile&nbsp;&middot; Witch&#x27;s Cottage</p>
+  </div>
+</article><article class="deck">
+  <div class="deck__art deck__art--placeholder" role="img" aria-label="Myr Kinsmith"></div>
+  <div class="deck__body">
+    <div class="deck__top"><h4 class="deck__name">Altar Tron</h4><span class="colour-pips"><span class="visually-hidden">Colours: black, green</span><svg class="colour-pips__pip" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#cbc2bf" stroke="rgba(11,11,11,.22)" stroke-width="1"/><text x="10" y="14.3" text-anchor="middle">B</text></svg><svg class="colour-pips__pip" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9" fill="#9bd3ae" stroke="rgba(11,11,11,.22)" stroke-width="1"/><text x="10" y="14.3" text-anchor="middle">G</text></svg></span></div>
+    <dl class="deck__stats">
+      <div><dt>Share</dt><dd>0.73%</dd></div>
+      <div><dt>Players</dt><dd>307</dd></div>
+      <div><dt>Match win rate</dt><dd>45.7%</dd></div>
+    </dl>
+    <p class="deck__keys">Myr Kinsmith&nbsp;&middot; Golem Foundry&nbsp;&middot; Myr Retriever</p>
+  </div>
+</article></div>
+    </div>
+  </div>
+  <h4 class="sub">More results, and none</h4>
+  <div class="panel search-demo">
+    <div class="search-results">
+      <div class="deck-search" role="search"><label class="visually-hidden" for="search-b">Search decks or cards</label><svg class="deck-search__icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 20 20"/></svg><input class="deck-search__input" id="search-b" type="search" value="elf" placeholder="Search decks or cards" autocomplete="off"><button type="button" class="deck-search__clear" aria-label="Clear the search">&times;</button></div>
+      <p class="search-results__line"><b>36 decks</b> match &ldquo;elf&rdquo;. Search covers deck names and every card in their lists.</p>
+      <p class="spec">The first 24 results, as cards or as table rows.</p>
+      <button type="button" class="button button--secondary search-results__more">Show 12 more</button>
+    </div>
+    <div class="search-results">
+      <div class="deck-search" role="search"><label class="visually-hidden" for="search-c">Search decks or cards</label><svg class="deck-search__icon" viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 20 20"/></svg><input class="deck-search__input" id="search-c" type="search" value="xyzzy" placeholder="Search decks or cards" autocomplete="off"><button type="button" class="deck-search__clear" aria-label="Clear the search">&times;</button></div>
+      <div class="state-panel">
+        <h4 class="state-panel__title">No deck or card matches &ldquo;xyzzy&rdquo;</h4>
+        <p class="state-panel__detail">Search covers deck names and every card in their lists, in the selected window.</p>
+        <button class="button button--secondary" type="button">Clear the search</button>
+      </div>
+    </div>
+  </div>
+  <p class="spec"><b>Field</b> Up to 420px wide, the full column below 640px, on its own row after the page's controls. A 1px
+  <span class="mono">--edge</span> border on <span class="mono">--surface</span>, radius 8px, a 17px magnifier in
+  <span class="mono">--text-400</span>, and the placeholder &ldquo;Search decks or cards&rdquo; in <span class="mono">--text-600</span>.
+  The text is 16px below 640px, so iOS does not zoom on focus, and 15px from 640px. A visually hidden label carries the same
+  words, and the wrapper is a <span class="mono">search</span> landmark. With text in it, a 28px clear button sits at the right
+  end, named &ldquo;Clear the search&rdquo;. Escape clears too. Clearing keeps focus in the field.
+  <b>Results</b> The field, the result line and the decks stand 14px apart. The line reads &ldquo;9 decks match &hellip;&rdquo;, or
+  &ldquo;1 deck matches&rdquo;, in 14px <span class="mono">--text-600</span> with the count in <span class="mono">--text-900</span>,
+  and the page's status line announces it. Results come in share order, 24 at a time, in the chosen view. While more remain, a
+  secondary button loads the next page. A search with no match shows the empty panel, whose button clears the search.
+  The summary and the charts keep the top 24.</p>
 </section>
 <section id="pips">
   <div class="shead"><h3>Colour identity</h3>
@@ -1706,20 +1820,30 @@ a.button { display:inline-block; text-decoration:none; }
     </div>
   </div>
   <div class="panel">
-    <div class="chart-legend">
-      <button type="button" class="chart-legend__item"><span class="chart-legend__swatch" style="background:var(--s1)"></span>Affinity</button>
-      <button type="button" class="chart-legend__item"><span class="chart-legend__swatch" style="background:var(--s2)"></span>Mono-Red Madness</button>
-      <button type="button" class="chart-legend__item"><span class="chart-legend__swatch" style="background:var(--s3)"></span>Monster Tron</button>
-      <button type="button" class="chart-legend__item chart-legend__item--off"><span class="chart-legend__swatch" style="background:var(--s4)"></span>Gruul Ponza</button>
-      <button type="button" class="chart-legend__item"><span class="chart-legend__swatch" style="background:var(--s5)"></span>Blue Terror</button>
-    </div>
+    <svg class="share-highlight share-highlight--on" id="share-highlight" viewBox="0 0 640 250" role="img" aria-label="Share over time, with one deck highlighted"><line x1="36" x2="490" y1="163.4" y2="163.4" stroke="var(--rule)"/><text class="fig-tick" x="30" y="167.4" text-anchor="end">4%</text><line x1="36" x2="490" y1="102.9" y2="102.9" stroke="var(--rule)"/><text class="fig-tick" x="30" y="106.9" text-anchor="end">8%</text><line x1="36" x2="490" y1="42.3" y2="42.3" stroke="var(--rule)"/><text class="fig-tick" x="30" y="46.3" text-anchor="end">12%</text><g class="share-highlight__series" data-i="0"><path class="share-highlight__line" d="M36.0,49.6 L51.7,53.7 L67.3,74.3 L83.0,80.6 L98.6,87.8 L114.3,94.3 L129.9,89.8 L145.6,79.7 L161.2,89.0 L176.9,87.8 L192.6,97.4 L208.2,94.9 L223.9,102.6 L239.5,83.9 L255.2,105.4 L270.8,94.8 L286.5,92.7 L302.1,89.0 L317.8,87.8 L333.4,95.0 L349.1,112.8 L364.8,98.8 L380.4,87.9 L396.1,83.9 L411.7,87.7 L427.4,97.0 L443.0,101.8 L458.7,97.0 L474.3,86.4 L490.0,114.7" stroke="var(--s1)"/><circle cx="490.0" cy="114.7" r="3.5" fill="var(--s1)" stroke="var(--surface)" stroke-width="2"/></g><g class="share-highlight__series" data-i="1"><path class="share-highlight__line" d="M36.0,126.2 L51.7,138.4 L67.3,132.1 L83.0,121.2 L98.6,124.3 L114.3,113.2 L129.9,125.9 L145.6,128.0 L161.2,113.9 L176.9,103.8 L192.6,100.6 L208.2,113.0 L223.9,120.8 L239.5,118.3 L255.2,123.9 L270.8,126.7 L286.5,133.2 L302.1,114.3 L317.8,100.7 L333.4,101.1 L349.1,95.5 L364.8,106.7 L380.4,102.3 L396.1,111.7 L411.7,97.4 L427.4,97.6 L443.0,95.4 L458.7,103.2 L474.3,88.7 L490.0,124.6" stroke="var(--s2)"/><circle cx="490.0" cy="124.6" r="3.5" fill="var(--s2)" stroke="var(--surface)" stroke-width="2"/></g><g class="share-highlight__series share-highlight__series--on" data-i="2"><path class="share-highlight__line" d="M36.0,181.6 L51.7,182.7 L67.3,167.9 L83.0,152.7 L98.6,158.4 L114.3,160.0 L129.9,168.8 L145.6,155.4 L161.2,164.5 L176.9,153.6 L192.6,137.7 L208.2,144.8 L223.9,134.1 L239.5,131.7 L255.2,119.7 L270.8,108.5 L286.5,106.0 L302.1,110.9 L317.8,114.8 L333.4,114.7 L349.1,112.2 L364.8,128.4 L380.4,123.6 L396.1,109.1 L411.7,118.0 L427.4,119.5 L443.0,106.5 L458.7,107.8 L474.3,105.2 L490.0,141.2" stroke="var(--s3)"/><circle cx="490.0" cy="141.2" r="3.5" fill="var(--s3)" stroke="var(--surface)" stroke-width="2"/></g><g class="share-highlight__series" data-i="3"><path class="share-highlight__line" d="M36.0,160.5 L51.7,160.5 L67.3,163.9 L83.0,156.2 L98.6,156.6 L114.3,165.8 L129.9,150.9 L145.6,162.5 L161.2,164.7 L176.9,159.4 L192.6,161.2 L208.2,152.9 L223.9,152.0 L239.5,149.1 L255.2,156.1 L270.8,167.4 L286.5,167.9 L302.1,158.8 L317.8,147.9 L333.4,152.3 L349.1,153.6 L364.8,154.6 L380.4,154.5 L396.1,157.2 L411.7,151.8 L427.4,166.2 L443.0,151.8 L458.7,149.8 L474.3,151.0 L490.0,147.7" stroke="var(--s4)"/><circle cx="490.0" cy="147.7" r="3.5" fill="var(--s4)" stroke="var(--surface)" stroke-width="2"/></g><g class="share-highlight__series" data-i="4"><path class="share-highlight__line" d="M36.0,155.7 L51.7,148.5 L67.3,151.4 L83.0,163.2 L98.6,167.8 L114.3,160.0 L129.9,161.5 L145.6,145.1 L161.2,146.9 L176.9,158.1 L192.6,157.9 L208.2,155.2 L223.9,149.8 L239.5,159.4 L255.2,150.7 L270.8,153.9 L286.5,164.0 L302.1,153.4 L317.8,153.8 L333.4,149.9 L349.1,160.9 L364.8,150.6 L380.4,160.9 L396.1,161.7 L411.7,151.8 L427.4,161.6 L443.0,157.6 L458.7,163.3 L474.3,165.7 L490.0,175.3" stroke="var(--s5)"/><circle cx="490.0" cy="175.3" r="3.5" fill="var(--s5)" stroke="var(--surface)" stroke-width="2"/></g><g class="share-highlight__series" data-i="5"><path class="share-highlight__line" d="M36.0,161.8 L51.7,154.6 L67.3,154.5 L83.0,165.8 L98.6,150.9 L114.3,155.7 L129.9,159.6 L145.6,162.1 L161.2,165.7 L176.9,155.9 L192.6,169.1 L208.2,160.3 L223.9,157.7 L239.5,153.0 L255.2,154.0 L270.8,152.7 L286.5,152.7 L302.1,164.5 L317.8,154.9 L333.4,159.2 L349.1,151.6 L364.8,156.9 L380.4,152.1 L396.1,155.5 L411.7,157.1 L427.4,157.0 L443.0,154.6 L458.7,154.0 L474.3,158.6 L490.0,158.1" stroke="var(--s6)"/><circle cx="490.0" cy="158.1" r="3.5" fill="var(--s6)" stroke="var(--surface)" stroke-width="2"/></g><g class="share-highlight__series" data-i="6"><path class="share-highlight__line" d="M36.0,179.9 L51.7,180.2 L67.3,174.2 L83.0,161.9 L98.6,156.8 L114.3,152.3 L129.9,155.1 L145.6,169.1 L161.2,164.7 L176.9,158.7 L192.6,166.6 L208.2,159.6 L223.9,159.3 L239.5,165.2 L255.2,166.7 L270.8,158.1 L286.5,160.5 L302.1,153.4 L317.8,150.8 L333.4,153.1 L349.1,147.3 L364.8,148.0 L380.4,156.9 L396.1,158.7 L411.7,153.4 L427.4,146.0 L443.0,153.5 L458.7,152.4 L474.3,158.8 L490.0,148.2" stroke="var(--s7)"/><circle cx="490.0" cy="148.2" r="3.5" fill="var(--s7)" stroke="var(--surface)" stroke-width="2"/></g><g class="share-highlight__series" data-i="7"><path class="share-highlight__line" d="M36.0,128.1 L51.7,143.9 L67.3,155.9 L83.0,138.9 L98.6,148.2 L114.3,152.8 L129.9,145.5 L145.6,149.4 L161.2,164.1 L176.9,162.6 L192.6,167.1 L208.2,166.2 L223.9,157.4 L239.5,173.4 L255.2,165.4 L270.8,163.4 L286.5,177.1 L302.1,174.3 L317.8,172.8 L333.4,170.8 L349.1,161.7 L364.8,152.2 L380.4,164.1 L396.1,170.3 L411.7,165.5 L427.4,163.5 L443.0,167.3 L458.7,165.8 L474.3,170.7 L490.0,182.5" stroke="var(--s8)"/><circle cx="490.0" cy="182.5" r="3.5" fill="var(--s8)" stroke="var(--surface)" stroke-width="2"/></g><text class="share-highlight__end" data-i="0" x="498.0" y="118.7">Affinity</text><text class="share-highlight__end" data-i="1" x="498.0" y="130.7">Mono Red Madness</text><text class="share-highlight__end share-highlight__end--on" data-i="2" x="498.0" y="145.2">Dimir Control</text><text class="share-highlight__end" data-i="3" x="498.0" y="157.2">Spy combo</text><text class="share-highlight__end" data-i="6" x="498.0" y="169.2">Mono Red Rally</text><text class="share-highlight__end" data-i="5" x="498.0" y="181.2">Blue Terror</text><text class="share-highlight__end" data-i="4" x="498.0" y="193.2">Elves</text><text class="share-highlight__end" data-i="7" x="498.0" y="205.2">Monster Tron</text></svg>
+    <div class="chart-legend" id="share-legend"><button type="button" class="chart-legend__item" data-i="0" aria-pressed="false"><span class="chart-legend__swatch" style="background:var(--s1)"></span>Affinity</button><button type="button" class="chart-legend__item" data-i="1" aria-pressed="false"><span class="chart-legend__swatch" style="background:var(--s2)"></span>Mono Red Madness</button><button type="button" class="chart-legend__item" data-i="2" aria-pressed="true"><span class="chart-legend__swatch" style="background:var(--s3)"></span>Dimir Control</button><button type="button" class="chart-legend__item" data-i="3" aria-pressed="false"><span class="chart-legend__swatch" style="background:var(--s4)"></span>Spy combo</button><button type="button" class="chart-legend__item" data-i="4" aria-pressed="false"><span class="chart-legend__swatch" style="background:var(--s5)"></span>Elves</button><button type="button" class="chart-legend__item" data-i="5" aria-pressed="false"><span class="chart-legend__swatch" style="background:var(--s6)"></span>Blue Terror</button><button type="button" class="chart-legend__item" data-i="6" aria-pressed="false"><span class="chart-legend__swatch" style="background:var(--s7)"></span>Mono Red Rally</button><button type="button" class="chart-legend__item" data-i="7" aria-pressed="false"><span class="chart-legend__swatch" style="background:var(--s8)"></span>Monster Tron</button></div>
   </div>
   <p class="spec">Tooltip values are ordered by value, not by series index, so the row under the cursor
   is easy to find. Labels wear <span class="mono">--text-600</span> and values
   <span class="mono">--text-900</span>. The swatch carries the series colour, never the text, which is
   the rule from the design language.</p>
-  <p class="spec">Legend entries are buttons and toggle their series. A hidden series keeps its colour
-  and adds a strike-through at .4 opacity, so the toggle state does not rest on opacity alone.</p>
+  <p class="spec"><b>Highlight</b> FR-5. Legend entries are toggle buttons with <span class="mono">aria-pressed</span>. A click
+  highlights that deck: its line draws at 3px on top, and every other line, end dot and end label drops to 25% opacity. The
+  pressed entry is <span class="mono">--text-900</span> at 600 inside a pill with a 1px <span class="mono">--edge</span> border on
+  <span class="mono">--surface</span>, so the state does not rest on the fade. A second click clears it, and a click on another deck
+  moves it. Nothing hides a line. Faded lines read at 1.21:1 to 1.53:1 in the light theme and 1.32:1 to 1.36:1 in the dark one,
+  under the 3:1 for marks. NFR-6 accepts that: the highlighted line keeps full contrast, and the legend, the end labels and the
+  tooltip still name every deck. The dark theme fades no further than the light one. Try the legend.</p>
+  <h4 class="sub">Pointing at a deck</h4>
+  <div class="panel">
+    <svg class="hover-fig" viewBox="0 0 560 162" role="img" aria-label="Meta share by deck, first six decks"><a class="bar-hover" href="#chrome"><rect class="bar-hover__hit" x="0" y="4" width="560" height="24"/><text class="bar-hover__name" x="142" y="20" text-anchor="end">Affinity</text><rect class="bar-hover__bar" x="150" y="8" width="300.0" height="16" rx="3"/><text class="bar-hover__value" x="456.0" y="20">8.8%</text></a><a class="bar-hover" href="#chrome"><rect class="bar-hover__hit" x="0" y="30" width="560" height="24"/><text class="bar-hover__name" x="142" y="46" text-anchor="end">Mono Red Madness</text><rect class="bar-hover__bar" x="150" y="34" width="253.8" height="16" rx="3"/><text class="bar-hover__value" x="409.8" y="46">7.4%</text></a><a class="bar-hover" href="#chrome"><rect class="bar-hover__hit" x="0" y="56" width="560" height="24"/><text class="bar-hover__name" x="142" y="72" text-anchor="end">Dimir Control</text><rect class="bar-hover__bar" x="150" y="60" width="208.8" height="16" rx="3"/><text class="bar-hover__value" x="364.8" y="72">6.1%</text></a><a class="bar-hover" href="#chrome"><rect class="bar-hover__hit" x="0" y="82" width="560" height="24"/><text class="bar-hover__name" x="142" y="98" text-anchor="end">Spy combo</text><rect class="bar-hover__bar" x="150" y="86" width="152.1" height="16" rx="3"/><text class="bar-hover__value" x="308.1" y="98">4.5%</text></a><a class="bar-hover" href="#chrome"><rect class="bar-hover__hit" x="0" y="108" width="560" height="24"/><text class="bar-hover__name" x="142" y="124" text-anchor="end">Elves</text><rect class="bar-hover__bar" x="150" y="112" width="150.7" height="16" rx="3"/><text class="bar-hover__value" x="306.7" y="124">4.4%</text></a><a class="bar-hover" href="#chrome"><rect class="bar-hover__hit" x="0" y="134" width="560" height="24"/><text class="bar-hover__name" x="142" y="150" text-anchor="end">Blue Terror</text><rect class="bar-hover__bar" x="150" y="138" width="150.3" height="16" rx="3"/><text class="bar-hover__value" x="306.3" y="150">4.4%</text></a></svg>
+    <svg class="hover-fig" viewBox="0 0 560 170" role="img" aria-label="Win rate against share, first eight decks"><line x1="20" x2="540" y1="106.7" y2="106.7" stroke="var(--baseline)" stroke-dasharray="5 4"/><a class="scatter-hover" href="#chrome"><circle class="scatter-hover__mark" cx="462.1" cy="93.4" r="11.8"/><text class="scatter-hover__label" x="477.9" y="97.4">Affinity</text></a><a class="scatter-hover" href="#chrome"><circle class="scatter-hover__mark" cx="397.0" cy="94.2" r="11.2"/></a><a class="scatter-hover" href="#chrome"><circle class="scatter-hover__mark" cx="333.7" cy="75.9" r="10.3"/></a><a class="scatter-hover" href="#chrome"><circle class="scatter-hover__mark" cx="254.0" cy="34.0" r="8.5"/><text class="scatter-hover__label" x="266.5" y="38.0">Spy combo</text></a><a class="scatter-hover" href="#chrome"><circle class="scatter-hover__mark" cx="252.0" cy="44.7" r="8.9"/></a><a class="scatter-hover" href="#chrome"><circle class="scatter-hover__mark" cx="251.5" cy="108.7" r="9.5"/></a><a class="scatter-hover" href="#chrome"><circle class="scatter-hover__mark" cx="249.0" cy="63.5" r="8.8"/></a><a class="scatter-hover" href="#chrome"><circle class="scatter-hover__mark" cx="236.2" cy="128.0" r="9.3"/></a></svg>
+  </div>
+  <p class="spec"><b>Hover</b> FR-6 and FR-7. On the ranked bars, pointing at any part of a deck's row underlines its name, in
+  <span class="mono">--text-900</span>, and fills its bar with <span class="mono">--seq-600</span>. On the scatter, pointing at a
+  marker fills it with <span class="mono">--seq-600</span> at full opacity and underlines its label, when it has one. The dark
+  ramp is reversed, so <span class="mono">--seq-600</span> lightens there, and the step adds contrast in both themes: from 5.26:1 to
+  7.89:1 in light, from 3.78:1 to 4.90:1 in dark. <span class="mono">Other</span> does not react. Point at the bars and the markers.</p>
 </section>
 <section id="states">
   <div class="shead"><h3>Loading, error and empty</h3>
@@ -2323,5 +2447,24 @@ a.button { display:inline-block; text-decoration:none; }
   }));
   media.addEventListener('change', sync);
   sync();
+})();
+</script>
+<script>
+(function () {
+  const chart = document.getElementById('share-highlight');
+  const legend = document.getElementById('share-legend');
+  if (!chart || !legend) {
+    return;
+  }
+  legend.querySelectorAll('.chart-legend__item').forEach((button) => {
+    button.addEventListener('click', () => {
+      const on = button.getAttribute('aria-pressed') !== 'true';
+      legend.querySelectorAll('.chart-legend__item').forEach((item) => item.setAttribute('aria-pressed', String(on && item === button)));
+      chart.classList.toggle('share-highlight--on', on);
+      chart.querySelectorAll('.share-highlight__series').forEach((g) => g.classList.toggle('share-highlight__series--on', on && g.dataset.i === button.dataset.i));
+      chart.querySelectorAll('.share-highlight__end').forEach((t) => t.classList.toggle('share-highlight__end--on', on && t.dataset.i === button.dataset.i));
+    });
+  });
+  document.querySelectorAll('.bar-hover, .scatter-hover').forEach((link) => link.addEventListener('click', (event) => event.preventDefault()));
 })();
 </script>
