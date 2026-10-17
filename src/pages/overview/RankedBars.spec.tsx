@@ -119,6 +119,17 @@ describe("RankedBars", () => {
     expect(barFills()[1]).toBe("var(--seq-600)");
   });
 
+  it("leaves the rest of the field as it is under the pointer, since it is not a deck", () => {
+    renderBars(PAGE);
+    const other = screen.getByText("Other");
+
+    fireEvent.pointerMove(other, { pointerType: "mouse" });
+
+    expect(barFills()).toEqual(RESTING);
+    expect(other.closest("text")?.getAttribute("fill")).toBe("var(--text-600)");
+    expect(other.closest("text")?.getAttribute("text-decoration")).toBeNull();
+  });
+
   it("leaves a row as it is under a finger, which opens the deck at once", () => {
     renderBars(PAGE);
     const link = screen.getByRole("link", { name: PAGE.items[1].name });
