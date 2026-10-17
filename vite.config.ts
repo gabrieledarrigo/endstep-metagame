@@ -143,7 +143,7 @@ export default defineConfig({
         test: {
           name: "api",
           environment: "node",
-          include: ["api/**/*.spec.ts"],
+          include: ["api/**/*.spec.ts", "vercel.spec.ts"],
         },
       },
       {
