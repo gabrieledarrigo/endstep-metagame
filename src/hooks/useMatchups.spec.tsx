@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import matrix from "../../test/fixtures/matchups.json";
 import { createQueryClient } from "../api/queryClient";
+import type { TimeWindow } from "../api/types";
 import { useMatchups } from "./useMatchups";
 
 afterEach(() => {
@@ -50,5 +51,31 @@ describe("useMatchups", () => {
       expect(result.current.isError).toBe(true);
     });
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the previous window's matrix as placeholder data while another window loads", async () => {
+    const fetchMock = vi.fn<typeof fetch>(async (input) =>
+      String(input).endsWith("window=7d")
+        ? new Promise<Response>(() => {})
+        : Response.json(matrix),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const client = createQueryClient();
+    const Wrapper = ({ children }: { children: ReactNode }) => (
+      <QueryClientProvider client={client}>{children}</QueryClientProvider>
+    );
+
+    const { result, rerender } = renderHook(
+      ({ timeWindow }: { timeWindow: TimeWindow }) => useMatchups(timeWindow),
+      { wrapper: Wrapper, initialProps: { timeWindow: "30d" } },
+    );
+    await waitFor(() => {
+      expect(result.current.data?.decks).toHaveLength(4);
+    });
+
+    rerender({ timeWindow: "7d" });
+
+    expect(result.current.isPlaceholderData).toBe(true);
+    expect(result.current.data?.decks).toHaveLength(4);
   });
 });
