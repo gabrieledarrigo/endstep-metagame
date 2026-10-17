@@ -236,7 +236,7 @@ export function OverviewPage() {
             results.length > 0 ? { term: foundTerm, total: total } : undefined
           }
           more={
-            searching && search.hasNextPage && !search.isPlaceholderData
+            searching && search.hasNextPage
               ? {
                   remaining: total - loadedCount(found?.pages ?? []),
                   loading: search.isFetchingNextPage,

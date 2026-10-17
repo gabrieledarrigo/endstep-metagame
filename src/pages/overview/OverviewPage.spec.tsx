@@ -782,6 +782,10 @@ describe("OverviewPage search", () => {
     fireEvent.click(screen.getByRole("button", { name: "7d" }));
 
     await statusReads("Loading the 7d window.");
+    expect(await screen.findByText("06 Sept to 05 Oct 2026")).toBeTruthy();
+    expect(screen.getByRole("status").textContent).toBe(
+      "Loading the 7d window.",
+    );
     expect(
       screen.getByText("Address: ?window=7d&q=altar by PUSH"),
     ).toBeTruthy();
@@ -817,16 +821,17 @@ describe("OverviewPage search", () => {
       (url) =>
         url.searchParams.get("q") === "gardens"
           ? new Promise<Response>(() => {})
-          : matches(url),
+          : matches(url, numberedDecks(1, 24), 30),
     );
-    renderAt("/?window=30d&q=altar");
-    await statusReads("5 decks match \u201caltar\u201d.");
+    renderAt("/?window=30d&q=deck");
+    await statusReads("30 decks match \u201cdeck\u201d.");
+    expect(screen.getByRole("button", { name: "Show 6 more" })).toBeTruthy();
 
     type("gardens");
 
     await statusReads("Searching for \u201cgardens\u201d.");
     expect(
-      screen.getByRole("link", { name: "Altar Tron" }).closest("[aria-busy]"),
+      screen.getByRole("link", { name: "Deck 1" }).closest("[aria-busy]"),
     ).toBeTruthy();
     expect(field().closest("[aria-busy]")).toBeNull();
     expect(screen.getByText("236,728").closest("[aria-busy]")).toBeNull();
