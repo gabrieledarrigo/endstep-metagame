@@ -752,9 +752,9 @@ Covers NFR-1: an exported function with a consumer has a spec beside it. E10 set
 
 # Milestone 3: connected pages
 
-**Date:** 2026-10-13. Derived from Draft v4 of the requirements. D3 and S18 were added on 2026-10-14, from Draft v5. D4, S19, S20 and S21 were added on 2026-10-17, from Draft v6. D5, E13, S22, S23 and S24 were added the same day, from Draft v7.
+**Date:** 2026-10-13. Derived from Draft v4 of the requirements. D3 and S18 were added on 2026-10-14, from Draft v5. D4, S19, S20 and S21 were added on 2026-10-17, from Draft v6. D5, E13, S22, S23 and S24 were added the same day, from Draft v7, and E14 from Draft v8.
 
-Seventeen items. Four design items, one enabler, twelve user stories. Two stories and the enabler need no design and start at once. The others wait for D2, D3, D4 or D5, because each changes how a page looks, and the owner chooses the design first.
+Eighteen items. Four design items, two enablers, twelve user stories. Two stories and the enablers need no design and start at once. The others wait for D2, D3, D4 or D5, because each changes how a page looks, and the owner chooses the design first.
 
 | Wave | Items | Runs in parallel |
 |---|---|---|
@@ -763,7 +763,7 @@ Seventeen items. Four design items, one enabler, twelve user stories. Two storie
 | 17 | S15 | No |
 | 18 | D4 | No |
 | 19 | S19, S20, S21 | Yes, three ways |
-| 20 | D5, E13 | Yes, two ways |
+| 20 | D5, E13, E14 | Yes, three ways |
 | 21 | S22, S23, S24 | Yes, three ways |
 
 ```
@@ -779,6 +779,7 @@ D5 design ──┬─► S22 install as an app
             ├─► S23 a preview per deck
             └─► S24 the footer
 E13 metadata and headers ──► S23
+E14 art from Scryfall ──► S23
 S13 every page kept on a window change
 S14 charts open the deck pages
 ```
@@ -889,6 +890,28 @@ Covers FR-15's text tags and §4.7. Needs no design.
 - A shared link to the site shows its title and description.
 - A second visit loads the hashed files from the browser cache, with no request.
 - The response headers carry the policy, and the browser console reports no violation on any page.
+
+**Blocked by** nothing. **Blocks** S23.
+
+---
+
+## E14. Serve the card art straight from Scryfall
+
+Covers §3.4, §4.3, FR-3, FR-11, NFR-4 and open item 11, settled by the owner on 2026-10-17. Needs no design.
+
+**Tasks**
+
+1. In `api/metagame.ts`, for a successful `GET` of a deck list or a deck detail: one `POST /cards/collection` to Scryfall with the key card names, a one-second bound, the `User-Agent` and `Accept` headers of §4.3, and `art.imageUrl` added to each deck it resolves, from `image_uris.art_crop` or the first face's. Match names ignoring case, against the full name or either face.
+2. Remember each card's address, and each name not found, in the instance's memory. After a 429, send Scryfall nothing for 30 seconds.
+3. On a failure, a timeout or a 429: send the response without the missing addresses, with `s-maxage=60`, and no retry. A name not found keeps the usual cache time.
+4. In the client, `artSource` takes the deck's art: `art.imageUrl`, or Endstep's endpoint with `version=art_crop` when it is missing. The deck card, the deck hero and the search results use it.
+5. A spec beside each function and helper it changes: the request, the name matching for both faces, a name not found, the fallback, the 429 and its pause, `HEAD`, and the cache header.
+
+**Done when**
+
+- The top 24's cards load their art from `cards.scryfall.io`, with no request to `endstep.cc`.
+- With Scryfall's API unreachable, every card still shows its art, through Endstep's endpoint. Scryfall's CDN being down is out of reach: Endstep's endpoint redirects there too.
+- No response waits more than a second on Scryfall.
 
 **Blocked by** nothing. **Blocks** S23.
 
@@ -1146,10 +1169,10 @@ Covers FR-15.
 
 **Tasks**
 
-1. `api/deck-page.ts`: for `/decks/:slug`, read `index.html` from the files deployed with the function, fetch the deck detail through our proxy at the deck page's own address, and write the deck's title, description, art-crop image, canonical link and `og:url` into the head, escaped. Accept only a valid slug and a known window. Return the page with the site card, sent with `no-store`, when the call fails or takes longer than one second.
+1. `api/deck-page.ts`: for `/decks/:slug`, read `index.html` from the files deployed with the function, fetch the deck detail through our proxy at the deck page's own address, and write the deck's title, description, art-crop image, canonical link and `og:url` into the head, escaped. Accept only a valid slug and a known window. Return the page with the site card, sent with `no-store`, when the call fails or takes longer than two seconds. The image is `art.imageUrl`, or Endstep's art-crop endpoint when it is missing.
 2. The site card's image tag in `index.html`, for every other page.
 3. `vercel.json` sends `/decks/:slug` to the function, and the edge caches each page for five minutes.
-4. Check the previews in Discord, Slack and WhatsApp, including that each follows the art's redirect to Scryfall.
+4. Check the previews in Discord, Slack and WhatsApp, with an art address from Scryfall's CDN and with the fallback, which each must follow through its redirect.
 5. A spec beside the function, on the injected tags, the escaping, a rejected slug, the fallback and its `no-store`, and the timeout.
 
 **Done when**
@@ -1158,7 +1181,7 @@ Covers FR-15.
 - A shared link to the overview or the matchup table shows the site card.
 - With Endstep unreachable, a deck page still loads, with the site card.
 
-**Blocked by** D5, E13. **Blocks** nothing.
+**Blocked by** D5, E13, E14. **Blocks** nothing.
 
 ---
 
@@ -1192,4 +1215,4 @@ Covers NFR-5.
 
 **S20 and S21 wait for S18.** S18 turns the chart colours into CSS variables, and both stories change how the charts draw. S19 touches only the overview's deck list and can start as soon as D4 lands.
 
-**E13 before S23.** The deck page's function writes into the head that E13 fills. D5's mark is the owner's to finish, so S22 and S24 wait for it.
+**E13 and E14 before S23.** The deck page's function writes into the head that E13 fills, and takes the art address that E14 adds. D5's mark is the owner's to finish, so S22 and S24 wait for it.
