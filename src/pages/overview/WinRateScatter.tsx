@@ -339,6 +339,7 @@ export function WinRateScatter({ decks }: { decks: Deck[] }) {
                 position: "insideBottomRight",
                 fill: SCATTER_LABEL,
                 fontSize: 12,
+                pointerEvents: "none",
               }}
             />
             <Tooltip
