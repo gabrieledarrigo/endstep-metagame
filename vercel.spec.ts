@@ -11,14 +11,16 @@ function inlineScripts(page: string): string[] {
     .map(([, , body]) => body);
 }
 
+function directiveList(policy: string): [string, string[]][] {
+  return policy
+    .split(";")
+    .map((directive) => directive.trim().split(/\s+/))
+    .filter(([name]) => name !== "")
+    .map(([name, ...tokens]) => [name.toLowerCase(), tokens.toSorted()]);
+}
+
 function directives(policy: string): Record<string, string[]> {
-  return Object.fromEntries(
-    policy
-      .split(";")
-      .map((directive) => directive.trim().split(/\s+/))
-      .filter(([name]) => name !== "")
-      .map(([name, ...tokens]) => [name, tokens.toSorted()]),
-  );
+  return Object.fromEntries(directiveList(policy));
 }
 
 function sha256(text: string): string {
@@ -42,6 +44,14 @@ describe("vercel.json", () => {
     expect(headers["X-Content-Type-Options"]).toBe("nosniff");
     expect(headers["Referrer-Policy"]).toBe("strict-origin-when-cross-origin");
     expect(headers).not.toHaveProperty("Cache-Control");
+  });
+
+  it("names each directive of the policy once", () => {
+    const names = directiveList(
+      vercelHeaders("/(.*)")["Content-Security-Policy"],
+    ).map(([name]) => name);
+
+    expect(names).toEqual([...new Set(names)]);
   });
 
   it("sends the agreed Content Security Policy", () => {
