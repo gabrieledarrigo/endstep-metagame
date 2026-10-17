@@ -64,13 +64,14 @@ export function MatchupsPage() {
       previousQuery?.queryKey[1] === outside ? previous : undefined,
   });
   const missingName = detail.data?.deck.name ?? "This deck";
-  const outsideLine = `${missingName} isn't in the top ${decks.length} for the selected time window.`;
-  const notice =
+  const outsideLine =
     missing === null
       ? undefined
-      : wide
-        ? outsideLine
-        : `${outsideLine} The table shows ${shown?.name} by default.`;
+      : `${missingName} isn't in the top ${decks.length} for the selected time window.`;
+  const notice =
+    outsideLine === undefined || wide
+      ? outsideLine
+      : `${outsideLine} The table shows ${shown?.name} by default.`;
   const named =
     detail.isError || (detail.isSuccess && !detail.isPlaceholderData);
 
@@ -150,7 +151,7 @@ export function MatchupsPage() {
         {loading
           ? `Loading the ${timeWindow} window.`
           : named
-            ? (notice ?? "")
+            ? (outsideLine ?? "")
             : ""}
       </p>
 

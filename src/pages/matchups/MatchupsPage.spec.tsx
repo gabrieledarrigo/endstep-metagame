@@ -794,6 +794,10 @@ describe("MatchupsPage", () => {
 });
 
 describe("MatchupsPage below 640px", () => {
+  const OUTSIDE =
+    "Mono Green Stompy isn't in the top 4 for the selected time window.";
+  const PHONE_LINE = `${OUTSIDE} The table shows Affinity by default.`;
+
   function list(name: string): HTMLElement {
     return screen.getByRole("list", {
       name: new RegExp(`^Match win rate of ${name} against`),
@@ -865,9 +869,9 @@ describe("MatchupsPage below 640px", () => {
     stubWidth(360);
     renderAt("/matchups?window=30d&deck=stompy-12345678");
 
-    await waitForNotice(
-      "Mono Green Stompy isn't in the top 4 for the selected time window. The table shows Affinity by default.",
-    );
+    await waitFor(() => {
+      expect(notices()).toEqual([`status: ${OUTSIDE}`, `line: ${PHONE_LINE}`]);
+    });
     expect(list("Affinity")).toBeTruthy();
     expect(chosen()).toBe("Mono Green Stompy (not in the top 4)");
     expect(options()).toEqual([
@@ -880,6 +884,26 @@ describe("MatchupsPage below 640px", () => {
     expect(
       screen.getByText("Address: ?window=30d&deck=stompy-12345678, REPLACE"),
     ).toBeTruthy();
+  });
+
+  it("does not announce a deck outside the top decks again when the window crosses 640px", async () => {
+    stubRoutes();
+    const resize = stubWidth(360);
+    renderAt("/matchups?window=30d&deck=stompy-12345678");
+    const status = recordStatus();
+    await waitFor(() => {
+      expect(notices()).toEqual([`status: ${OUTSIDE}`, `line: ${PHONE_LINE}`]);
+    });
+    const announced = [...status];
+
+    act(() => resize(800));
+
+    expect(notices()).toEqual([`status: ${OUTSIDE}`, `line: ${OUTSIDE}`]);
+
+    act(() => resize(360));
+
+    expect(notices()).toEqual([`status: ${OUTSIDE}`, `line: ${PHONE_LINE}`]);
+    expect(status).toEqual(announced);
   });
 
   it("switches between the list and the table as the window crosses 640px, and does not scroll to the deck", async () => {
