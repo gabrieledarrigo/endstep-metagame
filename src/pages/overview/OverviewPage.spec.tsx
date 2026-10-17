@@ -324,6 +324,18 @@ describe("OverviewPage", () => {
     ).toBeTruthy();
   });
 
+  it("leaves the address alone when the view already shown is picked", async () => {
+    stubApi(() => Response.json(decks));
+    renderAt("/?window=30d&view=table");
+    await screen.findByRole("region", { name: "Deck table" });
+
+    fireEvent.click(screen.getByRole("button", { name: "Table" }));
+
+    expect(
+      screen.getByText("Address: ?window=30d&view=table by POP"),
+    ).toBeTruthy();
+  });
+
   it("removes an unknown view from the address when the cards are picked", async () => {
     stubApi(() => Response.json(decks));
     renderAt("/?window=30d&view=list");
