@@ -15,6 +15,13 @@ const SECURITY_HEADERS = Object.fromEntries(
   ),
 );
 
+const securityHeaders: Connect.NextHandleFunction = (_req, res, next) => {
+  Object.entries(SECURITY_HEADERS).forEach(([name, value]) => {
+    res.setHeader(name, value);
+  });
+  next();
+};
+
 type FunctionTarget = {
   handler: { fetch: (req: Request) => Promise<Response> };
   request: Request;
@@ -72,7 +79,7 @@ function functionRequest(
 /**
  * Serves the Vercel functions during development, with the rewrite from `vercel.json` and the cache lifetime each response declares.
  *
- * @returns A Vite plugin that answers `/api/metagame/*` and `/api/matchups` for both `vite` and `vite preview`.
+ * @returns A Vite plugin that answers `/api/metagame/*` and `/api/matchups` for both `vite` and `vite preview`. In preview, every response also carries the security headers from `vercel.json`, as in production.
  */
 function api(): Plugin {
   const cache = new Map<string, Cached>();
@@ -133,6 +140,7 @@ function api(): Plugin {
       server.middlewares.use(middleware);
     },
     configurePreviewServer(server): void {
+      server.middlewares.use(securityHeaders);
       server.middlewares.use(middleware);
     },
   };
@@ -142,9 +150,6 @@ export default defineConfig({
   plugins: [react(), api()],
   build: {
     target: "es2025",
-  },
-  preview: {
-    headers: SECURITY_HEADERS,
   },
   test: {
     projects: [
