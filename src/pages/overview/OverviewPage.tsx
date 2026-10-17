@@ -179,6 +179,8 @@ export function OverviewPage() {
     status = moreError;
   } else if (shortfall) {
     status = shortfall;
+  } else if (searching && search.isError && found === undefined) {
+    status = "The search could not be loaded.";
   } else if (searching && results.length === 0) {
     status = found ? `No deck or card matches ${quoted(term)}.` : "";
   } else if (searching) {

@@ -1140,7 +1140,7 @@ describe("OverviewPage search", () => {
     expect(screen.queryByText(/decks? match/)).toBeNull();
   });
 
-  it("shows an error with a retry when the search fails, and keeps the field", async () => {
+  it("shows an error with a retry when the search fails, announces it, and keeps the field", async () => {
     stubApi(
       () => Response.json(decks),
       () => Response.json({ error: "Not found" }, { status: 404 }),
@@ -1154,6 +1154,8 @@ describe("OverviewPage search", () => {
     ).toBeTruthy();
     expect(screen.getByRole("button", { name: "Retry" })).toBeTruthy();
     expect(field().value).toBe("altar");
-    expect(screen.getByRole("status").textContent).toBe("");
+    expect(screen.getByRole("status").textContent).toBe(
+      "The search could not be loaded.",
+    );
   });
 });
