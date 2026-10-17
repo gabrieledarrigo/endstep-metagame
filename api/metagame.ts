@@ -263,10 +263,10 @@ async function lookUpArt(names: Map<string, string>): Promise<boolean> {
 
     if (response.status === 429) {
       pausedUntil = Date.now() + SCRYFALL_PAUSE_MS;
-      return false;
     }
 
     if (!response.ok) {
+      await response.body?.cancel();
       return false;
     }
 

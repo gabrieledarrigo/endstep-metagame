@@ -516,6 +516,21 @@ describe("the metagame proxy's card art", () => {
     },
   );
 
+  it.each([429, 500])(
+    "cancels the body of a %i from Scryfall, so the connection is freed",
+    async (status) => {
+      const cancel = vi.fn();
+      endstepAndScryfall(
+        deckList("Guttersnipe"),
+        async () => new Response(new ReadableStream({ cancel }), { status }),
+      );
+
+      await metagame.fetch(request(DECKS));
+
+      expect(cancel).toHaveBeenCalledOnce();
+    },
+  );
+
   it("sends Scryfall nothing for 30 seconds after a 429, and keeps the art it already has", async () => {
     vi.useFakeTimers({ toFake: ["Date"] });
     const fetchMock = endstepAndScryfall(
