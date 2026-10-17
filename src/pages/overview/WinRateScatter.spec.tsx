@@ -266,6 +266,52 @@ describe("WinRateScatter", () => {
     expect(screen.queryByText(AFFINITY_PAGE)).toBeNull();
   });
 
+  it("marks a marker armed by a first tap, and no other", () => {
+    const { container } = renderScatter(DECKS);
+
+    press(() => firstMark(container));
+
+    expect(
+      screen
+        .getByRole("link", { name: "Affinity" })
+        .querySelector(".win-rate__mark--armed"),
+    ).not.toBeNull();
+    expect(container.querySelectorAll(".win-rate__mark--armed")).toHaveLength(
+      1,
+    );
+  });
+
+  it("marks nothing on a mouse press", () => {
+    const { container } = renderScatter(DECKS);
+
+    press(() => firstMark(container), "mouse");
+
+    expect(container.querySelector(".win-rate__mark--armed")).toBeNull();
+  });
+
+  it("clears the armed mark after a tap elsewhere", () => {
+    const { container } = renderScatter(DECKS);
+
+    press(() => firstMark(container));
+    fireEvent.pointerDown(document.body, { pointerType: "touch" });
+
+    expect(container.querySelector(".win-rate__mark--armed")).toBeNull();
+  });
+
+  it("clears the armed mark when the decks change", () => {
+    const { container, rerender } = renderScatter(DECKS);
+
+    press(() => firstMark(container));
+    rerender(
+      <MemoryRouter initialEntries={["/?window=7d"]}>
+        <WinRateScatter decks={[...DECKS]} />
+        <Address />
+      </MemoryRouter>,
+    );
+
+    expect(container.querySelector(".win-rate__mark--armed")).toBeNull();
+  });
+
   it("leaves out a deck with fewer than 20 decided matches", () => {
     const gated = {
       ...DECKS[2],

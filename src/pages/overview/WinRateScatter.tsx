@@ -118,6 +118,7 @@ type WinRateMarkProps = {
   size: number;
   payload: WinRatePoint;
   labelled: Set<string>;
+  armed: boolean;
   onPointerUp: (event: PointerEvent<SVGGElement>) => void;
   onClick: (event: MouseEvent<HTMLAnchorElement>) => void;
 };
@@ -128,6 +129,7 @@ function WinRateMark({
   size,
   payload,
   labelled,
+  armed,
   onPointerUp,
   onClick,
 }: WinRateMarkProps) {
@@ -143,8 +145,14 @@ function WinRateMark({
       label={payload.name}
       onClick={onClick}
     >
-      <g className="win-rate__mark" onPointerUp={onPointerUp}>
+      <g
+        className={
+          armed ? "win-rate__mark win-rate__mark--armed" : "win-rate__mark"
+        }
+        onPointerUp={onPointerUp}
+      >
         <circle
+          className="win-rate__dot"
           cx={cx}
           cy={cy}
           r={radius}
@@ -385,6 +393,7 @@ export function WinRateScatter({ decks }: { decks: Deck[] }) {
                 size={size}
                 payload={payload}
                 labelled={labelled}
+                armed={armed === payload.id}
                 onPointerUp={(event) => {
                   if (event.pointerType === "touch" && armed !== payload.id) {
                     setArmedMark({ id: payload.id, decks });
