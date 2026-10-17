@@ -31,20 +31,19 @@ export function MatchupsPage() {
   const decks = matchups.data?.decks ?? [];
   const slug = searchParams.get("deck") || null;
   const spotlit = slug === null ? undefined : findDeck(decks, slug);
-  const missing =
-    slug !== null && !loadingWindow && decks.length > 0 && spotlit === undefined
-      ? slug
-      : null;
+  const outside =
+    slug !== null && decks.length > 0 && spotlit === undefined ? slug : null;
+  const missing = loadingWindow ? null : outside;
   const [revealing, setRevealing] = useState(
     navigationType !== NavigationType.Pop || key === "default" ? slug : null,
   );
 
   const detail = useQuery({
-    queryKey: ["deck", missing, timeWindow],
-    queryFn: ({ signal }) => fetchDeck(missing ?? "", timeWindow, signal),
+    queryKey: ["deck", outside, timeWindow],
+    queryFn: ({ signal }) => fetchDeck(outside ?? "", timeWindow, signal),
     enabled: missing !== null,
     placeholderData: (previous, previousQuery) =>
-      previousQuery?.queryKey[1] === missing ? previous : undefined,
+      previousQuery?.queryKey[1] === outside ? previous : undefined,
   });
   const missingName = detail.data?.deck.name ?? "This deck";
   const notice =
@@ -99,11 +98,11 @@ export function MatchupsPage() {
         {decks.length > 0 && (
           <DeckPicker
             decks={decks}
-            value={spotlit?.slug ?? missing}
+            value={spotlit?.slug ?? outside}
             missing={
-              missing === null
+              outside === null
                 ? undefined
-                : { slug: missing, name: missingName }
+                : { slug: outside, name: missingName }
             }
             onChange={selectDeck}
           />

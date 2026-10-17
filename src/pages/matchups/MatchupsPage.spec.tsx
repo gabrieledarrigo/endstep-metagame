@@ -586,7 +586,7 @@ describe("MatchupsPage", () => {
 
     expect(await screen.findByText("Loading the 7d window.")).toBeTruthy();
     expect(notices()).toEqual([]);
-    expect(screen.queryByRole("option", { name: /not in the top/ })).toBeNull();
+    expect(chosen()).toBe("Mono Green Stompy (not in the top 4)");
     expect(
       fetchMock.mock.calls.filter(([input]) =>
         String(input).startsWith("/api/metagame/"),
@@ -617,6 +617,28 @@ describe("MatchupsPage", () => {
     await waitForNotice(
       "Mono Green Stompy isn't in the top 4 for the selected time window.",
     );
+  });
+
+  it("lets the reader clear a deck missing from the previous window while another one loads", async () => {
+    stubRoutes(
+      undefined,
+      () => Response.json(matrix),
+      () => new Promise<Response>(() => {}),
+    );
+    renderAt("/matchups?window=30d&deck=stompy-12345678");
+    await waitForNotice(
+      "Mono Green Stompy isn't in the top 4 for the selected time window.",
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "7d" }));
+    await screen.findByText("Loading the 7d window.");
+
+    expect(chosen()).toBe("Mono Green Stompy (not in the top 4)");
+
+    fireEvent.change(picker(), { target: { value: "" } });
+
+    expect(screen.getByText("Address: ?window=7d, REPLACE")).toBeTruthy();
+    expect(chosen()).toBe("All decks");
   });
 
   it("names the deck This deck when its detail fails", async () => {
