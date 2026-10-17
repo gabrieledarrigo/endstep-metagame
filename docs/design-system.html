@@ -1846,7 +1846,9 @@ a.button { display:inline-block; text-decoration:none; }
   </div>
   <p class="spec"><b>Hover</b> FR-6 and FR-7. On the ranked bars, pointing at any part of a deck's row underlines its name, in
   <span class="mono">--text-900</span>, and fills its bar with <span class="mono">--seq-600</span>. On the scatter, pointing at a
-  marker fills it with <span class="mono">--seq-600</span> at full opacity and underlines its label, when it has one. The dark
+  marker fills it with <span class="mono">--seq-600</span> at full opacity and underlines its label, which stays in
+  <span class="mono">--text-900</span>, when it has one. On a touch screen, a marker armed by a first tap looks the same,
+  until a tap elsewhere, new data or a mouse or pen moving over the chart disarms it. The dark
   ramp is reversed, so <span class="mono">--seq-600</span> lightens there, and the step adds contrast in both themes: from 5.26:1 to
   7.89:1 in light, from 3.78:1 to 4.90:1 in dark. <span class="mono">Other</span> does not react. Point at the bars and the markers.</p>
 </section>
