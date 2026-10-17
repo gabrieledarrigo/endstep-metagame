@@ -50,6 +50,8 @@ export function MatchupsPage() {
     missing === null
       ? undefined
       : `${missingName} isn't in the top ${decks.length} for the selected time window.`;
+  const named =
+    detail.isError || (detail.isSuccess && !detail.isPlaceholderData);
 
   if (
     revealing !== null &&
@@ -115,7 +117,11 @@ export function MatchupsPage() {
       </div>
 
       <p className="visually-hidden" role="status">
-        {loading ? `Loading the ${timeWindow} window.` : (notice ?? "")}
+        {loading
+          ? `Loading the ${timeWindow} window.`
+          : named
+            ? (notice ?? "")
+            : ""}
       </p>
 
       <div

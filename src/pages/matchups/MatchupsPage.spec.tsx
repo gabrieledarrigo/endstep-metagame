@@ -125,6 +125,21 @@ async function waitForNotice(text: string): Promise<void> {
   });
 }
 
+function recordStatus(): string[] {
+  const status = screen.getByRole("status");
+  const seen = [status.textContent ?? ""];
+
+  new MutationObserver(() => {
+    const text = status.textContent ?? "";
+
+    if (seen.at(-1) !== text) {
+      seen.push(text);
+    }
+  }).observe(status, { childList: true, characterData: true, subtree: true });
+
+  return seen;
+}
+
 function picker(): HTMLSelectElement {
   return screen.getByRole<HTMLSelectElement>("combobox", { name: "Deck" });
 }
@@ -549,10 +564,13 @@ describe("MatchupsPage", () => {
       () => new Promise<Response>((resolve) => (answer = resolve)),
     );
     renderAt("/matchups?window=30d&deck=stompy-12345678");
+    const status = recordStatus();
 
-    await waitForNotice(
-      "This deck isn't in the top 4 for the selected time window.",
-    );
+    await waitFor(() => {
+      expect(notices()).toEqual([
+        "line: This deck isn't in the top 4 for the selected time window.",
+      ]);
+    });
     expect(chosen()).toBe("This deck (not in the top 4)");
     expect(spotlit()).toEqual([]);
 
@@ -561,6 +579,11 @@ describe("MatchupsPage", () => {
     await waitForNotice(
       "Mono Green Stompy isn't in the top 4 for the selected time window.",
     );
+    expect(status).toEqual([
+      "Loading the 30d window.",
+      "",
+      "Mono Green Stompy isn't in the top 4 for the selected time window.",
+    ]);
     expect(chosen()).toBe("Mono Green Stompy (not in the top 4)");
     expect(
       screen.getByText("Address: ?window=30d&deck=stompy-12345678, REPLACE"),
@@ -641,9 +664,48 @@ describe("MatchupsPage", () => {
     expect(chosen()).toBe("All decks");
   });
 
+  it("announces a deck missing from the next window once that window's detail has settled", async () => {
+    let details = 0;
+    let answer: (response: Response) => void = () => {};
+    stubRoutes(() => {
+      details += 1;
+
+      if (details === 1) {
+        return Response.json(STOMPY);
+      }
+
+      return new Promise<Response>((resolve) => (answer = resolve));
+    });
+    renderAt("/matchups?window=30d&deck=stompy-12345678");
+    await waitForNotice(
+      "Mono Green Stompy isn't in the top 4 for the selected time window.",
+    );
+    const status = recordStatus();
+
+    fireEvent.click(screen.getByRole("button", { name: "7d" }));
+    await screen.findByRole("grid", { name: /7d window/ });
+    await waitFor(() => {
+      expect(details).toBe(2);
+    });
+    expect(screen.getByRole("status").textContent).toBe("");
+
+    answer(Response.json(STOMPY));
+
+    await waitForNotice(
+      "Mono Green Stompy isn't in the top 4 for the selected time window.",
+    );
+    expect(status).toEqual([
+      "Mono Green Stompy isn't in the top 4 for the selected time window.",
+      "Loading the 7d window.",
+      "",
+      "Mono Green Stompy isn't in the top 4 for the selected time window.",
+    ]);
+  });
+
   it("names the deck This deck when its detail fails", async () => {
     stubRoutes(() => Response.json({ error: "Unknown deck" }, { status: 404 }));
     renderAt("/matchups?window=30d&deck=stompy-12345678");
+    const status = recordStatus();
 
     await screen.findByRole("grid");
     await waitFor(() => {
@@ -651,6 +713,9 @@ describe("MatchupsPage", () => {
     });
 
     await waitForNotice(
+      "This deck isn't in the top 4 for the selected time window.",
+    );
+    expect(status.at(-1)).toBe(
       "This deck isn't in the top 4 for the selected time window.",
     );
   });
