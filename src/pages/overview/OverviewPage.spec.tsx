@@ -845,6 +845,57 @@ describe("OverviewPage search", () => {
     expect(searchRequests(fetchMock)).toHaveLength(2);
   });
 
+  it("leaves focus in the field when the term changes while more results load", async () => {
+    stubApi(
+      () => Response.json(decks),
+      (url) => {
+        if (url.searchParams.get("q") === "other") {
+          return matches(url, numberedDecks(1, 26), 26);
+        }
+
+        return url.searchParams.get("page") === "1"
+          ? matches(url, numberedDecks(1, 24), 30)
+          : new Promise<Response>(() => {});
+      },
+    );
+    renderAt("/?window=30d&q=deck");
+    await statusReads("30 decks match \u201cdeck\u201d.");
+
+    fireEvent.click(screen.getByRole("button", { name: "Show 6 more" }));
+    field().focus();
+    type("other");
+
+    await statusReads("26 decks match \u201cother\u201d.");
+    expect(screen.getByRole("link", { name: "Deck 25" })).toBeTruthy();
+    expect(document.activeElement).toBe(field());
+  });
+
+  it("leaves focus on the window when the window changes while more results load", async () => {
+    stubApi(
+      () => Response.json(decks),
+      (url) => {
+        if (url.searchParams.get("window") === "7d") {
+          return matches(url, numberedDecks(1, 26), 26);
+        }
+
+        return url.searchParams.get("page") === "1"
+          ? matches(url, numberedDecks(1, 24), 30)
+          : new Promise<Response>(() => {});
+      },
+    );
+    renderAt("/?window=30d&q=deck");
+    await statusReads("30 decks match \u201cdeck\u201d.");
+
+    fireEvent.click(screen.getByRole("button", { name: "Show 6 more" }));
+    const week = screen.getByRole("button", { name: "7d" });
+    week.focus();
+    fireEvent.click(week);
+
+    await statusReads("26 decks match \u201cdeck\u201d.");
+    expect(screen.getByRole("link", { name: "Deck 25" })).toBeTruthy();
+    expect(document.activeElement).toBe(week);
+  });
+
   it("lists a deck once when the next page repeats it", async () => {
     stubApi(
       () => Response.json(decks),
