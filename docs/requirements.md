@@ -81,9 +81,12 @@ Extracted from the Endstep client bundle. These are the authoritative values, no
 
 **The art comes from Scryfall by name.** The metagame function adds `art.imageUrl` to every deck in the deck list and the deck detail, §4.3. It is the `art_crop` address on Scryfall's CDN, `cards.scryfall.io`, which has no rate limit, so the browser loads the art with no redirect. Scryfall picks its default printing, which can differ from Endstep's choice. When `art.imageUrl` is missing, the browser falls back to Endstep's endpoint with `version=art_crop`, as before.
 
-- The function sends one `POST https://api.scryfall.com/cards/collection` per response, with up to 75 `{ "name": … }` identifiers, the deck list's 24 key cards at most. It reads `image_uris.art_crop`, or `card_faces[0].image_uris.art_crop` for a double-faced card.
+- The function sends one `POST https://api.scryfall.com/cards/collection` per response, with one `{ "name": … }` identifier per deck, at most 50, the deck list's largest page, under Scryfall's limit of 75. It reads `image_uris.art_crop`, or `card_faces[0].image_uris.art_crop` for a double-faced card.
+- It matches each returned card to a deck by name, ignoring case: the card's full name, or any of its faces' names. A double-faced card comes back as "Front // Back" while Endstep names its front face.
+- A name Scryfall reports in `not_found` is a stable answer. The deck falls back to Endstep's endpoint, and the response keeps its usual cache time.
 - Scryfall allows 2 requests per second on that endpoint and requires a `User-Agent` naming the application and an `Accept` header. A 429 limits access for 30 seconds.
-- The function remembers each card's address in memory for as long as its instance lives, so a warm instance asks Scryfall only for names it has not seen.
+- The function remembers each card's address, and each name Scryfall did not find, in memory for as long as its instance lives, so a warm instance asks Scryfall only for names it has not seen.
+- Nothing shares a rate limit across instances or regions. After a 429, an instance sends Scryfall nothing for 30 seconds, Scryfall's own lockout, and its responses use the fallback.
 
 ### 3.5 Measured characteristics
 
@@ -141,7 +144,7 @@ Public CORS proxies were tested on 2026-09-20 and rejected. All six failed. allo
 
 1. **The front end**. A Vite application in `src/`, built to `dist/` on Vercel. It serves all three pages from one `index.html`.
 2. **`api/metagame.ts`**. The proxy. It forwards `GET` requests to `https://endstep.cc/api/metagame/v1/...`, keeps the allow-listed query parameters, and returns the upstream body with CORS headers. For the deck list and the deck detail it adds each deck's art address from Scryfall, §3.4, so it is no longer a pure pass-through.
-3. **`api/matchups.ts`**. The matchup aggregator. It builds the top-24 matrix on the server and returns it in one response. See §4.4. It is a separate function so the proxy stays a pass-through.
+3. **`api/matchups.ts`**. The matchup aggregator. It builds the top-24 matrix on the server and returns it in one response. See §4.4. It is a separate function so the proxy keeps to one upstream call per request.
 4. **`api/_shared.ts`**. The code the functions share: the upstream address and timeout, the CORS headers, the method rules, the error responses and the cache rules. Vercel does not deploy a file in `api/` whose name starts with an underscore, so it is not a function of its own.
 5. **`api/deck-page.ts`**. The deck page's HTML. It writes the deck's title, description and image into the built `index.html` for link previews, FR-15. `vercel.json` sends `/decks/:slug` to it in place of the static rewrite.
 
@@ -150,9 +153,9 @@ Public CORS proxies were tested on 2026-09-20 and rejected. All six failed. allo
 - The endpoint path reaches the function through the rewrite in `vercel.json`, as the `path` query parameter: `/api/metagame/Pauper/decks` becomes `/api/metagame?path=Pauper/decks`.
 - Accepts `GET` and `HEAD`. `OPTIONS` answers the CORS preflight with 204. Every other method returns 405.
 - **Allow-lists** the upstream path prefix, so the function cannot be used as an open proxy to arbitrary hosts.
-- Sets `Cache-Control` by status. A success gets `public, s-maxage=300, stale-while-revalidate=600`, so the Vercel edge serves repeat requests without calling Endstep. A 429 gets `public, s-maxage=10`. Any other error gets `no-store`.
+- Sets `Cache-Control` by status. A success gets `public, s-maxage=300, stale-while-revalidate=600`, so the Vercel edge serves repeat requests without calling Endstep. A 429 gets `public, s-maxage=10`. Any other error gets `no-store`. The art lookup's fallback is the one exception, below.
 - Passes upstream non-2xx status codes through unchanged, so the client can tell a rate limit from a server error.
-- **Adds the art.** For a successful deck list or deck detail, it looks up the key cards on Scryfall, §3.4, and adds `art.imageUrl` to each deck it resolves. The lookup has a one-second bound. When it fails, times out or meets a 429, the response goes out without the addresses it could not resolve, with `s-maxage=60` in place of the usual five minutes, so the art returns soon. A lookup never fails the response and is never retried within it.
+- **Adds the art.** For a successful `GET` of a deck list or a deck detail, it looks up the key cards on Scryfall, §3.4, and adds `art.imageUrl` to each deck it resolves. `HEAD` gets no lookup. The lookup has a one-second bound. When it fails, times out or meets a 429, the response goes out without the addresses it could not resolve, with `s-maxage=60` in place of the usual five minutes, so the art returns soon for the next reader. A reader who already holds that response keeps it for the client's five minutes, §4.8, and sees Endstep's art meanwhile. A lookup never fails the response and is never retried within it.
 - The Scryfall request carries `User-Agent: PauperEndstepMetagame/1.0 (+https://github.com/gabrieledarrigo/endstep-metagame)` and `Accept: application/json`. That is the only identifying header the functions send upstream.
 - Sends no cookies, credentials or client identifying headers upstream.
 
@@ -423,7 +426,7 @@ Every page carries what browsers, search engines and chat apps read without runn
   - It accepts only a slug the proxy would accept, §4.3, and only a known window. Anything else gets the page with the site card.
   - It fetches the deck detail through our own proxy, at the exact address the deck page requests: `/api/metagame/Pauper/decks/{slug}` with the window and the population. The browser's later request then hits the same edge cache entry, and upstream calls stay one per deck and window.
   - It escapes every value it writes into the HTML, and URL-encodes the card name in the image address.
-  - When the call fails, or takes longer than one second, it returns the page with the site card, so a reader never waits on it. That fallback is sent with `no-store`, so a slow moment is never cached. A preview is cached at the edge for five minutes.
+  - When the call fails, or takes longer than two seconds, it returns the page with the site card, so a reader never waits long on it. Two seconds leave room for the proxy's own one-second art lookup. That fallback is sent with `no-store`, so a slow moment is never cached. A preview is cached at the edge for five minutes.
 - The page then loads as before. The function changes nothing a reader sees.
 
 ### FR-16. Installable app

@@ -901,16 +901,16 @@ Covers §3.4, §4.3, FR-3, FR-11, NFR-4 and open item 11, settled by the owner o
 
 **Tasks**
 
-1. In `api/metagame.ts`, for a successful deck list or deck detail: one `POST /cards/collection` to Scryfall with the key card names, a one-second bound, the `User-Agent` and `Accept` headers of §4.3, and `art.imageUrl` added to each deck it resolves, from `image_uris.art_crop` or the first face's.
-2. Remember each card's address in the instance's memory.
-3. On a failure, a timeout or a 429: send the response without the missing addresses, with `s-maxage=60`, and no retry.
+1. In `api/metagame.ts`, for a successful `GET` of a deck list or a deck detail: one `POST /cards/collection` to Scryfall with the key card names, a one-second bound, the `User-Agent` and `Accept` headers of §4.3, and `art.imageUrl` added to each deck it resolves, from `image_uris.art_crop` or the first face's. Match names ignoring case, against the full name or either face.
+2. Remember each card's address, and each name not found, in the instance's memory. After a 429, send Scryfall nothing for 30 seconds.
+3. On a failure, a timeout or a 429: send the response without the missing addresses, with `s-maxage=60`, and no retry. A name not found keeps the usual cache time.
 4. In the client, `artSource` takes the deck's art: `art.imageUrl`, or Endstep's endpoint with `version=art_crop` when it is missing. The deck card, the deck hero and the search results use it.
-5. A spec beside each function and helper it changes: the request, the parsing of both faces, the fallback, the 429 and the cache header.
+5. A spec beside each function and helper it changes: the request, the name matching for both faces, a name not found, the fallback, the 429 and its pause, `HEAD`, and the cache header.
 
 **Done when**
 
 - The top 24's cards load their art from `cards.scryfall.io`, with no request to `endstep.cc`.
-- With Scryfall unreachable, every card still shows its art, through Endstep's endpoint.
+- With Scryfall's API unreachable, every card still shows its art, through Endstep's endpoint. Scryfall's CDN being down is out of reach: Endstep's endpoint redirects there too.
 - No response waits more than a second on Scryfall.
 
 **Blocked by** nothing. **Blocks** S23.
@@ -1169,10 +1169,10 @@ Covers FR-15.
 
 **Tasks**
 
-1. `api/deck-page.ts`: for `/decks/:slug`, read `index.html` from the files deployed with the function, fetch the deck detail through our proxy at the deck page's own address, and write the deck's title, description, art-crop image, canonical link and `og:url` into the head, escaped. Accept only a valid slug and a known window. Return the page with the site card, sent with `no-store`, when the call fails or takes longer than one second.
+1. `api/deck-page.ts`: for `/decks/:slug`, read `index.html` from the files deployed with the function, fetch the deck detail through our proxy at the deck page's own address, and write the deck's title, description, art-crop image, canonical link and `og:url` into the head, escaped. Accept only a valid slug and a known window. Return the page with the site card, sent with `no-store`, when the call fails or takes longer than two seconds. The image is `art.imageUrl`, or Endstep's art-crop endpoint when it is missing.
 2. The site card's image tag in `index.html`, for every other page.
 3. `vercel.json` sends `/decks/:slug` to the function, and the edge caches each page for five minutes.
-4. Check the previews in Discord, Slack and WhatsApp, including that each follows the art's redirect to Scryfall.
+4. Check the previews in Discord, Slack and WhatsApp, with an art address from Scryfall's CDN and with the fallback, which each must follow through its redirect.
 5. A spec beside the function, on the injected tags, the escaping, a rejected slug, the fallback and its `no-store`, and the timeout.
 
 **Done when**
