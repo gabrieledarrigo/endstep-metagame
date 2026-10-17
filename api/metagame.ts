@@ -66,7 +66,6 @@ type ScryfallCard = {
 
 type ScryfallCollection = {
   data: ScryfallCard[];
-  not_found: { name?: string }[];
 };
 
 const artByName = new Map<string, string | null>();
@@ -199,9 +198,9 @@ function artCrop(card: ScryfallCard): string | undefined {
 }
 
 /**
- * Remembers the addresses and the names not found in a collection response, for the names that were asked.
+ * Remembers the addresses in a collection response, for the names that were asked, and every other name asked as not found.
  *
- * A card matches a name by its full name or by any face's name, ignoring case. A card without an art crop on Scryfall's CDN counts as not found, so its deck falls back to Endstep's endpoint.
+ * A card matches a name by its full name or by any face's name, ignoring case. A name that matches no card counts as not found, whether Scryfall lists it in `not_found` or answers with another spelling, such as "Lim-Dûl's Vault" for "Lim-Dul's Vault". So does a card without an art crop on Scryfall's CDN. Its deck falls back to Endstep's endpoint.
  *
  * @param asked - The memory keys of the names sent to Scryfall.
  * @param collection - Scryfall's collection response.
@@ -221,9 +220,9 @@ function remember(asked: Set<string>, collection: ScryfallCollection): void {
     }
   }
 
-  for (const { name } of collection.not_found) {
-    if (typeof name === "string" && asked.has(nameKey(name))) {
-      artByName.set(nameKey(name), null);
+  for (const key of asked) {
+    if (!artByName.has(key)) {
+      artByName.set(key, null);
     }
   }
 }
@@ -269,16 +268,16 @@ async function lookUpArt(names: Map<string, string>): Promise<boolean> {
       return false;
     }
 
-    const { data = [], not_found = [] } =
+    const { data = [] } =
       (await response.json()) as Partial<ScryfallCollection>;
-    collection = { data, not_found };
+    collection = { data };
   } catch {
     return false;
   }
 
   remember(new Set(missing.map(([key]) => key)), collection);
 
-  return missing.every(([key]) => artByName.has(key));
+  return true;
 }
 
 /**

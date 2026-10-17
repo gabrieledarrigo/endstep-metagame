@@ -360,6 +360,26 @@ describe("the metagame proxy's card art", () => {
     expect(scryfallNames(fetchMock)).toEqual([["Fire // Ice"]]);
   });
 
+  it("treats a name Scryfall answers with another spelling as not found: the fallback, the usual cache time, and no second request", async () => {
+    const fetchMock = endstepAndScryfall(
+      deckList("Lim-Dul's Vault"),
+      collection([
+        card(
+          "Lim-Dûl's Vault",
+          "https://cards.scryfall.io/art_crop/front/1/2/12345678-lim-dul.jpg?1",
+        ),
+      ]),
+    );
+
+    const first = await metagame.fetch(request(DECKS));
+    const second = await metagame.fetch(request(DECKS));
+
+    expect(first.headers.get("cache-control")).toBe(FIVE_MINUTES);
+    expect(await artOf(first)).toEqual([undefined]);
+    expect(second.headers.get("cache-control")).toBe(FIVE_MINUTES);
+    expect(scryfallNames(fetchMock)).toEqual([["Lim-Dul's Vault"]]);
+  });
+
   it("asks Scryfall only for the names it has not seen", async () => {
     const fetchMock = endstepAndScryfall(
       deckList("Reckoner's Bargain"),
