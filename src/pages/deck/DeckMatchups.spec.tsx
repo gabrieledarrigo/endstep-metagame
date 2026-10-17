@@ -108,6 +108,18 @@ describe("DeckMatchups", () => {
     ).toBeTruthy();
   });
 
+  it("links to the deck in the full table, keeping the window", async () => {
+    renderRow(DECK);
+
+    expect(
+      (
+        await screen.findByRole("link", {
+          name: "See Affinity in the full table",
+        })
+      ).getAttribute("href"),
+    ).toBe("/matchups?window=30d&deck=affinity-e93f5f74");
+  });
+
   it("says so and links to the matchup table when the deck is outside the top", async () => {
     renderRow({ ...DECK, id: "elsewhere" });
 
@@ -122,6 +134,9 @@ describe("DeckMatchups", () => {
         .getAttribute("href"),
     ).toBe("/matchups?window=30d");
     expect(screen.queryByRole("grid")).toBeNull();
+    expect(
+      screen.queryByRole("link", { name: "See Affinity in the full table" }),
+    ).toBeNull();
   });
 
   it("prints the row's own dates when they differ from the deck's", async () => {

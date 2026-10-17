@@ -1,3 +1,4 @@
+import { Link } from "react-router";
 import type { Deck, MatchupMatrix, TimeWindow } from "../../api/types";
 import { MatchupGrid } from "../../components/MatchupGrid";
 import { MatchupLegend } from "../../components/MatchupLegend";
@@ -38,6 +39,16 @@ function MatchupRow({ deck, matrix, loading, timeWindow }: MatchupRowProps) {
           contained
         />
         <MatchupLegend mirror={false} />
+        <p className="deck-matchups__more">
+          <Link
+            to={{
+              pathname: "/matchups",
+              search: `?${new URLSearchParams({ window: timeWindow, deck: deck.slug })}`,
+            }}
+          >
+            See {deck.name} in the full table
+          </Link>
+        </p>
       </>
     );
   }
