@@ -4,7 +4,7 @@ import { MatchupSwatch } from "./MatchupSwatch";
 
 describe("MatchupSwatch", () => {
   it("shows its text in the colour of its state", () => {
-    render(<MatchupSwatch state="win" text="57" />);
+    render(<MatchupSwatch state="win">57</MatchupSwatch>);
 
     expect(screen.getByText("57").className).toBe(
       "matchup-swatch matchup-swatch--win",
@@ -14,8 +14,10 @@ describe("MatchupSwatch", () => {
   it("is read by assistive technology unless hidden", () => {
     const { container } = render(
       <>
-        <MatchupSwatch state="loss" text="38" />
-        <MatchupSwatch state="none" text={"·"} hidden />
+        <MatchupSwatch state="loss">38</MatchupSwatch>
+        <MatchupSwatch state="none" hidden>
+          ·
+        </MatchupSwatch>
       </>,
     );
 

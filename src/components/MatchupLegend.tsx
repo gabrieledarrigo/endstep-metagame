@@ -16,7 +16,9 @@ export function MatchupLegend({ mirror = true }: { mirror?: boolean }) {
     <ul className="matchup-legend" aria-label="Legend">
       {ITEMS.filter((item) => mirror || item.state !== "mirror").map((item) => (
         <li key={item.state} className="matchup-legend__item">
-          <MatchupSwatch state={item.state} text={item.sample} hidden />
+          <MatchupSwatch state={item.state} hidden>
+            {item.sample}
+          </MatchupSwatch>
           {item.label}
         </li>
       ))}

@@ -81,11 +81,12 @@ export function MatchupList({
                 )}
               </span>
               <span className="matchup-list__verdict">{VERDICT[state]}</span>
-              <MatchupSwatch
-                state={state}
-                text={cellText(state, cell)}
-                hidden={state === "none"}
-              />
+              <MatchupSwatch state={state} hidden={state === "none"}>
+                {cellText(state, cell)}
+                {cell !== undefined && cell.rate !== null && (
+                  <span className="visually-hidden">%</span>
+                )}
+              </MatchupSwatch>
             </li>
           );
         })}

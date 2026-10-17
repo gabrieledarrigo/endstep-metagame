@@ -36,8 +36,8 @@ describe("MatchupList", () => {
       }),
     ).toBeTruthy();
     expect(lines()).toEqual([
-      "Mono Red Madness1,456 matchesFavoured57",
-      "Monster Tron998 matchesWithin chance48",
+      "Mono Red Madness1,456 matchesFavoured57%",
+      "Monster Tron998 matchesWithin chance48%",
       "Naya Gates18 of the 20 matches neededToo few to call",
     ]);
   });
@@ -51,7 +51,8 @@ describe("MatchupList", () => {
     );
     expect(within(madness).getByText("1,456 matches")).toBeTruthy();
     expect(within(madness).getByText("Favoured")).toBeTruthy();
-    expect(within(madness).getByText("57")).toBeTruthy();
+    expect(within(madness).getByText("57").textContent).toBe("57%");
+    expect(within(madness).getByText("%").className).toBe("visually-hidden");
     expect(within(gates).getByRole("link").textContent).toBe("Naya Gates");
     expect(within(gates).getByText("18 of the 20 matches needed")).toBeTruthy();
     expect(within(gates).getByText("Too few to call")).toBeTruthy();
@@ -71,8 +72,8 @@ describe("MatchupList", () => {
     renderList({ deck: MADNESS });
 
     expect(lines()).toEqual([
-      "Affinity1,456 matchesUnfavoured43",
-      "Monster Tron703 matchesWithin chance52",
+      "Affinity1,456 matchesUnfavoured43%",
+      "Monster Tron703 matchesWithin chance52%",
       "Naya GatesNo data·",
     ]);
     expect(screen.getByText("·").getAttribute("aria-hidden")).toBe("true");
