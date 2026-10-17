@@ -161,7 +161,7 @@ export function DeckPage() {
       <div
         className={
           loadingWindow
-            ? "deck-page__body deck-page__body--busy"
+            ? "deck-page__body busy"
             : "deck-page__body"
         }
         aria-busy={loadingWindow || undefined}

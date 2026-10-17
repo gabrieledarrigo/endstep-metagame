@@ -187,7 +187,7 @@ describe("DeckMatchups", () => {
         name: "Match win rate of Affinity against the other 3 decks in the top 4, rated.",
       })
       .closest("[aria-busy]");
-    expect(body?.className).toContain("deck-matchups__body--busy");
+    expect(body?.classList.contains("busy")).toBe(true);
   });
 
   it("does not dim again while the deck's own window loads, and dims alone once it lands", async () => {
@@ -201,13 +201,16 @@ describe("DeckMatchups", () => {
 
     const body = screen.getByRole("grid").closest("[aria-busy]");
     expect(body).toBeTruthy();
-    expect(body?.className).not.toContain("deck-matchups__body--busy");
+    expect(body?.classList.contains("busy")).toBe(false);
 
     switchTo("7d", false);
 
     expect(
-      screen.getByRole("grid").closest("[aria-busy]")?.className,
-    ).toContain("deck-matchups__body--busy");
+      screen
+        .getByRole("grid")
+        .closest("[aria-busy]")
+        ?.classList.contains("busy"),
+    ).toBe(true);
   });
 
   it("holds back the row's own dates while another window loads", async () => {

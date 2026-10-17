@@ -48,7 +48,7 @@ export function OverviewPage() {
       </p>
 
       <div
-        className={loadingWindow ? "page__body page__body--busy" : "page__body"}
+        className={loadingWindow ? "page__body busy" : "page__body"}
         aria-busy={loadingWindow || undefined}
       >
         <Section

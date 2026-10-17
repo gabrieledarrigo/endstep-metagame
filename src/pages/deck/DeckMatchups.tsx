@@ -50,7 +50,7 @@ export function DeckMatchups({
       <div
         className={
           loading && !detailLoading
-            ? "deck-matchups__body deck-matchups__body--busy"
+            ? "deck-matchups__body busy"
             : "deck-matchups__body"
         }
         aria-busy={loading || undefined}

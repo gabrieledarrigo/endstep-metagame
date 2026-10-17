@@ -34,7 +34,7 @@
   min-width: 0;
 }
 
-.page__body--busy {
+.busy {
   opacity: 0.55;
 }
 

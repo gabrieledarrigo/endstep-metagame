@@ -13,10 +13,6 @@
     min-width: 0;
   }
 
-  .deck-page__body--busy {
-    opacity: 0.55;
-  }
-
   .deck-page__columns {
     display: grid;
     gap: 22px;
