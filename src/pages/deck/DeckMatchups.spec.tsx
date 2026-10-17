@@ -237,8 +237,32 @@ describe("DeckMatchups", () => {
 
     switchTo("7d");
 
+    const region = screen.getByRole("region", {
+      name: "Matchups against the top 24",
+    });
     expect(
       screen.queryByText("No matchups are recorded for this window yet."),
     ).toBeNull();
+    expect(region.querySelector(".skeleton")).toBeTruthy();
+  });
+
+  it("holds back that the deck is outside the top while another window loads", async () => {
+    const switchTo = renderSwitching([
+      (): Response =>
+        Response.json({
+          ...matrix,
+          decks: matrix.decks.filter((item) => item.id !== DECK.id),
+        }),
+      hold,
+    ]);
+    await screen.findByText(/^Affinity is not in the top 3 for this window/);
+
+    switchTo("7d");
+
+    const region = screen.getByRole("region", {
+      name: "Matchups against the top 3",
+    });
+    expect(screen.queryByText(/^Affinity is not in the top/)).toBeNull();
+    expect(region.querySelector(".skeleton")).toBeTruthy();
   });
 });

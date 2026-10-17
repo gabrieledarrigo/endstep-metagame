@@ -74,6 +74,8 @@ export function DeckMatchups({
                 />
                 <MatchupLegend mirror={false} />
               </>
+            ) : loading ? (
+              <Skeleton className="deck-matchups__skeleton" />
             ) : data.decks.length > 0 ? (
               <Panel>
                 <p className="deck-matchups__outside">
@@ -82,8 +84,6 @@ export function DeckMatchups({
                   <WindowLink to="/matchups">See the matchup table</WindowLink>
                 </p>
               </Panel>
-            ) : loading ? (
-              <Skeleton className="deck-matchups__skeleton" />
             ) : (
               <Panel>
                 <p className="deck-matchups__outside">
