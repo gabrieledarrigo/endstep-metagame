@@ -363,6 +363,58 @@ describe("the metagame proxy's card art", () => {
     expect(await artOf(response)).toEqual([DELVER_ART]);
   });
 
+  it.each([
+    [
+      "a back face's name the back face's art",
+      "Insectile Aberration",
+      "/back/",
+    ],
+    [
+      "a double-faced card's full name the front face's art",
+      "Delver of Secrets // Insectile Aberration",
+      "/front/",
+    ],
+  ])("gives %s", async (_, cardName, side) => {
+    const back = DELVER_ART.replace("/front/", "/back/");
+    endstepAndScryfall(
+      deckList(cardName),
+      collection([
+        {
+          name: "Delver of Secrets // Insectile Aberration",
+          card_faces: [
+            { name: "Delver of Secrets", image_uris: { art_crop: DELVER_ART } },
+            { name: "Insectile Aberration", image_uris: { art_crop: back } },
+          ],
+        },
+      ]),
+    );
+
+    const response = await metagame.fetch(request(DECKS));
+
+    expect(await artOf(response)).toEqual([
+      DELVER_ART.replace("/front/", side),
+    ]);
+  });
+
+  it("gives a face without its own image the card's art, as for an adventure", async () => {
+    const giant =
+      "https://cards.scryfall.io/art_crop/front/1/a/1a8bdc8b-bonecrusher-giant.jpg?1";
+    endstepAndScryfall(
+      deckList("Stomp"),
+      collection([
+        {
+          name: "Bonecrusher Giant // Stomp",
+          image_uris: { art_crop: giant },
+          card_faces: [{ name: "Bonecrusher Giant" }, { name: "Stomp" }],
+        },
+      ]),
+    );
+
+    const response = await metagame.fetch(request(DECKS));
+
+    expect(await artOf(response)).toEqual([giant]);
+  });
+
   it("leaves a card Scryfall does not find to the fallback, keeps the usual cache time, and never asks for it again", async () => {
     const fetchMock = endstepAndScryfall(
       deckList("Fire // Ice"),

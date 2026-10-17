@@ -183,17 +183,14 @@ function nameKey(name: string): string {
 }
 
 /**
- * Reads a card's art crop address, from the card or from its first face for a double-faced card.
+ * Keeps an art crop address only when it is on Scryfall's CDN, the one image host besides Endstep that the site's policy allows.
  *
- * @param card - A card from Scryfall's collection response.
- * @returns The address when it is on Scryfall's CDN, otherwise `undefined`.
+ * @param address - An `art_crop` address from Scryfall, if any.
+ * @returns The address, or `null` when it is missing or on another host.
  */
-function artCrop(card: ScryfallCard): string | undefined {
-  const address =
-    card.image_uris?.art_crop ?? card.card_faces?.[0]?.image_uris?.art_crop;
-
+function onCdn(address: string | undefined): string | null {
   if (!address?.startsWith(ART_HOST)) {
-    return undefined;
+    return null;
   }
 
   return address;
@@ -202,22 +199,25 @@ function artCrop(card: ScryfallCard): string | undefined {
 /**
  * Remembers the addresses in a collection response, for the names that were asked, and every other name asked as not found.
  *
- * A card matches a name by its full name or by any face's name, ignoring case. A name that matches no card counts as not found, whether Scryfall lists it in `not_found` or answers with another spelling, such as "Lim-Dûl's Vault" for "Lim-Dul's Vault". So does a card without an art crop on Scryfall's CDN. Its deck falls back to Endstep's endpoint.
+ * A card matches a name by its full name or by any face's name, ignoring case. A face's name takes that face's art crop, or the card's when the faces share one image, as an adventure does. The full name takes the card's art crop, or its first face's. A name that matches no card counts as not found, whether Scryfall lists it in `not_found` or answers with another spelling, such as "Lim-Dûl's Vault" for "Lim-Dul's Vault". So does a card without an art crop on Scryfall's CDN. Its deck falls back to Endstep's endpoint.
  *
  * @param asked - The memory keys of the names sent to Scryfall.
  * @param collection - Scryfall's collection response.
  */
 function remember(asked: Set<string>, collection: ScryfallCollection): void {
   for (const card of collection.data) {
-    const address = artCrop(card) ?? null;
-    const names = [
-      card.name,
-      ...(card.card_faces ?? []).map((face) => face.name),
+    const faces = card.card_faces ?? [];
+    const names: [string, string | undefined][] = [
+      [card.name, card.image_uris?.art_crop ?? faces[0]?.image_uris?.art_crop],
+      ...faces.map((face): [string, string | undefined] => [
+        face.name,
+        face.image_uris?.art_crop ?? card.image_uris?.art_crop,
+      ]),
     ];
 
-    for (const key of names.map(nameKey)) {
-      if (asked.has(key)) {
-        artByName.set(key, address);
+    for (const [name, address] of names) {
+      if (asked.has(nameKey(name))) {
+        artByName.set(nameKey(name), onCdn(address));
       }
     }
   }
