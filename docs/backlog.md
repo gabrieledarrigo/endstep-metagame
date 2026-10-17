@@ -752,9 +752,9 @@ Covers NFR-1: an exported function with a consumer has a spec beside it. E10 set
 
 # Milestone 3: connected pages
 
-**Date:** 2026-10-13. Derived from Draft v4 of the requirements. D3 and S18 were added on 2026-10-14, from Draft v5. D4, S19, S20 and S21 were added on 2026-10-17, from Draft v6. D5, E13, S22, S23 and S24 were added the same day, from Draft v7, and E14 from Draft v8.
+**Date:** 2026-10-13. Derived from Draft v4 of the requirements. D3 and S18 were added on 2026-10-14, from Draft v5. D4, S19, S20 and S21 were added on 2026-10-17, from Draft v6. D5, E13, S22, S23 and S24 were added the same day, from Draft v7, and E14 from Draft v8. H4 was added the same day.
 
-Eighteen items. Four design items, two enablers, twelve user stories. Two stories and the enablers need no design and start at once. The others wait for D2, D3, D4 or D5, because each changes how a page looks, and the owner chooses the design first.
+Nineteen items. Four design items, two enablers, twelve user stories and one hardening item. Two stories, the enablers and the hardening item need no design and start at once. The others wait for D2, D3, D4 or D5, because each changes how a page looks, and the owner chooses the design first.
 
 | Wave | Items | Runs in parallel |
 |---|---|---|
@@ -763,7 +763,7 @@ Eighteen items. Four design items, two enablers, twelve user stories. Two storie
 | 17 | S15 | No |
 | 18 | D4 | No |
 | 19 | S19, S20, S21 | Yes, three ways |
-| 20 | D5, E13, E14 | Yes, three ways |
+| 20 | D5, E13, E14, H4 | Yes, four ways |
 | 21 | S22, S23, S24 | Yes, three ways |
 
 ```
@@ -780,6 +780,7 @@ D5 design ──┬─► S22 install as an app
             └─► S24 the footer
 E13 metadata and headers ──► S23
 E14 art from Scryfall ──► S23
+H4 the deck page's tables
 S13 every page kept on a window change
 S14 charts open the deck pages
 ```
@@ -1202,6 +1203,25 @@ Covers NFR-5.
 - Every page's footer carries NFR-5's five items, with working links, in both themes and at 360px.
 
 **Blocked by** D5. **Blocks** nothing.
+
+---
+
+## H4. Square the deck page's tables with the design system
+
+Covers FR-11 and NFR-6. The owner found the gaps on 2026-10-17 and chose the column layout for the daily share. The design system already shows both.
+
+**Tasks**
+
+1. The Games table fills its panel's width, as the design system draws it.
+2. "Daily share as a table" becomes "Daily share, day by day": a description list, one `div` per day holding its `dt` and `dd`, named "Meta share by day", flowing into columns at least 9.5em wide and 32px apart, with no pair split across columns. A day with no data reads "no data" in `--text-600`.
+3. A spec beside each component it changes.
+
+**Done when**
+
+- On a desktop, the Games table spans its panel, and the daily share shows 30 days in four columns.
+- At 360px the daily share is one column and the Games table fits its panel. At 390px the daily share is two columns.
+
+**Blocked by** nothing. **Blocks** nothing.
 
 ---
 
