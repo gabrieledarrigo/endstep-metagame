@@ -10,6 +10,7 @@ import {
   vi,
 } from "vitest";
 import decks from "../../../test/fixtures/decks.json";
+import search from "../../../test/fixtures/search.json";
 import series from "../../../test/fixtures/share-series.json";
 import { renderWithQueries } from "../../../test/renderWithQueries";
 import { sizeCharts } from "../../../test/sizeCharts";
@@ -17,9 +18,61 @@ import { OverviewPage } from "./OverviewPage";
 
 type Answer = (window: string | null) => Response | Promise<Response>;
 
-function stubApi(answerDecks: Answer): Mock<typeof fetch> {
+type SearchAnswer = (url: URL) => Response | Promise<Response>;
+
+type SearchDeck = (typeof search.decks.items)[number];
+
+function matches(
+  url: URL,
+  items: SearchDeck[] = search.decks.items,
+  total = items.length,
+): Response {
+  return Response.json({
+    ...search,
+    provenance: {
+      ...search.provenance,
+      window: {
+        ...search.provenance.window,
+        preset: url.searchParams.get("window"),
+      },
+    },
+    query: { ...search.query, q: url.searchParams.get("q") },
+    decks: {
+      ...search.decks,
+      items,
+      total,
+      page: Number(url.searchParams.get("page")),
+    },
+  });
+}
+
+function numberedDecks(from: number, to: number): SearchDeck[] {
+  const [model] = search.decks.items;
+
+  return Array.from({ length: to - from + 1 }, (ignored, index) => {
+    const number = from + index;
+
+    return {
+      ...model,
+      id: `deck-${number}`,
+      slug: `deck-${number}-0000000${number % 10}`,
+      name: `Deck ${number}`,
+      players: number,
+      share: { ...model.share, rate: (100 - number) / 1000 },
+    };
+  });
+}
+
+function stubApi(
+  answerDecks: Answer,
+  answerSearch: SearchAnswer = (url) => matches(url),
+): Mock<typeof fetch> {
   const fetchMock = vi.fn<typeof fetch>(async (input) => {
     const url = new URL(String(input), "http://localhost");
+
+    if (url.pathname.endsWith("/decks") && url.searchParams.has("q")) {
+      return answerSearch(url);
+    }
 
     if (url.pathname.endsWith("/decks")) {
       return answerDecks(url.searchParams.get("window"));
@@ -80,6 +133,38 @@ function pressedWindow(): string | null {
     "button",
     { pressed: true },
   ).textContent;
+}
+
+function searchRequests(fetchMock: Mock<typeof fetch>): URL[] {
+  return fetchMock.mock.calls
+    .map(([input]) => new URL(String(input), "http://localhost"))
+    .filter((url) => url.searchParams.has("q"));
+}
+
+function field(): HTMLInputElement {
+  return screen.getByRole<HTMLInputElement>("searchbox", {
+    name: "Search decks or cards",
+  });
+}
+
+function type(text: string): void {
+  fireEvent.change(field(), { target: { value: text } });
+}
+
+function topDeck(name: string): HTMLElement {
+  return within(
+    screen.getByRole("region", { name: "Decks by meta share" }),
+  ).getByRole("link", { name });
+}
+
+function pause(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function statusReads(text: string): Promise<void> {
+  await waitFor(() => {
+    expect(screen.getByRole("status").textContent).toBe(text);
+  });
 }
 
 beforeEach(() => {
@@ -458,5 +543,330 @@ describe("OverviewPage", () => {
     expect(screen.getByRole("status").textContent).toBe(
       "Loading the 7d window.",
     );
+  });
+});
+
+describe("OverviewPage search", () => {
+  it("lists the decks that match a term in the cards, outside the top 24, each linked to its deck page", async () => {
+    const fetchMock = stubApi(() => Response.json(decks));
+    renderAt("/?window=30d");
+    await screen.findByRole("region", { name: "Decks by meta share" });
+
+    type("altar");
+
+    await statusReads("5 decks match \u201caltar\u201d.");
+    expect(
+      screen.getByText("Address: ?window=30d&q=altar by REPLACE"),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole("link", { name: "Altar Tron" }).getAttribute("href"),
+    ).toBe("/decks/altar-tron-0b4d9ce7?window=30d");
+    expect(
+      within(
+        screen.getByRole("region", { name: "Decks by meta share" }),
+      ).queryByRole("link", { name: "Affinity" }),
+    ).toBeNull();
+    expect(
+      screen.getByText(/Search covers deck names and every card/),
+    ).toBeTruthy();
+
+    const knight = screen.getByRole("link", {
+      name: "Yore-Tiller Breathless Knight",
+    });
+    expect(within(knight).getByText("<0.01%")).toBeTruthy();
+    expect(within(knight).getByText("Too few to call, 6 of 20")).toBeTruthy();
+
+    const [request] = searchRequests(fetchMock);
+    expect(request.search).toBe(
+      "?window=30d&population=rated&q=altar&sort=share&dir=desc&page=1&pageSize=24",
+    );
+  });
+
+  it("lists the same results in the table, named by the term and ranked by share among them", async () => {
+    stubApi(() => Response.json(decks));
+    renderAt("/?window=30d&view=table&q=altar");
+
+    const table = await screen.findByRole("table", {
+      name: "Decks that match \u201caltar\u201d, sortable by column",
+    });
+    const row = within(table).getByRole("row", { name: /Altar Tron/ });
+
+    expect(within(row).getByRole("cell", { name: "3" })).toBeTruthy();
+    expect(
+      within(row)
+        .getByRole("link", { name: "Altar Tron" })
+        .getAttribute("href"),
+    ).toBe("/decks/altar-tron-0b4d9ce7?window=30d");
+    expect(
+      within(within(table).getByRole("row", { name: /Yore-Tiller/ })).getByText(
+        "<0.1%",
+      ),
+    ).toBeTruthy();
+  });
+
+  it("restores a search from the address on load, with the term in the field", async () => {
+    const fetchMock = stubApi(() => Response.json(decks));
+    renderAt("/?window=30d&q=altar");
+
+    expect(field().value).toBe("altar");
+    expect(
+      await screen.findByRole("link", { name: "Altar Tron" }),
+    ).toBeTruthy();
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+  });
+
+  it("sends and writes the term trimmed, with its spaces collapsed and lowercased", async () => {
+    const fetchMock = stubApi(() => Response.json(decks));
+    renderAt("/?window=30d");
+
+    type("  ALTAR   Tron ");
+
+    expect(
+      await screen.findByText("Address: ?window=30d&q=altar+tron by REPLACE"),
+    ).toBeTruthy();
+    expect(field().value).toBe("  ALTAR   Tron ");
+    await waitFor(() => {
+      expect(searchRequests(fetchMock)[0]?.searchParams.get("q")).toBe(
+        "altar tron",
+      );
+    });
+  });
+
+  it("searches nothing for one character, and keeps the top 24", async () => {
+    const fetchMock = stubApi(() => Response.json(decks));
+    renderAt("/?window=30d");
+    await screen.findByRole("region", { name: "Decks by meta share" });
+
+    type("a");
+    await pause(400);
+
+    expect(searchRequests(fetchMock)).toHaveLength(0);
+    expect(screen.getByText("Address: ?window=30d by POP")).toBeTruthy();
+    expect(topDeck("Affinity")).toBeTruthy();
+  });
+
+  it("clears the search with the field's button, removes q and shows the top 24", async () => {
+    stubApi(() => Response.json(decks));
+    renderAt("/?window=30d&q=altar");
+    await screen.findByRole("link", { name: "Altar Tron" });
+
+    fireEvent.click(screen.getByRole("button", { name: "Clear the search" }));
+
+    expect(screen.getByText("Address: ?window=30d by REPLACE")).toBeTruthy();
+    expect(field().value).toBe("");
+    expect(document.activeElement).toBe(field());
+    await waitFor(() => {
+      expect(topDeck("Affinity")).toBeTruthy();
+    });
+    expect(screen.queryByRole("link", { name: "Altar Tron" })).toBeNull();
+    expect(screen.getByRole("status").textContent).toBe("");
+  });
+
+  it("shows the empty panel for no match, whose button clears the search and returns focus to the field", async () => {
+    stubApi(
+      () => Response.json(decks),
+      (url) => matches(url, []),
+    );
+    renderAt("/?window=30d&q=xyzzy");
+
+    const heading = await screen.findByRole("heading", {
+      name: "No deck or card matches \u201cxyzzy\u201d",
+    });
+    await statusReads("No deck or card matches \u201cxyzzy\u201d.");
+    expect(screen.queryByText(/decks? match/)).toBeNull();
+
+    fireEvent.click(
+      within(heading.parentElement as HTMLElement).getByRole("button", {
+        name: "Clear the search",
+      }),
+    );
+
+    expect(screen.getByText("Address: ?window=30d by REPLACE")).toBeTruthy();
+    expect(document.activeElement).toBe(field());
+    expect(field().value).toBe("");
+    await waitFor(() => {
+      expect(topDeck("Affinity")).toBeTruthy();
+    });
+  });
+
+  it("loads the next page of results, and moves focus to the first new deck", async () => {
+    const fetchMock = stubApi(
+      () => Response.json(decks),
+      (url) =>
+        url.searchParams.get("page") === "1"
+          ? matches(url, numberedDecks(1, 24), 30)
+          : matches(url, numberedDecks(25, 30), 30),
+    );
+    renderAt("/?window=30d&q=deck");
+    await statusReads("30 decks match \u201cdeck\u201d.");
+
+    fireEvent.click(screen.getByRole("button", { name: "Show 6 more" }));
+
+    await waitFor(() => {
+      expect(document.activeElement).toBe(
+        screen.getByRole("link", { name: "Deck 25" }),
+      );
+    });
+    expect(screen.getByRole("link", { name: "Deck 30" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /more/ })).toBeNull();
+    expect(
+      searchRequests(fetchMock).map((url) => url.searchParams.get("page")),
+    ).toEqual(["1", "2"]);
+  });
+
+  it("sorts the loaded results in the table, and sorts again once the next page is added", async () => {
+    stubApi(
+      () => Response.json(decks),
+      (url) =>
+        url.searchParams.get("page") === "1"
+          ? matches(url, numberedDecks(1, 24), 30)
+          : matches(url, numberedDecks(25, 30), 30),
+    );
+    renderAt("/?window=30d&view=table&sort=players&dir=desc&q=deck");
+    await statusReads("30 decks match \u201cdeck\u201d.");
+
+    expect(deckOrder()[0]).toBe("Deck 24");
+
+    fireEvent.click(screen.getByRole("button", { name: "Show 6 more" }));
+
+    await waitFor(() => {
+      expect(deckOrder()).toHaveLength(30);
+    });
+    expect(deckOrder()[0]).toBe("Deck 30");
+    expect(
+      within(screen.getByRole("row", { name: /Deck 30/ })).getAllByRole(
+        "cell",
+      )[0].textContent,
+    ).toBe("30");
+  });
+
+  it("lists a deck once when the next page repeats it", async () => {
+    stubApi(
+      () => Response.json(decks),
+      (url) =>
+        url.searchParams.get("page") === "1"
+          ? matches(url, numberedDecks(1, 24), 30)
+          : matches(url, numberedDecks(24, 30), 30),
+    );
+    renderAt("/?window=30d&q=deck");
+    await statusReads("30 decks match \u201cdeck\u201d.");
+
+    fireEvent.click(screen.getByRole("button", { name: "Show 6 more" }));
+
+    expect(await screen.findByRole("link", { name: "Deck 30" })).toBeTruthy();
+    expect(screen.getAllByRole("link", { name: "Deck 24" })).toHaveLength(1);
+  });
+
+  it("keeps the summary and the charts on the top 24", async () => {
+    stubApi(() => Response.json(decks));
+    renderAt("/?window=30d&q=altar");
+    await screen.findByRole("link", { name: "Altar Tron" });
+
+    expect(screen.getByText("236,728")).toBeTruthy();
+    expect(screen.queryByText("313,606")).toBeNull();
+    expect(screen.getByRole("button", { name: "Affinity" })).toBeTruthy();
+  });
+
+  it("searches the new window with the same term, and keeps the results dimmed and busy until it loads", async () => {
+    let answer: (response: Response) => void = () => {};
+    const fetchMock = stubApi(
+      () => Response.json(decks),
+      (url) =>
+        url.searchParams.get("window") === "7d"
+          ? new Promise<Response>((resolve) => (answer = resolve))
+          : matches(url),
+    );
+    renderAt("/?window=30d&q=altar");
+    await statusReads("5 decks match \u201caltar\u201d.");
+
+    fireEvent.click(screen.getByRole("button", { name: "7d" }));
+
+    await statusReads("Loading the 7d window.");
+    expect(
+      screen.getByText("Address: ?window=7d&q=altar by PUSH"),
+    ).toBeTruthy();
+    expect(
+      screen
+        .getByRole("group", { name: "Time window" })
+        .getAttribute("data-busy"),
+    ).toBe("true");
+    expect(
+      screen.getByRole("link", { name: "Altar Tron" }).closest("[aria-busy]"),
+    ).toBeTruthy();
+    expect(searchRequests(fetchMock).at(-1)?.search).toContain(
+      "window=7d&population=rated&q=altar",
+    );
+
+    answer(
+      matches(
+        new URL("http://localhost/?window=7d&q=altar&page=1"),
+        search.decks.items.slice(2),
+      ),
+    );
+
+    await statusReads("3 decks match \u201caltar\u201d.");
+    expect(
+      screen.getByRole("link", { name: "Altar Tron" }).closest("[aria-busy]"),
+    ).toBeNull();
+    expect(screen.queryByRole("link", { name: "Gardens" })).toBeNull();
+  });
+
+  it("keeps the previous term's results dimmed while a new term loads, and leaves the window alone", async () => {
+    stubApi(
+      () => Response.json(decks),
+      (url) =>
+        url.searchParams.get("q") === "gardens"
+          ? new Promise<Response>(() => {})
+          : matches(url),
+    );
+    renderAt("/?window=30d&q=altar");
+    await statusReads("5 decks match \u201caltar\u201d.");
+
+    type("gardens");
+
+    await statusReads("Searching for \u201cgardens\u201d.");
+    expect(
+      screen.getByRole("link", { name: "Altar Tron" }).closest("[aria-busy]"),
+    ).toBeTruthy();
+    expect(field().closest("[aria-busy]")).toBeNull();
+    expect(screen.getByText("236,728").closest("[aria-busy]")).toBeNull();
+    expect(
+      screen
+        .getByRole("group", { name: "Time window" })
+        .getAttribute("data-busy"),
+    ).toBeNull();
+    expect(screen.queryByRole("button", { name: /more/ })).toBeNull();
+  });
+
+  it("keeps the top 24 on screen, dimmed and busy, while the first search loads", async () => {
+    stubApi(
+      () => Response.json(decks),
+      () => new Promise<Response>(() => {}),
+    );
+    renderAt("/?window=30d");
+    await screen.findByRole("region", { name: "Decks by meta share" });
+
+    type("altar");
+
+    await statusReads("Searching for \u201caltar\u201d.");
+    expect(topDeck("Affinity").closest("[aria-busy]")).toBeTruthy();
+    expect(screen.queryByText(/decks? match/)).toBeNull();
+  });
+
+  it("shows an error with a retry when the search fails, and keeps the field", async () => {
+    stubApi(
+      () => Response.json(decks),
+      () => Response.json({ error: "Not found" }, { status: 404 }),
+    );
+    renderAt("/?window=30d&q=altar");
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "The search could not be loaded",
+      }),
+    ).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Retry" })).toBeTruthy();
+    expect(field().value).toBe("altar");
+    expect(screen.getByRole("status").textContent).toBe("");
   });
 });
