@@ -1,9 +1,25 @@
-import { fireEvent, screen, waitFor } from "@testing-library/react";
-import { MemoryRouter } from "react-router";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  Link,
+  MemoryRouter,
+  Route,
+  Routes,
+  useLocation,
+  useNavigationType,
+} from "react-router";
 import { type Mock, afterEach, describe, expect, it, vi } from "vitest";
+import detail from "../../../test/fixtures/deck.json";
 import matrix from "../../../test/fixtures/matchups.json";
 import { renderWithQueries } from "../../../test/renderWithQueries";
+import { createQueryClient } from "../../api/queryClient";
+import { Layout } from "../../Layout";
 import { MatchupsPage } from "./MatchupsPage";
+
+const STOMPY = {
+  ...detail,
+  deck: { ...detail.deck, slug: "stompy-12345678", name: "Mono Green Stompy" },
+};
 
 function stubApi(
   ...responses: (() => Response | Promise<Response>)[]
@@ -20,16 +36,82 @@ function stubApi(
   return fetchMock;
 }
 
-function renderAt(path: string): void {
+function stubRoutes(
+  detailResponse: () => Response | Promise<Response> = () =>
+    Response.json(STOMPY),
+  ...matrices: (() => Response | Promise<Response>)[]
+): Mock<typeof fetch> {
+  let calls = 0;
+  const fetchMock = vi.fn<typeof fetch>(async (input) => {
+    if (String(input).startsWith("/api/metagame/")) {
+      return detailResponse();
+    }
+
+    const answer = matrices[Math.min(calls, matrices.length - 1)];
+    calls += 1;
+
+    return answer ? answer() : Response.json(matrix);
+  });
+  vi.stubGlobal("fetch", fetchMock);
+
+  return fetchMock;
+}
+
+function Address() {
+  const { search } = useLocation();
+  const navigationType = useNavigationType();
+
+  return (
+    <p>
+      Address: {search}, {navigationType}
+    </p>
+  );
+}
+
+function renderAt(path: string | string[]): void {
+  const entries = Array.isArray(path) ? path : [path];
+
   renderWithQueries(
-    <MemoryRouter initialEntries={[path]}>
+    <MemoryRouter initialEntries={entries} initialIndex={entries.length - 1}>
       <MatchupsPage />
+      <Address />
     </MemoryRouter>,
   );
 }
 
+function stubWidth(wide: boolean): void {
+  vi.stubGlobal(
+    "matchMedia",
+    vi.fn((query: string) => ({ matches: wide, media: query })),
+  );
+}
+
+function stubScroll(): Mock<(options?: ScrollIntoViewOptions) => void> {
+  const scrollIntoView = vi.fn<(options?: ScrollIntoViewOptions) => void>();
+  Element.prototype.scrollIntoView = scrollIntoView;
+
+  return scrollIntoView;
+}
+
+function picker(): HTMLSelectElement {
+  return screen.getByRole<HTMLSelectElement>("combobox", { name: "Deck" });
+}
+
+function chosen(): string | undefined {
+  return Array.from(picker().options).find((option) => option.selected)
+    ?.textContent;
+}
+
+function spotlit(): string[] {
+  return Array.from(
+    screen.getByRole("grid").querySelectorAll(".matchup__row--spotlit"),
+  ).map((element) => element.textContent ?? "");
+}
+
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
+  Reflect.deleteProperty(Element.prototype, "scrollIntoView");
 });
 
 describe("MatchupsPage", () => {
@@ -164,5 +246,274 @@ describe("MatchupsPage", () => {
 
     expect(await screen.findByRole("grid")).toBeTruthy();
     expect(String(fetchMock.mock.calls[1][0])).toBe("/api/matchups?window=7d");
+  });
+
+  it("opens with the deck in the address in the spotlight, and reveals its row from 1,100px", async () => {
+    stubRoutes();
+    stubWidth(true);
+    const scrollIntoView = stubScroll();
+    renderAt("/matchups?window=30d&deck=monster-tron-1bc68613");
+
+    await screen.findByRole("grid");
+
+    expect(spotlit()).toEqual(["Monster Tron"]);
+    expect(chosen()).toBe("Monster Tron");
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
+    expect(scrollIntoView.mock.contexts[0]).toBe(
+      screen.getByRole("rowheader", { name: "Monster Tron" }),
+    );
+    expect(document.activeElement).toBe(document.body);
+  });
+
+  it("reveals the deck's column below 1,100px", async () => {
+    stubRoutes();
+    stubWidth(false);
+    const scrollIntoView = stubScroll();
+    renderAt("/matchups?window=30d&deck=monster-tron-1bc68613");
+
+    await screen.findByRole("grid");
+
+    expect(scrollIntoView.mock.contexts[0]).toBe(
+      screen.getByRole("columnheader", { name: "Monster Tron" }),
+    );
+  });
+
+  it("finds a deck under an old name by its suffix, and leaves the address as it is", async () => {
+    const fetchMock = stubRoutes();
+    stubWidth(true);
+    stubScroll();
+    renderAt("/matchups?window=30d&deck=renamed-1bc68613");
+
+    await screen.findByRole("grid");
+
+    expect(spotlit()).toEqual(["Monster Tron"]);
+    expect(chosen()).toBe("Monster Tron");
+    expect(
+      screen.getByText("Address: ?window=30d&deck=renamed-1bc68613, POP"),
+    ).toBeTruthy();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not reveal the deck on back, forward or reload, which keep the browser's scroll position", async () => {
+    stubRoutes();
+    stubWidth(true);
+    const scrollIntoView = stubScroll();
+    renderAt(["/", "/matchups?window=30d&deck=monster-tron-1bc68613"]);
+
+    await screen.findByRole("grid");
+
+    expect(spotlit()).toEqual(["Monster Tron"]);
+    expect(scrollIntoView).not.toHaveBeenCalled();
+  });
+
+  it("writes a chosen deck in place of the history entry and reveals it, and All decks removes it", async () => {
+    stubRoutes();
+    stubWidth(true);
+    const scrollIntoView = stubScroll();
+    renderAt("/matchups?window=30d");
+
+    await screen.findByRole("grid");
+    expect(chosen()).toBe("All decks");
+    expect(spotlit()).toEqual([]);
+
+    fireEvent.change(picker(), { target: { value: "naya-gates-af060ab8" } });
+
+    expect(
+      screen.getByText(
+        "Address: ?window=30d&deck=naya-gates-af060ab8, REPLACE",
+      ),
+    ).toBeTruthy();
+    expect(spotlit()).toEqual(["Naya Gates"]);
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
+    expect(scrollIntoView.mock.contexts[0]).toBe(
+      screen.getByRole("rowheader", { name: "Naya Gates" }),
+    );
+
+    fireEvent.change(picker(), { target: { value: "monster-tron-1bc68613" } });
+
+    expect(spotlit()).toEqual(["Monster Tron"]);
+    expect(scrollIntoView).toHaveBeenCalledTimes(2);
+    expect(scrollIntoView.mock.contexts[1]).toBe(
+      screen.getByRole("rowheader", { name: "Monster Tron" }),
+    );
+
+    fireEvent.change(picker(), { target: { value: "" } });
+
+    expect(screen.getByText("Address: ?window=30d, REPLACE")).toBeTruthy();
+    expect(spotlit()).toEqual([]);
+    expect(scrollIntoView).toHaveBeenCalledTimes(2);
+  });
+
+  it("keeps the deck through a window change, without revealing it again", async () => {
+    stubRoutes(undefined, () => Response.json(matrix));
+    stubWidth(true);
+    const scrollIntoView = stubScroll();
+    renderAt("/matchups?window=30d&deck=monster-tron-1bc68613");
+    await screen.findByText("11 Sept to 10 Oct 2026");
+
+    fireEvent.click(screen.getByRole("button", { name: "7d" }));
+
+    expect(await screen.findByRole("grid", { name: /7d window/ })).toBeTruthy();
+    expect(
+      screen.getByText("Address: ?window=7d&deck=monster-tron-1bc68613, PUSH"),
+    ).toBeTruthy();
+    expect(spotlit()).toEqual(["Monster Tron"]);
+    expect(scrollIntoView).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not reveal a deck that a window change brings into the top decks", async () => {
+    const [first, second, third, fourth] = matrix.decks;
+    const withStompy = {
+      ...matrix,
+      decks: [
+        first,
+        second,
+        third,
+        { ...fourth, slug: "stompy-12345678", name: "Mono Green Stompy" },
+      ],
+    };
+    stubRoutes(
+      undefined,
+      () => Response.json(matrix),
+      () => Response.json(withStompy),
+    );
+    stubWidth(true);
+    const scrollIntoView = stubScroll();
+    renderAt("/matchups?window=30d&deck=stompy-12345678");
+    await screen.findByText(
+      "Mono Green Stompy isn't in the top 4 for the selected time window.",
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "7d" }));
+
+    expect(await screen.findByRole("grid", { name: /7d window/ })).toBeTruthy();
+    expect(spotlit()).toEqual(["Mono Green Stompy"]);
+    expect(screen.queryByText(/isn't in the top/)).toBeNull();
+    expect(scrollIntoView).not.toHaveBeenCalled();
+  });
+
+  it("counts an empty deck as none", async () => {
+    stubRoutes();
+    renderAt("/matchups?window=30d&deck=");
+
+    await screen.findByRole("grid");
+
+    expect(chosen()).toBe("All decks");
+    expect(spotlit()).toEqual([]);
+  });
+
+  it("names a deck outside the top decks once its detail arrives, with no spotlight, and keeps it in the address", async () => {
+    let answer: (response: Response) => void = () => {};
+    const fetchMock = stubRoutes(
+      () => new Promise<Response>((resolve) => (answer = resolve)),
+    );
+    renderAt("/matchups?window=30d&deck=stompy-12345678");
+
+    expect(
+      await screen.findByText(
+        "This deck isn't in the top 4 for the selected time window.",
+      ),
+    ).toBeTruthy();
+    expect(chosen()).toBe("This deck (not in the top 4)");
+    expect(spotlit()).toEqual([]);
+
+    answer(Response.json(STOMPY));
+
+    expect(
+      await screen.findByText(
+        "Mono Green Stompy isn't in the top 4 for the selected time window.",
+      ),
+    ).toBeTruthy();
+    expect(chosen()).toBe("Mono Green Stompy (not in the top 4)");
+    expect(
+      screen.getByText("Address: ?window=30d&deck=stompy-12345678, POP"),
+    ).toBeTruthy();
+    expect(String(fetchMock.mock.calls[1][0])).toBe(
+      "/api/metagame/Pauper/decks/stompy-12345678?window=30d&population=rated",
+    );
+  });
+
+  it("names the deck This deck when its detail fails", async () => {
+    stubRoutes(() => Response.json({ error: "Unknown deck" }, { status: 404 }));
+    renderAt("/matchups?window=30d&deck=stompy-12345678");
+
+    await screen.findByRole("grid");
+    await waitFor(() => {
+      expect(fetch).toHaveBeenCalledTimes(2);
+    });
+
+    expect(
+      screen.getByText(
+        "This deck isn't in the top 4 for the selected time window.",
+      ),
+    ).toBeTruthy();
+  });
+
+  it("lets any choice replace a deck outside the top decks, All decks included", async () => {
+    stubRoutes();
+    renderAt("/matchups?window=30d&deck=stompy-12345678");
+    await screen.findByText(
+      "Mono Green Stompy isn't in the top 4 for the selected time window.",
+    );
+
+    fireEvent.change(picker(), { target: { value: "" } });
+
+    expect(screen.getByText("Address: ?window=30d, REPLACE")).toBeTruthy();
+    expect(chosen()).toBe("All decks");
+    expect(screen.queryByText(/isn't in the top/)).toBeNull();
+    expect(screen.queryByRole("option", { name: /not in the top/ })).toBeNull();
+  });
+
+  it("requests no deck detail for a deck in the top decks", async () => {
+    const fetchMock = stubRoutes();
+    stubWidth(true);
+    stubScroll();
+    renderAt("/matchups?window=30d&deck=affinity-e93f5f74");
+
+    await screen.findByRole("grid");
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText(/isn't in the top/)).toBeNull();
+  });
+
+  it("reveals the deck after a link from another page has scrolled that page to the top", async () => {
+    const order: string[] = [];
+    vi.spyOn(window, "scrollTo").mockImplementation(() => {
+      order.push("top");
+    });
+    stubWidth(true);
+    stubScroll().mockImplementation(() => {
+      order.push("deck");
+    });
+    const client = createQueryClient();
+    client.setQueryData(["matchups", "30d"], matrix);
+
+    render(
+      <QueryClientProvider client={client}>
+        <MemoryRouter initialEntries={["/decks/affinity-e93f5f74?window=30d"]}>
+          <Routes>
+            <Route element={<Layout />}>
+              <Route
+                path="decks/:slug"
+                element={
+                  <>
+                    <h1 tabIndex={-1}>Affinity</h1>
+                    <Link to="/matchups?window=30d&deck=monster-tron-1bc68613">
+                      See Monster Tron
+                    </Link>
+                  </>
+                }
+              />
+              <Route path="matchups" element={<MatchupsPage />} />
+            </Route>
+          </Routes>
+        </MemoryRouter>
+      </QueryClientProvider>,
+    );
+
+    fireEvent.click(screen.getByRole("link", { name: "See Monster Tron" }));
+
+    expect(screen.getByRole("grid")).toBeTruthy();
+    expect(order).toEqual(["top", "deck"]);
   });
 });
