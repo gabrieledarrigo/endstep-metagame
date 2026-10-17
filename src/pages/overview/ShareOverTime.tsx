@@ -1,6 +1,7 @@
 import {
   CartesianGrid,
   Customized,
+  DefaultZIndexes,
   Line,
   LineChart,
   Tooltip,
@@ -36,6 +37,7 @@ type SeriesEnd = {
   day: string;
   share: number;
   colour: string | undefined;
+  faded: boolean;
 };
 
 function shareRows(series: ShareSeries[]): ShareRow[] {
@@ -57,6 +59,7 @@ function shareRows(series: ShareSeries[]): ShareRow[] {
 const END_LABEL_OFFSET = 10;
 const END_LABEL_GAP = 16;
 const END_LABEL_CHAR_WIDTH = 8;
+const LINE_FADE = "var(--line-fade)";
 
 function endLabelGutter(series: ShareSeries[]): number {
   const longest = series.reduce(
@@ -67,7 +70,9 @@ function endLabelGutter(series: ShareSeries[]): number {
   return END_LABEL_OFFSET + longest * END_LABEL_CHAR_WIDTH;
 }
 
-function seriesEnd(item: ShareSeries): Omit<SeriesEnd, "colour"> | null {
+function seriesEnd(
+  item: ShareSeries,
+): Omit<SeriesEnd, "colour" | "faded"> | null {
   const last = item.points.findLast((point) => point.rate !== null);
   if (!last || last.rate === null) {
     return null;
@@ -127,7 +132,7 @@ function SeriesEnds({ ends }: { ends: SeriesEnd[] }) {
   return (
     <g aria-hidden="true">
       {placed.map((end) => (
-        <g key={end.key}>
+        <g key={end.key} opacity={end.faded ? LINE_FADE : undefined}>
           <circle
             cx={end.x}
             cy={end.y}
@@ -204,9 +209,13 @@ export function ShareOverTime({ series }: { series: ShareSeries[] }) {
   const colours = seriesColours(series.map((item) => item.deck.id));
   const rows = shareRows(series);
   const highlighted = series.find((item) => item.deck.slug === highlightedSlug);
+  const faded = (item: ShareSeries): boolean =>
+    highlighted !== undefined && item !== highlighted;
   const ends = series.flatMap((item) => {
     const end = seriesEnd(item);
-    return end ? [{ ...end, colour: colours.get(end.key) }] : [];
+    return end
+      ? [{ ...end, colour: colours.get(end.key), faded: faded(item) }]
+      : [];
   });
 
   const toggle = (slug: string): void =>
@@ -265,9 +274,20 @@ export function ShareOverTime({ series }: { series: ShareSeries[] }) {
                   dataKey={item.deck.id}
                   name={item.deck.name}
                   stroke={colours.get(item.deck.id)}
-                  strokeWidth={2}
+                  strokeWidth={item === highlighted ? 3 : 2}
+                  strokeOpacity={faded(item) ? LINE_FADE : undefined}
+                  zIndex={
+                    item === highlighted
+                      ? DefaultZIndexes.line + 1
+                      : DefaultZIndexes.line
+                  }
                   dot={false}
-                  activeDot={{ r: 3.5, strokeWidth: 2, stroke: CHART_SURFACE }}
+                  activeDot={{
+                    r: 3.5,
+                    strokeWidth: 2,
+                    stroke: CHART_SURFACE,
+                    opacity: faded(item) ? LINE_FADE : undefined,
+                  }}
                   isAnimationActive={false}
                 />
               ))}
