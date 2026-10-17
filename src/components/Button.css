@@ -22,7 +22,7 @@
   }
 
   .button--primary:hover {
-    background: #184f95;
+    background: var(--primary-hover);
   }
 
   .button--secondary {
@@ -32,7 +32,7 @@
   }
 
   .button--secondary:hover {
-    background: #f1f0ec;
+    background: var(--hover);
   }
 
   .button--ghost {

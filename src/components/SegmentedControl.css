@@ -31,7 +31,7 @@
   }
 
   .segmented__option:hover {
-    background: #f1f0ec;
+    background: var(--hover);
     color: var(--text-900);
   }
 
@@ -41,7 +41,7 @@
   }
 
   .segmented__option[aria-pressed="true"]:hover {
-    background: #184f95;
+    background: var(--primary-hover);
   }
 
   .segmented[data-busy] {
