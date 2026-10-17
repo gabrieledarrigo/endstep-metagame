@@ -2,16 +2,19 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
 import { describe, expect, it, vi } from "vitest";
 import detail from "../../../test/fixtures/deck.json";
-import type { DeckDetail, TimeWindow } from "../../api/types";
+import type { Deck, DeckDetail, TimeWindow } from "../../api/types";
 import { DeckHero } from "./DeckHero";
 
 const DECK = (detail as DeckDetail).deck;
 
-function renderHero(onSelect: (next: TimeWindow) => void = () => {}): void {
+function renderHero(
+  onSelect: (next: TimeWindow) => void = () => {},
+  deck: Deck = DECK,
+): void {
   render(
     <MemoryRouter>
       <DeckHero
-        deck={DECK}
+        deck={deck}
         dates="11 Sept to 10 Oct 2026"
         timeWindow="30d"
         onSelect={onSelect}
@@ -38,6 +41,18 @@ describe("DeckHero", () => {
     expect(
       screen.getByText("Reckoner's Bargain · Myr Enforcer · Utrom Monitor"),
     ).toBeTruthy();
+  });
+
+  it("loads the art from Scryfall when the metagame function added its address", () => {
+    const imageUrl =
+      "https://cards.scryfall.io/art_crop/front/6/3/6338942d-d650-4571-8ec6-4d658792c53e.jpg?1783923877";
+    renderHero(undefined, { ...DECK, art: { ...DECK.art, imageUrl } });
+
+    expect(
+      screen
+        .getByRole("img", { name: "Reckoner's Bargain" })
+        .getAttribute("src"),
+    ).toBe(imageUrl);
   });
 
   it("has the window selector and the window's dates", () => {

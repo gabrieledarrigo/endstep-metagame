@@ -36,6 +36,23 @@ describe("DeckCard", () => {
     ).toBeTruthy();
   });
 
+  it("loads the art from Scryfall when the metagame function added its address", () => {
+    const imageUrl =
+      "https://cards.scryfall.io/art_crop/front/6/3/6338942d-d650-4571-8ec6-4d658792c53e.jpg?1783923877";
+
+    render(
+      <MemoryRouter>
+        <DeckCard deck={{ ...AFFINITY, art: { ...AFFINITY.art, imageUrl } }} />
+      </MemoryRouter>,
+    );
+
+    expect(
+      screen
+        .getByRole("img", { name: "Reckoner's Bargain" })
+        .getAttribute("src"),
+    ).toBe(imageUrl);
+  });
+
   it("shows the art, the name, the colours, the stats and the key cards", () => {
     render(
       <MemoryRouter>
