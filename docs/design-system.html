@@ -19,7 +19,7 @@
   --hover:#f1f0ec; --row-hover:#f5f4f0; --shadow:rgba(11,11,11,.09); --wash-text:#173f73;
   --up:#006300; --down:#d03b3b;
   --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100;
-  --s5:#e87ba4; --s6:#008300; --s7:#4a3aa7; --s8:#e34948; --mark-opacity:0.55;
+  --s5:#e87ba4; --s6:#008300; --s7:#4a3aa7; --s8:#e34948; --mark-opacity:0.55; --line-fade:0.25;
   --win:#9ec5f4; --loss:#f7aba4; --mirror:#efeee9;
   --seq-500:#256abf; --seq-600:#184f95;
   --hatch:repeating-linear-gradient(135deg, var(--baseline) 0 1px, transparent 1px 5px);
@@ -35,7 +35,7 @@
   --hover:#424244; --row-hover:#404143; --shadow:rgba(0,0,0,.32); --wash-text:#dbe8fb;
   --up:#7ac07c; --down:#f8968e;
   --s1:#4f8ddd; --s2:#da6d44; --s3:#38a276; --s4:#bd8003;
-  --s5:#ca7091; --s6:#499e44; --s7:#8581e0; --s8:#e3635e; --mark-opacity:0.63;
+  --s5:#ca7091; --s6:#499e44; --s7:#8581e0; --s8:#e3635e; --mark-opacity:0.63; --line-fade:0.35;
   --win:#385c8a; --loss:#844645; --mirror:#444547;
     --seq-500:#689bdb; --seq-600:#7eb1f3;
     --hatch:repeating-linear-gradient(135deg, var(--baseline) 0 1px, transparent 1px 5px);
@@ -50,7 +50,7 @@
   --hover:#424244; --row-hover:#404143; --shadow:rgba(0,0,0,.32); --wash-text:#dbe8fb;
   --up:#7ac07c; --down:#f8968e;
   --s1:#4f8ddd; --s2:#da6d44; --s3:#38a276; --s4:#bd8003;
-  --s5:#ca7091; --s6:#499e44; --s7:#8581e0; --s8:#e3635e; --mark-opacity:0.63;
+  --s5:#ca7091; --s6:#499e44; --s7:#8581e0; --s8:#e3635e; --mark-opacity:0.63; --line-fade:0.35;
   --win:#385c8a; --loss:#844645; --mirror:#444547;
   --seq-500:#689bdb; --seq-600:#7eb1f3;
   --hatch:repeating-linear-gradient(135deg, var(--baseline) 0 1px, transparent 1px 5px);
@@ -481,7 +481,7 @@ a.button { display:inline-block; text-decoration:none; }
 .share-highlight__line { fill:none; stroke-width:2; stroke-linejoin:round; stroke-linecap:round; }
 .share-highlight__end { font:600 11px var(--sans); fill:var(--text-900); }
 .share-highlight--on .share-highlight__series:not(.share-highlight__series--on),
-.share-highlight--on .share-highlight__end:not(.share-highlight__end--on) { opacity:.25; }
+.share-highlight--on .share-highlight__end:not(.share-highlight__end--on) { opacity:var(--line-fade); }
 .share-highlight__series--on .share-highlight__line { stroke-width:3; }
 .fig-tick { font:400 11px var(--sans); fill:var(--text-400); }
 .hover-fig { display:block; width:100%; max-width:640px; height:auto; }
@@ -493,7 +493,7 @@ a.button { display:inline-block; text-decoration:none; }
 .bar-hover:hover .bar-hover__name { fill:var(--text-900); text-decoration:underline; }
 .bar-hover:hover .bar-hover__bar { fill:var(--seq-600); }
 .scatter-hover { cursor:pointer; }
-.scatter-hover__mark { fill:var(--s1); fill-opacity:.55; stroke:var(--surface); stroke-width:2; }
+.scatter-hover__mark { fill:var(--s1); fill-opacity:var(--mark-opacity); stroke:var(--surface); stroke-width:2; }
 .scatter-hover__label { font:600 12px var(--sans); fill:var(--text-900); }
 .scatter-hover:hover .scatter-hover__mark { fill:var(--seq-600); fill-opacity:1; }
 .scatter-hover:hover .scatter-hover__label { text-decoration:underline; }
@@ -688,6 +688,7 @@ a.button { display:inline-block; text-decoration:none; }
 <tr><td class="mono">--mirror</td><td class="mono">#efeee9</td><td class="mono">#444547</td><td><span class="chip" style="background:#444547;box-shadow:inset 0 0 0 1px rgba(11,11,11,.14)"></span></td><td class="num">n/a</td><td class="nm">The diagonal</td></tr>
 <tr><td class="mono">--shadow</td><td class="mono">rgba(11,11,11,.09)</td><td class="mono">rgba(0,0,0,.32)</td><td></td><td class="num">n/a</td><td class="nm">Tooltip shadow. New, was a literal</td></tr>
 <tr><td class="mono">--mark-opacity</td><td class="mono">0.55</td><td class="mono">0.63</td><td></td><td class="num">2.12:1</td><td class="nm">Fill opacity of the scatter's marks, measured as --s1 on the surface. New, was a literal</td></tr>
+<tr><td class="mono">--line-fade</td><td class="mono">0.25</td><td class="mono">0.35</td><td></td><td class="num">1.48:1</td><td class="nm">Opacity of the lines, end dots and end labels that Share over time fades around a highlighted deck, FR-5. Each dark series stays at or above its light figure</td></tr>
 <tr><td class="mono">--edge</td><td class="mono">rgba(11,11,11,.10)</td><td class="mono">rgba(255,255,255,.09)</td><td></td><td class="num">n/a</td><td class="nm">Panel and control borders</td></tr>
       </tbody>
     </table>
@@ -720,8 +721,10 @@ a.button { display:inline-block; text-decoration:none; }
   <span class="mono">--loss</span>. Blue against red keeps ΔE 11.2 under protanopia. The hatch draws in
   <span class="mono">--baseline</span>, as in the light theme.</p>
   <p class="spec"><b>What fades by opacity.</b> Measured on each theme's surface, light first: the spotlight's faded
-  cells, NFR-6's one exception, read at 1.5:1 and 1.7:1. A hidden legend entry at 40% reads at 1.9:1 and 2.4:1. A busy
-  section at 55% keeps its body text at 4.4:1 and 4.0:1. The scatter's marks fill <span class="mono">--s1</span> at
+  cells, NFR-6's first exception, read at 1.5:1 and 1.7:1. Share over time's faded lines, NFR-6's second, use
+  <span class="mono">--line-fade</span>, 25% in light and 35% in dark, so that every series fades no further in dark than in
+  light: from 1.21:1 to 1.53:1 in light and from 1.48:1 to 1.55:1 in dark. A busy section at 55% keeps its body text at
+  4.4:1 and 4.0:1. The scatter's marks fill <span class="mono">--s1</span> at
   <span class="mono">--mark-opacity</span>, 55% in light and 63% in dark, and read at 2.11:1 and 2.12:1. At 55% the
   dark marks would read at 1.93:1. The dark theme fades no further than the light one, so the owner's settled
   exception holds as accepted.</p>
@@ -1101,7 +1104,7 @@ a.button { display:inline-block; text-decoration:none; }
   <b>Results</b> The field, the result line and the decks stand 14px apart. The line reads &ldquo;9 decks match &hellip;&rdquo;, or
   &ldquo;1 deck matches&rdquo;, in 14px <span class="mono">--text-600</span> with the count in <span class="mono">--text-900</span>,
   and the page's status line announces it. Results come in share order, 24 at a time, in the chosen view. While more remain, a
-  secondary button loads the next page. A search with no match shows the empty panel, whose button clears the search.
+  secondary button, &ldquo;Show 24 more&rdquo; or &ldquo;Show 12 more&rdquo; for what is left, loads the next page. A search with no match shows the empty panel, whose button clears the search.
   The summary and the charts keep the top 24.</p>
 </section>
 <section id="pips">
@@ -1828,12 +1831,14 @@ a.button { display:inline-block; text-decoration:none; }
   <span class="mono">--text-900</span>. The swatch carries the series colour, never the text, which is
   the rule from the design language.</p>
   <p class="spec"><b>Highlight</b> FR-5. Legend entries are toggle buttons with <span class="mono">aria-pressed</span>. A click
-  highlights that deck: its line draws at 3px on top, and every other line, end dot and end label drops to 25% opacity. The
+  highlights that deck: its line draws at 3px on top, and every other line, end dot and end label drops to
+  <span class="mono">--line-fade</span>, 25% in light and 35% in dark. The
   pressed entry is <span class="mono">--text-900</span> at 600 inside a pill with a 1px <span class="mono">--edge</span> border on
   <span class="mono">--surface</span>, so the state does not rest on the fade. A second click clears it, and a click on another deck
-  moves it. Nothing hides a line. Faded lines read at 1.21:1 to 1.53:1 in the light theme and 1.32:1 to 1.36:1 in the dark one,
-  under the 3:1 for marks. NFR-6 accepts that: the highlighted line keeps full contrast, and the legend, the end labels and the
-  tooltip still name every deck. The dark theme fades no further than the light one. Try the legend.</p>
+  moves it. Nothing hides a line. Faded lines read at 1.21:1 to 1.53:1 in the light theme and 1.48:1 to 1.55:1 in the dark
+  one, under the 3:1 for marks, and the faded end labels under the 4.5:1 for text. NFR-6 accepts that: the highlighted line and
+  its label keep full contrast, and the legend and the tooltip name every deck at full contrast. Each dark series fades no
+  further than its light one. Try the legend.</p>
   <h4 class="sub">Pointing at a deck</h4>
   <div class="panel">
     <svg class="hover-fig" viewBox="0 0 560 162" role="img" aria-label="Meta share by deck, first six decks"><a class="bar-hover" href="#chrome"><rect class="bar-hover__hit" x="0" y="4" width="560" height="24"/><text class="bar-hover__name" x="142" y="20" text-anchor="end">Affinity</text><rect class="bar-hover__bar" x="150" y="8" width="300.0" height="16" rx="3"/><text class="bar-hover__value" x="456.0" y="20">8.8%</text></a><a class="bar-hover" href="#chrome"><rect class="bar-hover__hit" x="0" y="30" width="560" height="24"/><text class="bar-hover__name" x="142" y="46" text-anchor="end">Mono Red Madness</text><rect class="bar-hover__bar" x="150" y="34" width="253.8" height="16" rx="3"/><text class="bar-hover__value" x="409.8" y="46">7.4%</text></a><a class="bar-hover" href="#chrome"><rect class="bar-hover__hit" x="0" y="56" width="560" height="24"/><text class="bar-hover__name" x="142" y="72" text-anchor="end">Dimir Control</text><rect class="bar-hover__bar" x="150" y="60" width="208.8" height="16" rx="3"/><text class="bar-hover__value" x="364.8" y="72">6.1%</text></a><a class="bar-hover" href="#chrome"><rect class="bar-hover__hit" x="0" y="82" width="560" height="24"/><text class="bar-hover__name" x="142" y="98" text-anchor="end">Spy combo</text><rect class="bar-hover__bar" x="150" y="86" width="152.1" height="16" rx="3"/><text class="bar-hover__value" x="308.1" y="98">4.5%</text></a><a class="bar-hover" href="#chrome"><rect class="bar-hover__hit" x="0" y="108" width="560" height="24"/><text class="bar-hover__name" x="142" y="124" text-anchor="end">Elves</text><rect class="bar-hover__bar" x="150" y="112" width="150.7" height="16" rx="3"/><text class="bar-hover__value" x="306.7" y="124">4.4%</text></a><a class="bar-hover" href="#chrome"><rect class="bar-hover__hit" x="0" y="134" width="560" height="24"/><text class="bar-hover__name" x="142" y="150" text-anchor="end">Blue Terror</text><rect class="bar-hover__bar" x="150" y="138" width="150.3" height="16" rx="3"/><text class="bar-hover__value" x="306.3" y="150">4.4%</text></a></svg>
@@ -1925,6 +1930,7 @@ a.button { display:inline-block; text-decoration:none; }
   --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a; --s4:#eda100;
   --s5:#e87ba4; --s6:#008300; --s7:#4a3aa7; --s8:#e34948;
   --mark-opacity:  0.55;   /* scatter marks, --s1 at 2.11:1 */
+  --line-fade:     0.25;   /* lines faded around a highlight */
 
   <b>/* sequential blue, bars and heatmaps */</b>
   --seq-100:#cde2fb; --seq-200:#9ec5f4; --seq-300:#6da7ec; --seq-400:#3987e5;
@@ -1953,7 +1959,7 @@ a.button { display:inline-block; text-decoration:none; }
   --up:#7ac07c; --down:#f8968e;
   --s1:#4f8ddd; --s2:#da6d44; --s3:#38a276; --s4:#bd8003;
   --s5:#ca7091; --s6:#499e44; --s7:#8581e0; --s8:#e3635e;
-  --mark-opacity:0.63;  /* 2.12:1 */
+  --mark-opacity:0.63;  /* 2.12:1 */  --line-fade:0.35;
   --seq-100:#164781; --seq-200:#2b5c97; --seq-300:#3f70ad; --seq-400:#5485c4;
   --seq-500:#689bdb; --seq-600:#7eb1f3; --seq-700:#93c7ff;
   --win:#385c8a; --loss:#844645; --mirror:#444547;
@@ -2456,12 +2462,18 @@ a.button { display:inline-block; text-decoration:none; }
   if (!chart || !legend) {
     return;
   }
+  const pressed = legend.querySelector('[aria-pressed="true"]');
+  if (pressed) {
+    chart.insertBefore(chart.querySelector(`.share-highlight__series[data-i="${pressed.dataset.i}"]`), chart.querySelector('.share-highlight__end'));
+  }
   legend.querySelectorAll('.chart-legend__item').forEach((button) => {
     button.addEventListener('click', () => {
       const on = button.getAttribute('aria-pressed') !== 'true';
       legend.querySelectorAll('.chart-legend__item').forEach((item) => item.setAttribute('aria-pressed', String(on && item === button)));
       chart.classList.toggle('share-highlight--on', on);
       chart.querySelectorAll('.share-highlight__series').forEach((g) => g.classList.toggle('share-highlight__series--on', on && g.dataset.i === button.dataset.i));
+      const picked = chart.querySelector(`.share-highlight__series[data-i="${button.dataset.i}"]`);
+      chart.insertBefore(picked, chart.querySelector('.share-highlight__end'));
       chart.querySelectorAll('.share-highlight__end').forEach((t) => t.classList.toggle('share-highlight__end--on', on && t.dataset.i === button.dataset.i));
     });
   });
