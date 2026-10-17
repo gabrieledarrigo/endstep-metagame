@@ -245,7 +245,11 @@ export function OverviewPage() {
               : undefined
           }
           busy={loadingTerm && (found !== undefined || topList.length > 0)}
-          focus={focusFrom === null ? undefined : results[focusFrom]?.slug}
+          focus={
+            focusFrom === null || search.hasNextPage
+              ? undefined
+              : results[focusFrom]?.slug
+          }
           onFocused={() => setFocusFrom(null)}
         >
           {searching ? (

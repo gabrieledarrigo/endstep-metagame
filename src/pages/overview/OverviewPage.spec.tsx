@@ -689,6 +689,42 @@ describe("OverviewPage search", () => {
     });
   });
 
+  it("keeps focus on Show more while results remain after the next page", async () => {
+    stubApi(
+      () => Response.json(decks),
+      (url) => {
+        const page = Number(url.searchParams.get("page"));
+
+        return matches(
+          url,
+          numberedDecks(page * 24 - 23, Math.min(page * 24, 60)),
+          60,
+        );
+      },
+    );
+    renderAt("/?window=30d&q=deck");
+    await statusReads("60 decks match \u201cdeck\u201d.");
+    const more = screen.getByRole("button", { name: "Show 24 more" });
+    more.focus();
+
+    fireEvent.click(more);
+
+    expect(await screen.findByRole("button", { name: "Show 12 more" })).toBe(
+      more,
+    );
+    expect(screen.getByRole("link", { name: "Deck 48" })).toBeTruthy();
+    expect(document.activeElement).toBe(more);
+
+    fireEvent.click(more);
+
+    await waitFor(() => {
+      expect(document.activeElement).toBe(
+        screen.getByRole("link", { name: "Deck 49" }),
+      );
+    });
+    expect(screen.queryByRole("button", { name: /more/ })).toBeNull();
+  });
+
   it("loads the next page of results, and moves focus to the first new deck", async () => {
     const fetchMock = stubApi(
       () => Response.json(decks),
