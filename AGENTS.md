@@ -106,7 +106,7 @@ The owner has decided these. Reviews do not raise them again. A change goes to t
 
 - Uppercase labels stay `--text-400`, at 3.5:1. The owner chose this over a darker colour.
 - TypeScript stays on 6.0 until typescript-eslint supports 7, NFR-1.
-- Data goes through TanStack Query, and the view state lives in the address, §4.5 and §4.8. Hidden series are kept by deck slug.
+- Data goes through TanStack Query, and the view state lives in the address, §4.5 and §4.8. The share chart's highlighted deck is kept by its slug.
 - The brand is a link, not a heading. Each page's h1 names the page, FR-10.
 - Back and forward keep the scroll position the browser restores, §4.5.
 - A parent may add its own class to a child's root, a BEM mix, and every block class sits on its component's root, NFR-11.
@@ -114,6 +114,7 @@ The owner has decided these. Reviews do not raise them again. A change goes to t
 - Vercel previews sit behind Vercel Authentication. A "Done when" that names a preview is met by an offline `vercel build`, or by production after the merge.
 - Below 1,100px the matchup table's header row scrolls away with the table. Only from 1,100px up does it stay at the top of the window, FR-12.
 - When the matchup table opens on a deck from 640px to 1,099px, the page scrolls the table's top into view and the band sideways to the deck's column, not to the deck's row, FR-12. The column names stay on screen.
+- Share over time highlights one deck from its legend and fades the other lines, below WCAG AA, NFR-6. The highlight replaced hiding, FR-5.
 - The matchup function caches a 429 for 60 seconds, §4.4, even when a background revalidation could leave a stale matrix in its place.
 - The matchup table's spotlight fades the other cells to 25% opacity, below WCAG AA, NFR-6. The owner chose it over a fade that keeps the numbers at AA.
 
