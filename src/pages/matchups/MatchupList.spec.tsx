@@ -18,15 +18,12 @@ function renderList(
   );
 }
 
+function items(): HTMLElement[] {
+  return within(screen.getByRole("list")).getAllByRole("listitem");
+}
+
 function lines(): string[] {
-  return within(screen.getByRole("list"))
-    .getAllByRole("listitem")
-    .map((item) =>
-      Array.from(item.querySelectorAll("a, span"))
-        .filter((element) => element.children.length === 0)
-        .map((element) => element.textContent)
-        .join(" | "),
-    );
+  return items().map((item) => item.textContent ?? "");
 }
 
 describe("MatchupList", () => {
@@ -39,10 +36,25 @@ describe("MatchupList", () => {
       }),
     ).toBeTruthy();
     expect(lines()).toEqual([
-      "Mono Red Madness | 1,456 matches | Favoured | 57",
-      "Monster Tron | 998 matches | Within chance | 48",
-      "Naya Gates | 18 of the 20 matches needed | Too few to call | ",
+      "Mono Red Madness1,456 matchesFavoured57",
+      "Monster Tron998 matchesWithin chance48",
+      "Naya Gates18 of the 20 matches neededToo few to call",
     ]);
+  });
+
+  it("puts the opponent's link, its matches, the verdict and the cell on each line", () => {
+    renderList();
+    const [madness, , gates] = items();
+
+    expect(within(madness).getByRole("link").textContent).toBe(
+      "Mono Red Madness",
+    );
+    expect(within(madness).getByText("1,456 matches")).toBeTruthy();
+    expect(within(madness).getByText("Favoured")).toBeTruthy();
+    expect(within(madness).getByText("57")).toBeTruthy();
+    expect(within(gates).getByRole("link").textContent).toBe("Naya Gates");
+    expect(within(gates).getByText("18 of the 20 matches needed")).toBeTruthy();
+    expect(within(gates).getByText("Too few to call")).toBeTruthy();
   });
 
   it("names no window when given none, as while another window loads", () => {
@@ -59,9 +71,9 @@ describe("MatchupList", () => {
     renderList({ deck: MADNESS });
 
     expect(lines()).toEqual([
-      "Affinity | 1,456 matches | Unfavoured | 43",
-      "Monster Tron | 703 matches | Within chance | 52",
-      "Naya Gates | No data | ·",
+      "Affinity1,456 matchesUnfavoured43",
+      "Monster Tron703 matchesWithin chance52",
+      "Naya GatesNo data·",
     ]);
     expect(screen.getByText("·").getAttribute("aria-hidden")).toBe("true");
   });
