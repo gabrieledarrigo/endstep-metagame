@@ -16,7 +16,11 @@ function renderLink(
   render(
     <MemoryRouter initialEntries={["/?window=7d"]}>
       <svg>
-        <ChartLink to="/decks/affinity-e93f5f74" onClick={onClick}>
+        <ChartLink
+          to="/decks/affinity-e93f5f74"
+          label="Affinity"
+          onClick={onClick}
+        >
           <text>Affinity</text>
         </ChartLink>
       </svg>

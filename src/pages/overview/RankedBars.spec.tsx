@@ -73,8 +73,15 @@ describe("RankedBars", () => {
     renderBars(PAGE);
 
     expect(
-      screen.getAllByRole("link").map((link) => link.getAttribute("href")),
-    ).toEqual(PAGE.items.map((deck) => `/decks/${deck.slug}?window=7d`));
+      screen
+        .getAllByRole("link")
+        .map((link) => [
+          link.getAttribute("aria-label"),
+          link.getAttribute("href"),
+        ]),
+    ).toEqual(
+      PAGE.items.map((deck) => [deck.name, `/decks/${deck.slug}?window=7d`]),
+    );
   });
 
   it("lets a click on a value label through to its row", () => {

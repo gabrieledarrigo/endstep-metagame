@@ -96,12 +96,14 @@ describe("WinRateScatter", () => {
     expect(screen.getByText("Click to open the deck.")).toBeTruthy();
   });
 
-  it("links each marker to its deck's page in the current window", () => {
+  it("links each marker to its deck's page in the current window, named after the deck", () => {
     renderScatter(DECKS);
 
-    expect(
-      screen.getAllByRole("link").map((link) => link.getAttribute("href")),
-    ).toEqual(DECKS.map((deck) => `/decks/${deck.slug}?window=7d`));
+    for (const deck of DECKS) {
+      expect(
+        screen.getByRole("link", { name: deck.name }).getAttribute("href"),
+      ).toBe(`/decks/${deck.slug}?window=7d`);
+    }
   });
 
   it("draws the decks with fewer players last, so a large marker never hides a small one", () => {

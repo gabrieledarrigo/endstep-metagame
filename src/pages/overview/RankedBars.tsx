@@ -62,7 +62,7 @@ type DeckTickProps = TextProps & {
 function DeckTick({ payload, bars, ...text }: DeckTickProps) {
   const plot = usePlotArea();
   const width = useChartWidth();
-  const slug = bars[payload.index].slug;
+  const { name: deck, slug } = bars[payload.index];
   const name = (
     <Text {...text} {...CHART_AXIS.tick} fill={CHART_NAME}>
       {payload.value}
@@ -76,7 +76,7 @@ function DeckTick({ payload, bars, ...text }: DeckTickProps) {
   const band = plot.height / bars.length;
 
   return (
-    <ChartLink to={`/decks/${slug}`}>
+    <ChartLink to={`/decks/${slug}`} label={deck}>
       <rect
         x={0}
         y={payload.coordinate - band / 2}

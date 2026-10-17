@@ -132,7 +132,11 @@ function WinRateMark({
   const radius = Math.sqrt(size / Math.PI);
 
   return (
-    <ChartLink to={`/decks/${payload.slug}`} onClick={onClick}>
+    <ChartLink
+      to={`/decks/${payload.slug}`}
+      label={payload.name}
+      onClick={onClick}
+    >
       <circle
         cx={cx}
         cy={cy}

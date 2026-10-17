@@ -1,33 +1,24 @@
 import type { MouseEvent, ReactNode } from "react";
-import { useHref, useLinkClickHandler } from "react-router";
-import { useTimeWindow } from "../hooks/useTimeWindow";
+import { WindowLink } from "../components/WindowLink";
 import "./ChartLink.css";
 
 type ChartLinkProps = {
   to: string;
+  label: string;
   onClick?: (event: MouseEvent<HTMLAnchorElement>) => void;
   children: ReactNode;
 };
 
-export function ChartLink({ to, onClick, children }: ChartLinkProps) {
-  const [timeWindow] = useTimeWindow();
-  const target = { pathname: to, search: `?window=${timeWindow}` };
-  const href = useHref(target);
-  const follow = useLinkClickHandler(target);
-
+export function ChartLink({ to, label, onClick, children }: ChartLinkProps) {
   return (
-    <a
+    <WindowLink
       className="chart-link"
-      href={href}
+      to={to}
       tabIndex={-1}
-      onClick={(event) => {
-        onClick?.(event);
-        if (!event.defaultPrevented) {
-          follow(event);
-        }
-      }}
+      aria-label={label}
+      onClick={onClick}
     >
       {children}
-    </a>
+    </WindowLink>
   );
 }
