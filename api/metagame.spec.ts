@@ -299,6 +299,24 @@ describe("the metagame proxy's card art", () => {
     ]);
   });
 
+  it("gives the other decks their art when one deck has no key card name", async () => {
+    const list = deckList("Guttersnipe");
+    list.decks.items.unshift({
+      slug: "nameless",
+      art: { cardName: null as unknown as string },
+    });
+    const fetchMock = endstepAndScryfall(
+      list,
+      collection([card("Guttersnipe", GUTTERSNIPE_ART)]),
+    );
+
+    const response = await metagame.fetch(request(DECKS));
+
+    expect(scryfallNames(fetchMock)).toEqual([["Guttersnipe"]]);
+    expect(response.headers.get("cache-control")).toBe(FIVE_MINUTES);
+    expect(await artOf(response)).toEqual([undefined, GUTTERSNIPE_ART]);
+  });
+
   it("adds the art to a deck detail", async () => {
     endstepAndScryfall(
       {

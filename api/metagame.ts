@@ -146,7 +146,7 @@ function isArtDeck(value: unknown): value is ArtDeck {
  *
  * @param segments - The allow-listed path segments.
  * @param body - The parsed response body.
- * @returns The decks, or `null` for any other path or a body without the expected decks.
+ * @returns The decks that have a key card name, or `null` for any other path or a body without such decks.
  */
 function decksIn(segments: string[], body: unknown): ArtDeck[] | null {
   if (segments[1] !== "decks" || !isRecord(body)) {
@@ -163,11 +163,13 @@ function decksIn(segments: string[], body: unknown): ArtDeck[] | null {
     decks = [body.deck];
   }
 
-  if (decks.length === 0 || !decks.every(isArtDeck)) {
+  const named = decks.filter(isArtDeck);
+
+  if (named.length === 0) {
     return null;
   }
 
-  return decks;
+  return named;
 }
 
 /**
