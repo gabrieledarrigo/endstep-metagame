@@ -1,4 +1,10 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import {
+  type RenderResult,
+  fireEvent,
+  render,
+  screen,
+} from "@testing-library/react";
+import { MemoryRouter, useLocation } from "react-router";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import decks from "../../../test/fixtures/decks.json";
 import { sizeCharts } from "../../../test/sizeCharts";
@@ -6,6 +12,35 @@ import type { Deck } from "../../api/types";
 import { WinRateScatter, WinRateScatterSkeleton } from "./WinRateScatter";
 
 const DECKS = decks.decks.items as Deck[];
+
+function Address() {
+  const { pathname, search } = useLocation();
+
+  return <p>Address: {pathname + search}</p>;
+}
+
+function renderScatter(decks: Deck[]): RenderResult {
+  return render(
+    <MemoryRouter initialEntries={["/?window=7d"]}>
+      <WinRateScatter decks={decks} />
+      <Address />
+    </MemoryRouter>,
+  );
+}
+
+function firstMark(container: HTMLElement): HTMLElement {
+  const mark = container.querySelector(".recharts-scatter-symbol");
+  fireEvent.mouseEnter(mark as Element);
+
+  return mark?.querySelector("a") as HTMLElement;
+}
+
+function tap(element: Element, pointerType = "touch"): void {
+  fireEvent.pointerDown(element, { pointerType });
+  fireEvent.click(element);
+}
+
+const AFFINITY_PAGE = `Address: /decks/${DECKS[0].slug}?window=7d`;
 
 beforeEach(() => {
   sizeCharts();
@@ -17,7 +52,7 @@ afterEach(() => {
 
 describe("WinRateScatter", () => {
   it("draws the axes, the 50% line and a label for each deck that has room", () => {
-    render(<WinRateScatter decks={DECKS} />);
+    renderScatter(DECKS);
 
     expect(
       screen.getByRole("heading", { name: "Win rate against share" }),
@@ -43,14 +78,14 @@ describe("WinRateScatter", () => {
       matchWinRate: { ...DECKS[0].matchWinRate },
     };
 
-    render(<WinRateScatter decks={[DECKS[0], crowded, DECKS[2]]} />);
+    renderScatter([DECKS[0], crowded, DECKS[2]]);
 
     expect(screen.getByText("Affinity")).toBeTruthy();
     expect(screen.queryByText("Crowded")).toBeNull();
   });
 
   it("shows a deck's numbers in the tooltip", () => {
-    const { container } = render(<WinRateScatter decks={DECKS} />);
+    const { container } = renderScatter(DECKS);
 
     fireEvent.mouseEnter(
       container.querySelectorAll(".recharts-scatter-symbol")[0],
@@ -58,6 +93,61 @@ describe("WinRateScatter", () => {
 
     expect(screen.getByText("Confidence bounds")).toBeTruthy();
     expect(screen.getByText("51.4% to 53.1%")).toBeTruthy();
+    expect(screen.getByText("Click to open the deck.")).toBeTruthy();
+  });
+
+  it("links each marker to its deck's page in the current window", () => {
+    renderScatter(DECKS);
+
+    expect(
+      screen.getAllByRole("link").map((link) => link.getAttribute("href")),
+    ).toEqual(DECKS.map((deck) => `/decks/${deck.slug}?window=7d`));
+  });
+
+  it("opens the deck at once on a mouse click", () => {
+    const { container } = renderScatter(DECKS);
+
+    tap(firstMark(container), "mouse");
+
+    expect(screen.getByText(AFFINITY_PAGE)).toBeTruthy();
+  });
+
+  it("shows the tooltip on a first tap, and opens the deck on a second tap", () => {
+    const { container } = renderScatter(DECKS);
+
+    tap(firstMark(container));
+
+    expect(screen.getByText("Tap again to open the deck.")).toBeTruthy();
+    expect(screen.queryByText(AFFINITY_PAGE)).toBeNull();
+
+    tap(firstMark(container));
+
+    expect(screen.getByText(AFFINITY_PAGE)).toBeTruthy();
+  });
+
+  it("forgets the first tap after a tap off the markers", () => {
+    const { container } = renderScatter(DECKS);
+
+    tap(firstMark(container));
+    tap(container.querySelector(".win-rate__frame") as Element);
+    tap(firstMark(container));
+
+    expect(screen.queryByText(AFFINITY_PAGE)).toBeNull();
+  });
+
+  it("forgets the first tap when the decks change", () => {
+    const { container, rerender } = renderScatter(DECKS);
+
+    tap(firstMark(container));
+    rerender(
+      <MemoryRouter initialEntries={["/?window=7d"]}>
+        <WinRateScatter decks={[...DECKS]} />
+        <Address />
+      </MemoryRouter>,
+    );
+    tap(firstMark(container));
+
+    expect(screen.queryByText(AFFINITY_PAGE)).toBeNull();
   });
 
   it("leaves out a deck with fewer than 20 decided matches", () => {
@@ -66,7 +156,7 @@ describe("WinRateScatter", () => {
       matchWinRate: { ...DECKS[2].matchWinRate, wins: 9, losses: 3 },
     };
 
-    render(<WinRateScatter decks={[DECKS[0], DECKS[1], gated]} />);
+    renderScatter([DECKS[0], DECKS[1], gated]);
 
     expect(screen.getByText("Affinity")).toBeTruthy();
     expect(screen.queryByText("Monster Tron")).toBeNull();
@@ -83,7 +173,7 @@ describe("WinRateScatter", () => {
       matchWinRate: { ...deck.matchWinRate, wins: 9, losses: 3 },
     }));
 
-    render(<WinRateScatter decks={gated} />);
+    renderScatter(gated);
 
     expect(
       screen.getByRole("heading", { name: "Win rate against share" }),
