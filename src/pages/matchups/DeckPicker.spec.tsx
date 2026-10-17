@@ -85,4 +85,46 @@ describe("DeckPicker", () => {
       }).selected,
     ).toBe(true);
   });
+
+  it("leaves out All decks when stacked, for the list on a phone", () => {
+    render(
+      <DeckPicker
+        decks={decks}
+        value="affinity-e93f5f74"
+        stacked
+        onChange={vi.fn()}
+      />,
+    );
+
+    expect(options()).toEqual([
+      "Affinity",
+      "Mono Red Madness",
+      "Monster Tron",
+      "Naya Gates",
+    ]);
+    expect(
+      screen.getByRole<HTMLOptionElement>("option", { name: "Affinity" })
+        .selected,
+    ).toBe(true);
+  });
+
+  it("keeps a deck outside the top decks as the first option when stacked", () => {
+    render(
+      <DeckPicker
+        decks={decks}
+        value="stompy-12345678"
+        missing={{ slug: "stompy-12345678", name: "Mono Green Stompy" }}
+        stacked
+        onChange={vi.fn()}
+      />,
+    );
+
+    expect(options()).toEqual([
+      "Mono Green Stompy (not in the top 4)",
+      "Affinity",
+      "Mono Red Madness",
+      "Monster Tron",
+      "Naya Gates",
+    ]);
+  });
 });
