@@ -314,7 +314,7 @@ Two calls. `/{format}/decks/{slug}` feeds every section except the matchups row,
 
 **Stat tiles.** Meta share, players, matches, match win rate with its range, and share change under the rules of FR-8.
 
-**Share over time.** One line, from `shareSeries.points`. Days with `rate: null` are a gap, as in FR-5. Under the chart, a collapsed details element lists the same days and shares as a table, so the chart is not the only carrier, NFR-6.
+**Share over time.** One line, from `shareSeries.points`. Days with `rate: null` are a gap, as in FR-5. Under the chart, a collapsed details element, "Daily share, day by day", lists the same days and shares as a description list whose pairs flow into columns on wider screens, so the chart is not the only carrier, NFR-6.
 
 **Games.** A table from `gameResults`. Rows are game 1, game 2, game 3 and all games. Columns are on the play, on the draw and total. Each cell shows a game win rate. Its range and decided count show on hover and on keyboard focus. A note under the table gives `unknownPositionGames`. If `gameResults` is null, the table shows the unavailable state. `games` is not used, §3.6.
 
@@ -617,7 +617,7 @@ The page states that the data comes from Endstep and links to `https://endstep.c
 
 ### NFR-6. Accessibility
 - All content reachable and operable by keyboard. A chart's bars and markers open deck pages on a click, but are not tab stops: every page they open is reachable by keyboard through the deck grid or the deck table, whichever view the overview shows.
-- Charts are never the only carrier of information. Everything in a chart is also in a table. On the overview that is the deck table, one choice away in the view switch, FR-4.
+- Charts are never the only carrier of information. Everything in a chart is also in a table or a list. On the overview that is the deck table, one choice away in the view switch, FR-4. On the deck page it is the daily share list, FR-11.
 - Colour is never the only means of conveying meaning. Contrast targets WCAG AA. Two exceptions are accepted. The first is the cells the matchup table's spotlight fades, FR-12. They are context for the deck in the spotlight, which keeps full contrast, and the detail on hover or focus gives their figures in full. The second is the lines, end dots and end labels that Share over time fades around a highlighted deck, FR-5. The highlighted line and its label keep full contrast, and the legend and the tooltip name every deck at full contrast.
 - Card art carries meaningful `alt` text. Decorative elements are hidden from assistive technology.
 
