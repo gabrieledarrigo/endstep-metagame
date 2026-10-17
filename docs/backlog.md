@@ -897,7 +897,7 @@ Covers FR-11 and FR-12, A deck in the spotlight.
 
 1. A deck picker in the matchup page's controls: "All decks", then the 24 decks in share order. It reads and writes `?deck=` and replaces the history entry, §4.5.
 2. The spotlight: every cell outside the deck's row and column fades to 25% opacity, and returns to full opacity under the pointer or keyboard focus. The deck's two headers turn `--primary` on a `--primary-wash` band.
-3. When a link opens the page with a deck, and on a choice, scroll the deck's row into view, and below 1,100px its column too. Back and forward keep the browser's scroll position. Move the grid's tab stop to the deck's row header.
+3. When a link opens the page with a deck, and on a choice, scroll the deck's row into view under the sticky header row. Below 1,100px scroll the table's top into view instead, and the band sideways to the deck's column. Back and forward keep the browser's scroll position. Move the grid's tab stop to the deck's row header.
 4. Match the deck by the 8-character suffix of its slug, §6.11.
 5. A window that drops the deck keeps `?deck=`, shows it in the picker as an extra first option, "{name} (not in the top 24)", and shows the line "{name} isn't in the top 24 for the selected time window." The name comes from the deck detail, and the line names "This deck" until it arrives or if it fails.
 6. Under the deck page's row, the link "See {name} in the full table", with `?deck=`.
