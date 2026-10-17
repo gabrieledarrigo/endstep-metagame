@@ -112,6 +112,17 @@ describe("WinRateScatter", () => {
     ).toEqual(DECKS.map((deck) => `/decks/${deck.slug}?window=7d`));
   });
 
+  it("lets a click on the 50% label through to the markers under it", () => {
+    renderScatter(DECKS);
+
+    expect(
+      screen
+        .getByText("50% win rate")
+        .closest("text")
+        ?.getAttribute("pointer-events"),
+    ).toBe("none");
+  });
+
   it("opens the deck at once on a mouse click", () => {
     const { container } = renderScatter(DECKS);
 

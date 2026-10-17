@@ -77,6 +77,14 @@ describe("RankedBars", () => {
     ).toEqual(PAGE.items.map((deck) => `/decks/${deck.slug}?window=7d`));
   });
 
+  it("lets a click on a value label through to its row", () => {
+    renderBars(PAGE);
+
+    expect(
+      screen.getByText("9.56%").closest("text")?.getAttribute("pointer-events"),
+    ).toBe("none");
+  });
+
   it("opens a deck's page from anywhere on its row", () => {
     renderBars(PAGE);
     const row = screen.getAllByRole("link")[1].querySelector("rect");
