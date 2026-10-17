@@ -3,7 +3,7 @@
     cursor: pointer;
   }
 
-  .chart-link:focus {
+  .chart-link:focus:not(:focus-visible) {
     outline: none;
   }
 }
