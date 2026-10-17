@@ -191,6 +191,22 @@ describe("ShareOverTime", () => {
     );
   });
 
+  it("paints the highlighted deck's hover dot after the others, in the same layer", async () => {
+    sizeCharts();
+    const container = renderAt(`/?window=30d&highlight=${AFFINITY}`);
+    await drawn(container, "Affinity");
+
+    hoverFirstDay(container);
+
+    const dots = [
+      ...container.querySelectorAll(
+        ".recharts-zIndex-layer_1200 .recharts-active-dot circle",
+      ),
+    ];
+    expect(dots).toHaveLength(2);
+    expect(dots.at(-1)).toBe(activeDot(container, "Affinity"));
+  });
+
   it("draws every line whatever the address says about hiding", () => {
     sizeCharts();
 

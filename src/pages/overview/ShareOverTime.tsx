@@ -215,6 +215,9 @@ export function ShareOverTime({ series }: { series: ShareSeries[] }) {
   const highlighted = series.find((item) => item.deck.slug === highlightedSlug);
   const faded = (item: ShareSeries): boolean =>
     highlighted !== undefined && item !== highlighted;
+  const drawOrder = highlighted
+    ? [...series.filter((item) => item !== highlighted), highlighted]
+    : series;
   const ends = series.flatMap((item) => {
     const end = seriesEnd(item);
     return end
@@ -271,7 +274,7 @@ export function ShareOverTime({ series }: { series: ShareSeries[] }) {
                 cursor={{ stroke: CHART_BASELINE }}
                 content={ShareTooltip}
               />
-              {series.map((item) => (
+              {drawOrder.map((item) => (
                 <Line
                   key={item.deck.id}
                   type="linear"
