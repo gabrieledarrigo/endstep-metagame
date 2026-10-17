@@ -1,4 +1,4 @@
-import { type RefObject, useEffect, useId, useState } from "react";
+import { type RefObject, useCallback, useEffect, useId, useState } from "react";
 import { searchTerm } from "../../helpers";
 import "./DeckSearch.css";
 
@@ -14,13 +14,25 @@ export function DeckSearch({ term, onSearch, inputRef }: DeckSearchProps) {
   const id = useId();
   const [text, setText] = useState(term ?? "");
   const [shownTerm, setShownTerm] = useState(term);
+  const [sentTerm, setSentTerm] = useState(term);
 
   if (term !== shownTerm) {
     setShownTerm(term);
-    if (searchTerm(text) !== term) {
-      setText(term ?? "");
+    if (term !== sentTerm) {
+      setSentTerm(term);
+      if (searchTerm(text) === shownTerm) {
+        setText(term ?? "");
+      }
     }
   }
+
+  const send = useCallback(
+    (next: string | null): void => {
+      setSentTerm(next);
+      onSearch(next);
+    },
+    [onSearch],
+  );
 
   useEffect(() => {
     const next = searchTerm(text);
@@ -29,14 +41,14 @@ export function DeckSearch({ term, onSearch, inputRef }: DeckSearchProps) {
       return;
     }
 
-    const timer = setTimeout(() => onSearch(next), DELAY_MS);
+    const timer = setTimeout(() => send(next), DELAY_MS);
 
     return (): void => clearTimeout(timer);
-  }, [text, term, onSearch]);
+  }, [text, term, send]);
 
   const clear = (): void => {
     setText("");
-    onSearch(null);
+    send(null);
     inputRef.current?.focus();
   };
 

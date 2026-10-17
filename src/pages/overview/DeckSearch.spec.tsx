@@ -134,6 +134,40 @@ describe("DeckSearch", () => {
     rerender(null);
 
     expect(field().value).toBe("");
+
+    rerender("altar");
+
+    expect(field().value).toBe("altar");
+  });
+
+  it("keeps text typed after a clear when the cleared term arrives late", () => {
+    const { onSearch, rerender } = renderSearch("altar");
+
+    fireEvent.keyDown(field(), { key: "Escape" });
+    type("altar tron");
+    rerender(null);
+
+    expect(onSearch).toHaveBeenCalledWith(null);
+    expect(field().value).toBe("altar tron");
+  });
+
+  it("keeps text typed after the last term it showed when another term arrives", () => {
+    const { rerender } = renderSearch("xyzzy");
+
+    type("elf");
+    rerender(null);
+
+    expect(field().value).toBe("elf");
+  });
+
+  it("keeps the same term retyped after a clear when the cleared term arrives late", () => {
+    const { rerender } = renderSearch("altar");
+
+    fireEvent.click(screen.getByRole("button", { name: "Clear the search" }));
+    type("altar");
+    rerender(null);
+
+    expect(field().value).toBe("altar");
   });
 
   it("keeps the text as typed when the term it sent comes back", async () => {
