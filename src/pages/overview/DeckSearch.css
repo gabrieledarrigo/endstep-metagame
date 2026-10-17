@@ -1,0 +1,68 @@
+@layer components {
+  .deck-search {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 420px;
+  }
+
+  .deck-search__icon {
+    position: absolute;
+    left: 11px;
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: var(--text-400);
+    stroke-width: 2;
+    stroke-linecap: round;
+    pointer-events: none;
+  }
+
+  .deck-search__input {
+    width: 100%;
+    font-family: inherit;
+    font-size: 16px;
+    padding: 8px 40px 8px 36px;
+    border: 1px solid var(--edge);
+    border-radius: 8px;
+    background: var(--surface);
+    color: var(--text-900);
+  }
+
+  .deck-search__input::placeholder {
+    color: var(--text-600);
+  }
+
+  .deck-search__input::-webkit-search-cancel-button {
+    display: none;
+  }
+
+  .deck-search__clear {
+    position: absolute;
+    right: 6px;
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-600);
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .deck-search__clear:hover {
+    background: var(--hover);
+    color: var(--text-900);
+  }
+
+  @media (min-width: 640px) {
+    .deck-search__input {
+      font-size: 15px;
+    }
+  }
+}
