@@ -160,6 +160,9 @@ describe("OverviewPage", () => {
     expect(
       screen.queryByRole("heading", { name: "No decks in this window" }),
     ).toBeNull();
+    expect(
+      screen.getByText("Registrations").closest('[aria-busy="true"]'),
+    ).toBeTruthy();
   });
 
   it("offers a longer window when this one has no decks", async () => {

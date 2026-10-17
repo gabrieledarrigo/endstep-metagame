@@ -53,8 +53,6 @@ export function MatchupsPage() {
                 matrix={data}
                 timeWindow={loadingWindow ? undefined : timeWindow}
               />
-            ) : loadingWindow ? (
-              <MatchupTableSkeleton />
             ) : (
               <EmptyWindow
                 timeWindow={timeWindow}

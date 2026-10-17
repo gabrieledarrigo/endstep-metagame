@@ -114,6 +114,11 @@ describe("MatchupsPage", () => {
     expect(
       screen.queryByRole("heading", { name: "No decks in this window" }),
     ).toBeNull();
+    expect(
+      screen
+        .getByRole("list", { name: "Legend" })
+        .closest('[aria-busy="true"]'),
+    ).toBeTruthy();
   });
 
   it("does not retry a failed build on its own, and retries when asked", async () => {

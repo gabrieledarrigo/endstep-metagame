@@ -1,4 +1,4 @@
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { fetchDecks, fetchSeries } from "../../api/endpoints";
 import { PageTitle } from "../../components/PageTitle";
 import { Section } from "../../components/Section";
@@ -18,12 +18,14 @@ export function OverviewPage() {
   const decks = useQuery({
     queryKey: ["decks", timeWindow],
     queryFn: ({ signal }) => fetchDecks(timeWindow, signal),
-    placeholderData: keepPreviousData,
+    placeholderData: (previous) =>
+      previous?.decks.items.length ? previous : undefined,
   });
   const series = useQuery({
     queryKey: ["series", timeWindow],
     queryFn: ({ signal }) => fetchSeries(timeWindow, signal),
-    placeholderData: keepPreviousData,
+    placeholderData: (previous) =>
+      previous?.series.length ? previous : undefined,
   });
 
   const loadingWindow = decks.isPlaceholderData || series.isPlaceholderData;
@@ -67,8 +69,6 @@ export function OverviewPage() {
           {(data) =>
             data.decks.items.length > 0 ? (
               <DeckGrid decks={data.decks.items} />
-            ) : decks.isPlaceholderData ? (
-              <DeckGridSkeleton />
             ) : (
               <EmptyWindow
                 timeWindow={timeWindow}
