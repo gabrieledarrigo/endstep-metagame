@@ -73,10 +73,12 @@ describe("vercel.json", () => {
   });
 
   it("allows every inline script in index.html by its hash", () => {
-    const policy = headersFor("/(.*)")["Content-Security-Policy"];
+    const scriptSources = directives(
+      headersFor("/(.*)")["Content-Security-Policy"],
+    )["script-src"];
 
     inlineScripts(html).forEach((script) => {
-      expect(policy).toContain(`script-src 'self' ${sha256(script)}`);
+      expect(scriptSources).toContain(sha256(script));
     });
   });
 });
