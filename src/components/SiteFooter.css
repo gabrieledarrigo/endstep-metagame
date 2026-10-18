@@ -1,8 +1,46 @@
 @layer components {
   .site-footer {
+    display: grid;
+    gap: 12px 40px;
+    padding-top: 16px;
+    border-top: 1px solid var(--rule);
     font-size: 13px;
     color: var(--text-600);
-    padding-top: 14px;
-    border-top: 1px solid var(--rule);
+  }
+
+  .site-footer__site {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .site-footer__name {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-900);
+  }
+
+  .site-footer__notes {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .site-footer__data {
+    margin: 0;
+  }
+
+  .site-footer__legal {
+    margin: 0;
+    font-size: 12px;
+  }
+
+  @media (min-width: 640px) {
+    .site-footer {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+    }
   }
 }
