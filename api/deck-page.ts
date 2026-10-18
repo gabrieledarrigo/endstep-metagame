@@ -40,7 +40,14 @@ type PreviewDeck = {
   name: string;
   share: { rate: number };
   players: number;
-  matchWinRate: { wins: number; losses: number; rate: number | null };
+  matchWinRate: {
+    wins: number;
+    losses: number;
+    rate: number | null;
+    low?: unknown;
+    high?: unknown;
+    gate?: unknown;
+  };
   art: { cardName: string; imageUrl?: string };
 };
 
@@ -161,7 +168,13 @@ function shareText(rate: number): string {
 }
 
 function winRateText(block: PreviewDeck["matchWinRate"]): string {
-  if (block.rate === null || block.wins + block.losses < DECIDED_NEEDED) {
+  if (
+    block.gate ||
+    block.wins + block.losses < DECIDED_NEEDED ||
+    block.rate === null ||
+    block.low === null ||
+    block.high === null
+  ) {
     return TOO_FEW_TO_CALL;
   }
 

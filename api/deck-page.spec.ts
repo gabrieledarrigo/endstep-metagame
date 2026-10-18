@@ -33,7 +33,14 @@ type DeckFields = {
   name: string;
   share: { rate: number };
   players: number;
-  matchWinRate: { wins: number; losses: number; rate: number | null };
+  matchWinRate: {
+    wins: number;
+    losses: number;
+    rate: number | null;
+    low: number | null;
+    high: number | null;
+    gate?: string | null;
+  };
   art: { cardName: string; imageUrl?: string };
 };
 
@@ -57,7 +64,13 @@ function deck(overrides: Partial<DeckFields> = {}): DeckFields {
     name: "Affinity",
     share: { rate: 0.0957 },
     players: 1204,
-    matchWinRate: { wins: 2200, losses: 2000, rate: 0.5238 },
+    matchWinRate: {
+      wins: 2200,
+      losses: 2000,
+      rate: 0.5238,
+      low: 0.509,
+      high: 0.538,
+    },
     art: { cardName: "Thoughtcast", imageUrl: ART },
     ...overrides,
   };
@@ -258,11 +271,28 @@ describe("deck-page", () => {
   });
 
   it.each([
-    [{ wins: 10, losses: 9, rate: 0.53 }],
-    [{ wins: 30, losses: 20, rate: null }],
+    [
+      "under 20 decided matches",
+      { wins: 10, losses: 9, rate: 0.53, low: 0.3, high: 0.75 },
+    ],
+    ["no rate", { wins: 30, losses: 20, rate: null, low: null, high: null }],
+    ["no range", { wins: 20, losses: 10, rate: 0.67, low: null, high: null }],
+    ["no low end", { wins: 20, losses: 10, rate: 0.67, low: null, high: 0.8 }],
+    ["no high end", { wins: 20, losses: 10, rate: 0.67, low: 0.5, high: null }],
+    [
+      "a gate",
+      {
+        wins: 20,
+        losses: 10,
+        rate: 0.67,
+        low: 0.5,
+        high: 0.8,
+        gate: "too_few",
+      },
+    ],
   ])(
-    "reads a win rate under 20 decided matches, or with no rate, as too few to call",
-    async (matchWinRate) => {
+    "reads a win rate with %s as too few to call, as the deck page does",
+    async (_, matchWinRate) => {
       proxy({ deck: deck({ matchWinRate }) });
 
       const html = await (
