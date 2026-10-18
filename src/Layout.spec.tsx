@@ -72,6 +72,16 @@ describe("Layout", () => {
     ).toBeTruthy();
   });
 
+  it("keeps the colons and commas of the rest of the address readable", async () => {
+    renderAt("/what-to-play?meta=affinity-e93f5f74:-4,elves-262fdcbd:3");
+
+    expect(
+      await screen.findByText(
+        "Address: /what-to-play?meta=affinity-e93f5f74:-4,elves-262fdcbd:3&window=30d",
+      ),
+    ).toBeTruthy();
+  });
+
   it("focuses the new page's heading after correcting the window of a new path", async () => {
     renderAt("/?window=7d");
 

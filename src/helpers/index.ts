@@ -1,3 +1,4 @@
+export * from "./address";
 export * from "./cardArt";
 export * from "./cellState";
 export * from "./expectedRate";
