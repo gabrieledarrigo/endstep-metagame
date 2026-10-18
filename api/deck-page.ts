@@ -227,7 +227,17 @@ function preview(html: string, deck: PreviewDeck, timeWindow: string): string {
 }
 
 function pageResponse(method: string, html: string, cache: string): Response {
-  return new Response(method === "HEAD" ? null : html, {
+  if (method === "HEAD") {
+    return new Response(null, {
+      headers: {
+        "Content-Type": "text/html; charset=utf-8",
+        "Cache-Control": NO_STORE,
+      },
+      status: 200,
+    });
+  }
+
+  return new Response(html, {
     headers: {
       "Content-Type": "text/html; charset=utf-8",
       "Cache-Control": cache,
