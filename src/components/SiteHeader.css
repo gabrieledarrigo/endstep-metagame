@@ -15,7 +15,7 @@
     width: fit-content;
     padding-top: 4px;
     font-size: 22px;
-    line-height: 28px;
+    line-height: calc(28 / 22);
     font-weight: 700;
     letter-spacing: -0.015em;
     color: var(--text-900);
@@ -23,8 +23,8 @@
   }
 
   .site-header__mark {
-    width: 28px;
-    height: 28px;
+    width: calc(28em / 22);
+    height: calc(28em / 22);
   }
 
   .site-header__nav {
@@ -47,12 +47,12 @@
       gap: 12px;
       padding-top: 0;
       font-size: 30px;
-      line-height: 36px;
+      line-height: calc(36 / 30);
     }
 
     .site-header__mark {
-      width: 36px;
-      height: 36px;
+      width: calc(36em / 30);
+      height: calc(36em / 30);
     }
 
     .site-header__nav {

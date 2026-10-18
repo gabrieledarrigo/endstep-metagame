@@ -322,14 +322,14 @@ body { container-type:inline-size; }
 .site-header { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:start; gap:10px 16px;
   padding-block:14px; border-bottom:1px solid var(--rule); }
 .site-header__brand { display:flex; align-items:flex-start; gap:10px; width:fit-content; padding-top:4px;
-  font-size:22px; line-height:28px; font-weight:700; letter-spacing:-.015em; color:var(--text-900); text-decoration:none; }
-.site-header__mark { width:28px; height:28px; }
+  font-size:22px; line-height:calc(28 / 22); font-weight:700; letter-spacing:-.015em; color:var(--text-900); text-decoration:none; }
+.site-header__mark { width:calc(28em / 22); height:calc(28em / 22); }
 .site-header .site-nav { grid-column:1 / -1; }
 .site-header .theme-toggle { grid-column:2; grid-row:1; }
 @media (min-width:640px) {
   .site-header { grid-template-columns:minmax(0,1fr) auto auto; align-items:center; gap:10px 24px; }
-  .site-header__brand { gap:12px; padding-top:0; font-size:30px; line-height:36px; }
-  .site-header__mark { width:36px; height:36px; }
+  .site-header__brand { gap:12px; padding-top:0; font-size:30px; line-height:calc(36 / 30); }
+  .site-header__mark { width:calc(36em / 30); height:calc(36em / 30); }
   .site-header .site-nav { grid-column:2; grid-row:1; }
   .site-header .theme-toggle { grid-column:3; }
 }
@@ -346,8 +346,8 @@ body { container-type:inline-size; }
 .theme-demo--tablet { flex:0 1 640px; width:640px; max-width:100%; }
 .theme-demo--phone { flex:0 1 360px; width:360px; max-width:100%; border-radius:20px; }
 .theme-demo--phone .site-header { grid-template-columns:minmax(0,1fr) auto; align-items:start; gap:10px 16px; }
-.theme-demo--phone .site-header__brand { gap:10px; padding-top:4px; font-size:22px; line-height:28px; }
-.theme-demo--phone .site-header__mark { width:28px; height:28px; }
+.theme-demo--phone .site-header__brand { gap:10px; padding-top:4px; font-size:22px; line-height:calc(28 / 22); }
+.theme-demo--phone .site-header__mark { width:calc(28em / 22); height:calc(28em / 22); }
 .theme-demo--phone .site-header .site-nav { grid-column:1 / -1; grid-row:2; }
 .theme-demo--phone .site-header .theme-toggle { grid-column:2; }
 .theme-demo__title { font-size:22px; font-weight:600; color:var(--text-600); padding-top:12px; }
@@ -1556,7 +1556,8 @@ a.button { display:inline-block; text-decoration:none; }
   <span class="mono">--text-900</span> on a 28px line, and 30px on a 36px line from 640px. It names the site and is not a heading.
   <b>Mark</b> As tall as one line of the name: 28px, and 36px from 640px, the toggle&rsquo;s own size, so from 640px the mark
   and the toggle frame the header. 10px from the name, 12px from 640px. It sits on the first line, so a name that wraps on a tablet
-  or a phone stays tight beside it. Below 640px the link takes 4px of top padding, so the mark and the first line share the
+  or a phone stays tight beside it. These are the sizes at the default text size. The line height and the mark are set in
+  proportion to the name, so they scale with it when the reader enlarges text, and the mark still matches one line. Below 640px the link takes 4px of top padding, so the mark and the first line share the
   toggle&rsquo;s centre. The mark is <span class="mono">aria-hidden</span>, and the link&rsquo;s name stays
   &ldquo;Pauper Endstep metagame&rdquo;. The link is no wider than the mark and the name on one line, so the free space
   beside a one-line name is not a link. A wrapped name fills its column. <b>Page title</b> Each page's h1 names the page: Overview, Matchups
