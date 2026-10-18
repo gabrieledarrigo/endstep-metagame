@@ -39,6 +39,12 @@ describe("vercel.json", () => {
     });
   });
 
+  it("gives the sample cards function 30 seconds, above its 8 second deck detail and 6 second Scryfall bound", () => {
+    expect(vercel.functions["api/sample-cards.ts"]).toEqual({
+      maxDuration: 30,
+    });
+  });
+
   it("serves the matchup table and What to play? from the built page", () => {
     expect(vercel.rewrites).toContainEqual({
       source: "/matchups",

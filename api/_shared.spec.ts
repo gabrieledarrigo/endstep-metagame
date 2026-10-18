@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   cacheControl,
+  deckDetailUrl,
   errorResponse,
   hasNoBody,
   isRecord,
@@ -102,5 +103,21 @@ describe("cacheControl", () => {
   it("holds a 429 for the given number of seconds", () => {
     expect(cacheControl(429, 10)).toBe("public, s-maxage=10");
     expect(cacheControl(429, 60)).toBe("public, s-maxage=60");
+  });
+});
+
+describe("deckDetailUrl", () => {
+  it("builds the deck page's own address on the proxy, window first and then the population", () => {
+    expect(
+      deckDetailUrl("https://example.vercel.app", "affinity-e93f5f74", "30d"),
+    ).toBe(
+      "https://example.vercel.app/api/metagame/Pauper/decks/affinity-e93f5f74?window=30d&population=rated",
+    );
+  });
+
+  it("encodes the slug", () => {
+    expect(deckDetailUrl("http://127.0.0.1:4201", "a b", "season")).toBe(
+      "http://127.0.0.1:4201/api/metagame/Pauper/decks/a%20b?window=season&population=rated",
+    );
   });
 });

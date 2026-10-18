@@ -3,6 +3,9 @@
   "functions": {
     "api/deck-page.ts": {
       "includeFiles": "dist/index.html"
+    },
+    "api/sample-cards.ts": {
+      "maxDuration": 30
     }
   },
   "rewrites": [

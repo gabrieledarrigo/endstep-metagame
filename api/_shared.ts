@@ -5,6 +5,13 @@ export const WINDOWS = ["1d", "7d", "14d", "30d", "season"];
 export const EDGE_CACHE = "public, s-maxage=300, stale-while-revalidate=600";
 export const PARTIAL_ART_CACHE =
   "public, s-maxage=60, stale-while-revalidate=600";
+export const SCRYFALL_CDN = "https://cards.scryfall.io/";
+export const SCRYFALL_HEADERS: Readonly<Record<string, string>> = {
+  "User-Agent":
+    "PauperEndstepMetagame/1.0 (+https://github.com/gabrieledarrigo/pauper-endstep-metagame)",
+  Accept: "application/json",
+  "Content-Type": "application/json",
+};
 
 export const BASE_HEADERS: Readonly<Record<string, string>> = {
   "Access-Control-Allow-Origin": "*",
@@ -13,6 +20,27 @@ export const BASE_HEADERS: Readonly<Record<string, string>> = {
 };
 
 const NO_BODY = [204, 205, 304];
+
+/**
+ * Builds the address of a deck detail on our own proxy, exactly as the deck page requests it, so every caller shares the deck page's edge cache entry.
+ *
+ * @param origin - The site's origin, such as `https://pauper-endstep-metagame.vercel.app`.
+ * @param slug - The deck's slug.
+ * @param timeWindow - One of the five windows.
+ * @returns The proxy's address of the deck detail, with the window and the `rated` population, in the order the deck page sends them.
+ */
+export function deckDetailUrl(
+  origin: string,
+  slug: string,
+  timeWindow: string,
+): string {
+  const query = new URLSearchParams({
+    window: timeWindow,
+    population: "rated",
+  });
+
+  return `${origin}/api/metagame/Pauper/decks/${encodeURIComponent(slug)}?${query}`;
+}
 
 /**
  * Checks whether a status forbids a response body.
