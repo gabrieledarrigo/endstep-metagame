@@ -119,6 +119,7 @@ export function MetagameSkeleton({ foldable }: { foldable: boolean }) {
     <Panel className="metagame" aria-busy="true">
       <div className="metagame__summary">
         <h2 className="metagame__title">The metagame you expect</h2>
+        {foldable && <Skeleton className="metagame__skeleton-toggle" />}
       </div>
       {!foldable && <Skeleton className="metagame__skeleton" />}
     </Panel>

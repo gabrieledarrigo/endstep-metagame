@@ -90,6 +90,13 @@
   }
 
   .metagame__skeleton {
-    height: 1000px;
+    height: 1090px;
+  }
+
+  .metagame__skeleton-toggle {
+    align-self: center;
+    width: 4em;
+    height: 1.6em;
+    font-size: 13px;
   }
 }

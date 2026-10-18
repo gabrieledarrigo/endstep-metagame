@@ -178,10 +178,13 @@ describe("MetagameSkeleton", () => {
     expect(container.querySelector(".skeleton")).toBeTruthy();
   });
 
-  it("shows the folded heading alone where the panel folds", () => {
+  it("shows the folded heading, with a placeholder for its toggle, where the panel folds", () => {
     const { container } = render(<MetagameSkeleton foldable />);
 
-    expect(container.querySelector(".skeleton")).toBeNull();
+    expect(container.querySelectorAll(".skeleton")).toHaveLength(1);
+    expect(
+      container.querySelector(".metagame__summary .skeleton"),
+    ).toBeTruthy();
     expect(screen.queryByRole("button")).toBeNull();
   });
 });
