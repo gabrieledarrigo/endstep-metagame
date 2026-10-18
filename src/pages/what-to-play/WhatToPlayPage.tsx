@@ -38,10 +38,6 @@ function columns(
   );
 }
 
-function sharesOf(decks: MatrixDeck[]): Record<string, number> {
-  return Object.fromEntries(decks.map((deck) => [deck.slug, deck.share]));
-}
-
 export function WhatToPlayPage() {
   const [timeWindow, selectTimeWindow] = useTimeWindow();
   const [searchParams] = useSearchParams();
@@ -129,7 +125,7 @@ export function WhatToPlayPage() {
 
               const changes = readMeta(meta, data.decks);
               const changed = Object.keys(changes).length > 0;
-              const own = rankDecks(data, sharesOf(data.decks));
+              const own = rankDecks(data, metagameShares(data.decks, {}));
               const ranking = changed
                 ? rankDecks(data, metagameShares(data.decks, changes))
                 : own;
