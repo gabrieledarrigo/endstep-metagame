@@ -4,6 +4,7 @@ import type {
   DeckDetail,
   DecksResponse,
   MatchupMatrix,
+  SampleCardsResponse,
   ShareSeriesResponse,
   TimeWindow,
 } from "./types";
@@ -122,6 +123,27 @@ export function fetchMatchups(
   return getJson<MatchupMatrix>(
     "/api/matchups",
     { window: timeWindow },
+    signal,
+  );
+}
+
+/**
+ * Fetches the images and prices of a deck's sample list for a window, built by the sample cards function, §4.10.
+ *
+ * @param slug - The deck's slug, such as `affinity-e93f5f74`.
+ * @param timeWindow - The window to read.
+ * @param signal - Aborts the request.
+ * @returns A Promise resolving to each card of the list by name, with its image and its lowest price in tix, euros and dollars.
+ * @throws The errors `getJson` throws.
+ */
+export function fetchSampleCards(
+  slug: string,
+  timeWindow: TimeWindow,
+  signal: AbortSignal,
+): Promise<SampleCardsResponse> {
+  return getJson<SampleCardsResponse>(
+    "/api/sample-cards",
+    { deck: slug, window: timeWindow },
     signal,
   );
 }

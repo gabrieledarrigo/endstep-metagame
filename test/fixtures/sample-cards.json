@@ -1,0 +1,160 @@
+{
+  "cards": {
+    "Black Mage's Rod": {
+      "imageUrl": "https://cards.scryfall.io/normal/front/3/5/35e8f140-055f-4fc7-a765-fb030d828214.jpg?1783906622",
+      "tix": 0.03,
+      "eur": 0.24,
+      "usd": 0.28
+    },
+    "Blood Fountain": {
+      "imageUrl": "https://cards.scryfall.io/normal/front/d/d/dd03651e-ada0-41dc-8722-0eba476943e3.jpg?1783924872",
+      "tix": 0.03,
+      "eur": 0.72,
+      "usd": 0.32
+    },
+    "Drossforge Bridge": {
+      "imageUrl": "https://cards.scryfall.io/normal/front/5/b/5b46b8d8-723a-4752-b97d-29ef83bd294c.jpg?1783926796",
+      "tix": 0.03,
+      "eur": 1.14,
+      "usd": 1.09
+    },
+    "Galvanic Blast": {
+      "imageUrl": "https://cards.scryfall.io/normal/front/0/c/0cf8cb1e-314a-4894-82df-f9812825f52e.jpg?1783930164",
+      "tix": 0.23,
+      "eur": 2.78,
+      "usd": 2.11
+    },
+    "Great Furnace": {
+      "imageUrl": "https://cards.scryfall.io/normal/front/7/4/74c5bb44-d72c-4c1a-a38f-86b4a8f49ae1.jpg?1783906013",
+      "tix": 4.14,
+      "eur": 2.03,
+      "usd": 2.7
+    },
+    "Ichor Wellspring": {
+      "imageUrl": "https://cards.scryfall.io/normal/front/1/c/1ccdb407-ac8f-4736-89d3-ab0d086096ea.jpg?1783927513",
+      "tix": 0.01,
+      "eur": 0.68,
+      "usd": 0.3
+    },
+    "Krark-Clan Shaman": {
+      "imageUrl": "https://cards.scryfall.io/normal/front/9/7/975f9ea8-af2c-456f-acd0-ffa9ea0d98c1.jpg?1783944539",
+      "tix": 0.5,
+      "eur": 6.44,
+      "usd": 7.63
+    },
+    "Makeshift Munitions": {
+      "imageUrl": "https://cards.scryfall.io/normal/front/6/0/60715b6d-b223-431a-85d8-27d7c05469b2.jpg?1783915648",
+      "tix": 0.03,
+      "eur": 0.18,
+      "usd": 0.23
+    },
+    "Mistvault Bridge": {
+      "imageUrl": "https://cards.scryfall.io/normal/front/9/f/9f36a6e2-3e51-4a30-a225-10cfe6650b9d.jpg?1783926795",
+      "tix": 0.03,
+      "eur": 0.51,
+      "usd": 0.65
+    },
+    "Mountain": {
+      "imageUrl": "https://cards.scryfall.io/normal/front/8/5/85177bd7-6c50-48da-b692-ae5fe7bd357c.jpg?1791578439",
+      "tix": 0,
+      "eur": 0,
+      "usd": 0
+    },
+    "Myr Enforcer": {
+      "imageUrl": "https://cards.scryfall.io/normal/front/d/f/dff51ae7-4b68-4770-915b-fb6bcf9ca1ed.jpg?1783938381",
+      "tix": 0.03,
+      "eur": 0.98,
+      "usd": 0.59
+    },
+    "Nihil Spellbomb": {
+      "imageUrl": "https://cards.scryfall.io/normal/front/e/5/e5892a23-efae-4731-9b8f-41c87960fe93.jpg?1783935110",
+      "tix": 0.03,
+      "eur": 4.42,
+      "usd": 2.65
+    },
+    "Reckoner's Bargain": {
+      "imageUrl": "https://cards.scryfall.io/normal/front/6/3/6338942d-d650-4571-8ec6-4d658792c53e.jpg?1783923877",
+      "tix": 0.03,
+      "eur": 1.62,
+      "usd": 0.97
+    },
+    "Refurbished Familiar": {
+      "imageUrl": "https://cards.scryfall.io/normal/front/b/3/b338e078-629c-4cac-bd1d-e1f0a132728d.jpg?1783911277",
+      "tix": 0.03,
+      "eur": 0.33,
+      "usd": 0.32
+    },
+    "Seat of the Synod": {
+      "imageUrl": "https://cards.scryfall.io/normal/front/5/7/57a194b3-2899-4dee-977a-c77df0b94dfe.jpg?1783906005",
+      "tix": 1.25,
+      "eur": 0.78,
+      "usd": 0.96
+    },
+    "Sewer-veillance Cam": {
+      "imageUrl": "https://cards.scryfall.io/normal/front/a/b/ab47a37b-b66d-4f70-9bf0-4d5ed6b518f3.jpg?1783904112",
+      "tix": 0.27,
+      "eur": 0.39,
+      "usd": 0.25
+    },
+    "Silverbluff Bridge": {
+      "imageUrl": "https://cards.scryfall.io/normal/front/8/f/8f14540a-479f-4a3c-8e5b-f482caf48451.jpg?1783906005",
+      "tix": 0.03,
+      "eur": 0.23,
+      "usd": 0.3
+    },
+    "Thoughtcast": {
+      "imageUrl": "https://cards.scryfall.io/normal/front/4/6/466a0be8-31b9-4ea0-9a96-b09a76f4ec69.jpg?1783917163",
+      "tix": 0.18,
+      "eur": 1.42,
+      "usd": 0.87
+    },
+    "Toxin Analysis": {
+      "imageUrl": "https://cards.scryfall.io/normal/front/0/e/0eda1aff-c1f4-4171-a800-605396cc8168.jpg?1783912889",
+      "tix": 0.03,
+      "eur": 0.28,
+      "usd": 0.21
+    },
+    "Utrom Monitor": {
+      "imageUrl": "https://cards.scryfall.io/normal/front/8/c/8ce6647c-343a-45e8-9b6e-0292ae01ec81.jpg?1783904138",
+      "tix": 20.56,
+      "eur": 8.48,
+      "usd": 7.49
+    },
+    "Blue Elemental Blast": {
+      "imageUrl": null,
+      "tix": 11.96,
+      "eur": 2.73,
+      "usd": 1.34
+    },
+    "Extract a Confession": {
+      "imageUrl": "https://cards.scryfall.io/normal/front/2/5/256c8b6e-4031-458b-8eb9-bbfe58405a0c.jpg?1783912899",
+      "tix": 0.03,
+      "eur": 0.29,
+      "usd": 0.3
+    },
+    "Hydroblast": {
+      "imageUrl": "https://cards.scryfall.io/normal/front/4/c/4c9c9b16-5567-4473-95e6-622292f77336.jpg?1783937613",
+      "tix": 17.48,
+      "eur": 6.63,
+      "usd": 4.55
+    },
+    "Pyroblast": {
+      "imageUrl": "https://cards.scryfall.io/normal/front/b/0/b029eb9a-dd7a-40c2-96c4-0063d9cc002c.jpg?1783937576",
+      "tix": 12.52,
+      "eur": 9.7,
+      "usd": 8.77
+    },
+    "Red Elemental Blast": {
+      "imageUrl": "https://cards.scryfall.io/normal/front/7/0/70a45e9b-699e-425a-9f3d-267274830d3e.jpg?1783935140",
+      "tix": 10.35,
+      "eur": 6.28,
+      "usd": 2.36
+    },
+    "Unexpected Fangs": {
+      "imageUrl": "https://cards.scryfall.io/normal/front/a/a/aa6494ad-a35e-4b09-8623-7740f3c20b0b.jpg?1783931057",
+      "tix": 0.03,
+      "eur": 0.51,
+      "usd": 0.21
+    }
+  }
+}

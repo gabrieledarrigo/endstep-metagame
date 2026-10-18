@@ -17,6 +17,7 @@ import {
 } from "vitest";
 import detail from "../../../test/fixtures/deck.json";
 import matrix from "../../../test/fixtures/matchups.json";
+import sampleCards from "../../../test/fixtures/sample-cards.json";
 import { renderWithQueries } from "../../../test/renderWithQueries";
 import { sizeCharts } from "../../../test/sizeCharts";
 import { DeckPage } from "./DeckPage";
@@ -34,11 +35,17 @@ function Address() {
 function stubApi(
   answer: () => Response | Promise<Response>,
 ): Mock<typeof fetch> {
-  const fetchMock = vi.fn<typeof fetch>(async (input) =>
-    String(input).startsWith("/api/matchups")
-      ? Response.json(matrix)
-      : answer(),
-  );
+  const fetchMock = vi.fn<typeof fetch>(async (input) => {
+    if (String(input).startsWith("/api/matchups")) {
+      return Response.json(matrix);
+    }
+
+    if (String(input).startsWith("/api/sample-cards")) {
+      return Response.json(sampleCards);
+    }
+
+    return answer();
+  });
   vi.stubGlobal("fetch", fetchMock);
 
   return fetchMock;
@@ -310,11 +317,17 @@ describe("DeckPage", () => {
   it("keeps the numbers and the sample list when the matchups fail", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn<typeof fetch>(async (input) =>
-        String(input).startsWith("/api/matchups")
-          ? Response.json({ error: "x" }, { status: 502 })
-          : Response.json(detail),
-      ),
+      vi.fn<typeof fetch>(async (input) => {
+        if (String(input).startsWith("/api/matchups")) {
+          return Response.json({ error: "x" }, { status: 502 });
+        }
+
+        if (String(input).startsWith("/api/sample-cards")) {
+          return Response.json(sampleCards);
+        }
+
+        return Response.json(detail);
+      }),
     );
     renderWithQueries(
       <MemoryRouter initialEntries={["/decks/affinity-e93f5f74?window=30d"]}>

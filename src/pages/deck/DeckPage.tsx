@@ -13,6 +13,7 @@ import { StatePanel } from "../../components/StatePanel";
 import { WINDOWS } from "../../config";
 import { formatWindow } from "../../helpers";
 import { useHeadingFocus } from "../../hooks/useHeadingFocus";
+import { useSampleCards } from "../../hooks/useSampleCards";
 import { useTimeWindow } from "../../hooks/useTimeWindow";
 import { DeckHero } from "./DeckHero";
 import { DeckMatchups } from "./DeckMatchups";
@@ -31,6 +32,10 @@ function isUnknownDeck(deck: UseQueryResult<DeckDetail>): boolean {
     deck.error instanceof ApiError &&
     (deck.error.status === 404 || deck.error.status === 400)
   );
+}
+
+function matchCount(detail: DeckDetail): number {
+  return detail.deck.matchWinRate.wins + detail.deck.matchWinRate.losses;
 }
 
 function headingState(deck: UseQueryResult<DeckDetail>): string {
@@ -63,6 +68,14 @@ export function DeckPage() {
     placeholderData: (previous, previousQuery) =>
       previousQuery?.queryKey[1] === slug ? previous : undefined,
   });
+
+  const sampleCards = useSampleCards(
+    deck.data?.deck.slug ?? slug,
+    deck.data?.provenance.window.preset ?? timeWindow,
+    deck.data !== undefined &&
+      deck.data.sampleList.state !== "withheld" &&
+      matchCount(deck.data) > 0,
+  );
 
   const canonical = deck.data?.deck.slug;
   const loadingWindow = deck.isPlaceholderData;
@@ -118,8 +131,7 @@ export function DeckPage() {
 
   const detail = deck.data;
   const dates = formatWindow(detail.provenance.window);
-  const matches =
-    detail.deck.matchWinRate.wins + detail.deck.matchWinRate.losses;
+  const matches = matchCount(detail);
   const hero = (
     <DeckHero
       deck={detail.deck}
@@ -196,6 +208,8 @@ export function DeckPage() {
             <SampleList
               key={`${detail.provenance.window.from}/${detail.provenance.window.to}`}
               list={detail.sampleList}
+              cards={sampleCards.data?.cards}
+              cardsPending={sampleCards.isPlaceholderData}
             />
           </DeckSection>
         </div>
