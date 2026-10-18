@@ -1072,6 +1072,33 @@ describe("the sample cards function's memory", () => {
 });
 
 describe("the sample cards function's Scryfall failures", () => {
+  it("does not send a request that waited for its slot while another call met a 429", async () => {
+    const fetchMock = stub({
+      detail: detail(["Thoughtcast"]),
+      collection: async (): Promise<Response> => {
+        await new Promise((resolve) => {
+          setTimeout(resolve, 100);
+        });
+
+        return new Response(null, { status: 429 });
+      },
+    });
+
+    const answers = await settle(
+      Promise.all([
+        sampleCards.fetch(new Request(`${ORIGIN}/api/sample-cards${QUERY}`)),
+        sampleCards.fetch(
+          new Request(`${ORIGIN}/api/sample-cards?deck=other-deck&window=30d`),
+        ),
+      ]),
+    );
+
+    expect(scryfallUrls(fetchMock)).toEqual([COLLECTION]);
+    expect(
+      answers.map((answer) => answer.headers.get("cache-control")),
+    ).toEqual([FIVE_MINUTES, FIVE_MINUTES]);
+  });
+
   it("stops at a 429 for five minutes, and sends Scryfall nothing for 30 seconds", async () => {
     const fetchMock = stub({
       detail: detail(["Thoughtcast"]),

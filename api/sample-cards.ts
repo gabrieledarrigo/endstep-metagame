@@ -176,6 +176,10 @@ async function ask(
     await wait(start - Date.now());
   }
 
+  if (Date.now() < pausedUntil) {
+    return null;
+  }
+
   try {
     const response = await fetch(url, {
       ...init,
