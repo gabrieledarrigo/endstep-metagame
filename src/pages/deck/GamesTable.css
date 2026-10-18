@@ -14,6 +14,7 @@
   }
 
   .games__table {
+    width: 100%;
     border-collapse: collapse;
     font-size: 14px;
   }
@@ -61,10 +62,14 @@
     background: var(--hatch);
   }
 
+  .games__row--last .games__head,
+  .games__row--last .games__cell {
+    border-bottom-color: var(--baseline);
+  }
+
   .games__row--total .games__head,
   .games__row--total .games__cell {
     font-weight: 600;
-    border-top: 1px solid var(--baseline);
     border-bottom: 0;
   }
 

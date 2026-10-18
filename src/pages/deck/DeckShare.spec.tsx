@@ -73,7 +73,7 @@ describe("DeckShare", () => {
     );
   });
 
-  it("lists every day in a table, with no data for a day without a share", () => {
+  it("lists every day and its share, with no data for a day without a share", () => {
     renderShare([
       {
         day: "2026-09-04",
@@ -84,14 +84,19 @@ describe("DeckShare", () => {
       ...POINTS.slice(0, 2),
     ]);
 
-    fireEvent.click(screen.getByText("Daily share as a table"));
-    const rows = within(screen.getByRole("table")).getAllByRole("row");
+    fireEvent.click(screen.getByText("Daily share, day by day"));
+    const list = screen.getByRole("group", { name: "Meta share by day" });
 
-    expect(rows.map((row) => row.textContent)).toEqual([
-      "DayMeta share",
-      "04 Septno data",
-      "11 Sept10.29%",
-      "12 Sept10.82%",
-    ]);
+    expect(
+      within(list)
+        .getAllByRole("term")
+        .map((term) => term.textContent),
+    ).toEqual(["04 Sept", "11 Sept", "12 Sept"]);
+    expect(
+      within(list)
+        .getAllByRole("definition")
+        .map((definition) => definition.textContent),
+    ).toEqual(["no data", "10.29%", "10.82%"]);
+    expect(screen.queryByRole("table")).toBeNull();
   });
 });
