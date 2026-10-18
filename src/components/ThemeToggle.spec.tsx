@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { stubColourScheme } from "../../test/stubColourScheme";
+import page from "../../index.html?raw";
 import { ThemeToggle } from "./ThemeToggle";
 
 function toggle(): HTMLElement {
@@ -16,11 +17,8 @@ function icon(): string | undefined {
 }
 
 function addThemeColours(): void {
-  document.head.insertAdjacentHTML(
-    "beforeend",
-    '<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f9f9f7">' +
-      '<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#353537">',
-  );
+  const head = new DOMParser().parseFromString(page, "text/html").head;
+  document.head.append(...head.querySelectorAll('meta[name="theme-color"]'));
 }
 
 function themeColours(): (string | null)[] {
