@@ -1,4 +1,4 @@
-import type { MatrixDeck } from "../../api/types";
+import type { MatrixDeck } from "../api/types";
 import "./DeckPicker.css";
 
 type DeckPickerProps = {

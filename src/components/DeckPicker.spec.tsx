@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import matrix from "../../../test/fixtures/matchups.json";
-import type { MatchupMatrix } from "../../api/types";
+import matrix from "../../test/fixtures/matchups.json";
+import type { MatchupMatrix } from "../api/types";
 import { DeckPicker } from "./DeckPicker";
 
 const { decks } = matrix as MatchupMatrix;

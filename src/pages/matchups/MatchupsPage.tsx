@@ -8,6 +8,7 @@ import {
   useSearchParams,
 } from "react-router";
 import { fetchDeck } from "../../api/endpoints";
+import { DeckPicker } from "../../components/DeckPicker";
 import { EmptyWindow } from "../../components/EmptyWindow";
 import { PageTitle } from "../../components/PageTitle";
 import { Section } from "../../components/Section";
@@ -17,7 +18,6 @@ import { findDeck, formatWindow } from "../../helpers";
 import { useMatchups } from "../../hooks/useMatchups";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { useTimeWindow } from "../../hooks/useTimeWindow";
-import { DeckPicker } from "./DeckPicker";
 import { MatchupList, MatchupListSkeleton } from "./MatchupList";
 import { MatchupTable, MatchupTableSkeleton } from "./MatchupTable";
 
