@@ -151,6 +151,20 @@ describe("the page before it first paints", () => {
     expect(prePaint?.index).toBeLessThan(page.indexOf('type="module"'));
   });
 
+  it("comes after both theme colours in the head, so it can set them", () => {
+    const script = head.querySelector("script:not([src])");
+    const metas = [...head.querySelectorAll('meta[name="theme-color"]')];
+
+    expect(script).not.toBeNull();
+    expect(metas).toHaveLength(2);
+    metas.forEach((meta) => {
+      expect(
+        meta.compareDocumentPosition(script!) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+    });
+  });
+
   it("applies a stored dark choice", () => {
     localStorage.setItem("theme", "dark");
 
