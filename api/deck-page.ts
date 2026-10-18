@@ -5,6 +5,7 @@ import {
   PARTIAL_ART_CACHE,
   SEGMENT,
   WINDOWS,
+  deckDetailUrl,
   isRecord,
 } from "./_shared.js";
 
@@ -123,17 +124,14 @@ async function deckDetail(
   origin: string,
   target: Target,
 ): Promise<PreviewDeck | null> {
-  const query = new URLSearchParams({
-    window: target.window,
-    population: "rated",
-  });
-  const address = `${origin}/api/metagame/Pauper/decks/${encodeURIComponent(target.slug)}?${query}`;
-
   try {
-    const response = await fetch(address, {
-      headers: { accept: "application/json" },
-      signal: AbortSignal.timeout(BOUND_MS),
-    });
+    const response = await fetch(
+      deckDetailUrl(origin, target.slug, target.window),
+      {
+        headers: { accept: "application/json" },
+        signal: AbortSignal.timeout(BOUND_MS),
+      },
+    );
 
     if (!response.ok) {
       await response.body?.cancel();

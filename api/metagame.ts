@@ -1,6 +1,8 @@
 import {
   BASE_HEADERS,
   PARTIAL_ART_CACHE,
+  SCRYFALL_CDN,
+  SCRYFALL_HEADERS,
   SEGMENT,
   TIMEOUT_MS,
   UPSTREAM,
@@ -44,13 +46,6 @@ const QUERY_PARAMS = [
 const SCRYFALL_COLLECTION = "https://api.scryfall.com/cards/collection";
 const SCRYFALL_TIMEOUT_MS = 1000;
 const SCRYFALL_PAUSE_MS = 30_000;
-const SCRYFALL_HEADERS: Readonly<Record<string, string>> = {
-  "User-Agent":
-    "PauperEndstepMetagame/1.0 (+https://github.com/gabrieledarrigo/pauper-endstep-metagame)",
-  Accept: "application/json",
-  "Content-Type": "application/json",
-};
-const ART_HOST = "https://cards.scryfall.io/";
 
 type ArtDeck = {
   art: { cardName: string; imageUrl?: string };
@@ -219,7 +214,7 @@ function isScryfallCard(value: unknown): value is ScryfallCard {
  * @returns The address, or `null` when it is missing or on another host.
  */
 function onCdn(address: string | undefined): string | null {
-  if (!address?.startsWith(ART_HOST)) {
+  if (!address?.startsWith(SCRYFALL_CDN)) {
     return null;
   }
 
