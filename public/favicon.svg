@@ -1,18 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <style>
-    .tile { fill: #1c5cab; }
-    .bar-1 { fill: #fcfcfb; }
-    .bar-2 { fill: #cfdceb; }
-    .bar-3 { fill: #a2bcdb; }
+    .tile { fill: #3069b2; }
+    .bar-1 { fill: #fdfdfc; }
+    .bar-2 { fill: #cee1f6; }
+    .bar-3 { fill: #a0c4e9; }
     @media (prefers-color-scheme: dark) {
-      .tile { fill: #8fbefa; }
-      .bar-1 { fill: #353537; }
-      .bar-2 { fill: #47505e; }
-      .bar-3 { fill: #596c85; }
+      .tile { fill: #cee1f6; }
+      .bar-1 { fill: #2c2c2e; }
+      .bar-2 { fill: #404a58; }
+      .bar-3 { fill: #546780; }
     }
   </style>
-  <rect class="tile" width="64" height="64" rx="14"/>
-  <rect class="bar-1" x="14" y="14.5" width="36" height="9" rx="3"/>
-  <rect class="bar-2" x="14" y="27.5" width="26" height="9" rx="3"/>
-  <rect class="bar-3" x="14" y="40.5" width="16" height="9" rx="3"/>
+  <rect class="tile" width="64" height="64" rx="10"/>
+  <rect class="bar-1" x="14" y="14.5" width="36" height="9" rx="2"/>
+  <rect class="bar-2" x="14" y="27.5" width="26" height="9" rx="2"/>
+  <rect class="bar-3" x="14" y="40.5" width="16" height="9" rx="2"/>
 </svg>
