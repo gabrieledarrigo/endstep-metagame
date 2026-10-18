@@ -253,3 +253,5 @@ export type SampleCardData = {
 export type SampleCardsResponse = {
   cards: Record<string, SampleCardData>;
 };
+
+export type Currency = "tix" | "eur" | "usd";

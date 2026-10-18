@@ -1,9 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   axisShare,
   formatCount,
   formatDay,
   formatPopulation,
+  formatPrice,
   formatProportion,
   formatShare,
   formatWindow,
@@ -132,5 +133,30 @@ describe("formatProportion", () => {
     expect(formatProportion({ count: 0, of: 0, rate: 0 })).toBe(
       "Not available",
     );
+  });
+});
+
+describe("formatPrice", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("formats tickets as a number with two decimals and no unit", () => {
+    expect(formatPrice(238.41, "tix")).toBe("238.41");
+    expect(formatPrice(1234.5, "tix")).toBe("1,234.50");
+    expect(formatPrice(0, "tix")).toBe("0.00");
+  });
+
+  it("formats euros and dollars with their symbol", () => {
+    expect(formatPrice(194, "eur")).toBe("€194.00");
+    expect(formatPrice(173.64, "usd")).toBe("$173.64");
+  });
+
+  it("follows the user's locales", () => {
+    vi.stubGlobal("navigator", { ...navigator, languages: ["de-DE"] });
+
+    expect(formatPrice(1234.5, "tix")).toBe("1.234,50");
+    expect(formatPrice(194, "eur")).toBe("194,00\u00a0€");
+    expect(formatPrice(173.64, "usd")).toBe("173,64\u00a0$");
   });
 });
