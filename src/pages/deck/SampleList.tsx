@@ -146,6 +146,10 @@ export function SampleList({ list, cards, cardsPending }: SampleListProps) {
   };
 
   const leave = (element: HTMLButtonElement): void => {
+    if (focused.current?.element.isConnected === false) {
+      focused.current = null;
+    }
+
     const fallback = focused.current;
     setPreview((shown) => (shown?.element === element ? fallback : shown));
   };
