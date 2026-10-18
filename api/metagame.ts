@@ -1,5 +1,6 @@
 import {
   BASE_HEADERS,
+  SEGMENT,
   TIMEOUT_MS,
   UPSTREAM,
   cacheControl,
@@ -37,8 +38,6 @@ const QUERY_PARAMS = [
   "decks",
   "v",
 ];
-
-const SEGMENT = /^[A-Za-z0-9_-]+$/;
 
 const SCRYFALL_COLLECTION = "https://api.scryfall.com/cards/collection";
 const SCRYFALL_TIMEOUT_MS = 1000;

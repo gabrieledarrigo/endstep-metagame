@@ -1,5 +1,7 @@
 export const UPSTREAM = "https://endstep.cc/api/metagame/v1";
 export const TIMEOUT_MS = 8000;
+export const SEGMENT = /^[A-Za-z0-9_-]+$/;
+export const WINDOWS = ["1d", "7d", "14d", "30d", "season"];
 
 export const BASE_HEADERS: Readonly<Record<string, string>> = {
   "Access-Control-Allow-Origin": "*",
