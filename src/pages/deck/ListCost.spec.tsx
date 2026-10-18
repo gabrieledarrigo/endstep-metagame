@@ -3,7 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import detail from "../../../test/fixtures/deck.json";
 import sampleCards from "../../../test/fixtures/sample-cards.json";
 import type { SampleCard, SampleCardData } from "../../api/types";
-import { ListCost } from "./ListCost";
+import type { ListCost as ListCostComponent } from "./ListCost";
 
 const { main, side } = detail.sampleList as {
   main: SampleCard[];
@@ -27,8 +27,18 @@ function pressed(): string | null {
   );
 }
 
-beforeEach(() => {
+let ListCost: typeof ListCostComponent;
+
+function blockStorage(method: "getItem" | "setItem"): void {
+  vi.spyOn(Storage.prototype, method).mockImplementation(() => {
+    throw new DOMException("Storage is disabled", "SecurityError");
+  });
+}
+
+beforeEach(async () => {
   localStorage.clear();
+  vi.resetModules();
+  ({ ListCost } = await import("./ListCost"));
 });
 
 afterEach(() => {
@@ -94,9 +104,7 @@ describe("ListCost", () => {
   });
 
   it("falls back to tickets when the browser refuses to read the storage", () => {
-    vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
-      throw new DOMException("Storage is disabled", "SecurityError");
-    });
+    blockStorage("getItem");
 
     render(<ListCost main={main} side={side} cards={cards} />);
 
@@ -104,16 +112,48 @@ describe("ListCost", () => {
     expect(screen.getByText("231.73").textContent).toBe("231.73 tix");
   });
 
-  it("still switches when the browser refuses to store the choice", () => {
-    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
-      throw new DOMException("Storage is disabled", "SecurityError");
-    });
+  it("still switches, and keeps the choice for the session, when the browser refuses to store it", () => {
+    blockStorage("setItem");
 
-    render(<ListCost main={main} side={side} cards={cards} />);
+    const { unmount } = render(
+      <ListCost main={main} side={side} cards={cards} />,
+    );
     fireEvent.click(screen.getByRole("button", { name: "€" }));
 
     expect(pressed()).toBe("€");
     expect(screen.getByText("€185.40")).toBeTruthy();
+
+    unmount();
+    render(<ListCost main={main} side={side} cards={cards} />);
+
+    expect(pressed()).toBe("€");
+  });
+
+  it("keeps the choice for the session when the storage is blocked", () => {
+    blockStorage("getItem");
+    blockStorage("setItem");
+
+    const { unmount } = render(
+      <ListCost main={main} side={side} cards={cards} />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "€" }));
+    unmount();
+    render(<ListCost main={main} side={side} cards={cards} />);
+
+    expect(pressed()).toBe("€");
+    expect(screen.getByText("€185.40")).toBeTruthy();
+  });
+
+  it("lets a stored value win over the session's choice", () => {
+    const { unmount } = render(
+      <ListCost main={main} side={side} cards={cards} />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "€" }));
+    unmount();
+    localStorage.setItem("currency", "usd");
+    render(<ListCost main={main} side={side} cards={cards} />);
+
+    expect(pressed()).toBe("$");
   });
 
   it("counts each card with no price once, whether it is missing or null, in either board", () => {

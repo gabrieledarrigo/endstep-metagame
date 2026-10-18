@@ -15,6 +15,8 @@ const CURRENCIES: Record<Option, Currency> = {
   $: "usd",
 };
 
+let chosen: Currency | null = null;
+
 type ListCostProps = {
   main: SampleCard[];
   side: SampleCard[];
@@ -27,14 +29,14 @@ function storedCurrency(): Currency {
   try {
     stored = localStorage.getItem(CURRENCY_KEY);
   } catch {
-    return "tix";
+    return chosen ?? "tix";
   }
 
-  if (stored === "eur" || stored === "usd") {
+  if (stored === "tix" || stored === "eur" || stored === "usd") {
     return stored;
   }
 
-  return "tix";
+  return chosen ?? "tix";
 }
 
 function optionOf(currency: Currency): Option {
@@ -91,6 +93,7 @@ export function ListCost({ main, side, cards }: ListCostProps) {
 
   const choose = (option: Option): void => {
     const next = CURRENCIES[option];
+    chosen = next;
     setCurrency(next);
     try {
       localStorage.setItem(CURRENCY_KEY, next);
