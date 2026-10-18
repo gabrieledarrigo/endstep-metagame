@@ -337,7 +337,7 @@ describe("rangeScale", () => {
 });
 
 describe("toPoints", () => {
-  it("turns a rate into whole points without float noise", () => {
+  it("turns a rate into points, snapped to a ten-thousandth of a point", () => {
     expect(toPoints(0.07)).toBe(7);
     expect(toPoints(0.0939)).toBe(9.39);
   });
