@@ -1,8 +1,13 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import detail from "../../../test/fixtures/deck.json";
 import sampleCards from "../../../test/fixtures/sample-cards.json";
-import type { DeckDetail, SampleList as SampleListData } from "../../api/types";
+import { stubHover } from "../../../test/stubHover";
+import type {
+  DeckDetail,
+  SampleCardsResponse,
+  SampleList as SampleListData,
+} from "../../api/types";
 import { SampleList } from "./SampleList";
 
 const LIST = (detail as DeckDetail).sampleList;
@@ -257,5 +262,185 @@ describe("SampleList", () => {
         screen.queryByRole("region", { name: "Cost to build" }),
       ).toBeNull();
     });
+  });
+});
+
+describe("SampleList card previews", () => {
+  const CARDS = (sampleCards as SampleCardsResponse).cards;
+
+  function name(card: string, index = 0): HTMLElement {
+    return screen.getAllByRole("button", { name: card })[index];
+  }
+
+  function previews(): HTMLElement[] {
+    return screen.queryAllByRole("presentation", { hidden: true });
+  }
+
+  function focusVisibly(button: HTMLElement, visible: boolean): void {
+    const matches = button.matches.bind(button);
+    vi.spyOn(button, "matches").mockImplementation((selector) =>
+      selector === ":focus-visible" ? visible : matches(selector),
+    );
+    act(() => {
+      button.focus();
+    });
+  }
+
+  beforeEach(() => {
+    vi.spyOn(Element.prototype, "getBoundingClientRect").mockReturnValue(
+      DOMRect.fromRect({ x: 920, y: 300, width: 300, height: 20 }),
+    );
+    vi.spyOn(document.documentElement, "clientWidth", "get").mockReturnValue(
+      1280,
+    );
+    vi.spyOn(document.documentElement, "clientHeight", "get").mockReturnValue(
+      800,
+    );
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("makes a name a button only when its image came back", () => {
+    render(<SampleList list={LIST} cards={CARDS} />);
+
+    expect(name("Galvanic Blast").getAttribute("aria-haspopup")).toBe("dialog");
+    expect(
+      screen.getAllByRole("button", { name: "Krark-Clan Shaman" }),
+    ).toHaveLength(2);
+    expect(
+      screen.queryByRole("button", { name: "Blue Elemental Blast" }),
+    ).toBeNull();
+    expect(screen.getByText("Blue Elemental Blast")).toBeTruthy();
+    expect(
+      screen.queryByRole("button", { name: "Vault of Whispers" }),
+    ).toBeNull();
+    expect(screen.getByText("Vault of Whispers")).toBeTruthy();
+  });
+
+  it("keeps every name plain without the cards", () => {
+    render(<SampleList list={LIST} />);
+
+    expect(
+      screen.getAllByRole("button").map((button) => button.textContent),
+    ).toEqual(["Copy list"]);
+    expect(screen.getByText("Galvanic Blast")).toBeTruthy();
+  });
+
+  it("shows the card while a mouse points at its name, on a device that can hover", () => {
+    stubHover(true);
+    render(<SampleList list={LIST} cards={CARDS} />);
+
+    fireEvent.pointerOver(name("Galvanic Blast"), { pointerType: "mouse" });
+
+    expect(previews().map((image) => image.getAttribute("src"))).toEqual([
+      CARDS["Galvanic Blast"].imageUrl,
+    ]);
+
+    fireEvent.pointerOut(name("Galvanic Blast"), { pointerType: "mouse" });
+
+    expect(previews()).toEqual([]);
+  });
+
+  it("shows no card for a touch, or on a device that cannot hover", () => {
+    stubHover(true);
+    const { unmount } = render(<SampleList list={LIST} cards={CARDS} />);
+
+    fireEvent.pointerOver(name("Galvanic Blast"), { pointerType: "touch" });
+    expect(previews()).toEqual([]);
+    unmount();
+
+    stubHover(false);
+    render(<SampleList list={LIST} cards={CARDS} />);
+
+    fireEvent.pointerOver(name("Galvanic Blast"), { pointerType: "mouse" });
+    focusVisibly(name("Galvanic Blast"), true);
+    expect(previews()).toEqual([]);
+  });
+
+  it("shows the card on keyboard focus only, and hides it when focus moves on or on Escape", () => {
+    stubHover(true);
+    render(<SampleList list={LIST} cards={CARDS} />);
+
+    focusVisibly(name("Galvanic Blast"), false);
+    expect(previews()).toEqual([]);
+
+    focusVisibly(name("Thoughtcast"), true);
+    expect(previews().map((image) => image.getAttribute("src"))).toEqual([
+      CARDS.Thoughtcast.imageUrl,
+    ]);
+
+    act(() => {
+      name("Thoughtcast").blur();
+    });
+    expect(previews()).toEqual([]);
+
+    focusVisibly(name("Thoughtcast"), true);
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(previews()).toEqual([]);
+  });
+
+  it("opens the card in a dialog on activation, and returns focus to its name when it closes", () => {
+    stubHover(true);
+    render(<SampleList list={LIST} cards={CARDS} />);
+    fireEvent.pointerOver(name("Galvanic Blast"), { pointerType: "mouse" });
+
+    fireEvent.click(name("Galvanic Blast"));
+
+    const dialog = screen.getByRole("dialog", { name: "Galvanic Blast" });
+    expect(
+      within(dialog).getByRole("img", { name: "Galvanic Blast" }),
+    ).toBeTruthy();
+    expect(document.activeElement).toBe(
+      within(dialog).getByRole("button", { name: "Close" }),
+    );
+    expect(previews()).toEqual([]);
+
+    fireEvent.click(within(dialog).getByRole("button", { name: "Close" }));
+
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(document.activeElement).toBe(name("Galvanic Blast"));
+  });
+
+  it("returns focus to the very name it opened from, in the sideboard, on Escape", () => {
+    render(<SampleList list={LIST} cards={CARDS} />);
+
+    fireEvent.click(name("Krark-Clan Shaman", 1));
+    act(() => {
+      (screen.getByRole("dialog") as HTMLDialogElement).close();
+    });
+
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(document.activeElement).toBe(name("Krark-Clan Shaman", 1));
+  });
+
+  it("does not show the card again when focus returns from the dialog", () => {
+    stubHover(true);
+    render(<SampleList list={LIST} cards={CARDS} />);
+    const button = name("Galvanic Blast");
+    const matches = button.matches.bind(button);
+    vi.spyOn(button, "matches").mockImplementation((selector) =>
+      selector === ":focus-visible" ? true : matches(selector),
+    );
+
+    fireEvent.click(button);
+    fireEvent.click(screen.getByRole("button", { name: "Close" }));
+
+    expect(document.activeElement).toBe(button);
+    expect(previews()).toEqual([]);
+  });
+
+  it("closes the dialog on a tap outside the card, and not on the card", () => {
+    render(<SampleList list={LIST} cards={CARDS} />);
+    fireEvent.click(name("Utrom Monitor"));
+    const dialog = screen.getByRole("dialog", { name: "Utrom Monitor" });
+
+    fireEvent.click(within(dialog).getByRole("img", { name: "Utrom Monitor" }));
+    expect(screen.getByRole("dialog")).toBe(dialog);
+
+    fireEvent.click(dialog);
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(document.activeElement).toBe(name("Utrom Monitor"));
   });
 });
