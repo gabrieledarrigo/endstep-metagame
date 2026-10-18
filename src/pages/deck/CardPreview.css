@@ -1,0 +1,26 @@
+@layer components {
+  .card-preview {
+    position: fixed;
+    inset: auto;
+    width: 244px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 12px;
+    background: none;
+    overflow: visible;
+    pointer-events: none;
+    box-shadow: 0 10px 30px var(--shadow);
+  }
+
+  .card-preview--loading {
+    visibility: hidden;
+  }
+
+  .card-preview__img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 12px;
+  }
+}
