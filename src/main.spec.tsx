@@ -203,6 +203,10 @@ describe("the page before it first paints", () => {
 
     runPrePaint();
 
+    expect(metas.map((meta) => meta.getAttribute("media"))).toEqual([
+      "(prefers-color-scheme: light)",
+      "(prefers-color-scheme: dark)",
+    ]);
     expect(metas.map((meta) => meta.getAttribute("content"))).toEqual([
       "#f9f9f7",
       "#f9f9f7",
