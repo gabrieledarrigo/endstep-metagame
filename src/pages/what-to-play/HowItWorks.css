@@ -1,0 +1,25 @@
+@layer components {
+  .how-it-works {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+    font-size: 14px;
+    color: var(--text-600);
+  }
+
+  .how-it-works__title {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--text-900);
+  }
+
+  .how-it-works__item {
+    margin: 0;
+  }
+
+  .how-it-works__subject {
+    color: var(--text-900);
+  }
+}
