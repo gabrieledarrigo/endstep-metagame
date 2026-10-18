@@ -98,6 +98,28 @@ describe("ExpectedRates", () => {
     ).toBe("true");
   });
 
+  it("draws finite positions for a ranking of one deck", () => {
+    const container = renderAt(
+      <ExpectedRates
+        ranking={rankDecks(
+          { ...MATRIX, decks: MATRIX.decks.slice(0, 1) },
+          { [MATRIX.decks[0].slug]: 1 },
+        )}
+      />,
+    );
+    const left = (selector: string): string[] =>
+      Array.from(container.querySelectorAll<HTMLElement>(selector)).map(
+        (element) => element.style.left,
+      );
+
+    expect(left(".expected__tick")).toEqual(["0%", "100%"]);
+    expect(left(".range-bar__mid")).toEqual(["0%"]);
+    expect(left(".range-bar__dot")).toEqual(["0%"]);
+    expect(
+      container.querySelector<HTMLElement>(".range-bar__span")?.style.cssText,
+    ).toBe("left: 0%; width: 0%;");
+  });
+
   it("draws each deck's range bar on the shared scale, in the colour of its verdict", () => {
     const container = renderAt(
       <ExpectedRates ranking={RANKING} period="the last 7 days" />,

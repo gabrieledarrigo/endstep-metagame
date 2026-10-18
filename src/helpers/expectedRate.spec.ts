@@ -292,6 +292,22 @@ describe("pickDecks", () => {
 });
 
 describe("rangeScale", () => {
+  it("spans one step from 50% when every range sits on 50%", () => {
+    expect(
+      rangeScale([
+        { low: 0.5, high: 0.5 },
+        { low: 0.5, high: 0.5 },
+      ]),
+    ).toEqual({ min: 0.5, max: 0.55 });
+  });
+
+  it("spans one step for a matrix of one deck", () => {
+    const scale = rangeScale(rankDecks(matrixOf(["a"], {}), { a: 1 }));
+
+    expect(scale).toEqual({ min: 0.5, max: 0.55 });
+    expect(scale.max).toBeGreaterThan(scale.min);
+  });
+
   it("rounds the lowest and the highest bound out to 5 points", () => {
     expect(rangeScale([{ low: 0.2375, high: 0.7625 }])).toEqual({
       min: 0.2,

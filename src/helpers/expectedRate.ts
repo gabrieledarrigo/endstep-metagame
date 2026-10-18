@@ -122,8 +122,10 @@ export function pickDecks(ranking: RankedDeck[]): {
 /**
  * Finds the scale that range bars share, FR-17: from the lowest bound to the highest, rounded out to 5 points and always holding 50%.
  *
+ * The scale spans at least one 5-point step, so a range that sits on 50% alone still has room to draw.
+ *
  * @param ranges - The ranges to draw, as rates.
- * @returns The scale's ends as rates, such as `{ min: 0.35, max: 0.6 }`.
+ * @returns The scale's ends as rates, such as `{ min: 0.35, max: 0.6 }`. The maximum is always above the minimum.
  */
 export function rangeScale(ranges: { low: number; high: number }[]): {
   min: number;
@@ -132,8 +134,9 @@ export function rangeScale(ranges: { low: number; high: number }[]): {
   const lowest = Math.min(EVEN, ...ranges.map((range) => range.low));
   const highest = Math.max(EVEN, ...ranges.map((range) => range.high));
 
-  return {
-    min: (Math.floor(toPoints(lowest) / SCALE_STEP) * SCALE_STEP) / 100,
-    max: (Math.ceil(toPoints(highest) / SCALE_STEP) * SCALE_STEP) / 100,
-  };
+  const min = Math.floor(toPoints(lowest) / SCALE_STEP) * SCALE_STEP;
+  const top = Math.ceil(toPoints(highest) / SCALE_STEP) * SCALE_STEP;
+  const max = top === min ? top + SCALE_STEP : top;
+
+  return { min: min / 100, max: max / 100 };
 }
