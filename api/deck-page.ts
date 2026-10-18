@@ -231,17 +231,7 @@ function preview(html: string, deck: PreviewDeck, timeWindow: string): string {
 }
 
 function pageResponse(method: string, html: string, cache: string): Response {
-  if (method === "HEAD") {
-    return new Response(null, {
-      headers: {
-        "Content-Type": "text/html; charset=utf-8",
-        "Cache-Control": NO_STORE,
-      },
-      status: 200,
-    });
-  }
-
-  return new Response(html, {
+  return new Response(method === "HEAD" ? null : html, {
     headers: {
       "Content-Type": "text/html; charset=utf-8",
       "Cache-Control": cache,
@@ -256,7 +246,7 @@ export default {
    *
    * `vercel.json` rewrites `/decks/:slug` here, with the slug in the `slug` query parameter and the link's own parameters beside it.
    * The function reads the built `index.html`, fetches the deck detail through our proxy, and writes the deck's title, description, art crop, canonical link and `og:url` into the head.
-   * The page is cached at the edge for five minutes when the deck's art resolved, and for one minute when it did not. A `HEAD` is sent with `no-store`.
+   * The page is cached at the edge for five minutes when the deck's art resolved, and for one minute when it did not.
    * A rejected slug or window, a failed call, a call longer than two seconds, or a body it cannot read gets the page with the site card, sent with `no-store`.
    *
    * @param req - The incoming request.

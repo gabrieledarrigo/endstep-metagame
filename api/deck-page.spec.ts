@@ -488,7 +488,7 @@ describe("deck-page", () => {
     });
   });
 
-  it("answers HEAD with no body, and never lets the edge keep it", async () => {
+  it("answers HEAD with the same headers and no body", async () => {
     proxy({ deck: deck() });
 
     const response = await deckPage.fetch(
@@ -496,7 +496,7 @@ describe("deck-page", () => {
     );
 
     expect(response.status).toBe(200);
-    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(response.headers.get("cache-control")).toBe(FIVE_MINUTES);
     expect(response.body).toBeNull();
   });
 
