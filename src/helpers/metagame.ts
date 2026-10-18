@@ -16,7 +16,7 @@ function shareOf(deck: MatrixDeck, change: number): number {
 /**
  * Reads the reader's changes to the metagame from the `meta` parameter, FR-17.
  *
- * Each entry is `{slug}:{change}`, the change a whole number of points. An entry that cannot be read, has a change of zero or outside −100 to 100, names no deck in `decks`, or repeats a deck already read is ignored. Decks are matched by their slug's suffix. A change that lowers a share past zero counts as the share rounded up. Changes that would leave every share at zero are all ignored.
+ * Each entry is `{slug}:{change}`, the change a whole number of points. An entry that cannot be read, has a change of zero or outside −100 to 100, names no deck in `decks`, or repeats a deck already read is ignored. Decks are matched by their slug's suffix. A change that lowers a share past zero counts as the share rounded up. A lower on a deck already at zero is ignored, and it still counts as that deck's entry. Changes that would leave every share at zero are all ignored.
  *
  * @param value - The parameter's value, such as `affinity-e93f5f74:-4,elves-262fdcbd:3`, or `null` when the address has none.
  * @param decks - The window's decks, with their shares as rates.
@@ -27,6 +27,7 @@ export function readMeta(
   decks: MatrixDeck[],
 ): Record<string, number> {
   const changes: Record<string, number> = {};
+  const read = new Set<string>();
 
   for (const entry of (value ?? "").split(",")) {
     const match = ENTRY.exec(entry);
@@ -42,10 +43,11 @@ export function readMeta(
       continue;
     }
 
-    if (deck === undefined || Object.hasOwn(changes, deck.slug)) {
+    if (deck === undefined || read.has(deck.slug)) {
       continue;
     }
 
+    read.add(deck.slug);
     const counted = Math.max(change, -Math.ceil(toPoints(deck.share)));
 
     if (counted === 0) {

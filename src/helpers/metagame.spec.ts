@@ -87,6 +87,12 @@ describe("readMeta", () => {
     expect(readMeta("a-11111111:-3", decks)).toEqual({});
   });
 
+  it("counts an ignored lower on a zero share as the deck's entry, so a repeat is still ignored", () => {
+    const decks = [deck("a-11111111", 0), deck("b-22222222", 0.5)];
+
+    expect(readMeta("a-11111111:-3,a-11111111:5", decks)).toEqual({});
+  });
+
   it("ignores every change when they would leave every share at zero", () => {
     expect(
       readMeta(`${AFFINITY}:-10,${MADNESS}:-7,${TRON}:-5,${GATES}:-2`, DECKS),
