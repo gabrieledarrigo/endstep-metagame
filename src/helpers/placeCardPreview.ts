@@ -8,7 +8,7 @@ const GAP = 16;
 const MARGIN = 12;
 
 /**
- * Places a card's preview beside the sample list panel, level with the card's name and inside the window, FR-19: right of the panel, or left of it, or beside the name when neither side has room.
+ * Places a card's preview level with the card's name and inside the window, FR-19: right of the sample list panel, or left of it, or right of the name, or left of it, and when none has room, as close to the name's right as the window allows.
  *
  * @param name - The bounds of the card's name, in window coordinates.
  * @param panel - The bounds of the sample list panel, in window coordinates.
@@ -35,6 +35,14 @@ export function placeCardPreview(
 
   if (panel.left - GAP - WIDTH >= MARGIN) {
     return { left: panel.left - GAP - WIDTH, top };
+  }
+
+  if (name.right + GAP + WIDTH <= viewport.width - MARGIN) {
+    return { left: name.right + GAP, top };
+  }
+
+  if (name.left - GAP - WIDTH >= MARGIN) {
+    return { left: name.left - GAP - WIDTH, top };
   }
 
   const left = Math.max(

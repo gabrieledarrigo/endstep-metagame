@@ -22,7 +22,7 @@ describe("placeCardPreview", () => {
     ).toEqual({ left: 660, top: 300 });
   });
 
-  it("puts it beside the name when neither side has room, as at 1,024px", () => {
+  it("puts it right of the name when neither side of the panel has room, as at 1,024px", () => {
     expect(
       placeCardPreview(box(60, 300, 120, 20), box(20, 100, 984, 900), {
         width: 1024,
@@ -31,9 +31,18 @@ describe("placeCardPreview", () => {
     ).toEqual({ left: 196, top: 300 });
   });
 
-  it("keeps a preview beside a long name 12px inside the window", () => {
+  it("puts it left of the name when the name's right has no room, so it does not cover the name", () => {
     expect(
-      placeCardPreview(box(60, 300, 300, 20), box(20, 100, 340, 900), {
+      placeCardPreview(box(280, 300, 60, 20), box(20, 100, 320, 900), {
+        width: 360,
+        height: 640,
+      }),
+    ).toEqual({ left: 20, top: 288 });
+  });
+
+  it("keeps a preview beside a name with no room on either side 12px inside the window", () => {
+    expect(
+      placeCardPreview(box(60, 300, 240, 20), box(20, 100, 320, 900), {
         width: 360,
         height: 640,
       }),
