@@ -88,7 +88,11 @@ describe("previewDeckPage", () => {
     next: Mock,
   ) => Promise<void>;
 
-  function middleware(): Middleware {
+  type Address = { address: string; family: string; port: number } | null;
+
+  function middleware(
+    address: Address = { address: "127.0.0.1", family: "IPv4", port: 4196 },
+  ): Middleware {
     const use = vi.fn();
     const hook = previewDeckPage().configurePreviewServer;
 
@@ -98,7 +102,10 @@ describe("previewDeckPage", () => {
 
     hook.call(
       {} as ThisParameterType<typeof hook>,
-      { middlewares: { use } } as unknown as PreviewServer,
+      {
+        middlewares: { use },
+        httpServer: { address: () => address },
+      } as unknown as PreviewServer,
     );
 
     return use.mock.calls[0][0];
@@ -130,7 +137,7 @@ describe("previewDeckPage", () => {
 
     const req = deckPageFetch.mock.calls[0][0];
     expect(req.url).toBe(
-      "http://localhost:4196/api/deck-page?window=7d&slug=affinity-e93f5f74",
+      "http://127.0.0.1:4196/api/deck-page?window=7d&slug=affinity-e93f5f74",
     );
     expect(req.method).toBe("GET");
     expect(res.statusCode).toBe(200);
@@ -152,6 +159,80 @@ describe("previewDeckPage", () => {
 
       expect(next).toHaveBeenCalledOnce();
       expect(deckPageFetch).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each([
+    ["a malformed Host", "/decks/affinity-e93f5f74", "["],
+    [
+      "another host in the request line",
+      "//evil.example/decks/abc",
+      "evil.example",
+    ],
+    ["another host in the Host header", "/decks/abc", "evil.example"],
+  ])(
+    "fetches from the preview server's own address for %s",
+    async (_, url, host) => {
+      deckPageFetch.mockResolvedValueOnce(new Response("<html>"));
+      const res = response();
+      const next = vi.fn();
+
+      await middleware()({ url, method: "GET", headers: { host } }, res, next);
+
+      expect(new URL(deckPageFetch.mock.calls[0][0].url).origin).toBe(
+        "http://127.0.0.1:4196",
+      );
+      expect(res.statusCode).toBe(200);
+      expect(next).not.toHaveBeenCalled();
+    },
+  );
+
+  it("brackets an IPv6 address", async () => {
+    deckPageFetch.mockResolvedValueOnce(new Response("<html>"));
+
+    await middleware({ address: "::1", family: "IPv6", port: 4196 })(
+      { url: "/decks/abc", method: "GET", headers: { host: "localhost" } },
+      response(),
+      vi.fn(),
+    );
+
+    expect(new URL(deckPageFetch.mock.calls[0][0].url).origin).toBe(
+      "http://[::1]:4196",
+    );
+  });
+
+  it("passes the request on when the server has no address yet", async () => {
+    const next = vi.fn();
+
+    await middleware(null)(
+      { url: "/decks/abc", method: "GET", headers: { host: "localhost" } },
+      response(),
+      next,
+    );
+
+    expect(next).toHaveBeenCalledOnce();
+    expect(deckPageFetch).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["a request line that is not a URL", "http://[", undefined],
+    ["a function that throws", "/decks/abc", new Error("no dist")],
+  ])(
+    "passes %s to the error handler and never rejects",
+    async (_, url, error) => {
+      deckPageFetch.mockRejectedValueOnce(error);
+      const next = vi.fn();
+
+      await expect(
+        middleware()(
+          { url, method: "GET", headers: { host: "localhost" } },
+          response(),
+          next,
+        ),
+      ).resolves.toBeUndefined();
+
+      expect(next).toHaveBeenCalledOnce();
+      expect(next.mock.calls[0][0]).toBeInstanceOf(Error);
     },
   );
 

@@ -51,27 +51,39 @@ export function previewSecurityHeaders(): Plugin {
 /**
  * Serves `/decks/:slug` through the deck page's function in `vite preview`, with the rewrite from `vercel.json`, so the link preview can be checked before a merge.
  *
- * @returns A Vite plugin whose preview middleware answers the deck pages and passes every other request on. The dev server keeps serving its own `index.html`.
+ * @returns A Vite plugin whose preview middleware answers the deck pages and passes every other request on. The function's own fetch goes to the preview server's address, never to the request's `Host`. The dev server keeps serving its own `index.html`.
  */
 export function previewDeckPage(): Plugin {
   return {
     name: "preview-deck-page",
     configurePreviewServer(server): void {
       server.middlewares.use(async (req, res, next) => {
-        const parsed = new URL(req.url ?? "/", `http://${req.headers.host}`);
-        const slug = DECK_PAGE.exec(parsed.pathname)?.[1];
-
-        if (slug === undefined) {
-          next();
-          return;
-        }
-
-        parsed.pathname = "/api/deck-page";
-        parsed.searchParams.append("slug", slug);
-
         try {
+          const address = server.httpServer.address();
+          const path = new URL(req.url ?? "/", "http://localhost");
+          const slug = DECK_PAGE.exec(path.pathname)?.[1];
+
+          if (
+            slug === undefined ||
+            address === null ||
+            typeof address === "string"
+          ) {
+            next();
+            return;
+          }
+
+          const host =
+            address.family === "IPv6"
+              ? `[${address.address}]`
+              : address.address;
+          const target = new URL(
+            `http://${host}:${address.port}/api/deck-page`,
+          );
+          target.search = path.search;
+          target.searchParams.append("slug", slug);
+
           const response = await deckPage.fetch(
-            new Request(parsed, { method: req.method }),
+            new Request(target, { method: req.method }),
           );
 
           res.statusCode = response.status;
