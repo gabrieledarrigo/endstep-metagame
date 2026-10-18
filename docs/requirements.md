@@ -428,7 +428,7 @@ Every page carries what browsers, search engines and chat apps read without runn
   - It accepts only a slug the proxy would accept, §4.3, and only a known window. Anything else gets the page with the site card.
   - It fetches the deck detail through our own proxy, at the exact address the deck page requests: `/api/metagame/Pauper/decks/{slug}` with the window and the population. The browser's later request then hits the same edge cache entry, and upstream calls stay one per deck and window.
   - It escapes every value it writes into the HTML, and URL-encodes the card name in the image address.
-  - When the call fails, or takes longer than two seconds, it returns the page with the site card, so a reader never waits long on it. Two seconds leave room for the proxy's own one-second art lookup. That fallback is sent with `no-store`, so a slow moment is never cached. A preview is cached at the edge as long as the deck detail it was built from: five minutes, or one when the art lookup fell back.
+  - When the call fails, or takes longer than two seconds, it returns the page with the site card, so a reader never waits long on it. Two seconds leave room for the proxy's own one-second art lookup. That fallback is sent with `no-store`, so a slow moment is never cached. A preview is cached at the edge as long as the deck detail it was built from: five minutes, or one when the art lookup fell back. The function sets that header itself, from whether the deck's art resolved. Vercel's edge strips `s-maxage` from the responses it serves, the proxy's included, so copying the inner response's header would leave the preview uncached.
 - The page then loads as before. The function changes nothing a reader sees.
 
 ### FR-16. Installable app
