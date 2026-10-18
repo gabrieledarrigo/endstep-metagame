@@ -752,9 +752,9 @@ Covers NFR-1: an exported function with a consumer has a spec beside it. E10 set
 
 # Milestone 3: connected pages
 
-**Date:** 2026-10-13. Derived from Draft v4 of the requirements. D3 and S18 were added on 2026-10-14, from Draft v5. D4, S19, S20 and S21 were added on 2026-10-17, from Draft v6. D5, E13, S22, S23 and S24 were added the same day, from Draft v7, and E14 from Draft v8. H4 was added the same day.
+**Date:** 2026-10-13. Derived from Draft v4 of the requirements. D3 and S18 were added on 2026-10-14, from Draft v5. D4, S19, S20 and S21 were added on 2026-10-17, from Draft v6. D5, E13, S22, S23 and S24 were added the same day, from Draft v7, and E14 from Draft v8. H4 was added the same day, and H5 on 2026-10-18, from Draft v9.
 
-Nineteen items. Four design items, two enablers, twelve user stories and one hardening item. Two stories, the enablers and the hardening item need no design and start at once. The others wait for D2, D3, D4 or D5, because each changes how a page looks, and the owner chooses the design first.
+Twenty items. Four design items, two enablers, twelve user stories and two hardening items. Two stories, the enablers and the hardening items need no design and start at once. The others wait for D2, D3, D4 or D5, because each changes how a page looks, and the owner chooses the design first.
 
 | Wave | Items | Runs in parallel |
 |---|---|---|
@@ -764,7 +764,7 @@ Nineteen items. Four design items, two enablers, twelve user stories and one har
 | 18 | D4 | No |
 | 19 | S19, S20, S21 | Yes, three ways |
 | 20 | D5, E13, E14, H4 | Yes, four ways |
-| 21 | S22, S23, S24 | Yes, three ways |
+| 21 | S22, S23, S24, H5 | Yes, four ways |
 
 ```
 D2 design ─┬─► S16 find a deck in the matchup table ──► S15 matchup table on a phone
@@ -781,6 +781,7 @@ D5 design ──┬─► S22 install as an app
 E13 metadata and headers ──► S23
 E14 art from Scryfall ──► S23
 H4 the deck page's tables
+H5 the mark in the header
 S13 every page kept on a window change
 S14 charts open the deck pages
 ```
@@ -1220,6 +1221,27 @@ Covers FR-11 and NFR-6. The owner found the gaps on 2026-10-17 and chose the col
 
 - On a desktop, the Games table spans its panel, and the daily share shows 30 days in four columns.
 - At 360px the daily share is one column and the Games table fits its panel. At 390px the daily share is two columns.
+
+**Blocked by** nothing. **Blocks** nothing.
+
+---
+
+## H5. Put the site mark in the header
+
+Covers FR-10 and FR-16. The owner chose on 2026-10-18 to put the site mark in the header too. Today the mark appears only in the footer, the tab and the app icons, and the installed app has no tab. The design system's Page header shows it.
+
+**Tasks**
+
+1. The header's brand link holds the site mark, then the name. Use the `SiteMark` component the footer already uses.
+2. The mark is as tall as one line of the name: 28px, and 36px from 640px. It sits 10px from the name, 12px from 640px, and is aligned to the first line. The name's line height matches the mark: 28px, and 36px from 640px.
+3. The mark is `aria-hidden`, so the link's name stays "Pauper Endstep metagame".
+4. A spec beside the header.
+
+**Done when**
+
+- Every page's header shows the mark beside the name, in both themes.
+- At 360px and at 640px, where the name wraps to two lines, the mark sits on the first line and the toggle keeps its place.
+- The brand link's accessible name is still "Pauper Endstep metagame".
 
 **Blocked by** nothing. **Blocks** nothing.
 
