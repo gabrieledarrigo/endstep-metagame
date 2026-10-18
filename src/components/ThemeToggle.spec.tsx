@@ -15,9 +15,26 @@ function icon(): string | undefined {
   );
 }
 
+function addThemeColours(): void {
+  document.head.insertAdjacentHTML(
+    "beforeend",
+    '<meta name="theme-color" media="(prefers-color-scheme: light)" content="#f9f9f7">' +
+      '<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#353537">',
+  );
+}
+
+function themeColours(): (string | null)[] {
+  return [...document.head.querySelectorAll('meta[name="theme-color"]')].map(
+    (meta) => meta.getAttribute("content"),
+  );
+}
+
 afterEach(() => {
   localStorage.clear();
   document.documentElement.removeAttribute("data-theme");
+  document.head
+    .querySelectorAll('meta[name="theme-color"]')
+    .forEach((meta) => meta.remove());
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
@@ -94,6 +111,42 @@ describe("ThemeToggle", () => {
     expect(toggle().getAttribute("aria-pressed")).toBe("true");
     expect(icon()).toBe("moon");
     expect(document.documentElement.dataset.theme).toBe("dark");
+  });
+
+  it("sets the theme colour of the chosen theme, and sets it back", () => {
+    stubColourScheme(false);
+    addThemeColours();
+    render(<ThemeToggle />);
+
+    fireEvent.click(toggle());
+
+    expect(themeColours()).toEqual(["#353537", "#353537"]);
+
+    fireEvent.click(toggle());
+
+    expect(themeColours()).toEqual(["#f9f9f7", "#f9f9f7"]);
+  });
+
+  it("follows a change to the device setting with the theme colour while the reader has not chosen", () => {
+    const setDevice = stubColourScheme(false);
+    addThemeColours();
+    render(<ThemeToggle />);
+
+    expect(themeColours()).toEqual(["#f9f9f7", "#f9f9f7"]);
+
+    act(() => setDevice(true));
+
+    expect(themeColours()).toEqual(["#353537", "#353537"]);
+  });
+
+  it("still switches the theme when the page has no theme colour", () => {
+    stubColourScheme(false);
+    render(<ThemeToggle />);
+
+    fireEvent.click(toggle());
+
+    expect(toggle().getAttribute("aria-pressed")).toBe("true");
+    expect(themeColours()).toEqual([]);
   });
 
   it("takes an extra class from the header", () => {
