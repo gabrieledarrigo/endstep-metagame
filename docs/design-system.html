@@ -410,7 +410,7 @@ a.button { display:inline-block; text-decoration:none; }
 .games__col { padding:0 0 9px 12px; text-align:right; white-space:normal; vertical-align:bottom; }
 .games__head { padding:9px 12px 9px 0; text-align:left; font-size:14px; font-weight:600; color:var(--text-900);
   text-transform:none; letter-spacing:0; border-bottom:1px solid var(--rule); white-space:nowrap; }
-.games__table .games__cell { padding:9px 0 9px 12px; text-align:right; font-variant-numeric:tabular-nums; border-bottom:1px solid var(--rule); }
+.games__cell { padding:9px 0 9px 12px; text-align:right; font-variant-numeric:tabular-nums; }
 .games__cell:focus-visible { outline:2px solid var(--primary); outline-offset:-2px; }
 .games__row--last .games__head, .games__row--last .games__cell { border-bottom-color:var(--baseline); }
 .games__row--total .games__head, .games__row--total .games__cell { font-weight:600; border-bottom:0; }
@@ -1790,8 +1790,10 @@ a.button { display:inline-block; text-decoration:none; }
     <div class="games games--demo">
       <div class="games__scroll"><table class="games__table"><thead><tr><td class="games__corner"></td>
       <th scope="col" class="games__col">On the play</th><th scope="col" class="games__col">On the draw</th><th scope="col" class="games__col">Total</th></tr></thead>
-      <tbody><tr class="games__row"><th scope="row" class="games__head">Game 3</th>
-      <td class="games__cell">52.4%</td><td class="games__cell games__cell--gated" tabindex="0" data-title="Game 3, on the draw" data-state="gated" data-w="6" data-l="8" aria-label="Game 3, on the draw: too few to call, 14 of the 20 games needed"></td><td class="games__cell">55.1%</td></tr></tbody></table></div>
+      <tbody><tr class="games__row games__row--last"><th scope="row" class="games__head">Game 3</th>
+      <td class="games__cell">52.4%</td><td class="games__cell games__cell--gated" tabindex="0" data-title="Game 3, on the draw" data-state="gated" data-w="6" data-l="8" aria-label="Game 3, on the draw: too few to call, 14 of the 20 games needed"></td><td class="games__cell">55.1%</td></tr>
+      <tr class="games__row games__row--total"><th scope="row" class="games__head">All games</th>
+      <td class="games__cell">51.2%</td><td class="games__cell">50.6%</td><td class="games__cell">50.9%</td></tr></tbody></table></div>
       <div class="chart-tooltip games__tooltip" role="tooltip" hidden></div>
     </div>
   </div>
