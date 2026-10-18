@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import detail from "../../../test/fixtures/deck.json";
 import sampleCards from "../../../test/fixtures/sample-cards.json";
-import { stubHover } from "../../../test/stubHover";
+import { stubWidth } from "../../../test/stubWidth";
 import type {
   DeckDetail,
   SampleCardsResponse,
@@ -329,7 +329,7 @@ describe("SampleList card previews", () => {
   });
 
   it("shows the card while a mouse points at its name, on a device that can hover", () => {
-    stubHover(true);
+    stubWidth(1280, { hover: true });
     render(<SampleList list={LIST} cards={CARDS} />);
 
     fireEvent.pointerOver(name("Galvanic Blast"), { pointerType: "mouse" });
@@ -344,14 +344,14 @@ describe("SampleList card previews", () => {
   });
 
   it("shows no card for a touch, or on a device that cannot hover", () => {
-    stubHover(true);
+    stubWidth(1280, { hover: true });
     const { unmount } = render(<SampleList list={LIST} cards={CARDS} />);
 
     fireEvent.pointerOver(name("Galvanic Blast"), { pointerType: "touch" });
     expect(previews()).toEqual([]);
     unmount();
 
-    stubHover(false);
+    stubWidth(1280);
     render(<SampleList list={LIST} cards={CARDS} />);
 
     fireEvent.pointerOver(name("Galvanic Blast"), { pointerType: "mouse" });
@@ -360,7 +360,7 @@ describe("SampleList card previews", () => {
   });
 
   it("shows the card on keyboard focus only, and hides it when focus moves on or on Escape", () => {
-    stubHover(true);
+    stubWidth(1280, { hover: true });
     render(<SampleList list={LIST} cards={CARDS} />);
 
     focusVisibly(name("Galvanic Blast"), false);
@@ -382,7 +382,7 @@ describe("SampleList card previews", () => {
   });
 
   it("opens the card in a dialog on activation, and returns focus to its name when it closes", () => {
-    stubHover(true);
+    stubWidth(1280, { hover: true });
     render(<SampleList list={LIST} cards={CARDS} />);
     fireEvent.pointerOver(name("Galvanic Blast"), { pointerType: "mouse" });
 
@@ -416,7 +416,7 @@ describe("SampleList card previews", () => {
   });
 
   it("does not show the card again when focus returns from the dialog", () => {
-    stubHover(true);
+    stubWidth(1280, { hover: true });
     render(<SampleList list={LIST} cards={CARDS} />);
     const button = name("Galvanic Blast");
     const matches = button.matches.bind(button);
