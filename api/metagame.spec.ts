@@ -287,7 +287,7 @@ describe("the metagame proxy's card art", () => {
       method: "POST",
       headers: {
         "User-Agent":
-          "PauperEndstepMetagame/1.0 (+https://github.com/gabrieledarrigo/endstep-metagame)",
+          "PauperEndstepMetagame/1.0 (+https://github.com/gabrieledarrigo/pauper-endstep-metagame)",
         Accept: "application/json",
         "Content-Type": "application/json",
       },

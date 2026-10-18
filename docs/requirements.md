@@ -158,7 +158,7 @@ Public CORS proxies were tested on 2026-09-20 and rejected. All six failed. allo
 - Sets `Cache-Control` by status. A success gets `public, s-maxage=300, stale-while-revalidate=600`, so the Vercel edge serves repeat requests without calling Endstep. A 429 gets `public, s-maxage=10`. Any other error gets `no-store`. The art lookup's fallback is the one exception, below.
 - Passes upstream non-2xx status codes through unchanged, so the client can tell a rate limit from a server error.
 - **Adds the art.** For a successful `GET` of a deck list or a deck detail, it looks up the key cards on Scryfall, §3.4, and adds `art.imageUrl` to each deck it resolves. `HEAD` gets no lookup. The lookup has a one-second bound. When it fails, times out or meets a 429, the response goes out without the addresses it could not resolve, with `s-maxage=60` in place of the usual five minutes, so the art returns soon for the next reader. A reader who already holds that response keeps it for the client's five minutes, §4.8, and sees Endstep's art meanwhile. A lookup never fails the response and is never retried within it.
-- The Scryfall request carries `User-Agent: PauperEndstepMetagame/1.0 (+https://github.com/gabrieledarrigo/endstep-metagame)` and `Accept: application/json`. That is the only identifying header the functions send upstream.
+- The Scryfall request carries `User-Agent: PauperEndstepMetagame/1.0 (+https://github.com/gabrieledarrigo/pauper-endstep-metagame)` and `Accept: application/json`. That is the only identifying header the functions send upstream.
 - Sends no cookies, credentials or client identifying headers upstream.
 
 ### 4.4 Matchup function
