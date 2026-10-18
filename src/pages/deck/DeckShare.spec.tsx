@@ -85,7 +85,7 @@ describe("DeckShare", () => {
     ]);
 
     fireEvent.click(screen.getByText("Daily share, day by day"));
-    const list = screen.getByLabelText("Meta share by day");
+    const list = screen.getByRole("group", { name: "Meta share by day" });
 
     expect(
       within(list)

@@ -115,20 +115,24 @@ export function DeckShare({ name, dates, points }: DeckShareProps) {
         <summary className="deck-share__summary">
           Daily share, day by day
         </summary>
-        <dl className="deck-share__days" aria-label="Meta share by day">
-          {rows.map((row) => (
-            <div key={row.day} className="deck-share__day">
-              <dt className="deck-share__date">{formatDay(row.day)}</dt>
-              {row.share === null ? (
-                <dd className="deck-share__share deck-share__share--none">
-                  no data
-                </dd>
-              ) : (
-                <dd className="deck-share__share">{tooltipShare(row.share)}</dd>
-              )}
-            </div>
-          ))}
-        </dl>
+        <div role="group" aria-label="Meta share by day">
+          <dl className="deck-share__days">
+            {rows.map((row) => (
+              <div key={row.day} className="deck-share__day">
+                <dt className="deck-share__date">{formatDay(row.day)}</dt>
+                {row.share === null ? (
+                  <dd className="deck-share__share deck-share__share--none">
+                    no data
+                  </dd>
+                ) : (
+                  <dd className="deck-share__share">
+                    {tooltipShare(row.share)}
+                  </dd>
+                )}
+              </div>
+            ))}
+          </dl>
+        </div>
       </details>
     </Panel>
   );
