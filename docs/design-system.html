@@ -321,14 +321,14 @@ body { container-type:inline-size; }
 
 .site-header { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:start; gap:10px 16px;
   padding-block:14px; border-bottom:1px solid var(--rule); }
-.site-header__brand { display:flex; align-items:flex-start; gap:10px; width:fit-content; font-size:22px; line-height:28px;
-  font-weight:700; letter-spacing:-.015em; color:var(--text-900); text-decoration:none; }
-.site-header__mark { flex:none; display:block; width:28px; height:28px; }
+.site-header__brand { display:flex; align-items:flex-start; gap:10px; width:fit-content; padding-top:4px;
+  font-size:22px; line-height:28px; font-weight:700; letter-spacing:-.015em; color:var(--text-900); text-decoration:none; }
+.site-header__mark { width:28px; height:28px; }
 .site-header .site-nav { grid-column:1 / -1; }
 .site-header .theme-toggle { grid-column:2; grid-row:1; }
 @media (min-width:640px) {
   .site-header { grid-template-columns:minmax(0,1fr) auto auto; align-items:center; gap:10px 24px; }
-  .site-header__brand { gap:12px; font-size:30px; line-height:36px; }
+  .site-header__brand { gap:12px; padding-top:0; font-size:30px; line-height:36px; }
   .site-header__mark { width:36px; height:36px; }
   .site-header .site-nav { grid-column:2; grid-row:1; }
   .site-header .theme-toggle { grid-column:3; }
@@ -346,7 +346,7 @@ body { container-type:inline-size; }
 .theme-demo--tablet { flex:0 1 640px; width:640px; max-width:100%; }
 .theme-demo--phone { flex:0 1 360px; width:360px; max-width:100%; border-radius:20px; }
 .theme-demo--phone .site-header { grid-template-columns:minmax(0,1fr) auto; align-items:start; gap:10px 16px; }
-.theme-demo--phone .site-header__brand { gap:10px; font-size:22px; line-height:28px; }
+.theme-demo--phone .site-header__brand { gap:10px; padding-top:4px; font-size:22px; line-height:28px; }
 .theme-demo--phone .site-header__mark { width:28px; height:28px; }
 .theme-demo--phone .site-header .site-nav { grid-column:1 / -1; grid-row:2; }
 .theme-demo--phone .site-header .theme-toggle { grid-column:2; }
@@ -1554,10 +1554,12 @@ a.button { display:inline-block; text-decoration:none; }
   </div>
   <p class="spec"><b>Brand</b> The site mark, then the name, in one link to the overview. The name is 22px 700 in
   <span class="mono">--text-900</span> on a 28px line, and 30px on a 36px line from 640px. It names the site and is not a heading.
-  <b>Mark</b> As tall as one line of the name: 28px, and 36px from 640px, the toggle&rsquo;s own size, so the mark and the
-  toggle frame the header. 10px from the name, 12px from 640px. It sits on the first line, so a name that wraps on a tablet or a
-  phone stays tight beside it. The mark is <span class="mono">aria-hidden</span>, and the link&rsquo;s name stays
-  &ldquo;Pauper Endstep metagame&rdquo;. <b>Page title</b> Each page's h1 names the page: Overview, Matchups
+  <b>Mark</b> As tall as one line of the name: 28px, and 36px from 640px, the toggle&rsquo;s own size, so from 640px the mark
+  and the toggle frame the header. 10px from the name, 12px from 640px. It sits on the first line, so a name that wraps on a tablet
+  or a phone stays tight beside it. Below 640px the link takes 4px of top padding, so the mark and the first line share the
+  toggle&rsquo;s centre. The mark is <span class="mono">aria-hidden</span>, and the link&rsquo;s name stays
+  &ldquo;Pauper Endstep metagame&rdquo;. The link is as wide as the mark and the name, so the free space beside the name is
+  not a link. <b>Page title</b> Each page's h1 names the page: Overview, Matchups
   or the deck's name, in 22px 600 <span class="mono">--text-600</span>. The document title repeats it.
   <b>Links</b> 14px 600 in <span class="mono">--text-600</span>. The current page is
   <span class="mono">--text-900</span> with a 2px <span class="mono">--primary</span> underline and
