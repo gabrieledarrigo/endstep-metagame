@@ -404,6 +404,38 @@ describe("SampleList card previews", () => {
     expect(previews()).toEqual([]);
   });
 
+  it("does not bring back a focused name's card that Escape dismissed", () => {
+    stubWidth(1280, { hover: true });
+    render(<SampleList list={LIST} cards={CARDS} />);
+    focusVisibly(name("Thoughtcast"), true);
+
+    fireEvent.keyDown(document, { key: "Escape" });
+    fireEvent.pointerOver(name("Galvanic Blast"), { pointerType: "mouse" });
+    fireEvent.pointerOut(name("Galvanic Blast"), { pointerType: "mouse" });
+
+    expect(previews()).toEqual([]);
+  });
+
+  it("does not bring back a focused name's card that hid when the name left the window", () => {
+    stubWidth(1280, { hover: true });
+    render(<SampleList list={LIST} cards={CARDS} />);
+    focusVisibly(name("Thoughtcast"), true);
+
+    vi.mocked(Element.prototype.getBoundingClientRect).mockReturnValue(
+      DOMRect.fromRect({ x: 920, y: -100, width: 300, height: 20 }),
+    );
+    fireEvent.scroll(window);
+    expect(previews()).toEqual([]);
+
+    vi.mocked(Element.prototype.getBoundingClientRect).mockReturnValue(
+      DOMRect.fromRect({ x: 920, y: 300, width: 300, height: 20 }),
+    );
+    fireEvent.pointerOver(name("Galvanic Blast"), { pointerType: "mouse" });
+    fireEvent.pointerOut(name("Galvanic Blast"), { pointerType: "mouse" });
+
+    expect(previews()).toEqual([]);
+  });
+
   it("opens the card in a dialog on activation, and returns focus to its name when it closes", () => {
     stubWidth(1280, { hover: true });
     render(<SampleList list={LIST} cards={CARDS} />);

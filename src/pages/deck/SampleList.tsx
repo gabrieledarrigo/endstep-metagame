@@ -107,7 +107,10 @@ export function SampleList({ list, cards, cardsPending }: SampleListProps) {
   const panel = useRef<HTMLDivElement>(null);
   const focused = useRef<Previewed | null>(null);
   const canHover = useMediaQuery("(hover: hover)");
-  const hidePreview = useCallback(() => setPreview(null), []);
+  const hidePreview = useCallback(() => {
+    focused.current = null;
+    setPreview(null);
+  }, []);
 
   if (list.state === "withheld") {
     return (
