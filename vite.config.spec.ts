@@ -146,29 +146,30 @@ describe("previewDeckPage", () => {
     expect(next).not.toHaveBeenCalled();
   });
 
-  it.each(["/", "/matchups", "/decks/a/b", "/api/metagame/Pauper/decks"])(
-    "passes %s on",
-    async (url) => {
-      const next = vi.fn();
+  it.each([
+    "/",
+    "/matchups",
+    "/decks/",
+    "/decks/a/b",
+    "/decksx/abc",
+    "//evil.example/decks/abc",
+    "http://[",
+    "/api/metagame/Pauper/decks",
+  ])("passes %s on, as the rewrite in vercel.json would", async (url) => {
+    const next = vi.fn();
 
-      await middleware()(
-        { url, method: "GET", headers: { host: "localhost:4196" } },
-        response(),
-        next,
-      );
+    await middleware()(
+      { url, method: "GET", headers: { host: "localhost:4196" } },
+      response(),
+      next,
+    );
 
-      expect(next).toHaveBeenCalledOnce();
-      expect(deckPageFetch).not.toHaveBeenCalled();
-    },
-  );
+    expect(next).toHaveBeenCalledExactlyOnceWith();
+    expect(deckPageFetch).not.toHaveBeenCalled();
+  });
 
   it.each([
     ["a malformed Host", "/decks/affinity-e93f5f74", "["],
-    [
-      "another host in the request line",
-      "//evil.example/decks/abc",
-      "evil.example",
-    ],
     ["another host in the Host header", "/decks/abc", "evil.example"],
   ])(
     "fetches from the preview server's own address for %s",
@@ -212,22 +213,6 @@ describe("previewDeckPage", () => {
 
     expect(next).toHaveBeenCalledOnce();
     expect(deckPageFetch).not.toHaveBeenCalled();
-  });
-
-  it("passes a request line that is not a URL to the error handler, with no call", async () => {
-    const next = vi.fn();
-
-    await expect(
-      middleware()(
-        { url: "http://[", method: "GET", headers: { host: "localhost" } },
-        response(),
-        next,
-      ),
-    ).resolves.toBeUndefined();
-
-    expect(deckPageFetch).not.toHaveBeenCalled();
-    expect(next).toHaveBeenCalledOnce();
-    expect(next.mock.calls[0][0]).toBeInstanceOf(Error);
   });
 
   it("passes a function that throws to the error handler and never rejects", async () => {

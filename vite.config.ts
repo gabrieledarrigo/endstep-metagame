@@ -9,7 +9,7 @@ import vercel from "./vercel.json" with { type: "json" };
 const METAGAME = "/api/metagame";
 const METAGAME_PREFIX = `${METAGAME}/`;
 const MATCHUPS = "/api/matchups";
-const DECK_PAGE = /^\/decks\/([^/]+)$/;
+const DECK_PAGE = /^\/decks\/([^/?]+)(\?.*)?$/;
 
 export const CATCH_ALL_SOURCE = "/(.*)";
 
@@ -60,11 +60,10 @@ export function previewDeckPage(): Plugin {
       server.middlewares.use(async (req, res, next) => {
         try {
           const address = server.httpServer.address();
-          const path = new URL(req.url ?? "/", "http://localhost");
-          const slug = DECK_PAGE.exec(path.pathname)?.[1];
+          const match = DECK_PAGE.exec(req.url ?? "/");
 
           if (
-            slug === undefined ||
+            match === null ||
             address === null ||
             typeof address === "string"
           ) {
@@ -79,8 +78,8 @@ export function previewDeckPage(): Plugin {
           const target = new URL(
             `http://${host}:${address.port}/api/deck-page`,
           );
-          target.search = path.search;
-          target.searchParams.append("slug", slug);
+          target.search = match[2] ?? "";
+          target.searchParams.append("slug", match[1]);
 
           const response = await deckPage.fetch(
             new Request(target, { method: req.method }),
