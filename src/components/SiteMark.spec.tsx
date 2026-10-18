@@ -17,6 +17,15 @@ describe("SiteMark", () => {
     expect(drawMark().getAttribute("aria-hidden")).toBe("true");
   });
 
+  it("adds a parent's class beside its own", () => {
+    const { container } = render(<SiteMark className="site-header__mark" />);
+
+    expect(container.querySelector("svg")?.getAttribute("class")).toBe(
+      "site-mark site-header__mark",
+    );
+    expect(drawMark().getAttribute("class")).toBe("site-mark");
+  });
+
   it("draws at 20px on a 64-unit grid", () => {
     const mark = drawMark();
 

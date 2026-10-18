@@ -1,9 +1,9 @@
 import "./SiteMark.css";
 
-export function SiteMark() {
+export function SiteMark({ className }: { className?: string }) {
   return (
     <svg
-      className="site-mark"
+      className={["site-mark", className].filter(Boolean).join(" ")}
       width="20"
       height="20"
       viewBox="0 0 64 64"
