@@ -17,6 +17,10 @@
     {
       "source": "/matchups",
       "destination": "/index.html"
+    },
+    {
+      "source": "/what-to-play",
+      "destination": "/index.html"
     }
   ],
   "headers": [

@@ -151,6 +151,7 @@ describe("previewDeckPage", () => {
   it.each([
     "/",
     "/matchups",
+    "/what-to-play",
     "/decks/",
     "/decks/a/b",
     "/decksx/abc",
