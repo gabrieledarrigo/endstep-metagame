@@ -37,10 +37,11 @@ describe("SiteFooter", () => {
     );
   });
 
-  it("names the site and its author", () => {
+  it("names the site beside its mark, and its author", () => {
     render(<SiteFooter />);
 
-    expect(screen.getByText("Pauper Endstep metagame")).toBeTruthy();
+    const name = screen.getByText("Pauper Endstep metagame");
+    expect(name.querySelector(".site-mark")).toBeTruthy();
     expect(screen.getByRole("contentinfo").textContent).toContain(
       "Made by Gabriele D'Arrigo · Source code",
     );
