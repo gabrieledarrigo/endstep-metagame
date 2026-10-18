@@ -1744,13 +1744,14 @@ a.button { display:inline-block; text-decoration:none; }
   texture reuse the same tiles, with the count behind each rate as their detail. Every tile group uses the stat
   list's compact modifier, <span class="mono">stat-list--compact</span>, which tightens the gaps.</p>
   <p class="spec"><b>Share over time.</b> One series, so one hue, <span class="mono">--s1</span>, no legend, and
-  a labelled endpoint. The daily values sit in a collapsed details element under the chart, so the chart is
-  not the only carrier, per NFR-6. Its summary reads &ldquo;Daily share, day by day&rdquo;. Inside, each day is one pair of a
-  description list: the day in <span class="mono">--text-600</span>, the share right-aligned in tabular numerals, split by a 1px
-  <span class="mono">--rule</span>. The pairs flow top to bottom into as many columns as fit, each at least 9.5em wide and 32px
-  apart, and a pair never breaks across columns. The list sits in a group named &ldquo;Meta share by day&rdquo;, so each value keeps its
-  measure for a screen reader. The name goes on the group, not the list, because a description list has no role to carry one. Below about 384px a phone shows one column, and wider phones two. On a desktop, 30 days take four columns of
-  eight rows.</p>
+  a labelled endpoint. The daily values sit in a collapsed details element under the chart, so the chart is not
+  the only carrier, per NFR-6. Its summary reads &ldquo;Daily share, day by day&rdquo;. Inside, each day is one
+  pair of a description list: the day in <span class="mono">--text-600</span>, the share right-aligned in
+  tabular numerals, split by a 1px <span class="mono">--rule</span>. The pairs flow top to bottom into as many
+  columns as fit, each at least 9.5em wide and 32px apart, and a pair never breaks across columns. The list sits
+  in a group named &ldquo;Meta share by day&rdquo;, so each value keeps its measure for a screen reader. The
+  name goes on the group, not the list, because a description list has no role to carry one. Below about 384px a
+  phone shows one column, and wider phones two. On a desktop, 30 days take four columns of eight rows.</p>
   <p class="spec"><b>Games.</b> The table fills its panel&rsquo;s width. At 360px it still fits its panel. Rates
   to one decimal place, right-aligned with tabular numerals. Each cell is a tab stop, and hover or focus shows
   its range, wins and losses in the chart tooltip. Its accessible name carries the same figures, so a screen
