@@ -455,6 +455,22 @@ describe("deck-page", () => {
     },
   );
 
+  it("reads index.html again after a failed read", async () => {
+    proxy({ deck: deck() });
+    readFile.mockRejectedValueOnce(new Error("EMFILE: too many open files"));
+
+    await expect(
+      deckPage.fetch(request("slug=affinity-e93f5f74")),
+    ).rejects.toThrow("EMFILE");
+    const response = await deckPage.fetch(request("slug=affinity-e93f5f74"));
+
+    expect(response.status).toBe(200);
+    expect(title(await response.text())).toEqual([
+      "Affinity · Pauper Endstep metagame",
+    ]);
+    expect(readFile).toHaveBeenCalledTimes(2);
+  });
+
   it("reads index.html once per instance", async () => {
     proxy({ deck: deck() });
 

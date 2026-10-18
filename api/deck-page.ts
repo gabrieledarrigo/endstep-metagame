@@ -50,7 +50,13 @@ let indexHtml: Promise<string> | undefined;
 
 function builtPage(): Promise<string> {
   if (!indexHtml) {
-    indexHtml = readFile(join(process.cwd(), "dist", "index.html"), "utf8");
+    indexHtml = readFile(
+      join(process.cwd(), "dist", "index.html"),
+      "utf8",
+    ).catch((error: unknown) => {
+      indexHtml = undefined;
+      throw error;
+    });
   }
 
   return indexHtml;
