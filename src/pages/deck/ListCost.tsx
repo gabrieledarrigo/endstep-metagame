@@ -24,19 +24,23 @@ type ListCostProps = {
 };
 
 function storedCurrency(): Currency {
+  if (chosen !== null) {
+    return chosen;
+  }
+
   let stored;
 
   try {
     stored = localStorage.getItem(CURRENCY_KEY);
   } catch {
-    return chosen ?? "tix";
+    return "tix";
   }
 
   if (stored === "tix" || stored === "eur" || stored === "usd") {
     return stored;
   }
 
-  return chosen ?? "tix";
+  return "tix";
 }
 
 function optionOf(currency: Currency): Option {
@@ -93,12 +97,12 @@ export function ListCost({ main, side, cards }: ListCostProps) {
 
   const choose = (option: Option): void => {
     const next = CURRENCIES[option];
-    chosen = next;
     setCurrency(next);
     try {
       localStorage.setItem(CURRENCY_KEY, next);
+      chosen = null;
     } catch {
-      return;
+      chosen = next;
     }
   };
 

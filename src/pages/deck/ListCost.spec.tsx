@@ -144,7 +144,7 @@ describe("ListCost", () => {
     expect(screen.getByText("€185.40")).toBeTruthy();
   });
 
-  it("lets a stored value win over the session's choice", () => {
+  it("reads a value another tab stored when the storage works", () => {
     const { unmount } = render(
       <ListCost main={main} side={side} cards={cards} />,
     );
@@ -154,6 +154,34 @@ describe("ListCost", () => {
     render(<ListCost main={main} side={side} cards={cards} />);
 
     expect(pressed()).toBe("$");
+  });
+
+  it("follows a cleared storage back to tickets when the storage works", () => {
+    const { unmount } = render(
+      <ListCost main={main} side={side} cards={cards} />,
+    );
+    fireEvent.click(screen.getByRole("button", { name: "€" }));
+    unmount();
+    localStorage.removeItem("currency");
+    render(<ListCost main={main} side={side} cards={cards} />);
+
+    expect(pressed()).toBe("MTGO");
+  });
+
+  it("keeps a choice the storage refused over an older stored value", () => {
+    localStorage.setItem("currency", "eur");
+    blockStorage("setItem");
+
+    const { unmount } = render(
+      <ListCost main={main} side={side} cards={cards} />,
+    );
+    expect(pressed()).toBe("€");
+    fireEvent.click(screen.getByRole("button", { name: "$" }));
+    unmount();
+    render(<ListCost main={main} side={side} cards={cards} />);
+
+    expect(pressed()).toBe("$");
+    expect(screen.getByText("$155.32")).toBeTruthy();
   });
 
   it("counts each card with no price once, whether it is missing or null, in either board", () => {
