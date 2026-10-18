@@ -1,0 +1,22 @@
+@layer components {
+  .site-mark {
+    display: block;
+    flex-shrink: 0;
+  }
+
+  .site-mark__tile {
+    fill: var(--primary);
+  }
+
+  .site-mark__bar {
+    fill: var(--mark-bars);
+  }
+
+  .site-mark__bar--2 {
+    fill-opacity: 0.8;
+  }
+
+  .site-mark__bar--3 {
+    fill-opacity: 0.6;
+  }
+}
