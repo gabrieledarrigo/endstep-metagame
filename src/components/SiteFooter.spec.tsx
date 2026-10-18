@@ -37,11 +37,14 @@ describe("SiteFooter", () => {
     );
   });
 
-  it("names the site beside its mark, and its author", () => {
+  it("names the site after its hidden mark, and its author", () => {
     render(<SiteFooter />);
 
     const name = screen.getByText("Pauper Endstep metagame");
-    expect(name.querySelector(".site-mark")).toBeTruthy();
+    const mark = name.querySelector('svg[aria-hidden="true"]');
+
+    expect(mark).toBeTruthy();
+    expect(name.firstChild).toBe(mark);
     expect(screen.getByRole("contentinfo").textContent).toContain(
       "Made by Gabriele D'Arrigo · Source code",
     );
