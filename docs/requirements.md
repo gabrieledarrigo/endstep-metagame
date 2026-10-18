@@ -1,6 +1,6 @@
 # Endstep Pauper Metagame Viewer: Requirements
 
-**Status:** Draft v11 · **Date:** 2026-10-18
+**Status:** Draft v12 · **Date:** 2026-10-18
 **Scope:** five pages. The overview, a deck page with its numbers, a sample list and its matchups against the top 24, a matchup table, a page that suggests which deck to play, and the format's staple cards. Other deck page sections are out of scope, see §8.
 **Visual design** is specified in [`design-system.html`](./design-system.html). This document covers structure, content and behaviour.
 
@@ -10,7 +10,7 @@
 
 A browser application that reads the public Endstep metagame API and shows the **Pauper** metagame. The overview reports which decks are played, how much of the field each one holds, how they perform, and how that has changed over time. A deck page gives one deck's numbers, a sample list, and its results against the rest of the top 24. A matchup table shows how the top decks do against each other. "What to play?" ranks the top decks against the metagame the reader expects, and names the best. Staples lists the cards the top decks play most.
 
-The application is read-only. It stores nothing but the reader's theme choice, FR-13. It has no authentication and no user accounts. It is not affiliated with Endstep.
+The application is read-only. It stores nothing but two display preferences, the theme, FR-13, and the sample list's currency, FR-19. It has no authentication and no user accounts. It is not affiliated with Endstep.
 
 ---
 
@@ -19,7 +19,7 @@ The application is read-only. It stores nothing but the reader's theme choice, F
 | Area | Decision |
 |---|---|
 | Format coverage | Pauper only |
-| Data access | Vercel functions: a proxy, a matchup aggregator, a staples aggregator, and the deck page's HTML. CORS workaround, see §4.1 |
+| Data access | Vercel functions: a proxy, a matchup aggregator, a staples aggregator, the sample list's cards and prices, and the deck page's HTML. CORS workaround, see §4.1 |
 | Cache policy | 5 minutes at the edge, with stale-while-revalidate |
 | Front end | React 19 and TypeScript, built with Vite. See NFR-1 |
 | Data fetching | TanStack Query 5. A response stays fresh for five minutes. See §4.8 |
@@ -40,7 +40,8 @@ The application is read-only. It stores nothing but the reader's theme choice, F
 | Install | Installable as an app, with no offline caching and no service worker, FR-16 |
 | Sharing | Each deck page shares with its own title, figures and art. Every other page shares the site card, FR-15 |
 | What to play? | The top 24 ranked by expected match win rate against a metagame the reader can change, from the matchup table's data. No new calls to Endstep, FR-17 |
-| Staples | The 50 cards the top 24 play most, weighted by share, for the main deck and the sideboard. A third function builds them, FR-18 and §4.9 |
+| Staples | The 50 cards the top 24 play most, weighted by share, for the main deck and the sideboard. A function of its own builds them, FR-18 and §4.9 |
+| Sample list extras | Card images on hover or tap, and the cost to build at each card's cheapest printing, from Scryfall through a function of its own, FR-19 and §4.10 |
 
 ---
 
@@ -162,6 +163,7 @@ Public CORS proxies were tested on 2026-09-20 and rejected. All six failed. allo
 4. **`api/_shared.ts`**. The code the functions share: the upstream address and timeout, the CORS headers, the method rules, the error responses and the cache rules. Vercel does not deploy a file in `api/` whose name starts with an underscore, so it is not a function of its own.
 5. **`api/deck-page.ts`**. The deck page's HTML. It writes the deck's title, description and image into the built `index.html` for link previews, FR-15. `vercel.json` sends `/decks/:slug` to it in place of the static rewrite.
 6. **`api/staples.ts`**. The staples aggregator. It builds the 50 most played cards of the top 24 on the server, with their art, and returns them in one response. See §4.9.
+7. **`api/sample-cards.ts`**. The sample list's card images and prices, from Scryfall, for one deck and window. See §4.10.
 
 ### 4.3 Proxy behaviour
 
@@ -222,14 +224,14 @@ The front end uses **React Router 8 in declarative mode**: `BrowserRouter`, `Rou
 - The layout route replaces a missing or unknown window with the default, with a replace navigation, so the address always names the window on screen.
 - The view state lives in the address too: the overview's view in `view` and the deck table's sort in `sort` and `dir`, FR-4, the overview's search in `q`, FR-14, the share chart's highlighted deck in `highlight`, FR-5, the matchup table's chosen deck in `deck`, FR-12, What to play?'s changed metagame in `meta` and chosen deck in `beat`, FR-17, and the staples list in `section`, FR-18. A change replaces the history entry, so Back leaves the page rather than undoing a sort. The default view leaves the parameters out.
 - Back, forward and reload therefore return to a page as the reader left it. A link carries only `?window=`, so it opens a page in its default view. This is the browser's own rule: history returns to a page, a link is a new visit. The one exception is the deck page's link to the matchup table, which also carries `?deck=`, FR-11.
-- The theme is not view state. It is the reader's preference, kept in local storage, so a link never carries it. See FR-13.
+- The theme is not view state. It is the reader's preference, kept in local storage, so a link never carries it. See FR-13. The sample list's currency is the same kind of preference, FR-19.
 - Back and forward work. A route change does not reload the page.
 - Any other path is a Vercel 404. A path that reaches the app without a route, such as `/index.html`, shows a Not found page.
 - A route change moves focus to the new page's main heading, so keyboard and screen reader users know the page changed. A link scrolls the new page to the top, except a link to the matchup table that names a deck, which scrolls as FR-12 sets out. Back and forward keep the scroll position the browser restores. Declarative mode does none of this, because `ScrollRestoration` exists only in data mode, so the app does it when the path changes. A change to the query string alone is not a route change.
 
 ### 4.6 Local development
 
-`npm run dev` starts Vite. A small Vite plugin serves `/api/metagame/*`, `/api/matchups` and `/api/staples` by calling the real handlers, and applies the same rewrite as `vercel.json`. It serves each response from memory for its `s-maxage`, the lifetime the edge uses too. It does not serve stale responses and does not evict expired entries, so it is simpler than the edge. Without that, every reload of the matchup page in development costs 25 upstream calls, and a dozen reloads in a minute reach the rate limit. It replaces `dev-server.js`, which is deleted. Vite's dev server already falls back to `index.html` for the page routes. `vite preview` also serves `/decks/:slug` through the deck page's function, with the rewrite from `vercel.json`, so a link preview can be checked on a local build. The dev server does not, because its `index.html` is the source file.
+`npm run dev` starts Vite. A small Vite plugin serves `/api/metagame/*`, `/api/matchups`, `/api/staples` and `/api/sample-cards` by calling the real handlers, and applies the same rewrite as `vercel.json`. It serves each response from memory for its `s-maxage`, the lifetime the edge uses too. It does not serve stale responses and does not evict expired entries, so it is simpler than the edge. Without that, every reload of the matchup page in development costs 25 upstream calls, and a dozen reloads in a minute reach the rate limit. It replaces `dev-server.js`, which is deleted. Vite's dev server already falls back to `index.html` for the page routes. `vite preview` also serves `/decks/:slug` through the deck page's function, with the rewrite from `vercel.json`, so a link preview can be checked on a local build. The dev server does not, because its `index.html` is the source file.
 
 ### 4.7 What deploys
 
@@ -254,7 +256,7 @@ The pages read the API through **TanStack Query 5**. It was chosen over SWR on t
 - **A window change keeps the page on screen.** While another window loads, a page keeps the previous window's data, dimmed and marked busy, its window selector marked busy, and a status line saying which window is loading. A pick made during the load replaces the history entry. Every page behaves this way: the overview, the deck page with its matchups row, the matchup table, What to play? and Staples. The previous window's data is never presented as the new one: the dates and anything else that names the window wait for the new data. A section whose previous window had nothing to show shows its skeleton instead, so an empty state never speaks for a window that has not loaded. The deck page's matchups row loads on its own, FR-11: it dims and marks itself busy, while the selector and the status line follow the deck's numbers.
 - Requests run whether or not the browser reports itself online, so a reader without a connection sees the network error, not a page that waits.
 - Nothing refetches when the browser window regains focus, NFR-4.
-- A network error, a 429 or a 5xx is retried at most twice, after 400 ms and then 800 ms, NFR-4. Any other failure shows at once. In a background tab the retries wait until the tab is shown again. A query can turn retries off: the matchup table, the deck's matchups row, What to play? and Staples do, FR-11, FR-12, FR-17 and FR-18.
+- A network error, a 429 or a 5xx is retried at most twice, after 400 ms and then 800 ms, NFR-4. Any other failure shows at once. In a background tab the retries wait until the tab is shown again. A query can turn retries off: the matchup table, the deck's matchups row, What to play?, Staples and the sample list's cards do, FR-11, FR-12, FR-17, FR-18 and FR-19.
 - The query passes an abort signal to `fetch`, so a request for a window the reader has left is cancelled.
 - `getJson` makes one request. It turns a failed status into an error that carries its kind and status, and the query client decides whether to retry.
 
@@ -291,6 +293,35 @@ Behaviour:
 - One cold build costs the deck list and one call per page: 35 for the main deck and 25 for the sideboard on 2026-10-18 at 30d, and one Scryfall request. Card usage moves slowly, so a success is held for 30 minutes, with 30 more of stale-while-revalidate. A success whose art lookup fell back is held for one minute, as the proxy's is, §4.3. A 429 is held for 60 seconds and any other error is `no-store`, as the matchup function's are.
 - If any Endstep call fails, the whole request fails, with 429 for an upstream 429 and 502 otherwise. A failed art lookup never fails it.
 - Each upstream call has the proxy's 8 second timeout. Same method rules and CORS headers as the proxy, §4.3.
+
+### 4.10 Sample cards function
+
+`GET /api/sample-cards?deck={slug}&window=30d`. The deck page reads it for its sample list, FR-19. As with the matchup function, §4.4, the raw query string must be exactly `?deck=` and a slug the proxy would accept, §4.3, then `&window=` and one of the five windows, byte for byte. Anything else returns 400.
+
+1. Fetch the deck detail through our own proxy, at the exact address the deck page requests, as the deck page's HTML function does, FR-15. The two then share one edge cache entry, and Endstep sees one call per deck and window. On a protected preview deployment this fetch is refused, so previews there show no card images and no cost, which is accepted.
+2. Take the distinct card names of `sampleList.main` and `sampleList.side`. A withheld list has none, and the function answers with no cards. The six basic lands, Plains, Island, Swamp, Mountain, Forest and Wastes, are free and are not priced. Their snow-covered versions are real cards with a price, and are.
+3. **Images.** One Scryfall collection request for the names, at most 75. Each card takes its `image_uris.normal`, or its front face's for a card with two faces.
+4. **Prices.** Scryfall searches for every printing of the names: `unique=prints` and a query that joins `!"{name}"` terms with `or`, split so that each query stays under 1,000 characters, each following `next_page` while `has_more` is true. For each card and each currency, `tix`, `eur` and `usd`, the price is the lowest across its printings that have one. A search that answers 404 matched none of its names, which then have no price. Measured on 2026-10-18, six top lists needed one to three search pages each, and the cheapest printing priced them about a quarter below Scryfall's default printing. Affinity read 238 tix against 299.
+5. **Matching.** Both steps match a Scryfall card to a name as §3.4 does: the card's full name, or any of its faces' names, ignoring case. Endstep names a card with two faces by its front face, and Scryfall answers "Front // Back".
+6. **Memory.** The function remembers each card's image and prices for an hour, for as long as its instance lives, and asks Scryfall only for names it has not seen in that hour.
+7. **Pace.** Scryfall allows 2 requests a second on these endpoints, so the requests go one after another, at least 500ms apart, at most five per call. All of them share a bound of 6 seconds. What arrived by then is kept, and a card whose lookup never ran has no image or no price.
+
+Response:
+
+```
+{
+  cards: { [name]: { imageUrl, tix, eur, usd } }
+}
+```
+
+- Each value is a number, or null when Scryfall had none. A basic land carries prices of 0.
+- The page adds up the list it shows, FR-19, so a cost always matches the list on screen, even when this response is older than the deck detail.
+- About 4 KB for a list of 30 distinct cards.
+
+Behaviour:
+
+- A success is held at the edge for an hour, with a day of stale-while-revalidate, because Scryfall updates prices once a day. A response where any lookup failed or ran out of time is held for five minutes. A deck detail that answers 404 returns 404 with `no-store`. A 429 returns 429, held for 60 seconds. Any other failure returns 502 with `no-store`.
+- The User-Agent and the other rules of the proxy's Scryfall requests apply, §4.3. Same method rules and CORS headers as the proxy.
 
 ---
 
@@ -359,7 +390,7 @@ The header names the site, "Pauper Endstep metagame", beside the site mark from 
 Deck names link to `/decks/{slug}` wherever a deck is listed: grid cards, table rows, matrix headers, the decks in the ranked bars and the scatter, FR-6 and FR-7, every deck on What to play?, FR-17, and every deck behind a staple, FR-18. Links keep the current `?window=`.
 
 ### FR-11. Deck page
-Two calls. `/{format}/decks/{slug}` feeds every section except the matchups row, see §3.6. `/api/matchups` feeds the matchups row, §4.4.
+Three calls. `/{format}/decks/{slug}` feeds every section except the matchups row, see §3.6. `/api/matchups` feeds the matchups row, §4.4. `/api/sample-cards` adds the sample list's previews and cost once the list is known, FR-19 and §4.10.
 
 **Header.** Deck name, colour pips, key card art and the three key cards. The window selector and the resolved window dates (§6.7). A link to the same deck on endstep.cc, in a new tab.
 
@@ -381,6 +412,7 @@ Two calls. `/{format}/decks/{slug}` feeds every section except the matchups row,
 - `mainOnly` shows the main deck. The sideboard is replaced by a note: fewer than `minPlayers` players, 3 today, brought this exact 75. The control copies the main deck only.
 - When `side` is empty, the sideboard heading and the blank line before it are left out.
 - `withheld` shows no list and no control. A note gives the reason: no main deck was brought by `minPlayers` or more players, or no list was registered in this window. Never an empty list.
+- Each card's image on hover or tap, and the cost to build after the lists, FR-19.
 
 **Matchups against the top 24.** The deck's own row of the matchup table, from `/api/matchups`.
 
@@ -573,6 +605,28 @@ The page lives at `/staples`. Its heading and the header link read "Staples", an
 
 **States.** As the matchup table, FR-12: a skeleton while loading, the error panel with its retry, no automatic retry, because one cold build costs up to 35 upstream calls, and the previous window dimmed while the next loads, §4.8. A switch to the other list shows the skeleton until it arrives, because the cards on screen belong to the other list and must not stand under its name. A card table that Endstep withholds for a deck, §3.6, leaves that deck out, and a line under the list reads "1 deck is left out because Endstep withholds its cards.", or "{n} decks are left out because Endstep withholds their cards." The page shares the site card, FR-15.
 
+### FR-19. Card previews and cost to build
+The deck page's sample list, FR-11, shows each card's image on demand and what the list costs to build. One call to `/api/sample-cards`, §4.10. The design system's Card previews and cost section is the visual specification.
+
+- The page requests it once the deck detail has a list to show, `shown` or `mainOnly`, keyed by the deck and the window. The list shows at once, and the previews and the cost arrive after it. The request is not retried, §4.8. If it fails, the names stay plain text and the cost does not show, so the list reads as before.
+- The page prices the list it shows from the response's prices per card. A card the response lacks has no image and no price.
+
+**Card previews.**
+
+- A card whose image came back has its name as a button, with a dotted underline that turns solid on hover and focus. A card without an image keeps its plain name.
+- On a device that can hover, pointing at a name or giving it keyboard focus shows the card's image beside the sample list panel, 244px wide, level with the name and kept inside the window. It goes on the side of the panel with room, and otherwise beside the name. It follows its name when the page scrolls, and hides when the name leaves the window, when the pointer leaves, when focus moves on, and on Escape. It is decorative, `aria-hidden`, because the name is already read.
+- Activating a name, by a tap, a click, Enter or Space, opens the card in a dialog: the image, up to 300px wide, with the card's name as its `alt`, and a Close button. Close, Escape or a tap outside the image closes it, and focus returns to the name. On a touch screen this is how a card is seen. With a mouse, hovering is quicker, and the dialog serves keyboard and screen reader users and touch laptops.
+
+**Cost to build.** A block after the lists.
+
+- A label, "Cost to build", and a switch named Currency with three options: MTGO, € and $. MTGO is the default. The reader's choice is kept in local storage, as the theme is, FR-13, so it carries across decks and visits. It is not in the address.
+- The total, in tickets, "238.41 tix", or in euros or dollars, "€194.00" or "$173.64": each card's count times its price, added up, to two decimal places.
+- A line under it splits the total: "Main deck {cost} · Sideboard {cost}". For a `mainOnly` list it reads "Main deck {cost}".
+- One sentence: "Prices from Scryfall, at each card's cheapest printing."
+- When some cards have no price in the chosen currency, the total covers the rest, and a line reads "No price for 1 card." or "No price for {n} cards."
+- The six basic lands cost nothing. Snow-covered basics are priced.
+- During a window change the block follows §4.8. It never shows one window's cost under another's list.
+
 ---
 
 ## 6. Data caveats the UI must handle
@@ -733,7 +787,7 @@ Recharts covers the overview's three charts: `LineChart` for FR-5, a horizontal 
 
 ### NFR-3. Performance
 - Page interactive within 3 seconds on a normal broadband connection. The art lookup adds at most one second to an uncached deck list, §4.3.
-- Initial render API calls: exactly **two** on the overview, `decks` at `pageSize=24` and `share-series`, and a third when the address restores a search, FR-14. **Two** on the deck page: the deck detail and `/api/matchups`. The second is the matchup table's own request, so it shares that page's edge cache entry. **One** on the matchup table, on What to play?, which shares it, and on Staples.
+- Initial render API calls: exactly **two** on the overview, `decks` at `pageSize=24` and `share-series`, and a third when the address restores a search, FR-14. **Two** on the deck page: the deck detail and `/api/matchups`. The second is the matchup table's own request, so it shares that page's edge cache entry. **One** on the matchup table, on What to play?, which shares it, and on Staples. The deck page adds `/api/sample-cards` once the deck detail has a list to show, FR-19.
 - Script payload is a reference, not a gate. Draft v2 shipped about 743 KB brotli, 544 KB of it Babel Standalone. The mechanical Vite port measured 156 KB of script and 2 KB of CSS, brotli, on 2026-10-03.
 - Card art is lazy-loaded with `loading="lazy"` and sized to prevent layout shift.
 - Back, forward or a window switch to data fetched in the last five minutes renders from memory, with no request and no loading state, §4.8.
@@ -741,7 +795,7 @@ Recharts covers the overview's three charts: `LineChart` for FR-5, a horizontal 
 ### NFR-4. Respecting the upstream service
 The application must not put meaningful load on Endstep. Edge caching (§4.3) means repeat visits and repeated window switches cost no upstream requests. Within five minutes, the client's own cache (§4.8) sends no request at all. The client must not poll. It must not retry more than twice. It must back off on 429. Total upstream traffic should stay well below the limit of 300 per 60 seconds. The matchup function costs 25 upstream calls per cold window, so warming all five windows costs 125 in each edge region that serves a request. The deck page's matchups row requests the same URL, so it adds no upstream calls once a window is warm. The deck page's HTML function, FR-15, adds one deck detail call per deck and window on an edge cache miss, the same call the page itself makes. A search costs one upstream call for each distinct normalised query, window and page. It runs 300ms after typing stops, from 2 characters, and the edge caches each query like any other deck list. Several regions warming every window inside one minute would pass the limit. At this site's traffic that is unlikely, and §4.4 holds a 429 at the edge for the full minute when it happens. The staples function costs up to 35 calls per cold window and section, §4.9, about 300 to warm all ten. A reader who walks every window and both sections on a cold region in one minute, then opens the matchup table, could pass the limit. Its 30-minute cache makes that walk free afterwards, and a 429 is held for the minute, as the matchup function's is.
 
-The same care applies to Scryfall, §3.4. The metagame function sends one collection request per uncached deck list or deck detail, and the staples function one per uncached window and section, within Scryfall's 2 per second, and fewer once an instance has seen the cards. Each distinct search query is its own deck list, so the search's 300ms pause and its two-character floor, FR-14, also bound the Scryfall requests. A 429 is never retried, and the response goes out without the art.
+The same care applies to Scryfall, §3.4. The metagame function sends one collection request per uncached deck list or deck detail, the staples function one per uncached window and section, and the sample cards function at most five, 500ms apart, per uncached deck and window, §4.10, within Scryfall's 2 per second, and fewer once an instance has seen the cards. Each distinct search query is its own deck list, so the search's 300ms pause and its two-character floor, FR-14, also bound the Scryfall requests. A 429 is never retried, and the response goes out without the art.
 
 ### NFR-5. Attribution
 The page states that the data comes from Endstep and links to `https://endstep.cc/metagame`. It does not present itself as an official Endstep product. The footer, laid out as the design system shows, carries:
@@ -750,7 +804,7 @@ The page states that the data comes from Endstep and links to `https://endstep.c
 2. that the site is not affiliated with Endstep;
 3. the Fan Content notice in the policy's own words: "Pauper Endstep metagame is unofficial Fan Content permitted under the Fan Content Policy. Not approved/endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. ©Wizards of the Coast LLC.", with a link to the policy;
 4. the author, Gabriele D'Arrigo, linking to `https://github.com/gabrieledarrigo`, beside a link to the source code;
-5. a credit to Scryfall for the card images, which reach the browser from Scryfall's servers, §3.4.
+5. a credit to Scryfall for the card images and prices, "Card images and prices from Scryfall." The images reach the browser from Scryfall's servers, §3.4, and the prices come through the sample cards function, §4.10.
 
 ### NFR-6. Accessibility
 - All content reachable and operable by keyboard. A chart's bars and markers open deck pages on a click, but are not tab stops: every page they open is reachable by keyboard through the deck grid or the deck table, whichever view the overview shows.
@@ -767,10 +821,10 @@ Current versions of Chrome, Firefox, Safari and Edge. No IE, no polyfills.
 The code targets ES2025: `target` and `lib` in the three TypeScript configs, and Vite's `build.target`. Older browser versions are not supported.
 
 ### NFR-9. Privacy
-No analytics, no cookies, no local storage of personal data, no third-party requests beyond the card-art hosts: Scryfall's CDN, and Endstep's image endpoint as the fallback. The theme choice, FR-13, is the one value the app keeps in local storage. It is a display preference, not personal data, and it never leaves the browser.
+No analytics, no cookies, no local storage of personal data, no third-party requests beyond the card-art hosts: Scryfall's CDN, and Endstep's image endpoint as the fallback. The app keeps two values in local storage: the theme choice, FR-13, and the sample list's currency, FR-19. Both are display preferences, not personal data, and they never leave the browser.
 
 ### NFR-10. Deployment
-Deployed on Vercel from the Git repository. A Vite build and four serverless functions. No environment variables and no secrets. Production waits until CI passes, §4.7.
+Deployed on Vercel from the Git repository. A Vite build and five serverless functions. No environment variables and no secrets. Production waits until CI passes, §4.7.
 
 ### NFR-11. CSS architecture
 Plain CSS files, processed by Vite. No CSS Modules, no CSS-in-JS and no framework, so class names ship exactly as the design system documents them.
@@ -845,3 +899,4 @@ A later layer overrides an earlier one, whatever the selectors' specificity and 
 11. ~~Card art from our server.~~ Settled on 2026-10-17: Scryfall, by name. The owner accepted that the art may differ from Endstep's, for 11 of the 24 decks when measured, because the site presents its own view of the data. §3.4 and §4.3 give the rules, E14 builds it.
 12. ~~A page that suggests a deck.~~ Settled on 2026-10-18: What to play?, FR-17. The owner chose the answer first, "Play {deck}!", the metagame as the reader's to change, kept in the address as changes rather than shares, and plain words for readers whose first language is not English.
 13. ~~The format's staple cards.~~ Settled on 2026-10-18: Staples, FR-18, its own page. The owner chose a list with large art over tiles, a card that opens the top-24 decks behind it rather than the deck search, which matched 80 decks for Counterspell, 30 cards with more up to 50, and the main deck or sideboard kept in the address.
+15. ~~Card previews and the cost of a list.~~ Settled on 2026-10-18: FR-19. The owner chose previews on hover and focus, with a tap on touch screens, and prices at each card's cheapest printing, accepting the extra Scryfall requests for accuracy. The cost is a block after the lists, with an MTGO, € and $ switch, the main deck and sideboard split, one sentence of source, and no price per card.

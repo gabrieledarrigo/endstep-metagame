@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-26. Derived from [`requirements.md`](./requirements.md) and [`design-system.html`](./design-system.html).
 
-Milestone 1 has sixteen items: four enablers, nine user stories, three hardening items. Milestones 2 to 5 follow at the end of this file. Each one is meant to be a separate branch and a separate review. Nothing here assumes a single large implementation pass.
+Milestone 1 has sixteen items: four enablers, nine user stories, three hardening items. Milestones 2 to 6 follow at the end of this file. Each one is meant to be a separate branch and a separate review. Nothing here assumes a single large implementation pass.
 
 Every item lists what blocks it, what it blocks, and how to tell it is done.
 
@@ -1462,3 +1462,105 @@ Covers FR-18's decks behind a card.
 **S28 waits for E15 and S25.** It reads E15's response, and its fourth link goes into the header S25 changes.
 
 **S29 is the last step.** It opens a panel inside S28's lines.
+
+---
+
+# Milestone 6: card previews and cost
+
+**Date:** 2026-10-18. Derived from Draft v12 of the requirements.
+
+One enabler and two user stories, for FR-19 and §4.10. The owner chose the design on 2026-10-18, from a working draft, and the design system's Card previews and cost section already shows it, so there is no design item.
+
+| Wave | Items | Runs in parallel |
+|---|---|---|
+| 28 | E16 | Yes, beside milestones 4 and 5 |
+| 29 | S30, S31 | Yes, two ways |
+
+```
+E16 the sample cards function ──┬─► S30 the cost to build
+                                └─► S31 card previews
+```
+
+---
+
+## E16. Fetch a sample list's images and prices
+
+Covers §4.10.
+
+**Tasks**
+
+1. `api/sample-cards.ts`: the query checked byte for byte, then the deck detail through our own proxy, at the deck page's exact address.
+2. The images: one Scryfall collection request for the list's distinct names, taking each card's normal image or its front face's.
+3. The prices: Scryfall searches for every printing of the names, split under 1,000 characters a query and paged, and the lowest price per card in tix, euros and dollars. A search's 404 means no price for its names. The six basic lands are free, and snow-covered basics are priced.
+4. Matching by full name or any face name, ignoring case, as §3.4 does, in both lookups.
+5. The response as prices per card, not totals, and each card remembered for an hour per instance.
+6. The requests one after another, 500ms apart, at most five, under a shared 6-second bound that keeps what arrived.
+7. The cache rules: an hour, with a day of stale-while-revalidate, for a success, five minutes when a lookup failed or ran out of time, 60 seconds for a 429, and `no-store` for a 404 and anything else.
+8. The route in `vercel.json` and in the development plugin, §4.6, and `.vercelignore` keeping its spec out of the deploy.
+9. A spec beside the function: the query check, a withheld list, a card with two faces, the cheapest printing chosen per currency, a missing price, a search's 404, snow-covered basics, the query split and the paging, the memory, the spacing and the cap, the bound, and each failure.
+
+**Done when**
+
+- `/api/sample-cards` for Affinity at 30d in production returns an image for every card, and prices that match a hand check of Scryfall's printings that day.
+- A repeat request within the hour is a cache hit.
+- Any other query string returns 400.
+
+**Blocked by** nothing. **Blocks** S30, S31.
+
+---
+
+## S30. See what a list costs to build
+
+As a Pauper player, I want to see what the sample list costs on MTGO or in paper, so I know whether I can afford the deck.
+
+Covers FR-19's cost to build, and NFR-5's Scryfall credit.
+
+**Tasks**
+
+1. The request to `/api/sample-cards` once the deck detail has a list to show, keyed by the deck and the window, with no retry.
+2. The block after the lists: "Cost to build", the Currency switch with MTGO, € and $, the total and the main deck and sideboard split, added up from the response's prices per card for the list on screen, and the source sentence.
+3. The reader's currency kept in local storage, as the theme is, and MTGO when there is none.
+4. The line for cards with no price, a `mainOnly` list's split, and no block when the request fails.
+5. The window change, under §4.8.
+6. The footer's credit: "Card images and prices from Scryfall."
+7. A spec beside each component it changes.
+
+**Done when**
+
+- Affinity's deck page at 30d shows a total and split that match the list on screen and the response's prices, in each currency, in both themes, at 360px and 1,280px.
+- The currency chosen on one deck page is the one shown on the next.
+- With `/api/sample-cards` failing, the sample list reads as before, with no block.
+
+**Blocked by** E16. **Blocks** nothing.
+
+---
+
+## S31. Preview a card in the sample list
+
+As a Pauper player, I want to see a card's image when I point at its name, so I know the card without leaving the page.
+
+Covers FR-19's card previews.
+
+**Tasks**
+
+1. Card names as buttons when their image came back, with the dotted underline.
+2. On a device that can hover: the preview beside the panel on hover and on keyboard focus, placed on the side with room, level with the name and inside the window, following its name on scroll, hidden when the name leaves the window, on leave, blur and Escape, and `aria-hidden`.
+3. On every device: activating a name, by a tap, a click, Enter or Space, opens the dialog with the image, its `alt` and a Close button. Close, Escape or a tap outside close it, and focus returns to the name.
+4. Plain names when the request fails or a card has no image.
+5. A spec beside each component it changes.
+
+**Done when**
+
+- Pointing at or tabbing to each name in Affinity's list shows its card, and the card stays inside the window at 1,280px and 1,024px.
+- On a phone, a tap opens the card, and with a keyboard Enter does, and Close returns focus to its name.
+- With `/api/sample-cards` failing, the names are plain text.
+
+**Blocked by** E16. **Blocks** nothing.
+
+---
+
+## Notes on sequencing, milestone 6
+
+**E16 starts at once.** It is server code only, beside milestones 4 and 5.
+
+**S30 and S31 run in parallel.** Both change the sample list: S30 adds a block after the lists, and S31 changes how a name renders. They share the request, so the first to land adds it and the second reuses it.
