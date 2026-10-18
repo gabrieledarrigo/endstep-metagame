@@ -22,7 +22,7 @@ export function SiteFooter() {
       <div className="site-footer__notes">
         <p className="site-footer__data">
           Data from <a href="https://endstep.cc/metagame">endstep.cc</a>. This
-          site is not affiliated with Endstep. Card images from{" "}
+          site is not affiliated with Endstep. Card images and prices from{" "}
           <a href="https://scryfall.com">Scryfall</a>.
         </p>
         <p className="site-footer__legal">
