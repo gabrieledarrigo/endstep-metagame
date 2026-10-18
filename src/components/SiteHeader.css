@@ -13,7 +13,7 @@
     align-items: flex-start;
     gap: 10px;
     width: fit-content;
-    padding-top: 4px;
+    padding-top: calc((36px - 28px) / 2);
     font-size: 22px;
     line-height: calc(28 / 22);
     font-weight: 700;
