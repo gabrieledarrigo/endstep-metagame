@@ -90,4 +90,24 @@ describe("App", () => {
       "/decks/monster-tron-1bc68613?window=7d",
     );
   });
+
+  it("opens What to play? from the header with the same window", async () => {
+    history.replaceState(null, "", "/matchups?window=14d");
+    render(<App />);
+
+    fireEvent.click(
+      within(screen.getByRole("navigation", { name: "Pages" })).getByRole(
+        "link",
+        { name: "What to play?" },
+      ),
+    );
+
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "What to play?" }),
+    ).toBeTruthy();
+    expect(location.pathname + location.search).toBe(
+      "/what-to-play?window=14d",
+    );
+    expect(await screen.findByText("Based on the last 14 days.")).toBeTruthy();
+  });
 });
