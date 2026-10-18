@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
-  <rect id="tile" width="64" height="64" rx="14" fill="#1c5cab"/>
-  <rect id="bar-1" x="14" y="14.5" width="36" height="9" rx="3" fill="#fcfcfb"/>
-  <rect id="bar-2" x="14" y="27.5" width="26" height="9" rx="3" fill="#cfdceb"/>
-  <rect id="bar-3" x="14" y="40.5" width="16" height="9" rx="3" fill="#a2bcdb"/>
+  <rect id="tile" width="64" height="64" rx="10" fill="#3069b2"/>
+  <rect id="bar-1" x="14" y="14.5" width="36" height="9" rx="2" fill="#fdfdfc"/>
+  <rect id="bar-2" x="14" y="27.5" width="26" height="9" rx="2" fill="#cee1f6"/>
+  <rect id="bar-3" x="14" y="40.5" width="16" height="9" rx="2" fill="#a0c4e9"/>
 </svg>
