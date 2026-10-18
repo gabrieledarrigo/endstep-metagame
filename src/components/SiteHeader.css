@@ -9,11 +9,22 @@
   }
 
   .site-header__brand {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    width: fit-content;
+    padding-top: calc((36px - 28px) / 2);
     font-size: 22px;
+    line-height: calc(28 / 22);
     font-weight: 700;
     letter-spacing: -0.015em;
     color: var(--text-900);
     text-decoration: none;
+  }
+
+  .site-header__mark {
+    width: calc(28em / 22);
+    height: calc(28em / 22);
   }
 
   .site-header__nav {
@@ -33,7 +44,15 @@
     }
 
     .site-header__brand {
+      gap: 12px;
+      padding-top: 0;
       font-size: 30px;
+      line-height: calc(36 / 30);
+    }
+
+    .site-header__mark {
+      width: calc(36em / 30);
+      height: calc(36em / 30);
     }
 
     .site-header__nav {

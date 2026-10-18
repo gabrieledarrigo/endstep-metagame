@@ -2,8 +2,8 @@ import { render } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { SiteMark } from "./SiteMark";
 
-function drawMark(): SVGSVGElement {
-  const { container } = render(<SiteMark />);
+function drawMark(className?: string): SVGSVGElement {
+  const { container } = render(<SiteMark className={className} />);
   const mark = container.querySelector("svg");
   if (!mark) {
     throw new Error("No mark was drawn");
@@ -15,6 +15,16 @@ function drawMark(): SVGSVGElement {
 describe("SiteMark", () => {
   it("is hidden from assistive technology", () => {
     expect(drawMark().getAttribute("aria-hidden")).toBe("true");
+  });
+
+  it("adds a parent's class beside its own", () => {
+    expect(drawMark("site-header__mark").getAttribute("class")).toBe(
+      "site-mark site-header__mark",
+    );
+  });
+
+  it("carries only its own class when the parent adds none", () => {
+    expect(drawMark().getAttribute("class")).toBe("site-mark");
   });
 
   it("draws at 20px on a 64-unit grid", () => {
