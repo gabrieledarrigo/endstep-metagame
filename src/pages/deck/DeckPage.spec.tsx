@@ -641,7 +641,13 @@ describe("DeckPage card previews", () => {
     await waitFor(() => {
       expect(sampleCardRequests(fetchMock)).toHaveLength(1);
     });
-    await act(async () => {});
+    const request = fetchMock.mock.calls.findIndex(([input]) =>
+      String(input).startsWith("/api/sample-cards"),
+    );
+    await act(async () => {
+      await fetchMock.mock.results[request].value;
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
 
     expect(screen.getByText("Galvanic Blast")).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Galvanic Blast" })).toBeNull();
