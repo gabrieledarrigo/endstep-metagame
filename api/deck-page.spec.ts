@@ -18,7 +18,8 @@ const readFile = vi.hoisted(() => vi.fn());
 
 vi.mock("node:fs/promises", () => ({ readFile }));
 
-const ORIGIN = "https://endstep-metagame.vercel.app";
+const ORIGIN = "https://pauper-endstep-metagame.vercel.app";
+const DEPLOYMENT = "https://pauper-endstep-metagame-git-109.vercel.app";
 const SITE_CARD = `${ORIGIN}/site-card.png`;
 const DESCRIPTION =
   "Which Pauper decks are played, how they perform, and how they do against each other.";
@@ -94,7 +95,7 @@ function proxy(
 }
 
 function request(query: string, method = "GET"): Request {
-  return new Request(`${ORIGIN}/api/deck-page?${query}`, { method });
+  return new Request(`${DEPLOYMENT}/api/deck-page?${query}`, { method });
 }
 
 function meta(html: string, attribute: string, value: string): string[] {
@@ -148,7 +149,7 @@ describe("deck-page", () => {
 
     expect(fetchMock).toHaveBeenCalledOnce();
     expect(fetchMock.mock.calls[0][0]).toBe(
-      `${ORIGIN}/api/metagame/Pauper/decks/affinity-e93f5f74?window=7d&population=rated`,
+      `${DEPLOYMENT}/api/metagame/Pauper/decks/affinity-e93f5f74?window=7d&population=rated`,
     );
   });
 
@@ -158,7 +159,7 @@ describe("deck-page", () => {
     await deckPage.fetch(request("slug=affinity-e93f5f74"));
 
     expect(fetchMock.mock.calls[0][0]).toBe(
-      `${ORIGIN}/api/metagame/Pauper/decks/affinity-e93f5f74?window=30d&population=rated`,
+      `${DEPLOYMENT}/api/metagame/Pauper/decks/affinity-e93f5f74?window=30d&population=rated`,
     );
   });
 
@@ -405,7 +406,7 @@ describe("deck-page", () => {
     );
 
     expect(fetchMock.mock.calls[0][0]).toBe(
-      `${ORIGIN}/api/metagame/Pauper/decks/affinity-e93f5f74?window=7d&population=rated`,
+      `${DEPLOYMENT}/api/metagame/Pauper/decks/affinity-e93f5f74?window=7d&population=rated`,
     );
     expect(meta(await response.text(), "property", "og:image")).toEqual([ART]);
   });
@@ -466,7 +467,7 @@ describe("deck-page", () => {
     const fetchMock = proxy({ deck: deck() });
 
     await deckPage.fetch(
-      new Request(`${ORIGIN}/api/deck-page?slug=affinity-e93f5f74`, {
+      new Request(`${DEPLOYMENT}/api/deck-page?slug=affinity-e93f5f74`, {
         headers: { cookie: "a=b", "user-agent": "Reader" },
       }),
     );

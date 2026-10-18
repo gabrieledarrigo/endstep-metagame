@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { SEGMENT, WINDOWS, isRecord } from "./_shared.js";
 
-const SITE_ORIGIN = "https://endstep-metagame.vercel.app";
+const SITE_ORIGIN = "https://pauper-endstep-metagame.vercel.app";
 const SITE_NAME = "Pauper Endstep metagame";
 const DEFAULT_WINDOW = "30d";
 const BOUND_MS = 2000;
