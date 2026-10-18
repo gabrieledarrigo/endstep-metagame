@@ -7,6 +7,7 @@ import type {
 import { Button } from "../../components/Button";
 import { Panel } from "../../components/Panel";
 import { formatCount } from "../../helpers";
+import { ListCost } from "./ListCost";
 import "./SampleList.css";
 
 function sorted(cards: SampleCard[]): SampleCard[] {
@@ -75,7 +76,7 @@ type SampleListProps = {
   cardsPending?: boolean;
 };
 
-export function SampleList({ list }: SampleListProps) {
+export function SampleList({ list, cards, cardsPending }: SampleListProps) {
   const [status, setStatus] = useState("");
   const [fallback, setFallback] = useState(false);
   const text = useRef<HTMLTextAreaElement>(null);
@@ -147,6 +148,9 @@ export function SampleList({ list }: SampleListProps) {
         </>
       )}
       {side.length > 0 && <CardList title="Sideboard" cards={side} />}
+      {cards && !cardsPending && (
+        <ListCost main={main} side={side} cards={cards} />
+      )}
     </Panel>
   );
 }
