@@ -43,6 +43,7 @@
   --s8: #e34948;
   --mark-opacity: 0.55;
   --line-fade: 0.25;
+  --mark-bars: var(--surface);
 
   --seq-100: #cde2fb;
   --seq-200: #9ec5f4;
@@ -96,6 +97,7 @@
     --s8: #e3635e;
     --mark-opacity: 0.63;
     --line-fade: 0.35;
+    --mark-bars: var(--background);
 
     --seq-100: #164781;
     --seq-200: #2b5c97;
@@ -147,6 +149,7 @@
   --s8: #e3635e;
   --mark-opacity: 0.63;
   --line-fade: 0.35;
+  --mark-bars: var(--background);
 
   --seq-100: #164781;
   --seq-200: #2b5c97;
