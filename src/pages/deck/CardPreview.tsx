@@ -40,6 +40,8 @@ export function CardPreview({
       return;
     }
 
+    let placed = false;
+
     const place = (): void => {
       const spot = placeCardPreview(
         name.getBoundingClientRect(),
@@ -50,11 +52,18 @@ export function CardPreview({
         },
       );
 
-      if (spot === null) {
+      if (spot === null && placed) {
         onHide();
         return;
       }
 
+      if (spot === null) {
+        preview.style.visibility = "hidden";
+        return;
+      }
+
+      placed = true;
+      preview.style.visibility = "";
       preview.style.left = `${spot.left}px`;
       preview.style.top = `${spot.top}px`;
     };
@@ -66,11 +75,13 @@ export function CardPreview({
     };
 
     place();
+    const frame = requestAnimationFrame(place);
     window.addEventListener("scroll", place, { capture: true, passive: true });
     window.addEventListener("resize", place);
     document.addEventListener("keydown", onKeyDown);
 
     return (): void => {
+      cancelAnimationFrame(frame);
       window.removeEventListener("scroll", place, { capture: true });
       window.removeEventListener("resize", place);
       document.removeEventListener("keydown", onKeyDown);

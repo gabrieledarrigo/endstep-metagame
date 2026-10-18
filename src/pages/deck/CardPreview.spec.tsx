@@ -67,6 +67,45 @@ describe("CardPreview", () => {
     expect(onHide).toHaveBeenCalledTimes(1);
   });
 
+  it("waits for a name that focus has yet to scroll into the window, and hides only once it leaves again", () => {
+    let top = 1200;
+
+    const { onHide, preview } = renderPreview(() => top);
+
+    expect(onHide).not.toHaveBeenCalled();
+    expect(preview.style.visibility).toBe("hidden");
+
+    top = 400;
+    fireEvent.scroll(window);
+    expect([preview.style.visibility, preview.style.top]).toEqual([
+      "",
+      "400px",
+    ]);
+
+    top = 900;
+    fireEvent.scroll(window);
+    expect(onHide).toHaveBeenCalledTimes(1);
+  });
+
+  it("places the card again on the next frame", () => {
+    const frames: FrameRequestCallback[] = [];
+    vi.spyOn(window, "requestAnimationFrame").mockImplementation((callback) => {
+      frames.push(callback);
+
+      return frames.length;
+    });
+    let top = 1200;
+
+    const { preview } = renderPreview(() => top);
+
+    top = 250;
+    frames.forEach((callback) => callback(0));
+    expect([preview.style.visibility, preview.style.top]).toEqual([
+      "",
+      "250px",
+    ]);
+  });
+
   it("hides on Escape, and on no other key", () => {
     const { onHide } = renderPreview(() => 300);
 
