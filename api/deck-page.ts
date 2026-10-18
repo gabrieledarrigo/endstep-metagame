@@ -7,6 +7,8 @@ const SITE_NAME = "Pauper Endstep metagame";
 const DEFAULT_WINDOW = "30d";
 const BOUND_MS = 2000;
 const NO_STORE = "no-store";
+const FIVE_MINUTES = "public, s-maxage=300, stale-while-revalidate=600";
+const ONE_MINUTE = "public, s-maxage=60, stale-while-revalidate=600";
 const LOCALE = "en-GB";
 const DECIDED_NEEDED = 20;
 const TOO_FEW_TO_CALL = "match win rate too few to call";
@@ -50,8 +52,6 @@ type PreviewDeck = {
   };
   art: { cardName: string; imageUrl?: string };
 };
-
-type Detail = { deck: PreviewDeck; cache: string };
 
 let indexHtml: Promise<string> | undefined;
 
@@ -118,7 +118,7 @@ function isPreviewDeck(value: unknown): value is PreviewDeck {
 async function deckDetail(
   origin: string,
   target: Target,
-): Promise<Detail | null> {
+): Promise<PreviewDeck | null> {
   const query = new URLSearchParams({
     window: target.window,
     population: "rated",
@@ -142,10 +142,7 @@ async function deckDetail(
       return null;
     }
 
-    return {
-      deck: body.deck,
-      cache: response.headers.get("cache-control") ?? NO_STORE,
-    };
+    return body.deck;
   } catch {
     return null;
   }
@@ -245,7 +242,7 @@ export default {
    *
    * `vercel.json` rewrites `/decks/:slug` here, with the slug in the `slug` query parameter and the link's own parameters beside it.
    * The function reads the built `index.html`, fetches the deck detail through our proxy, and writes the deck's title, description, art crop, canonical link and `og:url` into the head.
-   * The page keeps the proxy's `Cache-Control`.
+   * The page is cached at the edge for five minutes when the deck's art resolved, and for one minute when the art lookup fell back.
    * A rejected slug or window, a failed call, a call longer than two seconds, or a body it cannot read gets the page with the site card, sent with `no-store`.
    *
    * @param req - The incoming request.
@@ -268,16 +265,16 @@ export default {
       return pageResponse(req.method, html, NO_STORE);
     }
 
-    const detail = await deckDetail(url.origin, target);
+    const deck = await deckDetail(url.origin, target);
 
-    if (!detail) {
+    if (!deck) {
       return pageResponse(req.method, html, NO_STORE);
     }
 
     return pageResponse(
       req.method,
-      preview(html, detail.deck, target.window),
-      detail.cache,
+      preview(html, deck, target.window),
+      deck.art.imageUrl ? FIVE_MINUTES : ONE_MINUTE,
     );
   },
 };
