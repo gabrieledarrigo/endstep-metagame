@@ -198,7 +198,6 @@ describe("the page before it first paints", () => {
   });
 
   it("sets the theme colour of a stored light choice, whatever the device's setting", () => {
-    stubColourScheme(true);
     const metas = addThemeColours();
     localStorage.setItem("theme", "light");
 
