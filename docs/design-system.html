@@ -1754,9 +1754,11 @@ a.button { display:inline-block; text-decoration:none; }
   <p class="spec"><b>Games.</b> The table fills its panel&rsquo;s width. At 360px it still fits its panel. Rates to one decimal place, right-aligned with tabular numerals. Each cell is a
   tab stop, and hover or focus shows its range, wins and losses in the chart tooltip. Its accessible name
   carries the same figures, so a screen reader hears them without the tooltip. The table takes its header,
-  cell and rule styles from the base table and adds only alignment and the totals row, which is 600 under a
-  <span class="mono">--baseline</span> rule. These are game win rates, so the note says so above the
-  table.</p>
+  cell and rule styles from the base table and adds alignment and the totals row, which is 600 under a
+  <span class="mono">--baseline</span> rule. The last game row draws that rule as its bottom border. The table also
+  overrides the base rule that removes the last row&rsquo;s bottom border, so the corner keeps its
+  <span class="mono">--baseline</span> rule and a game row that ends the body, as in Too few to call, keeps its
+  <span class="mono">--rule</span>. These are game win rates, so the note says so above the table.</p>
   <p class="spec"><b>Sample list.</b> Count and name per card, sorted by count and then name, with each
   section's total beside its heading. Copy list puts the list on the clipboard in the format MTGO imports,
   with a blank line before the sideboard. The status line says what happened. When the clipboard is refused
