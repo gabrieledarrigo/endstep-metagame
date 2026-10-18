@@ -577,7 +577,7 @@ The page lives at `/what-to-play`. Its heading and the header link read "What to
 - A window change keeps `beat`. When the deck is not in the new window's top 24, the panel shows the top deck, and a window where it is in the top 24 brings it back.
 - One sentence: "These decks clearly beat {deck}.", or "This deck clearly beats {deck}." when one deck qualifies.
 - A table of the decks whose pair with the chosen deck is clear, FR-12's rule, and in their favour, by their rate against it, highest first. Its columns: the deck as a link, its rate against the chosen deck with that pair's range bar from 640px, and its expected rate against the metagame.
-- When no deck qualifies, the sentence reads "No deck in the top 24 clearly beats {deck} in this window." and there is no table.
+- When no deck qualifies, the sentence reads "No deck in the top {n} clearly beats {deck} in this window." and there is no table. {n} is the number of decks in the window's table, at most 24.
 
 **How the numbers are made.** A last panel says in four short paragraphs how the rate is counted, what the bars mean, how the pick is chosen, and why decks outside the top 24 are left out. The design system gives the words.
 

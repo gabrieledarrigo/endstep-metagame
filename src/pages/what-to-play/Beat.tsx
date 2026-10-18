@@ -15,9 +15,9 @@ import {
 import { RangeBar } from "./RangeBar";
 import "./Beat.css";
 
-function sentence(count: number, name: string): string {
+function sentence(count: number, top: number, name: string): string {
   if (count === 0) {
-    return `No deck in the top 24 clearly beats ${name} in this window.`;
+    return `No deck in the top ${top} clearly beats ${name} in this window.`;
   }
 
   if (count === 1) {
@@ -132,7 +132,9 @@ export function Beat({ matrix, ranking, loadingWindow }: BeatProps) {
       {loadingWindow && beating.length === 0 ? (
         <Skeleton className="beat__skeleton-line" />
       ) : (
-        <p className="beat__note">{sentence(beating.length, chosen.name)}</p>
+        <p className="beat__note">
+          {sentence(beating.length, matrix.decks.length, chosen.name)}
+        </p>
       )}
       {beating.length > 0 && (
         <BeatTable name={chosen.name} beating={beating} ranking={ranking} />

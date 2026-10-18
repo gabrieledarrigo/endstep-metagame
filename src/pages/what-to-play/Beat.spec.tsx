@@ -79,7 +79,7 @@ describe("Beat", () => {
     ).toEqual(["Affinity", "Mono Red Madness", "Monster Tron", "Naya Gates"]);
     expect(
       screen.getByText(
-        "No deck in the top 24 clearly beats Affinity in this window.",
+        "No deck in the top 4 clearly beats Affinity in this window.",
       ),
     ).toBeTruthy();
     expect(screen.queryByRole("table")).toBeNull();
@@ -177,7 +177,7 @@ describe("Beat", () => {
     expect(chosen()).toBe("Affinity");
     expect(
       screen.getByText(
-        "No deck in the top 24 clearly beats Affinity in this window.",
+        "No deck in the top 4 clearly beats Affinity in this window.",
       ),
     ).toBeTruthy();
     expect(
