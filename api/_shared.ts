@@ -2,6 +2,9 @@ export const UPSTREAM = "https://endstep.cc/api/metagame/v1";
 export const TIMEOUT_MS = 8000;
 export const SEGMENT = /^[A-Za-z0-9_-]+$/;
 export const WINDOWS = ["1d", "7d", "14d", "30d", "season"];
+export const EDGE_CACHE = "public, s-maxage=300, stale-while-revalidate=600";
+export const PARTIAL_ART_CACHE =
+  "public, s-maxage=60, stale-while-revalidate=600";
 
 export const BASE_HEADERS: Readonly<Record<string, string>> = {
   "Access-Control-Allow-Origin": "*",
@@ -87,7 +90,7 @@ export function methodResponse(req: Request): Response | null {
  */
 export function cacheControl(status: number, rateLimitSeconds: number): string {
   if (status < 400 && !hasNoBody(status)) {
-    return "public, s-maxage=300, stale-while-revalidate=600";
+    return EDGE_CACHE;
   }
 
   if (status === 429) {

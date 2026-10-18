@@ -1,5 +1,6 @@
 import {
   BASE_HEADERS,
+  PARTIAL_ART_CACHE,
   SEGMENT,
   TIMEOUT_MS,
   UPSTREAM,
@@ -50,7 +51,6 @@ const SCRYFALL_HEADERS: Readonly<Record<string, string>> = {
   "Content-Type": "application/json",
 };
 const ART_HOST = "https://cards.scryfall.io/";
-const PARTIAL_ART_CACHE = "public, s-maxage=60, stale-while-revalidate=600";
 
 type ArtDeck = {
   art: { cardName: string; imageUrl?: string };

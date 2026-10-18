@@ -1,6 +1,12 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { SEGMENT, WINDOWS, isRecord } from "./_shared.js";
+import {
+  EDGE_CACHE,
+  PARTIAL_ART_CACHE,
+  SEGMENT,
+  WINDOWS,
+  isRecord,
+} from "./_shared.js";
 
 const SITE_ORIGIN = "https://pauper-endstep-metagame.vercel.app";
 const SITE_NAME = "Pauper Endstep metagame";
@@ -50,8 +56,6 @@ type PreviewDeck = {
   };
   art: { cardName: string; imageUrl?: string };
 };
-
-type Detail = { deck: PreviewDeck; cache: string };
 
 let indexHtml: Promise<string> | undefined;
 
@@ -118,7 +122,7 @@ function isPreviewDeck(value: unknown): value is PreviewDeck {
 async function deckDetail(
   origin: string,
   target: Target,
-): Promise<Detail | null> {
+): Promise<PreviewDeck | null> {
   const query = new URLSearchParams({
     window: target.window,
     population: "rated",
@@ -142,10 +146,7 @@ async function deckDetail(
       return null;
     }
 
-    return {
-      deck: body.deck,
-      cache: response.headers.get("cache-control") ?? NO_STORE,
-    };
+    return body.deck;
   } catch {
     return null;
   }
@@ -245,7 +246,7 @@ export default {
    *
    * `vercel.json` rewrites `/decks/:slug` here, with the slug in the `slug` query parameter and the link's own parameters beside it.
    * The function reads the built `index.html`, fetches the deck detail through our proxy, and writes the deck's title, description, art crop, canonical link and `og:url` into the head.
-   * The page keeps the proxy's `Cache-Control`.
+   * The page is cached at the edge for five minutes when the deck's art resolved, and for one minute when it did not.
    * A rejected slug or window, a failed call, a call longer than two seconds, or a body it cannot read gets the page with the site card, sent with `no-store`.
    *
    * @param req - The incoming request.
@@ -268,16 +269,16 @@ export default {
       return pageResponse(req.method, html, NO_STORE);
     }
 
-    const detail = await deckDetail(url.origin, target);
+    const deck = await deckDetail(url.origin, target);
 
-    if (!detail) {
+    if (!deck) {
       return pageResponse(req.method, html, NO_STORE);
     }
 
     return pageResponse(
       req.method,
-      preview(html, detail.deck, target.window),
-      detail.cache,
+      preview(html, deck, target.window),
+      deck.art.imageUrl ? EDGE_CACHE : PARTIAL_ART_CACHE,
     );
   },
 };

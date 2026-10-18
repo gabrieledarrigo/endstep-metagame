@@ -81,7 +81,7 @@ function deck(overrides: Partial<DeckFields> = {}): DeckFields {
 function proxy(
   body: unknown,
   status = 200,
-  cache = FIVE_MINUTES,
+  cache = "public",
 ): Mock<typeof fetch> {
   const fetchMock = vi.fn<typeof fetch>(
     async () =>
@@ -365,14 +365,25 @@ describe("deck-page", () => {
     ]);
   });
 
-  it.each([FIVE_MINUTES, ONE_MINUTE])(
-    "keeps the proxy's Cache-Control, %s",
+  it.each([FIVE_MINUTES, ONE_MINUTE, "public"])(
+    "caches a preview whose art resolved for five minutes, whatever the proxy sent (%s)",
     async (cache) => {
       proxy({ deck: deck() }, 200, cache);
 
       const response = await deckPage.fetch(request("slug=affinity-e93f5f74"));
 
-      expect(response.headers.get("cache-control")).toBe(cache);
+      expect(response.headers.get("cache-control")).toBe(FIVE_MINUTES);
+    },
+  );
+
+  it.each([FIVE_MINUTES, ONE_MINUTE, "public"])(
+    "caches a preview whose art fell back for one minute, whatever the proxy sent (%s)",
+    async (cache) => {
+      proxy({ deck: deck({ art: { cardName: "Thoughtcast" } }) }, 200, cache);
+
+      const response = await deckPage.fetch(request("slug=affinity-e93f5f74"));
+
+      expect(response.headers.get("cache-control")).toBe(ONE_MINUTE);
     },
   );
 
@@ -425,7 +436,7 @@ describe("deck-page", () => {
       200,
     ],
   ])("serves the site card with no-store for %s", async (_, body, status) => {
-    proxy(body, status, FIVE_MINUTES);
+    proxy(body, status);
 
     const response = await deckPage.fetch(request("slug=affinity-e93f5f74"));
 
