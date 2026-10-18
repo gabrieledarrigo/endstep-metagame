@@ -752,9 +752,9 @@ Covers NFR-1: an exported function with a consumer has a spec beside it. E10 set
 
 # Milestone 3: connected pages
 
-**Date:** 2026-10-13. Derived from Draft v4 of the requirements. D3 and S18 were added on 2026-10-14, from Draft v5. D4, S19, S20 and S21 were added on 2026-10-17, from Draft v6. D5, E13, S22, S23 and S24 were added the same day, from Draft v7, and E14 from Draft v8. H4 was added the same day.
+**Date:** 2026-10-13. Derived from Draft v4 of the requirements. D3 and S18 were added on 2026-10-14, from Draft v5. D4, S19, S20 and S21 were added on 2026-10-17, from Draft v6. D5, E13, S22, S23 and S24 were added the same day, from Draft v7, and E14 from Draft v8. H4 was added the same day, and H5 on 2026-10-18, from Draft v9.
 
-Nineteen items. Four design items, two enablers, twelve user stories and one hardening item. Two stories, the enablers and the hardening item need no design and start at once. The others wait for D2, D3, D4 or D5, because each changes how a page looks, and the owner chooses the design first.
+Twenty items. Four design items, two enablers, twelve user stories and two hardening items. Two stories, the enablers and H4 need no design and start at once. H5's design is done, and it waits only for the footer's mark component, S24. The others wait for D2, D3, D4 or D5, because each changes how a page looks, and the owner chooses the design first.
 
 | Wave | Items | Runs in parallel |
 |---|---|---|
@@ -765,6 +765,7 @@ Nineteen items. Four design items, two enablers, twelve user stories and one har
 | 19 | S19, S20, S21 | Yes, three ways |
 | 20 | D5, E13, E14, H4 | Yes, four ways |
 | 21 | S22, S23, S24 | Yes, three ways |
+| 22 | H5 | No |
 
 ```
 D2 design ─┬─► S16 find a deck in the matchup table ──► S15 matchup table on a phone
@@ -777,7 +778,7 @@ D4 design ──┬─► S19 search for any deck
             └─► S21
 D5 design ──┬─► S22 install as an app
             ├─► S23 a preview per deck
-            └─► S24 the footer
+            └─► S24 the footer ──► H5 the mark in the header
 E13 metadata and headers ──► S23
 E14 art from Scryfall ──► S23
 H4 the deck page's tables
@@ -1202,7 +1203,7 @@ Covers NFR-5.
 
 - Every page's footer carries NFR-5's five items, with working links, in both themes and at 360px.
 
-**Blocked by** D5. **Blocks** nothing.
+**Blocked by** D5. **Blocks** H5.
 
 ---
 
@@ -1225,6 +1226,28 @@ Covers FR-11 and NFR-6. The owner found the gaps on 2026-10-17 and chose the col
 
 ---
 
+## H5. Put the site mark in the header
+
+Covers FR-10 and FR-16. The owner chose on 2026-10-18 to put the site mark in the header too. Today the mark appears only in the footer, the tab and the app icons, and the installed app has no tab. The design system's Page header shows it.
+
+**Tasks**
+
+1. The header's brand link holds the site mark, then the name. It reuses the footer's `SiteMark`, which gains a `className` prop, so the header sizes the mark from its own stylesheet with a `site-header__mark` mix, NFR-11. The footer keeps its 20px mark.
+2. The mark is as tall as one line of the name: 28px, and 36px from 640px. It sits 10px from the name, 12px from 640px, and is aligned to the first line. The name's line height matches the mark: 28px, and 36px from 640px. Below 640px the link takes 4px of top padding, so the mark and the first line share the toggle's centre.
+3. The link is as wide as the mark and the name, no wider.
+4. The mark stays `aria-hidden`, so the link's name stays "Pauper Endstep metagame".
+5. A spec beside each component it changes: the brand link holds the mark, and `SiteMark` passes its class on.
+
+**Done when**
+
+- Every page's header shows the mark beside the name, in both themes.
+- At 360px and at 640px, where the name wraps to two lines, the mark sits on the first line and the toggle keeps its place.
+- The brand link's accessible name is still "Pauper Endstep metagame".
+
+**Blocked by** S24. **Blocks** nothing.
+
+---
+
 ## Notes on sequencing, milestone 3
 
 **S13 and S14 need no design.** They change behaviour, not appearance, so they start beside D2. S13 reuses the deck page's dimmed, busy state.
@@ -1235,4 +1258,4 @@ Covers FR-11 and NFR-6. The owner found the gaps on 2026-10-17 and chose the col
 
 **S20 and S21 wait for S18.** S18 turns the chart colours into CSS variables, and both stories change how the charts draw. S19 touches only the overview's deck list and can start as soon as D4 lands.
 
-**E13 and E14 before S23.** The deck page's function writes into the head that E13 fills, and takes the art address that E14 adds. D5's mark is the owner's to finish, so S22 and S24 wait for it.
+**E13 and E14 before S23.** The deck page's function writes into the head that E13 fills, and takes the art address that E14 adds. D5's mark is the owner's to finish, so S22 and S24 wait for it. H5 waits for S24, because it reuses the footer's `SiteMark`.
