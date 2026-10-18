@@ -36,6 +36,12 @@
         const stored = localStorage.getItem("theme");
         if (stored === "light" || stored === "dark") {
           document.documentElement.dataset.theme = stored;
+          const colour = stored === "dark" ? "#353537" : "#f9f9f7";
+          for (const meta of document.querySelectorAll(
+            'meta[name="theme-color"]',
+          )) {
+            meta.content = colour;
+          }
         }
       } catch {}
     </script>

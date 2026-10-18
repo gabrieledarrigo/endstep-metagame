@@ -129,6 +129,9 @@ describe("the page before it first paints", () => {
   afterEach(() => {
     localStorage.clear();
     document.documentElement.removeAttribute("data-theme");
+    document.head
+      .querySelectorAll('meta[name="theme-color"]')
+      .forEach((meta) => meta.remove());
     vi.restoreAllMocks();
   });
 
@@ -143,6 +146,24 @@ describe("the page before it first paints", () => {
     runPrePaint();
 
     expect(document.documentElement.dataset.theme).toBe("dark");
+  });
+
+  it("sets the theme colour of a stored dark choice before the app mounts", () => {
+    const head = new DOMParser().parseFromString(page, "text/html").head;
+    const metas = [...head.querySelectorAll('meta[name="theme-color"]')];
+    document.head.append(...metas);
+    localStorage.setItem("theme", "dark");
+
+    runPrePaint();
+
+    expect(metas.map((meta) => meta.getAttribute("media"))).toEqual([
+      "(prefers-color-scheme: light)",
+      "(prefers-color-scheme: dark)",
+    ]);
+    expect(metas.map((meta) => meta.getAttribute("content"))).toEqual([
+      "#353537",
+      "#353537",
+    ]);
   });
 
   it("applies a stored light choice, whatever the device's setting", () => {
