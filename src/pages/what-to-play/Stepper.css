@@ -1,0 +1,39 @@
+@layer components {
+  .stepper {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--edge);
+    border-radius: 8px;
+    background: var(--surface);
+  }
+
+  .stepper__button {
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--text-600);
+    font: 600 16px/1 var(--sans);
+    cursor: pointer;
+  }
+
+  .stepper__button:hover {
+    background: var(--hover);
+    color: var(--text-900);
+  }
+
+  .stepper__button[aria-disabled="true"] {
+    background: transparent;
+    color: var(--text-400);
+    cursor: default;
+  }
+
+  .stepper__value {
+    min-width: 4.2em;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+}
