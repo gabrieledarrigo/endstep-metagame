@@ -55,7 +55,7 @@ describe("WhatToPlayPage", () => {
       "Loading the 30d window.",
     );
 
-    expect(await screen.findByText("Based on the last 30 days.")).toBeTruthy();
+    expect(await screen.findByText(/^Based on the last 30 days\./)).toBeTruthy();
     expect(screen.getByRole("status").textContent).toBe("");
     expect(pickTitle().textContent).toBe(
       "Play Affinity, Monster Tron or Naya Gates!",
@@ -84,7 +84,7 @@ describe("WhatToPlayPage", () => {
     stubApi(() => Response.json(matrix));
     renderAt("/what-to-play?window=14d");
 
-    await screen.findByText("Based on the last 14 days.");
+    await screen.findByText(/^Based on the last 14 days\./);
 
     expect(
       within(screen.getByRole("list"))
@@ -131,7 +131,7 @@ describe("WhatToPlayPage", () => {
       () => new Promise<Response>((resolve) => (answer = resolve)),
     );
     renderAt("/what-to-play?window=30d");
-    await screen.findByText("Based on the last 30 days.");
+    await screen.findByText(/^Based on the last 30 days\./);
 
     fireEvent.click(screen.getByRole("button", { name: "7d" }));
 
@@ -154,7 +154,7 @@ describe("WhatToPlayPage", () => {
 
     answer(Response.json(matrix));
 
-    expect(await screen.findByText("Based on the last 7 days.")).toBeTruthy();
+    expect(await screen.findByText(/^Based on the last 7 days\./)).toBeTruthy();
     expect(screen.getByText("Metagame of the last 7 days")).toBeTruthy();
     expect(pickTitle().closest("[aria-busy]")).toBeNull();
   });
@@ -179,7 +179,7 @@ describe("WhatToPlayPage", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "Retry" }));
 
-    expect(await screen.findByText("Based on the last 30 days.")).toBeTruthy();
+    expect(await screen.findByText(/^Based on the last 30 days\./)).toBeTruthy();
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
@@ -203,7 +203,7 @@ describe("WhatToPlayPage", () => {
       await screen.findByRole("button", { name: "Switch to 7d" }),
     );
 
-    expect(await screen.findByText("Based on the last 7 days.")).toBeTruthy();
+    expect(await screen.findByText(/^Based on the last 7 days\./)).toBeTruthy();
     expect(String(fetchMock.mock.calls[1][0])).toBe("/api/matchups?window=7d");
   });
 });

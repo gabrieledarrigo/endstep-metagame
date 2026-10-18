@@ -46,7 +46,11 @@ describe("Pick", () => {
         "Spy combo wins 57.5% of its matches against the metagame you expect.",
       ),
     ).toBeTruthy();
-    expect(screen.getByText("Based on the last 14 days.")).toBeTruthy();
+    expect(
+      screen.getByText(
+        "Based on the last 14 days. Change the metagame to match what you expect.",
+      ),
+    ).toBeTruthy();
   });
 
   it("links each picked deck to its page with the current window", () => {
@@ -97,6 +101,19 @@ describe("Pick", () => {
     expect(title().getAttribute("aria-live")).toBe("polite");
     expect(title().getAttribute("aria-atomic")).toBe("true");
     expect(container.querySelectorAll("[aria-live]")).toHaveLength(1);
+  });
+
+  it("bases the pick on the metagame the reader set, even with no period to name", () => {
+    renderAt(<Pick decks={[SPY]} more={0} changed period="the last 14 days" />);
+
+    expect(screen.getByText("Based on the metagame you set.")).toBeTruthy();
+    expect(screen.queryByText(/Based on the last/)).toBeNull();
+  });
+
+  it("names the set metagame while another window loads", () => {
+    renderAt(<Pick decks={[SPY]} more={0} changed />);
+
+    expect(screen.getByText("Based on the metagame you set.")).toBeTruthy();
   });
 
   it("leaves the basis out when there is no period to name", () => {

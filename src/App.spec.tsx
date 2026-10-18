@@ -108,6 +108,8 @@ describe("App", () => {
     expect(location.pathname + location.search).toBe(
       "/what-to-play?window=14d",
     );
-    expect(await screen.findByText("Based on the last 14 days.")).toBeTruthy();
+    expect(
+      await screen.findByText(/^Based on the last 14 days\./),
+    ).toBeTruthy();
   });
 });

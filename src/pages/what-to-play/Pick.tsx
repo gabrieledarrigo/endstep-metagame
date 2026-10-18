@@ -50,13 +50,27 @@ function why(decks: RankedDeck[], more: number): ReactNode {
   );
 }
 
+function basisOf(changed: boolean, period?: string): string | undefined {
+  if (changed) {
+    return "Based on the metagame you set.";
+  }
+
+  if (period === undefined) {
+    return undefined;
+  }
+
+  return `Based on ${period}. Change the metagame to match what you expect.`;
+}
+
 type PickProps = {
   decks: RankedDeck[];
   more: number;
+  changed?: boolean;
   period?: string;
 };
 
-export function Pick({ decks, more, period }: PickProps) {
+export function Pick({ decks, more, changed = false, period }: PickProps) {
+  const basis = basisOf(changed, period);
   const links = decks.map((entry) => (
     <WindowLink className="pick__deck" to={`/decks/${entry.deck.slug}`}>
       {entry.deck.name}
@@ -70,9 +84,7 @@ export function Pick({ decks, more, period }: PickProps) {
         Play {joined(links, "or")}!
       </h2>
       <p className="pick__why">{why(decks, more)}</p>
-      {period !== undefined && (
-        <p className="pick__basis">Based on {period}.</p>
-      )}
+      {basis !== undefined && <p className="pick__basis">{basis}</p>}
     </Panel>
   );
 }
