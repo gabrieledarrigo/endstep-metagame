@@ -13,8 +13,10 @@ function options(): string[] {
 }
 
 describe("DeckPicker", () => {
-  it("lists All decks, then the decks in their order, with All decks chosen by default", () => {
-    render(<DeckPicker decks={decks} value={null} onChange={vi.fn()} />);
+  it("lists All decks when asked, then the decks in their order, with All decks chosen by default", () => {
+    render(
+      <DeckPicker decks={decks} value={null} allDecks onChange={vi.fn()} />,
+    );
 
     expect(options()).toEqual([
       "All decks",
@@ -50,6 +52,7 @@ describe("DeckPicker", () => {
       <DeckPicker
         decks={decks}
         value="affinity-e93f5f74"
+        allDecks
         onChange={onChange}
       />,
     );
@@ -67,6 +70,7 @@ describe("DeckPicker", () => {
         decks={decks}
         value="stompy-12345678"
         missing={{ slug: "stompy-12345678", name: "Mono Green Stompy" }}
+        allDecks
         onChange={vi.fn()}
       />,
     );
@@ -86,14 +90,9 @@ describe("DeckPicker", () => {
     ).toBe(true);
   });
 
-  it("leaves out All decks when stacked, for the list on a phone", () => {
+  it("leaves out All decks unless asked for", () => {
     render(
-      <DeckPicker
-        decks={decks}
-        value="affinity-e93f5f74"
-        stacked
-        onChange={vi.fn()}
-      />,
+      <DeckPicker decks={decks} value="affinity-e93f5f74" onChange={vi.fn()} />,
     );
 
     expect(options()).toEqual([
@@ -121,6 +120,26 @@ describe("DeckPicker", () => {
 
     expect(options()).toEqual([
       "Mono Green Stompy (not in the top 4)",
+      "Affinity",
+      "Mono Red Madness",
+      "Monster Tron",
+      "Naya Gates",
+    ]);
+  });
+
+  it("lists All decks when stacked and asked for", () => {
+    render(
+      <DeckPicker
+        decks={decks}
+        value={null}
+        allDecks
+        stacked
+        onChange={vi.fn()}
+      />,
+    );
+
+    expect(options()).toEqual([
+      "All decks",
       "Affinity",
       "Mono Red Madness",
       "Monster Tron",

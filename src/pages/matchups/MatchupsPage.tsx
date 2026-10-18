@@ -120,6 +120,7 @@ export function MatchupsPage() {
                 ? undefined
                 : { slug: outside, name: missingName }
             }
+            allDecks={wide}
             stacked={!wide}
             onChange={selectDeck}
           />
