@@ -94,6 +94,7 @@ describe("CardPreview", () => {
 
       return frames.length;
     });
+    vi.spyOn(window, "cancelAnimationFrame").mockImplementation(() => {});
     let top = 1200;
 
     const { preview } = renderPreview(() => top);
