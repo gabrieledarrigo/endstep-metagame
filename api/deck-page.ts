@@ -1,14 +1,18 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { SEGMENT, WINDOWS, isRecord } from "./_shared.js";
+import {
+  EDGE_CACHE,
+  PARTIAL_ART_CACHE,
+  SEGMENT,
+  WINDOWS,
+  isRecord,
+} from "./_shared.js";
 
 const SITE_ORIGIN = "https://pauper-endstep-metagame.vercel.app";
 const SITE_NAME = "Pauper Endstep metagame";
 const DEFAULT_WINDOW = "30d";
 const BOUND_MS = 2000;
 const NO_STORE = "no-store";
-const FIVE_MINUTES = "public, s-maxage=300, stale-while-revalidate=600";
-const ONE_MINUTE = "public, s-maxage=60, stale-while-revalidate=600";
 const LOCALE = "en-GB";
 const DECIDED_NEEDED = 20;
 const TOO_FEW_TO_CALL = "match win rate too few to call";
@@ -284,7 +288,7 @@ export default {
     return pageResponse(
       req.method,
       preview(html, deck, target.window),
-      deck.art.imageUrl ? FIVE_MINUTES : ONE_MINUTE,
+      deck.art.imageUrl ? EDGE_CACHE : PARTIAL_ART_CACHE,
     );
   },
 };

@@ -81,7 +81,7 @@ function deck(overrides: Partial<DeckFields> = {}): DeckFields {
 function proxy(
   body: unknown,
   status = 200,
-  cache = FIVE_MINUTES,
+  cache = "public",
 ): Mock<typeof fetch> {
   const fetchMock = vi.fn<typeof fetch>(
     async () =>
@@ -436,7 +436,7 @@ describe("deck-page", () => {
       200,
     ],
   ])("serves the site card with no-store for %s", async (_, body, status) => {
-    proxy(body, status, FIVE_MINUTES);
+    proxy(body, status);
 
     const response = await deckPage.fetch(request("slug=affinity-e93f5f74"));
 
