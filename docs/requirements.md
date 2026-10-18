@@ -214,11 +214,11 @@ The front end uses **React Router 8 in declarative mode**: `BrowserRouter`, `Rou
 
 ### 4.6 Local development
 
-`npm run dev` starts Vite. A small Vite plugin serves `/api/metagame/*` and `/api/matchups` by calling the real handlers, and applies the same rewrite as `vercel.json`. It serves each response from memory for its `s-maxage`, the lifetime the edge uses too. It does not serve stale responses and does not evict expired entries, so it is simpler than the edge. Without that, every reload of the matchup page in development costs 25 upstream calls, and a dozen reloads in a minute reach the rate limit. It replaces `dev-server.js`, which is deleted. Vite's dev server already falls back to `index.html` for the page routes.
+`npm run dev` starts Vite. A small Vite plugin serves `/api/metagame/*` and `/api/matchups` by calling the real handlers, and applies the same rewrite as `vercel.json`. It serves each response from memory for its `s-maxage`, the lifetime the edge uses too. It does not serve stale responses and does not evict expired entries, so it is simpler than the edge. Without that, every reload of the matchup page in development costs 25 upstream calls, and a dozen reloads in a minute reach the rate limit. It replaces `dev-server.js`, which is deleted. Vite's dev server already falls back to `index.html` for the page routes. `vite preview` also serves `/decks/:slug` through the deck page's function, with the rewrite from `vercel.json`, so a link preview can be checked on a local build. The dev server does not, because its `index.html` is the source file.
 
 ### 4.7 What deploys
 
-Vercel runs `npm run build` and serves `dist/`. The functions in `api/` are built from source as before.
+Vercel runs `npm run build` and serves `dist/`. The functions in `api/` are built from source as before. `vercel.json` deploys `dist/index.html` with the deck page's function, through `includeFiles`, FR-15.
 
 - `vercel.json` pins `"framework": "vite"`. The project was created with the "Other" preset. Without the pin, Vercel may skip the build and serve the source `index.html`, which renders a blank page.
 - `vercel.json` also carries the proxy rewrite (§4.3) and the page rewrites (§4.5).
@@ -428,7 +428,7 @@ Every page carries what browsers, search engines and chat apps read without runn
   - It accepts only a slug the proxy would accept, §4.3, and only a known window. Anything else gets the page with the site card.
   - It fetches the deck detail through our own proxy, at the exact address the deck page requests: `/api/metagame/Pauper/decks/{slug}` with the window and the population. The browser's later request then hits the same edge cache entry, and upstream calls stay one per deck and window.
   - It escapes every value it writes into the HTML, and URL-encodes the card name in the image address.
-  - When the call fails, or takes longer than two seconds, it returns the page with the site card, so a reader never waits long on it. Two seconds leave room for the proxy's own one-second art lookup. That fallback is sent with `no-store`, so a slow moment is never cached. A preview is cached at the edge for five minutes.
+  - When the call fails, or takes longer than two seconds, it returns the page with the site card, so a reader never waits long on it. Two seconds leave room for the proxy's own one-second art lookup. That fallback is sent with `no-store`, so a slow moment is never cached. A preview is cached at the edge as long as the deck detail it was built from: five minutes, or one when the art lookup fell back.
 - The page then loads as before. The function changes nothing a reader sees.
 
 ### FR-16. Installable app
@@ -635,7 +635,7 @@ The code targets ES2025: `target` and `lib` in the three TypeScript configs, and
 No analytics, no cookies, no local storage of personal data, no third-party requests beyond the card-art hosts: Scryfall's CDN, and Endstep's image endpoint as the fallback. The theme choice, FR-13, is the one value the app keeps in local storage. It is a display preference, not personal data, and it never leaves the browser.
 
 ### NFR-10. Deployment
-Deployed on Vercel from the Git repository. A Vite build and two serverless functions. No environment variables and no secrets. Production waits until CI passes, §4.7.
+Deployed on Vercel from the Git repository. A Vite build and three serverless functions. No environment variables and no secrets. Production waits until CI passes, §4.7.
 
 ### NFR-11. CSS architecture
 Plain CSS files, processed by Vite. No CSS Modules, no CSS-in-JS and no framework, so class names ship exactly as the design system documents them.
