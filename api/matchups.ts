@@ -2,13 +2,13 @@ import {
   BASE_HEADERS,
   TIMEOUT_MS,
   UPSTREAM,
+  WINDOWS,
   cacheControl,
   errorResponse,
   methodResponse,
 } from "./_shared.js";
 
 const RATE_LIMIT_SECONDS = 60;
-const WINDOWS = ["1d", "7d", "14d", "30d", "season"];
 const TOP_DECKS = 24;
 const MATCHUP_ROWS = 50;
 

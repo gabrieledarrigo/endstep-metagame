@@ -1,5 +1,10 @@
 {
   "framework": "vite",
+  "functions": {
+    "api/deck-page.ts": {
+      "includeFiles": "dist/index.html"
+    }
+  },
   "rewrites": [
     {
       "source": "/api/metagame/:path*",
@@ -7,7 +12,7 @@
     },
     {
       "source": "/decks/:slug",
-      "destination": "/index.html"
+      "destination": "/api/deck-page?slug=:slug"
     },
     {
       "source": "/matchups",

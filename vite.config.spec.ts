@@ -1,10 +1,21 @@
 import type { Plugin, PreviewServer } from "vite";
-import { describe, expect, it, vi } from "vitest";
+import { type Mock, afterEach, describe, expect, it, vi } from "vitest";
 import config, {
   CATCH_ALL_SOURCE,
+  previewDeckPage,
   previewSecurityHeaders,
   vercelHeaders,
 } from "./vite.config.ts";
+
+const deckPageFetch = vi.hoisted(() =>
+  vi.fn<(req: Request) => Promise<Response>>(),
+);
+
+vi.mock("./api/deck-page.ts", () => ({ default: { fetch: deckPageFetch } }));
+
+afterEach(() => {
+  deckPageFetch.mockReset();
+});
 
 function pluginNames(): string[] {
   const plugins: unknown[] = (config.plugins ?? []).flat();
@@ -66,6 +77,180 @@ describe("previewSecurityHeaders", () => {
     expect(names).toContain("preview-security-headers");
     expect(names.indexOf("preview-security-headers")).toBeLessThan(
       names.indexOf("endstep-api"),
+    );
+  });
+});
+
+describe("previewDeckPage", () => {
+  type Middleware = (
+    req: { url: string; method: string; headers: { host: string } },
+    res: { statusCode: number; setHeader: Mock; end: Mock },
+    next: Mock,
+  ) => Promise<void>;
+
+  type Address = { address: string; family: string; port: number } | null;
+
+  function middleware(
+    address: Address = { address: "127.0.0.1", family: "IPv4", port: 4196 },
+    https = false,
+  ): Middleware {
+    const use = vi.fn();
+    const hook = previewDeckPage().configurePreviewServer;
+
+    if (typeof hook !== "function") {
+      throw new Error("configurePreviewServer is not a function");
+    }
+
+    hook.call(
+      {} as ThisParameterType<typeof hook>,
+      {
+        middlewares: { use },
+        httpServer: { address: () => address },
+        config: { preview: { https: https ? {} : undefined } },
+      } as unknown as PreviewServer,
+    );
+
+    return use.mock.calls[0][0];
+  }
+
+  function response(): { statusCode: number; setHeader: Mock; end: Mock } {
+    return { statusCode: 0, setHeader: vi.fn(), end: vi.fn() };
+  }
+
+  it("serves a deck page through the function, with the rewrite from vercel.json", async () => {
+    deckPageFetch.mockResolvedValueOnce(
+      new Response("<html>", {
+        status: 200,
+        headers: { "Cache-Control": "no-store" },
+      }),
+    );
+    const res = response();
+    const next = vi.fn();
+
+    await middleware()(
+      {
+        url: "/decks/affinity-e93f5f74?window=7d",
+        method: "GET",
+        headers: { host: "localhost:4196" },
+      },
+      res,
+      next,
+    );
+
+    const req = deckPageFetch.mock.calls[0][0];
+    expect(req.url).toBe(
+      "http://127.0.0.1:4196/api/deck-page?window=7d&slug=affinity-e93f5f74",
+    );
+    expect(req.method).toBe("GET");
+    expect(res.statusCode).toBe(200);
+    expect(res.setHeader).toHaveBeenCalledWith("cache-control", "no-store");
+    expect(String(res.end.mock.calls[0][0])).toBe("<html>");
+    expect(next).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    "/",
+    "/matchups",
+    "/decks/",
+    "/decks/a/b",
+    "/decksx/abc",
+    "//evil.example/decks/abc",
+    "http://[",
+    "/api/metagame/Pauper/decks",
+  ])("passes %s on, as the rewrite in vercel.json would", async (url) => {
+    const next = vi.fn();
+
+    await middleware()(
+      { url, method: "GET", headers: { host: "localhost:4196" } },
+      response(),
+      next,
+    );
+
+    expect(next).toHaveBeenCalledExactlyOnceWith();
+    expect(deckPageFetch).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["a malformed Host", "/decks/affinity-e93f5f74", "["],
+    ["another host in the Host header", "/decks/abc", "evil.example"],
+  ])(
+    "fetches from the preview server's own address for %s",
+    async (_, url, host) => {
+      deckPageFetch.mockResolvedValueOnce(new Response("<html>"));
+      const res = response();
+      const next = vi.fn();
+
+      await middleware()({ url, method: "GET", headers: { host } }, res, next);
+
+      expect(new URL(deckPageFetch.mock.calls[0][0].url).origin).toBe(
+        "http://127.0.0.1:4196",
+      );
+      expect(res.statusCode).toBe(200);
+      expect(next).not.toHaveBeenCalled();
+    },
+  );
+
+  it.each([
+    ["an IPv4 address", "127.0.0.1", "IPv4", false, "http://127.0.0.1:4196"],
+    ["an IPv6 address", "::1", "IPv6", false, "http://[::1]:4196"],
+    ["every IPv4 address", "0.0.0.0", "IPv4", false, "http://127.0.0.1:4196"],
+    ["every IPv6 address", "::", "IPv6", false, "http://[::1]:4196"],
+    ["https", "127.0.0.1", "IPv4", true, "https://127.0.0.1:4196"],
+  ])(
+    "fetches from a reachable origin when the server listens on %s",
+    async (_, ip, family, https, origin) => {
+      deckPageFetch.mockResolvedValueOnce(new Response("<html>"));
+
+      await middleware({ address: ip, family, port: 4196 }, https)(
+        { url: "/decks/abc", method: "GET", headers: { host: "localhost" } },
+        response(),
+        vi.fn(),
+      );
+
+      expect(new URL(deckPageFetch.mock.calls[0][0].url).origin).toBe(origin);
+    },
+  );
+
+  it("passes the request on when the server has no address yet", async () => {
+    const next = vi.fn();
+
+    await middleware(null)(
+      { url: "/decks/abc", method: "GET", headers: { host: "localhost" } },
+      response(),
+      next,
+    );
+
+    expect(next).toHaveBeenCalledOnce();
+    expect(deckPageFetch).not.toHaveBeenCalled();
+  });
+
+  it("passes a function that throws to the error handler and never rejects", async () => {
+    deckPageFetch.mockRejectedValueOnce(new Error("no dist"));
+    const next = vi.fn();
+
+    await expect(
+      middleware()(
+        { url: "/decks/abc", method: "GET", headers: { host: "localhost" } },
+        response(),
+        next,
+      ),
+    ).resolves.toBeUndefined();
+
+    expect(deckPageFetch).toHaveBeenCalledOnce();
+    expect(next).toHaveBeenCalledOnce();
+    expect(next.mock.calls[0][0]).toEqual(new Error("no dist"));
+  });
+
+  it("leaves the dev server on its own index.html", () => {
+    expect(previewDeckPage().configureServer).toBeUndefined();
+  });
+
+  it("comes after the security headers, so the deck pages carry them", () => {
+    const names = pluginNames();
+
+    expect(names).toContain("preview-deck-page");
+    expect(names.indexOf("preview-security-headers")).toBeLessThan(
+      names.indexOf("preview-deck-page"),
     );
   });
 });

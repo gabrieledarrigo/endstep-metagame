@@ -1,5 +1,7 @@
 export const UPSTREAM = "https://endstep.cc/api/metagame/v1";
 export const TIMEOUT_MS = 8000;
+export const SEGMENT = /^[A-Za-z0-9_-]+$/;
+export const WINDOWS = ["1d", "7d", "14d", "30d", "season"];
 
 export const BASE_HEADERS: Readonly<Record<string, string>> = {
   "Access-Control-Allow-Origin": "*",
@@ -17,6 +19,16 @@ const NO_BODY = [204, 205, 304];
  */
 export function hasNoBody(status: number): boolean {
   return NO_BODY.includes(status);
+}
+
+/**
+ * Checks whether a value is a non-null object, so its properties can be read. Arrays count.
+ *
+ * @param value - Any parsed JSON value.
+ * @returns `true` for any object that is not `null`, arrays included.
+ */
+export function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
 }
 
 /**

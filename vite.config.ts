@@ -1,6 +1,12 @@
 /// <reference types="vitest/config" />
-import { defineConfig, type Connect, type Plugin } from "vite";
+import {
+  defineConfig,
+  type Connect,
+  type Plugin,
+  type PreviewServer,
+} from "vite";
 import react from "@vitejs/plugin-react";
+import deckPage from "./api/deck-page.ts";
 import matchups from "./api/matchups.ts";
 import metagame from "./api/metagame.ts";
 import vercel from "./vercel.json" with { type: "json" };
@@ -8,6 +14,11 @@ import vercel from "./vercel.json" with { type: "json" };
 const METAGAME = "/api/metagame";
 const METAGAME_PREFIX = `${METAGAME}/`;
 const MATCHUPS = "/api/matchups";
+const DECK_PAGE = /^\/decks\/([^/?]+)(\?.*)?$/;
+const LOOPBACK = new Map([
+  ["::", "::1"],
+  ["0.0.0.0", "127.0.0.1"],
+]);
 
 export const CATCH_ALL_SOURCE = "/(.*)";
 
@@ -41,6 +52,66 @@ export function previewSecurityHeaders(): Plugin {
           res.setHeader(name, value);
         });
         next();
+      });
+    },
+  };
+}
+
+function previewOrigin(server: PreviewServer): string | null {
+  const address = server.httpServer.address();
+
+  if (address === null || typeof address === "string") {
+    return null;
+  }
+
+  const ip = LOOPBACK.get(address.address) ?? address.address;
+  const host = address.family === "IPv6" ? `[${ip}]` : ip;
+  const scheme = server.config.preview.https ? "https" : "http";
+
+  return `${scheme}://${host}:${address.port}`;
+}
+
+/**
+ * Serves `/decks/:slug` through the deck page's function in `vite preview`, with the rewrite from `vercel.json`, so the link preview can be checked before a merge.
+ *
+ * @returns A Vite plugin whose preview middleware answers the deck pages and passes every other request on. The function's own fetch goes to the preview server's address, never to the request's `Host`. The dev server keeps serving its own `index.html`.
+ */
+export function previewDeckPage(): Plugin {
+  return {
+    name: "preview-deck-page",
+    configurePreviewServer(server): void {
+      server.middlewares.use(async (req, res, next) => {
+        try {
+          const match = DECK_PAGE.exec(req.url ?? "/");
+
+          if (match === null) {
+            next();
+            return;
+          }
+
+          const origin = previewOrigin(server);
+
+          if (origin === null) {
+            next();
+            return;
+          }
+
+          const target = new URL(`${origin}/api/deck-page`);
+          target.search = match[2] ?? "";
+          target.searchParams.append("slug", match[1]);
+
+          const response = await deckPage.fetch(
+            new Request(target, { method: req.method }),
+          );
+
+          res.statusCode = response.status;
+          response.headers.forEach((value, name) => {
+            res.setHeader(name, value);
+          });
+          res.end(Buffer.from(await response.arrayBuffer()));
+        } catch (error) {
+          next(error);
+        }
       });
     },
   };
@@ -170,7 +241,7 @@ function api(): Plugin {
 }
 
 export default defineConfig({
-  plugins: [react(), previewSecurityHeaders(), api()],
+  plugins: [react(), previewSecurityHeaders(), previewDeckPage(), api()],
   build: {
     target: "es2025",
   },

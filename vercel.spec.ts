@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { CATCH_ALL_SOURCE, vercelHeaders } from "./vite.config.ts";
+import vercel from "./vercel.json" with { type: "json" };
 
 const html = readFileSync(new URL("./index.html", import.meta.url), "utf8");
 
@@ -28,6 +29,16 @@ function sha256(text: string): string {
 }
 
 describe("vercel.json", () => {
+  it("sends a deck page to the deck page's function, with the built page deployed beside it", () => {
+    expect(vercel.rewrites).toContainEqual({
+      source: "/decks/:slug",
+      destination: "/api/deck-page?slug=:slug",
+    });
+    expect(vercel.functions["api/deck-page.ts"]).toEqual({
+      includeFiles: "dist/index.html",
+    });
+  });
+
   it("caches the hashed assets for a year", () => {
     expect(vercelHeaders("/assets/(.*)")).toEqual({
       "Cache-Control": "public, max-age=31536000, immutable",
