@@ -18,6 +18,7 @@ import {
 import { useMatchups } from "../../hooks/useMatchups";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { useTimeWindow } from "../../hooks/useTimeWindow";
+import { Beat, BeatSkeleton } from "./Beat";
 import { ExpectedRates, ExpectedRatesSkeleton } from "./ExpectedRates";
 import { HowItWorks } from "./HowItWorks";
 import { Metagame, MetagameSkeleton } from "./Metagame";
@@ -109,6 +110,7 @@ export function WhatToPlayPage() {
                   <ExpectedRatesSkeleton key="ranking" />,
                   <MetagameSkeleton key="metagame" foldable={!wide} />,
                 )}
+                <BeatSkeleton />
               </>
             }
             title="The ranking could not be loaded"
@@ -166,6 +168,11 @@ export function WhatToPlayPage() {
                       onReset={() => writeChanges({}, data.decks)}
                     />,
                   )}
+                  <Beat
+                    matrix={data}
+                    ranking={ranking}
+                    loadingWindow={loadingWindow}
+                  />
                 </>
               );
             }}

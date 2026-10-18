@@ -416,6 +416,7 @@ describe("WhatToPlayPage", () => {
       "Play Affinity, Monster Tron or Naya Gates!",
       "Expected match win rate",
       "The metagame you expect",
+      "Beat a deck",
       "How the numbers are made",
     ]);
     expect(screen.queryByRole("button", { name: "Change" })).toBeNull();
@@ -432,6 +433,7 @@ describe("WhatToPlayPage", () => {
       "Play Affinity, Monster Tron or Naya Gates!",
       "The metagame you expect",
       "Expected match win rate",
+      "Beat a deck",
       "How the numbers are made",
     ]);
     expect(screen.queryByRole("button", { name: "More Affinity" })).toBeNull();
@@ -471,6 +473,7 @@ describe("WhatToPlayPage", () => {
     ).toEqual([
       "The metagame you expect",
       "Expected match win rate",
+      "Beat a deck",
       "How the numbers are made",
     ]);
     expect(
@@ -478,5 +481,35 @@ describe("WhatToPlayPage", () => {
         .getByRole("heading", { name: "The metagame you expect" })
         .closest('[aria-busy="true"]'),
     ).toBeTruthy();
+  });
+
+  it("shows a skeleton for Beat a deck while loading", () => {
+    stubApi(() => new Promise<Response>(() => {}));
+    renderAt("/what-to-play?window=30d");
+
+    expect(
+      screen
+        .getByRole("heading", { name: "Beat a deck" })
+        .closest('[aria-busy="true"]'),
+    ).toBeTruthy();
+  });
+
+  it("opens Beat a deck on the deck the address names, and keeps it through a window change", async () => {
+    stubApi(() => Response.json(matrix));
+    renderAt(`/what-to-play?window=30d&beat=${MADNESS}`);
+
+    expect(
+      await screen.findByText("This deck clearly beats Mono Red Madness."),
+    ).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: "7d" }));
+
+    expect(await screen.findByText(/^Based on the last 7 days\./)).toBeTruthy();
+    expect(
+      screen.getByText("This deck clearly beats Mono Red Madness."),
+    ).toBeTruthy();
+    expect(
+      screen.getByRole<HTMLSelectElement>("combobox", { name: "Deck" }).value,
+    ).toBe(MADNESS);
   });
 });
