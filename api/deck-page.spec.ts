@@ -366,6 +366,7 @@ describe("deck-page", () => {
     ["an unknown deck", { error: "Unknown deck" }, 404],
     ["a rate limit", { error: "Too many requests" }, 429],
     ["an unreachable Endstep", { error: "Endstep is unreachable" }, 502],
+    ["a failed status, whatever its body", { deck: deck() }, 404],
     ["a body without a deck", { provenance: {} }, 200],
     ["a deck without a name", { deck: deck({ name: undefined }) }, 200],
     ["a deck with a bad slug", { deck: deck({ slug: "a/b" }) }, 200],
