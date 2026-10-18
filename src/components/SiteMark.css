@@ -5,18 +5,18 @@
   }
 
   .site-mark__tile {
-    fill: var(--primary);
+    fill: var(--mark-tile);
   }
 
   .site-mark__bar {
-    fill: var(--mark-bars);
+    fill: var(--mark-bar-1);
   }
 
   .site-mark__bar--2 {
-    fill-opacity: 0.8;
+    fill: var(--mark-bar-2);
   }
 
   .site-mark__bar--3 {
-    fill-opacity: 0.6;
+    fill: var(--mark-bar-3);
   }
 }

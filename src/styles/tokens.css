@@ -43,7 +43,10 @@
   --s8: #e34948;
   --mark-opacity: 0.55;
   --line-fade: 0.25;
-  --mark-bars: var(--surface);
+  --mark-tile: #3069b2;
+  --mark-bar-1: #fdfdfc;
+  --mark-bar-2: #cee1f6;
+  --mark-bar-3: #a0c4e9;
 
   --seq-100: #cde2fb;
   --seq-200: #9ec5f4;
@@ -97,7 +100,10 @@
     --s8: #e3635e;
     --mark-opacity: 0.63;
     --line-fade: 0.35;
-    --mark-bars: var(--background);
+    --mark-tile: #cee1f6;
+    --mark-bar-1: #2c2c2e;
+    --mark-bar-2: #404a58;
+    --mark-bar-3: #546780;
 
     --seq-100: #164781;
     --seq-200: #2b5c97;
@@ -149,7 +155,10 @@
   --s8: #e3635e;
   --mark-opacity: 0.63;
   --line-fade: 0.35;
-  --mark-bars: var(--background);
+  --mark-tile: #cee1f6;
+  --mark-bar-1: #2c2c2e;
+  --mark-bar-2: #404a58;
+  --mark-bar-3: #546780;
 
   --seq-100: #164781;
   --seq-200: #2b5c97;
