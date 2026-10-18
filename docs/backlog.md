@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-26. Derived from [`requirements.md`](./requirements.md) and [`design-system.html`](./design-system.html).
 
-Milestone 1 has sixteen items: four enablers, nine user stories, three hardening items. Milestones 2 and 3 follow at the end of this file. Each one is meant to be a separate branch and a separate review. Nothing here assumes a single large implementation pass.
+Milestone 1 has sixteen items: four enablers, nine user stories, three hardening items. Milestones 2, 3 and 4 follow at the end of this file. Each one is meant to be a separate branch and a separate review. Nothing here assumes a single large implementation pass.
 
 Every item lists what blocks it, what it blocks, and how to tell it is done.
 
@@ -1244,7 +1244,7 @@ Covers FR-10 and FR-16. The owner chose on 2026-10-18 to put the site mark in th
 - At 360px and at 640px, where the name wraps to two lines, the mark sits on the first line and the toggle keeps its place.
 - The brand link's accessible name is still "Pauper Endstep metagame".
 
-**Blocked by** S24. **Blocks** nothing.
+**Blocked by** S24. **Blocks** S25.
 
 ---
 
@@ -1259,3 +1259,105 @@ Covers FR-10 and FR-16. The owner chose on 2026-10-18 to put the site mark in th
 **S20 and S21 wait for S18.** S18 turns the chart colours into CSS variables, and both stories change how the charts draw. S19 touches only the overview's deck list and can start as soon as D4 lands.
 
 **E13 and E14 before S23.** The deck page's function writes into the head that E13 fills, and takes the art address that E14 adds. D5's mark is the owner's to finish, so S22 and S24 wait for it. H5 waits for S24, because it reuses the footer's `SiteMark`.
+
+---
+
+# Milestone 4: what to play
+
+**Date:** 2026-10-18. Derived from Draft v10 of the requirements.
+
+Three user stories, all for FR-17. The owner chose the design on 2026-10-18, from a working draft, and the design system's What to play? section already shows it, so there is no design item. The page reads only `/api/matchups`, so no enabler is needed either.
+
+| Wave | Items | Runs in parallel |
+|---|---|---|
+| 23 | S25 | No |
+| 24 | S26, S27 | Yes, two ways |
+
+```
+H5 the mark in the header ──► S25 which deck to play ──┬─► S26 the metagame you expect
+                                                        └─► S27 beat a deck
+```
+
+---
+
+## S25. See which deck to play
+
+As a Pauper player, I want the site to tell me which deck wins most against the decks I will meet, so I can choose what to bring to a league.
+
+Covers FR-17's page, pick and ranking, and FR-10's third link.
+
+**Tasks**
+
+1. The `/what-to-play` route, its rewrite in `vercel.json`, and the page heading and document title "What to play?", §4.5.
+2. The header's third link, "What to play?". Below 1,100px the links keep their own row, and from 1,100px the name, the links and the toggle share one, as the design system's Page header shows. FR-13's layout line changes with it.
+3. A helper that takes the matchup response and a metagame and returns each deck's expected match win rate, its range, its verdict and the pick, by FR-17's rules. Shares as the reader would set them, with no changes in this story.
+4. The pick: "Our pick", "Play {deck}!" with up to three decks, the sentence with any decks just as close, and the basis line. Only the title is a polite live region.
+5. The ranking: the 24 decks, the range bars on their shared scale, the 50% line, the legend and the note. Below 640px each line takes two rows.
+6. The "How the numbers are made" panel, with the design system's words.
+7. Loading, the error and the window change, as the matchup table: a skeleton per panel, the retry, no automatic retry, the previous window dimmed.
+8. A spec beside each component it changes, and one for the helper with worked cases: the mirror, a gated pair, a pair with no entry, a deck at zero share, ties, and a pick of one, two and three decks.
+
+**Done when**
+
+- `/what-to-play` shows the pick and the 24 ranked decks for every window, in both themes, at 360px, 640px and 1,280px.
+- One deck's expected rate at 30d matches a hand computation from the matchup response, to the decimal shown.
+- Every deck name links to its deck page with the current window.
+- The header shows three links at every width, with the name on one line from 640px.
+
+**Blocked by** H5. Both change the site header. **Blocks** S26, S27.
+
+---
+
+## S26. Set the metagame I expect
+
+As a Pauper player, I want to raise or lower how often I expect to meet each deck, so the suggestion fits the league I am going to.
+
+Covers FR-17's metagame panel and its place in the address.
+
+**Tasks**
+
+1. The metagame panel: the 24 decks in share order, a stepper on each, "was {share}" on a changed deck, Reset, and the line on decks outside the top 24.
+2. "Less" cannot act at 0.0% or on the last deck above zero. It carries `aria-disabled` rather than `disabled`, so focus stays on it.
+3. Below 1,100px the panel renders first and folds into its heading, with "Change" and "Close", by a width check at 1,100px in script. From 1,100px it stands beside the ranking, always open. The render order follows the layout, with no CSS `order`.
+4. The ranking's movement against the window's own metagame, and the pick's basis line for a changed metagame.
+5. `meta` in the address, read and written by FR-17's rules: only changed decks, whole points, no `+` sign, written by the page so its colons and commas stay readable, matched by slug suffix, bad entries ignored, a change past zero counted as the share rounded up, changes that empty the metagame ignored, a change replacing the history entry, and a window change keeping it.
+6. A spec beside each component it changes, and one for reading and writing `meta`.
+
+**Done when**
+
+- A press on a stepper updates the pick and the ranking at once, and focus stays on the pressed button.
+- A copied address opens the same changes in another tab, and Reset removes them from the address.
+- An address with a malformed entry, an unknown deck or a change of zero still opens, with the rest of its changes. An address that would empty the metagame opens the window's own.
+
+**Blocked by** S25. **Blocks** nothing.
+
+---
+
+## S27. Find the decks that beat a deck
+
+As a Pauper player, I want to see which decks clearly beat a deck I expect to meet often, and how they do against everything else.
+
+Covers FR-17's Beat a deck panel.
+
+**Tasks**
+
+1. The deck picker, the top deck by default, kept in `beat` and matched by slug suffix.
+2. The sentence, and the table of decks whose pair with the chosen deck is clear in their favour, FR-12's rule, by their rate against it.
+3. The pair's range bar from 640px, on its own scale, and the deck's expected rate against the metagame.
+4. The sentence for a deck nothing clearly beats, with no table.
+5. A spec beside each component it changes.
+
+**Done when**
+
+- Choosing a deck updates the table, and a copied address opens the same deck.
+- At 30d on the day of the check, the decks listed for Affinity are exactly those whose cell against Affinity is clearly blue in the matchup table.
+
+**Blocked by** S25. **Blocks** nothing.
+
+---
+
+## Notes on sequencing, milestone 4
+
+**S25 waits for H5.** Both change the site header: H5 adds the mark, and S25 adds the third link and moves the one-row layout to 1,100px.
+
+**S26 and S27 run in parallel.** Both add a panel to the page S25 builds, and only S26 touches the ranking and the pick. Whichever lands second rebases onto the first. S27's expected-rate column reads the metagame S26 makes changeable, so if S27 lands first it shows the window's own metagame until S26 arrives.

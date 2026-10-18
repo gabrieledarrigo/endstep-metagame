@@ -1,14 +1,14 @@
 # Endstep Pauper Metagame Viewer: Requirements
 
-**Status:** Draft v9 · **Date:** 2026-10-18
-**Scope:** three pages. The overview, a deck page with its numbers, a sample list and its matchups against the top 24, and a matchup table. Other deck page sections are out of scope, see §8.
+**Status:** Draft v10 · **Date:** 2026-10-18
+**Scope:** four pages. The overview, a deck page with its numbers, a sample list and its matchups against the top 24, a matchup table, and a page that suggests which deck to play. Other deck page sections are out of scope, see §8.
 **Visual design** is specified in [`design-system.html`](./design-system.html). This document covers structure, content and behaviour.
 
 ---
 
 ## 1. Purpose
 
-A browser application that reads the public Endstep metagame API and shows the **Pauper** metagame. The overview reports which decks are played, how much of the field each one holds, how they perform, and how that has changed over time. A deck page gives one deck's numbers, a sample list, and its results against the rest of the top 24. A matchup table shows how the top decks do against each other.
+A browser application that reads the public Endstep metagame API and shows the **Pauper** metagame. The overview reports which decks are played, how much of the field each one holds, how they perform, and how that has changed over time. A deck page gives one deck's numbers, a sample list, and its results against the rest of the top 24. A matchup table shows how the top decks do against each other. "What to play?" ranks the top decks against the metagame the reader expects, and names the best.
 
 The application is read-only. It stores nothing but the reader's theme choice, FR-13. It has no authentication and no user accounts. It is not affiliated with Endstep.
 
@@ -26,7 +26,7 @@ The application is read-only. It stores nothing but the reader's theme choice, F
 | Page state | The window and the view state live in the address. A link opens a page in its default view, except the deck page's link to its deck in the matchup table. See §4.5 |
 | Styling | Hand-written CSS in cascade layers, BEM, one stylesheet per component. No framework. A light and a dark theme, FR-13. See NFR-11 |
 | Charting | Recharts 3.x from npm |
-| Pages | Overview, deck page, matchup table. React Router in declarative mode, see §4.5 |
+| Pages | Overview, deck page, matchup table, What to play?. React Router in declarative mode, see §4.5 |
 | Quality gates | ESLint, Prettier and Vitest with React Testing Library, run by GitHub Actions on every pull request and every push to `main`. See NFR-1 |
 | Release | Vercel deploys from Git. Production waits until CI passes, through Vercel Deployment Checks. See §4.7 |
 | Grid size | Top 24 decks by share. The rest rolls into a single `Other` |
@@ -39,6 +39,7 @@ The application is read-only. It stores nothing but the reader's theme choice, F
 | Card art | From Scryfall by name, added by the metagame function. Endstep's image endpoint is the fallback, §3.4 |
 | Install | Installable as an app, with no offline caching and no service worker, FR-16 |
 | Sharing | Each deck page shares with its own title, figures and art. Every other page shares the site card, FR-15 |
+| What to play? | The top 24 ranked by expected match win rate against a metagame the reader can change, from the matchup table's data. No new calls to Endstep, FR-17 |
 
 ---
 
@@ -163,7 +164,7 @@ Public CORS proxies were tested on 2026-09-20 and rejected. All six failed. allo
 
 ### 4.4 Matchup function
 
-`GET /api/matchups?window=30d`. Two pages read it: the matchup table, and the deck page for one row, FR-11. Both request the same URL, so they share one edge cache entry per window. `window` is the only parameter, checked against the five values in §3.3. The raw query string must be exactly `?window=` followed by one of the five values, byte for byte. Anything else returns 400: a missing or repeated `window`, another parameter, an encoded or padded value. The edge caches by the raw query string, so any variant would otherwise force a cold build of 25 calls. The format is Pauper and the population is `rated`, both fixed.
+`GET /api/matchups?window=30d`. Three pages read it: the matchup table, the deck page for one row, FR-11, and What to play?, FR-17. All request the same URL, so they share one edge cache entry per window. `window` is the only parameter, checked against the five values in §3.3. The raw query string must be exactly `?window=` followed by one of the five values, byte for byte. Anything else returns 400: a missing or repeated `window`, another parameter, an encoded or padded value. The edge caches by the raw query string, so any variant would otherwise force a cold build of 25 calls. The format is Pauper and the population is `rated`, both fixed.
 
 1. Fetch the top 24 decks: `/Pauper/decks?window=…&population=rated&sort=share&dir=desc&pageSize=24`.
 2. Fetch `/Pauper/decks/{slug}/matchups?window=…&population=rated&sort=matches&dir=desc&pageSize=50` for each of the 24, in parallel.
@@ -194,18 +195,19 @@ Behaviour:
 
 ### 4.5 Routing
 
-The front end uses **React Router 8 in declarative mode**: `BrowserRouter`, `Routes` and `Route`, `Link`, `useNavigate` and `useSearchParams`. No Vite plugin, no loaders, no data mode. It was chosen on the criteria that chose Recharts in NFR-2: it is the most used React router, and declarative mode is its simplest form. There are three routes.
+The front end uses **React Router 8 in declarative mode**: `BrowserRouter`, `Routes` and `Route`, `Link`, `useNavigate` and `useSearchParams`. No Vite plugin, no loaders, no data mode. It was chosen on the criteria that chose Recharts in NFR-2: it is the most used React router, and declarative mode is its simplest form. There are four routes.
 
 | Path | Page |
 |---|---|
 | `/` | Overview |
 | `/decks/{slug}` | Deck page |
 | `/matchups` | Matchup table |
+| `/what-to-play` | What to play?, FR-17 |
 
-- `vercel.json` rewrites `/matchups` to `/index.html`, and sends `/decks/:slug` to the deck page's HTML function, which serves the same `index.html` with the deck's link preview, FR-15. Vercel applies rewrites after it checks for real files, so built assets are not affected.
+- `vercel.json` rewrites `/matchups` and `/what-to-play` to `/index.html`, and sends `/decks/:slug` to the deck page's HTML function, which serves the same `index.html` with the deck's link preview, FR-15. Vercel applies rewrites after it checks for real files, so built assets are not affected.
 - `?window=` belongs to every page and carries across links. Pages read and write it with `useSearchParams`. See FR-1.
 - The layout route replaces a missing or unknown window with the default, with a replace navigation, so the address always names the window on screen.
-- The view state lives in the address too: the overview's view in `view` and the deck table's sort in `sort` and `dir`, FR-4, the overview's search in `q`, FR-14, the share chart's highlighted deck in `highlight`, FR-5, and the matchup table's chosen deck in `deck`, FR-12. A change replaces the history entry, so Back leaves the page rather than undoing a sort. The default view leaves the parameters out.
+- The view state lives in the address too: the overview's view in `view` and the deck table's sort in `sort` and `dir`, FR-4, the overview's search in `q`, FR-14, the share chart's highlighted deck in `highlight`, FR-5, the matchup table's chosen deck in `deck`, FR-12, and What to play?'s changed metagame in `meta` and chosen deck in `beat`, FR-17. A change replaces the history entry, so Back leaves the page rather than undoing a sort. The default view leaves the parameters out.
 - Back, forward and reload therefore return to a page as the reader left it. A link carries only `?window=`, so it opens a page in its default view. This is the browser's own rule: history returns to a page, a link is a new visit. The one exception is the deck page's link to the matchup table, which also carries `?deck=`, FR-11.
 - The theme is not view state. It is the reader's preference, kept in local storage, so a link never carries it. See FR-13.
 - Back and forward work. A route change does not reload the page.
@@ -303,11 +305,11 @@ Where `shareChange.points` is present, the grid and table show the movement agai
 Every data-backed section has its own loading state. A failed fetch shows a readable error and a retry control. HTTP 429 is reported as a rate limit, not as a generic failure. A window that returns no decks renders an empty state rather than a broken chart. This applies on every page.
 
 ### FR-10. Navigation
-Every page has a header with links to the overview and the matchup table. The current page is marked with `aria-current`. Every page carries the attribution required by NFR-5.
+Every page has a header with links to the overview, the matchup table and What to play?, FR-17. The current page is marked with `aria-current`. Every page carries the attribution required by NFR-5.
 
-The header names the site, "Pauper Endstep metagame", beside the site mark from the design system, in one link to the overview. The mark is decorative, so the link's name is the site's name. It is not a heading. Every page opens with its main heading, which names the page: "Overview", "Matchups", or the deck's name on a deck page. The document title repeats it, such as "Overview · Pauper Endstep metagame". The heading therefore names the page when focus moves to it, §4.5.
+The header names the site, "Pauper Endstep metagame", beside the site mark from the design system, in one link to the overview. The mark is decorative, so the link's name is the site's name. It is not a heading. Every page opens with its main heading, which names the page: "Overview", "Matchups", "What to play?", or the deck's name on a deck page. The document title repeats it, such as "Overview · Pauper Endstep metagame". The heading therefore names the page when focus moves to it, §4.5.
 
-Deck names link to `/decks/{slug}` wherever a deck is listed: grid cards, table rows, matrix headers, and the decks in the ranked bars and the scatter, FR-6 and FR-7. Links keep the current `?window=`.
+Deck names link to `/decks/{slug}` wherever a deck is listed: grid cards, table rows, matrix headers, the decks in the ranked bars and the scatter, FR-6 and FR-7, and every deck on What to play?, FR-17. Links keep the current `?window=`.
 
 ### FR-11. Deck page
 Two calls. `/{format}/decks/{slug}` feeds every section except the matchups row, see §3.6. `/api/matchups` feeds the matchups row, §4.4.
@@ -396,7 +398,7 @@ Every page comes in a light theme and a dark theme. The design system specifies 
 
 - On a first visit the page follows the device's setting, `prefers-color-scheme`. A device with no setting gets the light theme. Until the reader chooses, the page also follows a change to the device setting while it is open, and so do the toggle and the charts.
 - A 36px round button at the top right of the site header switches between the two themes, on every page and at every width. It is a toggle button named Dark theme, with `aria-pressed`. Its icon shows the current theme, a sun or a moon, so it agrees with `aria-pressed`.
-- Below 640px the button shares the first row with the site name, and the links take the second. When the name runs out of room, it wraps to two lines and the button stays at the top right.
+- Below 1,100px the button shares the first row with the site name, and the links take the second. From 1,100px they share one row. With three links, one row at 640px would squeeze the name into three lines. When the name runs out of room, it wraps to two lines and the button stays at the top right.
 - The reader's choice is kept in local storage and wins over the device setting from then on. It is not in the address, §4.5.
 - The theme applies before the page first paints, so a dark page never flashes light.
 - A switch recolours the charts at once, with no reload. Native controls and scrollbars follow the theme through `color-scheme`.
@@ -437,6 +439,68 @@ The site installs as an app on phones and desktops, from the browser's own insta
 - A web app manifest names the app "Pauper Endstep metagame", with a short name from the design system for the home screen. It opens `/` in a standalone window and carries the icons at 192px and 512px, with a maskable 512px version.
 - The icon set comes from the site mark, the design system's: an SVG favicon, a 32px ICO for older browsers, a 180px Apple touch icon, and the app icons.
 - There is no service worker and no offline caching. The installed app needs the network, as the site does, and always shows current data.
+
+### FR-17. What to play?
+A page that answers the question a player asks before a league or a tournament: which deck should I play? It ranks the top 24 by their expected match win rate against the metagame the reader expects, and names the best. One call to `/api/matchups`, §4.4, the matchup table's own, so the two pages share one edge cache entry and the page asks nothing new of Endstep, NFR-4. The design system's What to play? section is the visual specification.
+
+The page lives at `/what-to-play`. Its heading and the header link read "What to play?", and the document title "What to play? · Pauper Endstep metagame", FR-10. It has the window selector and the resolved window dates, as the matchup table does. Its words are short and plain, for readers whose first language is not English.
+
+**The expected match win rate.**
+
+- The metagame is each top-24 deck's share from the matchup response, plus the reader's changes, below. A share never goes below zero. If the changes would leave every share at zero, the page ignores them and uses the window's own metagame.
+- A deck's expected match win rate is its match win rate against each of the 24, weighted by that deck's part of the 24's total share, and added up. The mirror counts as 50%. So do a gated pair, §6.8, and a pair with no entry.
+- Its range comes from the cells' ranges. Each cell gives a standard error of (`high` − `low`) / 3.92. The expected rate's range is 1.96 times the square root of the sum of (weight × standard error)². A gated pair or a pair with no entry adds an error of 0.25, as a rate anywhere from 0% to 100% would. The mirror adds none. This treats the 23 pairs as independent, which is close enough: each pair is its own set of matches.
+- A rate is clearly above 50% when its whole range is above 50%, clearly below when the whole range is below, and too close to call otherwise.
+- Rates show to one decimal place.
+- Decks outside the top 24, about a quarter of registrations, are left out, because the matchup table has no data for them, §4.4. The page says so. The expected rates therefore run a little below each deck's own match win rate, by about two points at 30d on 2026-10-18, because the top 24 beat the long tail.
+
+**The pick.** A panel under the window selector gives the answer first.
+
+- It reads "Our pick", then "Play {deck}!", the deck a link to its page.
+- When other decks are too close to tell apart from the best, the pick names them too, up to three decks in rate order: "Play {a} or {b}!", or "Play {a}, {b} or {c}!". A deck is too close when the top of its range is above the bottom of the best deck's range.
+- One sentence follows. For one deck: "{deck} wins {rate} of its matches against the metagame you expect." For several: "They win the most matches against the metagame you expect: {rate}, {rate} and {rate}. The gap between them is too small to call." When more than three decks are too close, the sentence ends ", and 1 more deck is just as close." or ", and {n} more decks are just as close."
+- A last line gives the basis. With no changes it reads "Based on {period}. Change the metagame to match what you expect.", where the period is "the last day", "the last 7 days", "the last 14 days", "the last 30 days" or "this season", as the window says. With changes it reads "Based on the metagame you set."
+- Only the title is a polite live region, so a screen reader hears a new pick, not every changed rate.
+
+**The ranking.** A panel named "Expected match win rate".
+
+- The 24 decks by expected rate, highest first, ties in share order. Each line holds the place, the deck as a link, its range bar, the rate and its movement.
+- A note beside the title reads "Metagame of {period}", with the basis line's period, or "The metagame you set".
+- The range bar draws the range on a scale shared by the 24 lines, with a line at 50% and a tick at the rate. It is blue when the rate is clearly above 50%, red when clearly below, and neutral when too close to call, the matchup table's colours, FR-12. A legend says the rule in words. The scale runs from the lowest bound to the highest, rounded out to 5 points and always holding 50%.
+- Movement is the number of places a deck rose or fell against the window's own metagame, with no changes: "↑2" or "↓1". A deck that has not moved shows nothing. Assistive technology hears "up 2" or "down 1".
+- Each line is read as the place, the deck, the rate, "likely between {low} and {high}", and the movement.
+- Below 640px the bar takes its own row under the deck and the rate.
+
+**The metagame you expect.** A panel where the reader changes the metagame.
+
+- A note reads "How often you expect to meet each deck. Each step is one point."
+- The 24 decks in the window's share order, which a change does not reorder. Each line holds the deck's name and a stepper: a button named "Less {deck}", the share to one decimal place, and a button named "More {deck}". A press moves the share by one point.
+- "Less" cannot act at 0.0%, or on the last deck above zero, so the metagame is never empty. It carries `aria-disabled` and ignores presses, rather than `disabled`, so a keyboard user's focus stays on it.
+- A changed deck shows "was {share}" after its name.
+- Reset appears once anything has changed. It returns every share and removes `meta` from the address.
+- A line under the list reads "The top 24 hold {share} of registrations. The other {share} are left out of the sum."
+- From 1,100px the ranking and the metagame stand side by side. Below 1,100px they stack, the metagame first, folded into its heading with "Change" to open it and "Close" to fold it. It starts folded, so the ranking is one tap away rather than 24 lines down. A width check at 1,100px in script picks the layout, as the matchup table's check at 640px picks its phone list, FR-12. The page renders the two panels in the order they appear, so the reading and focus order match the screen.
+
+**In the address.** The changes are view state, §4.5, so a copied address shares them.
+
+- `meta` lists only the changed decks, as `{slug}:{change}`, joined by commas, in share order. The change is a whole number of points, with a minus sign when it lowers the share and no sign when it raises it, because a `+` in a typed address reads as a space: `meta=affinity-e93f5f74:-4,elves-262fdcbd:3`.
+- The page writes `meta` itself, so its colons and commas stay readable, where `URLSearchParams` would write `%3A` and `%2C`. It reads both forms.
+- Decks are matched by the 8-character suffix of their slug, §6.11. An entry that cannot be read, has a change of zero or outside −100 to 100, names a deck outside the window's top 24, or repeats a deck already read is ignored. The page still opens.
+- A change that lowers a share past zero counts as the smallest change that reaches zero, the share rounded up, so one press of "More" always moves it off 0.0%. The next write puts the counted change in the address.
+- A change replaces the history entry, and no change leaves `meta` out.
+- A window change keeps `meta` and applies it to the new window's shares. An entry for a deck outside the new top 24 is ignored but stays in the address until the reader's next change, which writes the address again from the changes that apply.
+- The header's link to the page carries only `?window=`, so it opens the window's own metagame.
+
+**Beat a deck.** A panel for a reader who expects to meet one deck often.
+
+- A deck picker, the matchup table's native select named Deck, lists the 24 decks in share order. The top deck by share is the default. A choice is kept in `beat` as the deck's slug, matched by its suffix, and the default leaves it out. A `beat` that names no top-24 deck falls back to the default.
+- One sentence: "These decks clearly beat {deck}."
+- A table of the decks whose pair with the chosen deck is clear, FR-12's rule, and in their favour, by their rate against it, highest first. Its columns: the deck as a link, its rate against the chosen deck with that pair's range bar from 640px, and its expected rate against the metagame.
+- When no deck qualifies, the sentence reads "No deck in the top 24 clearly beats {deck} in this window." and there is no table.
+
+**How the numbers are made.** A last panel says in four short paragraphs how the rate is counted, what the bars mean, how the pick is chosen, and why decks outside the top 24 are left out. The design system gives the words.
+
+**States.** As the matchup table, FR-12: one skeleton per panel while loading, the error panel with its retry, no automatic retry, because one cold build costs 25 upstream calls, and the previous window dimmed while the next loads, §4.8. The page shares the site card, FR-15.
 
 ---
 
@@ -708,3 +772,4 @@ A later layer overrides an earlier one, whatever the selectors' specificity and 
 9. ~~Cards or a table on the overview.~~ Settled: one view at a time, chosen with a switch kept in `view`. Cards by default. FR-3 and FR-4.
 10. ~~The dark palette.~~ Settled: Soft graphite, chosen by the owner on 2026-10-16 over warm stone. NFR-1a gives its figures and the design system its tokens.
 11. ~~Card art from our server.~~ Settled on 2026-10-17: Scryfall, by name. The owner accepted that the art may differ from Endstep's, for 11 of the 24 decks when measured, because the site presents its own view of the data. §3.4 and §4.3 give the rules, E14 builds it.
+12. ~~A page that suggests a deck.~~ Settled on 2026-10-18: What to play?, FR-17. The owner chose the answer first, "Play {deck}!", the metagame as the reader's to change, kept in the address as changes rather than shares, and plain words for readers whose first language is not English.
