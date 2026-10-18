@@ -65,7 +65,7 @@
   .expected__axis {
     grid-template-areas: ". scale scale scale";
     font-size: 11px;
-    color: var(--text-400);
+    color: var(--text-600);
     font-variant-numeric: tabular-nums;
   }
 
@@ -111,7 +111,7 @@
   .expected__place {
     grid-area: place;
     font-size: 13px;
-    color: var(--text-400);
+    color: var(--text-600);
     text-align: right;
     font-variant-numeric: tabular-nums;
   }
