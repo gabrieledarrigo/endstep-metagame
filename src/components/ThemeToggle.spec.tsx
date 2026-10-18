@@ -139,6 +139,27 @@ describe("ThemeToggle", () => {
     expect(themeColours()).toEqual(["#353537", "#353537"]);
   });
 
+  it("sets the theme colour of the reader's choice over the device setting", () => {
+    stubColourScheme(true);
+    document.documentElement.dataset.theme = "light";
+    addThemeColours();
+    render(<ThemeToggle />);
+
+    expect(themeColours()).toEqual(["#f9f9f7", "#f9f9f7"]);
+  });
+
+  it("keeps the theme colour of the reader's choice when the device setting changes", () => {
+    const setDevice = stubColourScheme(false);
+    addThemeColours();
+    render(<ThemeToggle />);
+
+    fireEvent.click(toggle());
+    act(() => setDevice(true));
+    act(() => setDevice(false));
+
+    expect(themeColours()).toEqual(["#353537", "#353537"]);
+  });
+
   it("still switches the theme when the page has no theme colour", () => {
     stubColourScheme(false);
     render(<ThemeToggle />);
