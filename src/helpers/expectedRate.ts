@@ -108,11 +108,6 @@ export function pickDecks(ranking: RankedDeck[]): {
   more: number;
 } {
   const best = ranking[0];
-
-  if (best === undefined) {
-    return { decks: [], more: 0 };
-  }
-
   const end = ranking.findIndex(
     (entry, index) => index > 0 && entry.high <= best.low,
   );

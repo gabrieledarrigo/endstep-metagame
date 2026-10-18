@@ -293,7 +293,7 @@ describe("pickDecks", () => {
 
 describe("rangeScale", () => {
   it("rounds the lowest and the highest bound out to 5 points", () => {
-    expect(rangeScale([{ low: 0.2225, high: 0.7775 }])).toEqual({
+    expect(rangeScale([{ low: 0.2375, high: 0.7625 }])).toEqual({
       min: 0.2,
       max: 0.8,
     });
@@ -309,11 +309,11 @@ describe("rangeScale", () => {
   });
 
   it("always holds 50%", () => {
-    expect(rangeScale([{ low: 0.52, high: 0.58 }])).toEqual({
+    expect(rangeScale([{ low: 0.56, high: 0.58 }])).toEqual({
       min: 0.5,
       max: 0.6,
     });
-    expect(rangeScale([{ low: 0.41, high: 0.47 }])).toEqual({
+    expect(rangeScale([{ low: 0.41, high: 0.44 }])).toEqual({
       min: 0.4,
       max: 0.5,
     });
