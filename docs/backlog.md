@@ -1244,7 +1244,7 @@ Covers FR-10 and FR-16. The owner chose on 2026-10-18 to put the site mark in th
 - At 360px and at 640px, where the name wraps to two lines, the mark sits on the first line and the toggle keeps its place.
 - The brand link's accessible name is still "Pauper Endstep metagame".
 
-**Blocked by** S24. **Blocks** nothing.
+**Blocked by** S24. **Blocks** S25.
 
 ---
 
@@ -1291,7 +1291,7 @@ Covers FR-17's page, pick and ranking, and FR-10's third link.
 1. The `/what-to-play` route, its rewrite in `vercel.json`, and the page heading and document title "What to play?", §4.5.
 2. The header's third link, "What to play?". Below 1,100px the links keep their own row, and from 1,100px the name, the links and the toggle share one, as the design system's Page header shows. FR-13's layout line changes with it.
 3. A helper that takes the matchup response and a metagame and returns each deck's expected match win rate, its range, its verdict and the pick, by FR-17's rules. Shares as the reader would set them, with no changes in this story.
-4. The pick: "Our pick", "Play {deck}!" with up to three decks, the sentence and the basis line, as a polite live region.
+4. The pick: "Our pick", "Play {deck}!" with up to three decks, the sentence with any decks just as close, and the basis line. Only the title is a polite live region.
 5. The ranking: the 24 decks, the range bars on their shared scale, the 50% line, the legend and the note. Below 640px each line takes two rows.
 6. The "How the numbers are made" panel, with the design system's words.
 7. Loading, the error and the window change, as the matchup table: a skeleton per panel, the retry, no automatic retry, the previous window dimmed.
@@ -1317,17 +1317,17 @@ Covers FR-17's metagame panel and its place in the address.
 **Tasks**
 
 1. The metagame panel: the 24 decks in share order, a stepper on each, "was {share}" on a changed deck, Reset, and the line on decks outside the top 24.
-2. "Less" disabled at 0.0% and on the last deck above zero.
-3. Below 1,100px the panel stacks first and folds into its heading, with "Change" and "Close". From 1,100px it stands beside the ranking, always open.
+2. "Less" cannot act at 0.0% or on the last deck above zero. It carries `aria-disabled` rather than `disabled`, so focus stays on it.
+3. Below 1,100px the panel renders first and folds into its heading, with "Change" and "Close", by a width check at 1,100px in script. From 1,100px it stands beside the ranking, always open. The render order follows the layout, with no CSS `order`.
 4. The ranking's movement against the window's own metagame, and the pick's basis line for a changed metagame.
-5. `meta` in the address, read and written by FR-17's rules: only changed decks, whole points, no `+` sign, matched by slug suffix, bad entries ignored, a change replacing the history entry, and a window change keeping it.
+5. `meta` in the address, read and written by FR-17's rules: only changed decks, whole points, no `+` sign, written by the page so its colons and commas stay readable, matched by slug suffix, bad entries ignored, a change past zero counted as the share rounded up, changes that empty the metagame ignored, a change replacing the history entry, and a window change keeping it.
 6. A spec beside each component it changes, and one for reading and writing `meta`.
 
 **Done when**
 
 - A press on a stepper updates the pick and the ranking at once, and focus stays on the pressed button.
 - A copied address opens the same changes in another tab, and Reset removes them from the address.
-- An address with a malformed entry, an unknown deck or a change of zero still opens, with the rest of its changes.
+- An address with a malformed entry, an unknown deck or a change of zero still opens, with the rest of its changes. An address that would empty the metagame opens the window's own.
 
 **Blocked by** S25. **Blocks** nothing.
 
