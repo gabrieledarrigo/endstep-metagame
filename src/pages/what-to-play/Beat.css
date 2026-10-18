@@ -80,13 +80,17 @@
   }
 
   .beat__skeleton {
-    height: 300px;
+    height: 392px;
   }
 
   @media (min-width: 640px) {
     .beat__col--bar,
     .beat__cell--bar {
       display: table-cell;
+    }
+
+    .beat__skeleton {
+      height: 302px;
     }
   }
 }
