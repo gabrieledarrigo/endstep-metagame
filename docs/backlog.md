@@ -1234,7 +1234,7 @@ Covers FR-10 and FR-16. The owner chose on 2026-10-18 to put the site mark in th
 
 1. The header's brand link holds the site mark, then the name. It reuses the footer's `SiteMark`, which gains a `className` prop, so the header sizes the mark from its own stylesheet with a `site-header__mark` mix, NFR-11. The footer keeps its 20px mark.
 2. The mark is as tall as one line of the name: 28px, and 36px from 640px. It sits 10px from the name, 12px from 640px, and is aligned to the first line. The name's line height matches the mark: 28px, and 36px from 640px. Below 640px the link takes 4px of top padding, so the mark and the first line share the toggle's centre.
-3. The link is as wide as the mark and the name, no wider.
+3. The link is no wider than the mark and the name on one line, so the free space beside a one-line name is not a link. A wrapped name fills its column.
 4. The mark stays `aria-hidden`, so the link's name stays "Pauper Endstep metagame".
 5. A spec beside each component it changes: the brand link holds the mark, and `SiteMark` passes its class on.
 
