@@ -1,10 +1,11 @@
-import type { MatrixDeck } from "../../api/types";
+import type { MatrixDeck } from "../api/types";
 import "./DeckPicker.css";
 
 type DeckPickerProps = {
   decks: MatrixDeck[];
   value: string | null;
   missing?: { slug: string; name: string };
+  allDecks?: boolean;
   stacked?: boolean;
   onChange: (slug: string | null) => void;
 };
@@ -13,6 +14,7 @@ export function DeckPicker({
   decks,
   value,
   missing,
+  allDecks,
   stacked,
   onChange,
 }: DeckPickerProps) {
@@ -31,7 +33,7 @@ export function DeckPicker({
             {missing.name} (not in the top {decks.length})
           </option>
         )}
-        {!stacked && <option value="">All decks</option>}
+        {allDecks && <option value="">All decks</option>}
         {decks.map((deck) => (
           <option key={deck.slug} value={deck.slug}>
             {deck.name}

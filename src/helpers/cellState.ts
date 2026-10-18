@@ -1,4 +1,4 @@
-import type { MatchupCell, MatchupMatrix } from "../api/types";
+import type { MatchupCell, MatchupMatrix, MatrixDeck } from "../api/types";
 import { neededText } from "./winRate";
 
 export type CellState =
@@ -7,6 +7,13 @@ export type CellState =
 type Cells = MatchupMatrix["cells"];
 
 type RangedCell = Extract<MatchupCell, { gate: null }>;
+
+export type BeatingDeck = {
+  deck: MatrixDeck;
+  rate: number;
+  low: number;
+  high: number;
+};
 
 const VERDICT: Record<CellState, string> = {
   mirror: "mirror match",
@@ -134,4 +141,34 @@ export function cellText(
   }
 
   return String(Math.round(cell.rate * 100));
+}
+
+/**
+ * Finds the decks that clearly beat a deck, FR-17: each deck whose cell against it is a clear result in its favour, FR-12.
+ *
+ * These are the decks whose cell in the deck's column of the matchup table is blue. A gated pair, a pair with no entry in the beating deck's direction, and the mirror never count.
+ *
+ * @param matrix - The matchup response, §4.4.
+ * @param slug - The slug of the deck to beat, as the matrix writes it.
+ * @returns Each beating deck with its rate and range against the deck, from its own cell. Highest rate first, ties in the matrix's share order.
+ */
+export function decksThatBeat(
+  matrix: MatchupMatrix,
+  slug: string,
+): BeatingDeck[] {
+  const beating = matrix.decks.flatMap((deck) => {
+    const cell = cellOf(matrix.cells, deck.slug, slug);
+
+    if (
+      cell === undefined ||
+      cell.gate !== null ||
+      cellState(matrix.cells, deck.slug, slug) !== "win"
+    ) {
+      return [];
+    }
+
+    return [{ deck, rate: cell.rate, low: cell.low, high: cell.high }];
+  });
+
+  return beating.sort((a, b) => b.rate - a.rate);
 }

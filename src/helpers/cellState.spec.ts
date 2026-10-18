@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
+import matrix from "../../test/fixtures/matchups.json";
 import type { MatchupCell, MatchupMatrix } from "../api/types";
 import {
   cellOf,
   cellState,
   cellSummary,
   cellText,
+  decksThatBeat,
   isClearPair,
 } from "./cellState";
 
@@ -154,5 +156,94 @@ describe("cellText", () => {
     expect(cellText("none", undefined)).toBe("\u00b7");
     expect(cellText("gated", CELLS.affinity.gates)).toBe("");
     expect(cellText("mirror", undefined)).toBe("");
+  });
+});
+
+describe("decksThatBeat", () => {
+  const slugs = [
+    "affinity",
+    "madness",
+    "tron",
+    "gates",
+    "walls",
+    "elves",
+    "spy",
+    "storm",
+  ];
+  const beaten: MatchupMatrix = {
+    window: { from: "2026-09-19", to: "2026-10-19" },
+    decks: slugs.map((slug) => ({
+      id: slug,
+      slug,
+      name: slug,
+      colours: [],
+      share: 0.1,
+    })),
+    cells: {
+      affinity: {
+        madness: ranged(625, 831, 0.398, 0.461),
+        tron: ranged(475, 523, 0.437, 0.515),
+        gates: gated(8, 10),
+        walls: ranged(40, 60, 0.31, 0.495),
+        elves: ranged(40, 60, 0.33, 0.47),
+        spy: ranged(40, 60, 0.33, 0.47),
+      },
+      madness: { affinity: ranged(831, 625, 0.538, 0.603) },
+      tron: { affinity: ranged(523, 475, 0.486, 0.562) },
+      gates: { affinity: gated(10, 8) },
+      walls: {},
+      elves: { affinity: ranged(60, 40, 0.53, 0.67) },
+      spy: { affinity: ranged(60, 40, 0.53, 0.67) },
+      storm: { affinity: ranged(30, 70, 0.21, 0.4) },
+    },
+  };
+
+  it("lists the decks whose pair with the deck is clear in their favour, highest rate first, ties in share order", () => {
+    expect(
+      decksThatBeat(beaten, "affinity").map((entry) => [
+        entry.deck.slug,
+        entry.rate,
+        entry.low,
+        entry.high,
+      ]),
+    ).toEqual([
+      ["elves", 0.6, 0.53, 0.67],
+      ["spy", 0.6, 0.53, 0.67],
+      ["madness", 831 / 1456, 0.538, 0.603],
+    ]);
+  });
+
+  it("leaves out a pair too close to call, a loss, a gated pair, the mirror and a deck with no cell against it", () => {
+    const listed = decksThatBeat(beaten, "affinity").map(
+      (entry) => entry.deck.slug,
+    );
+
+    expect(listed).not.toContain("tron");
+    expect(listed).not.toContain("storm");
+    expect(listed).not.toContain("gates");
+    expect(listed).not.toContain("affinity");
+    expect(listed).not.toContain("walls");
+  });
+
+  it("finds nothing for a deck that nothing clearly beats", () => {
+    expect(decksThatBeat(beaten, "storm")).toEqual([]);
+  });
+
+  it("lists exactly the decks whose cell against the deck is clearly in their favour", () => {
+    const fixture = matrix as MatchupMatrix;
+
+    for (const target of fixture.decks) {
+      const blue = fixture.decks
+        .filter(
+          (deck) => cellState(fixture.cells, deck.slug, target.slug) === "win",
+        )
+        .map((deck) => deck.slug)
+        .sort();
+      const listed = decksThatBeat(fixture, target.slug)
+        .map((entry) => entry.deck.slug)
+        .sort();
+
+      expect(listed).toEqual(blue);
+    }
   });
 });
