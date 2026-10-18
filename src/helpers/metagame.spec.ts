@@ -81,6 +81,12 @@ describe("readMeta", () => {
     expect(readMeta("a-11111111:-9", decks)).toEqual({ "a-11111111": -7 });
   });
 
+  it("ignores a lower on a deck whose share is already zero", () => {
+    const decks = [deck("a-11111111", 0), deck("b-22222222", 0.5)];
+
+    expect(readMeta("a-11111111:-3", decks)).toEqual({});
+  });
+
   it("ignores every change when they would leave every share at zero", () => {
     expect(
       readMeta(`${AFFINITY}:-10,${MADNESS}:-7,${TRON}:-5,${GATES}:-2`, DECKS),

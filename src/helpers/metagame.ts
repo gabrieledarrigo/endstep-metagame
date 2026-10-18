@@ -49,7 +49,13 @@ export function readMeta(
       continue;
     }
 
-    changes[deck.slug] = Math.max(change, -Math.ceil(points(deck.share)));
+    const counted = Math.max(change, -Math.ceil(points(deck.share)));
+
+    if (counted === 0) {
+      continue;
+    }
+
+    changes[deck.slug] = counted;
   }
 
   const shares = metagameShares(decks, changes);
