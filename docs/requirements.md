@@ -1,14 +1,14 @@
 # Endstep Pauper Metagame Viewer: Requirements
 
-**Status:** Draft v10 · **Date:** 2026-10-18
-**Scope:** four pages. The overview, a deck page with its numbers, a sample list and its matchups against the top 24, a matchup table, and a page that suggests which deck to play. Other deck page sections are out of scope, see §8.
+**Status:** Draft v11 · **Date:** 2026-10-18
+**Scope:** five pages. The overview, a deck page with its numbers, a sample list and its matchups against the top 24, a matchup table, a page that suggests which deck to play, and the format's staple cards. Other deck page sections are out of scope, see §8.
 **Visual design** is specified in [`design-system.html`](./design-system.html). This document covers structure, content and behaviour.
 
 ---
 
 ## 1. Purpose
 
-A browser application that reads the public Endstep metagame API and shows the **Pauper** metagame. The overview reports which decks are played, how much of the field each one holds, how they perform, and how that has changed over time. A deck page gives one deck's numbers, a sample list, and its results against the rest of the top 24. A matchup table shows how the top decks do against each other. "What to play?" ranks the top decks against the metagame the reader expects, and names the best.
+A browser application that reads the public Endstep metagame API and shows the **Pauper** metagame. The overview reports which decks are played, how much of the field each one holds, how they perform, and how that has changed over time. A deck page gives one deck's numbers, a sample list, and its results against the rest of the top 24. A matchup table shows how the top decks do against each other. "What to play?" ranks the top decks against the metagame the reader expects, and names the best. Staples lists the cards the top decks play most.
 
 The application is read-only. It stores nothing but the reader's theme choice, FR-13. It has no authentication and no user accounts. It is not affiliated with Endstep.
 
@@ -19,14 +19,14 @@ The application is read-only. It stores nothing but the reader's theme choice, F
 | Area | Decision |
 |---|---|
 | Format coverage | Pauper only |
-| Data access | Two Vercel functions: a proxy and a matchup aggregator. CORS workaround, see §4.1 |
+| Data access | Vercel functions: a proxy, a matchup aggregator, a staples aggregator, and the deck page's HTML. CORS workaround, see §4.1 |
 | Cache policy | 5 minutes at the edge, with stale-while-revalidate |
 | Front end | React 19 and TypeScript, built with Vite. See NFR-1 |
 | Data fetching | TanStack Query 5. A response stays fresh for five minutes. See §4.8 |
 | Page state | The window and the view state live in the address. A link opens a page in its default view, except the deck page's link to its deck in the matchup table. See §4.5 |
 | Styling | Hand-written CSS in cascade layers, BEM, one stylesheet per component. No framework. A light and a dark theme, FR-13. See NFR-11 |
 | Charting | Recharts 3.x from npm |
-| Pages | Overview, deck page, matchup table, What to play?. React Router in declarative mode, see §4.5 |
+| Pages | Overview, deck page, matchup table, What to play?, Staples. React Router in declarative mode, see §4.5 |
 | Quality gates | ESLint, Prettier and Vitest with React Testing Library, run by GitHub Actions on every pull request and every push to `main`. See NFR-1 |
 | Release | Vercel deploys from Git. Production waits until CI passes, through Vercel Deployment Checks. See §4.7 |
 | Grid size | Top 24 decks by share. The rest rolls into a single `Other` |
@@ -40,6 +40,7 @@ The application is read-only. It stores nothing but the reader's theme choice, F
 | Install | Installable as an app, with no offline caching and no service worker, FR-16 |
 | Sharing | Each deck page shares with its own title, figures and art. Every other page shares the site card, FR-15 |
 | What to play? | The top 24 ranked by expected match win rate against a metagame the reader can change, from the matchup table's data. No new calls to Endstep, FR-17 |
+| Staples | The 50 cards the top 24 play most, weighted by share, for the main deck and the sideboard. A third function builds them, FR-18 and §4.9 |
 
 ---
 
@@ -55,10 +56,11 @@ Base URL: `https://endstep.cc/api/metagame/v1`. All endpoints are public and req
 | `/{format}/share-series` | Daily share per deck | `window`, `population` |
 | `/{format}/decks/{slug}` | One deck: its row, games, toss, texture, daily share. See §3.6 | `window`, `population` |
 | `/{format}/decks/{slug}/matchups` | One deck's results against each opponent. Called by the matchup function, not the browser. See §3.7 | `window`, `population`, `sort`, `dir`, `pageSize` |
+| `/{format}/decks/{slug}/cards` | One deck's cards: each card's play rate and average copies, for the main deck or the sideboard. Called by the staples function, not the browser. See §4.9 | `window`, `population`, `section`, `pageSize` |
 
 ### 3.2 Endpoints available but not used
 
-`/formats`, `/visibility`, `/{format}/decks/{slug}/cards`, `/{format}/decks/{slug}/ratings`. The last two are reserved for the deferred deck page sections.
+`/formats`, `/visibility`, `/{format}/decks/{slug}/ratings`. The last is reserved for the deferred deck page sections. `/cards` takes `section` as `main` or `side`, and a `pageSize` of at most 50, measured 2026-10-18.
 
 ### 3.3 Parameter vocabulary
 
@@ -145,11 +147,12 @@ Public CORS proxies were tested on 2026-09-20 and rejected. All six failed. allo
 
 ### 4.2 Components
 
-1. **The front end**. A Vite application in `src/`, built to `dist/` on Vercel. It serves all three pages from one `index.html`.
+1. **The front end**. A Vite application in `src/`, built to `dist/` on Vercel. It serves every page from one `index.html`.
 2. **`api/metagame.ts`**. The proxy. It forwards `GET` requests to `https://endstep.cc/api/metagame/v1/...`, keeps the allow-listed query parameters, and returns the upstream body with CORS headers. For the deck list and the deck detail it adds each deck's art address from Scryfall, §3.4, so it is no longer a pure pass-through.
 3. **`api/matchups.ts`**. The matchup aggregator. It builds the top-24 matrix on the server and returns it in one response. See §4.4. It is a separate function so the proxy keeps to one upstream call per request.
 4. **`api/_shared.ts`**. The code the functions share: the upstream address and timeout, the CORS headers, the method rules, the error responses and the cache rules. Vercel does not deploy a file in `api/` whose name starts with an underscore, so it is not a function of its own.
 5. **`api/deck-page.ts`**. The deck page's HTML. It writes the deck's title, description and image into the built `index.html` for link previews, FR-15. `vercel.json` sends `/decks/:slug` to it in place of the static rewrite.
+6. **`api/staples.ts`**. The staples aggregator. It builds the 50 most played cards of the top 24 on the server, with their art, and returns them in one response. See §4.9.
 
 ### 4.3 Proxy behaviour
 
@@ -195,7 +198,7 @@ Behaviour:
 
 ### 4.5 Routing
 
-The front end uses **React Router 8 in declarative mode**: `BrowserRouter`, `Routes` and `Route`, `Link`, `useNavigate` and `useSearchParams`. No Vite plugin, no loaders, no data mode. It was chosen on the criteria that chose Recharts in NFR-2: it is the most used React router, and declarative mode is its simplest form. There are four routes.
+The front end uses **React Router 8 in declarative mode**: `BrowserRouter`, `Routes` and `Route`, `Link`, `useNavigate` and `useSearchParams`. No Vite plugin, no loaders, no data mode. It was chosen on the criteria that chose Recharts in NFR-2: it is the most used React router, and declarative mode is its simplest form. There are five routes.
 
 | Path | Page |
 |---|---|
@@ -203,11 +206,12 @@ The front end uses **React Router 8 in declarative mode**: `BrowserRouter`, `Rou
 | `/decks/{slug}` | Deck page |
 | `/matchups` | Matchup table |
 | `/what-to-play` | What to play?, FR-17 |
+| `/staples` | Staples, FR-18 |
 
-- `vercel.json` rewrites `/matchups` and `/what-to-play` to `/index.html`, and sends `/decks/:slug` to the deck page's HTML function, which serves the same `index.html` with the deck's link preview, FR-15. Vercel applies rewrites after it checks for real files, so built assets are not affected.
+- `vercel.json` rewrites `/matchups`, `/what-to-play` and `/staples` to `/index.html`, and sends `/decks/:slug` to the deck page's HTML function, which serves the same `index.html` with the deck's link preview, FR-15. Vercel applies rewrites after it checks for real files, so built assets are not affected.
 - `?window=` belongs to every page and carries across links. Pages read and write it with `useSearchParams`. See FR-1.
 - The layout route replaces a missing or unknown window with the default, with a replace navigation, so the address always names the window on screen.
-- The view state lives in the address too: the overview's view in `view` and the deck table's sort in `sort` and `dir`, FR-4, the overview's search in `q`, FR-14, the share chart's highlighted deck in `highlight`, FR-5, the matchup table's chosen deck in `deck`, FR-12, and What to play?'s changed metagame in `meta` and chosen deck in `beat`, FR-17. A change replaces the history entry, so Back leaves the page rather than undoing a sort. The default view leaves the parameters out.
+- The view state lives in the address too: the overview's view in `view` and the deck table's sort in `sort` and `dir`, FR-4, the overview's search in `q`, FR-14, the share chart's highlighted deck in `highlight`, FR-5, the matchup table's chosen deck in `deck`, FR-12, What to play?'s changed metagame in `meta` and chosen deck in `beat`, FR-17, and the staples list in `section`, FR-18. A change replaces the history entry, so Back leaves the page rather than undoing a sort. The default view leaves the parameters out.
 - Back, forward and reload therefore return to a page as the reader left it. A link carries only `?window=`, so it opens a page in its default view. This is the browser's own rule: history returns to a page, a link is a new visit. The one exception is the deck page's link to the matchup table, which also carries `?deck=`, FR-11.
 - The theme is not view state. It is the reader's preference, kept in local storage, so a link never carries it. See FR-13.
 - Back and forward work. A route change does not reload the page.
@@ -216,7 +220,7 @@ The front end uses **React Router 8 in declarative mode**: `BrowserRouter`, `Rou
 
 ### 4.6 Local development
 
-`npm run dev` starts Vite. A small Vite plugin serves `/api/metagame/*` and `/api/matchups` by calling the real handlers, and applies the same rewrite as `vercel.json`. It serves each response from memory for its `s-maxage`, the lifetime the edge uses too. It does not serve stale responses and does not evict expired entries, so it is simpler than the edge. Without that, every reload of the matchup page in development costs 25 upstream calls, and a dozen reloads in a minute reach the rate limit. It replaces `dev-server.js`, which is deleted. Vite's dev server already falls back to `index.html` for the page routes. `vite preview` also serves `/decks/:slug` through the deck page's function, with the rewrite from `vercel.json`, so a link preview can be checked on a local build. The dev server does not, because its `index.html` is the source file.
+`npm run dev` starts Vite. A small Vite plugin serves `/api/metagame/*`, `/api/matchups` and `/api/staples` by calling the real handlers, and applies the same rewrite as `vercel.json`. It serves each response from memory for its `s-maxage`, the lifetime the edge uses too. It does not serve stale responses and does not evict expired entries, so it is simpler than the edge. Without that, every reload of the matchup page in development costs 25 upstream calls, and a dozen reloads in a minute reach the rate limit. It replaces `dev-server.js`, which is deleted. Vite's dev server already falls back to `index.html` for the page routes. `vite preview` also serves `/decks/:slug` through the deck page's function, with the rewrite from `vercel.json`, so a link preview can be checked on a local build. The dev server does not, because its `index.html` is the source file.
 
 ### 4.7 What deploys
 
@@ -244,6 +248,40 @@ The pages read the API through **TanStack Query 5**. It was chosen over SWR on t
 - A network error, a 429 or a 5xx is retried at most twice, after 400 ms and then 800 ms, NFR-4. Any other failure shows at once. In a background tab the retries wait until the tab is shown again. A query can turn retries off: the matchup table and the deck's matchups row do, FR-11 and FR-12.
 - The query passes an abort signal to `fetch`, so a request for a window the reader has left is cancelled.
 - `getJson` makes one request. It turns a failed status into an error that carries its kind and status, and the query client decides whether to retry.
+
+### 4.9 Staples function
+
+`GET /api/staples?window=30d&section=main`. The staples page reads it, FR-18. `window` is one of the five values in §3.3 and `section` is `main` or `side`. As with the matchup function, §4.4, the raw query string must be exactly `?window=` and a value, then `&section=` and a value, byte for byte. Anything else returns 400, so every variant shares one cache entry. The format is Pauper and the population is `rated`, both fixed.
+
+1. Fetch the top 24 decks: `/Pauper/decks?window=…&population=rated&sort=share&dir=desc&pageSize=24`.
+2. Fetch `/Pauper/decks/{slug}/cards?window=…&population=rated&section=…&pageSize=50` for each of the 24, in parallel. 50 is the endpoint's largest page. The cards come in play-rate order, and on 2026-10-18 at 30d the 50th card of any deck was in at most 9% of its lists, so a card cut off by the page adds under 0.1 point to any figure below.
+3. Leave out a deck whose card table is withheld, and the basic lands: Plains, Island, Swamp, Mountain, Forest, Wastes and their snow-covered versions.
+4. For each card, across the decks: its share is the sum of each deck's share times the card's `playRate.rate` in that deck, divided by the 24 decks' total share. Its copies are the average of `averageCopies`, weighted by each deck's share times its play rate.
+5. Keep the 50 cards with the largest share, ties by name.
+6. Add each card's art, as the metagame function does for a deck's key card, §3.4 and §4.3: one Scryfall collection request for the 50 names, with the same matching, memory, one-second bound and fallback.
+
+Response:
+
+```
+{
+  window: { from, to },
+  section: "main" | "side",
+  withheld: number,
+  cards: [{ name, share, copies, art: { imageUrl } | null,
+            decks: [{ slug, name, playRate, copies }] }]
+}
+```
+
+- `window` holds `from` and `to` of `provenance.window` from step 1, unchanged. §6.7 applies when it is displayed.
+- `withheld` counts the decks left out in step 3.
+- `decks` lists the decks that play the card in at least 5% of their lists, by play rate, highest first. `playRate` is the deck's `playRate.rate`, and `copies` its `averageCopies`.
+- About 25 KB uncompressed, computed from the 30d data.
+
+Behaviour:
+
+- One cold build costs 25 upstream calls, the matchup function's cost, and one Scryfall request. Cache-Control follows the matchup function's rules: a success for 5 minutes, a 429 for 60 seconds, any other error `no-store`. A success whose art lookup fell back is held for one minute, as the proxy's is, §4.3.
+- If any Endstep call fails, the whole request fails, with 429 for an upstream 429 and 502 otherwise. A failed art lookup never fails it.
+- Each upstream call has the proxy's 8 second timeout. Same method rules and CORS headers as the proxy, §4.3.
 
 ---
 
@@ -305,11 +343,11 @@ Where `shareChange.points` is present, the grid and table show the movement agai
 Every data-backed section has its own loading state. A failed fetch shows a readable error and a retry control. HTTP 429 is reported as a rate limit, not as a generic failure. A window that returns no decks renders an empty state rather than a broken chart. This applies on every page.
 
 ### FR-10. Navigation
-Every page has a header with links to the overview, the matchup table and What to play?, FR-17. The current page is marked with `aria-current`. Every page carries the attribution required by NFR-5.
+Every page has a header with links to the overview, the matchup table, What to play?, FR-17, and Staples, FR-18. Below 640px the links wrap onto a second line when they do not fit, at their own size. The current page is marked with `aria-current`. Every page carries the attribution required by NFR-5.
 
-The header names the site, "Pauper Endstep metagame", beside the site mark from the design system, in one link to the overview. The mark is decorative, so the link's name is the site's name. It is not a heading. Every page opens with its main heading, which names the page: "Overview", "Matchups", "What to play?", or the deck's name on a deck page. The document title repeats it, such as "Overview · Pauper Endstep metagame". The heading therefore names the page when focus moves to it, §4.5.
+The header names the site, "Pauper Endstep metagame", beside the site mark from the design system, in one link to the overview. The mark is decorative, so the link's name is the site's name. It is not a heading. Every page opens with its main heading, which names the page: "Overview", "Matchups", "What to play?", "Staples", or the deck's name on a deck page. The document title repeats it, such as "Overview · Pauper Endstep metagame". The heading therefore names the page when focus moves to it, §4.5.
 
-Deck names link to `/decks/{slug}` wherever a deck is listed: grid cards, table rows, matrix headers, the decks in the ranked bars and the scatter, FR-6 and FR-7, and every deck on What to play?, FR-17. Links keep the current `?window=`.
+Deck names link to `/decks/{slug}` wherever a deck is listed: grid cards, table rows, matrix headers, the decks in the ranked bars and the scatter, FR-6 and FR-7, every deck on What to play?, FR-17, and every deck behind a staple, FR-18. Links keep the current `?window=`.
 
 ### FR-11. Deck page
 Two calls. `/{format}/decks/{slug}` feeds every section except the matchups row, see §3.6. `/api/matchups` feeds the matchups row, §4.4.
@@ -501,6 +539,30 @@ The page lives at `/what-to-play`. Its heading and the header link read "What to
 **How the numbers are made.** A last panel says in four short paragraphs how the rate is counted, what the bars mean, how the pick is chosen, and why decks outside the top 24 are left out. The design system gives the words.
 
 **States.** As the matchup table, FR-12: one skeleton per panel while loading, the error panel with its retry, no automatic retry, because one cold build costs 25 upstream calls, and the previous window dimmed while the next loads, §4.8. The page shares the site card, FR-15.
+
+### FR-18. Staples
+A page with the cards the top 24 decks play most, weighted by each deck's share. One call to `/api/staples`, §4.9. The design system's Staples section is the visual specification.
+
+The page lives at `/staples`. Its heading and the header link read "Staples", and the document title "Staples · Pauper Endstep metagame", FR-10. A line under the heading reads "The cards the top 24 decks play most." It has the window selector and the resolved window dates, as the matchup table does.
+
+**The list.** A panel named "Most played cards".
+
+- A switch with two options, "Main deck" and "Sideboard", chooses the list. Main deck is the default. The choice is kept in `section`, as `side` for the sideboard, and the default leaves it out, §4.5.
+- One sentence under the title: "The percentage is the share of the top 24's decks that play the card."
+- The cards in the order `/api/staples` returns them, by share. The list shows 30, then a button, "Show 20 more", shows the rest, up to 50. The button goes once all are shown. A window change or a switch to the other list shows 30 again.
+- Each line holds the place, the card's art, its name, where it is core, a bar for its share, the share to one decimal place, and its average copies to one decimal place, "3.9 copies".
+- The art is the card's art crop, `art.imageUrl`, or Endstep's image endpoint with `version=art_crop` when it is missing, §3.4. It is decorative, with an empty `alt`, because the name is beside it. It is 120 by 88px, and 96 by 70px below 640px.
+- "Core in" names the decks where at least half the lists play the card, by that share: "Core in {a}", "Core in {a} and {b}", "Core in {a}, {b} and {c}", or, for more than three, "Core in {a}, {b} and {n} more". A card that is core nowhere reads "Not core in any deck".
+- The bar is in the share chart's blue, scaled to the top card's share, so the first card's bar is full. It shows from 640px. Below 640px the share and the copies sit under the name.
+
+**The decks behind a card.** The card's name is a button that opens the decks that play it, under its line.
+
+- The button carries `aria-expanded` and a chevron that turns when open. Several cards can be open at once. Which cards are open is not in the address, and a window change or a switch closes them.
+- The panel reads "Played in {n} of the top 24", then one line per deck that plays the card in at least 5% of its lists, by that share: the deck as a link to its page, a bar for the share from 640px, the share as a whole percentage, and the deck's average copies.
+- One sentence closes it: "The share of each deck's lists that play it."
+- Decks below 5% are left out. Those are a few unusual lists, not the deck's own choice.
+
+**States.** As the matchup table, FR-12: a skeleton while loading, the error panel with its retry, no automatic retry, because one cold build costs 25 upstream calls, and the previous window dimmed while the next loads, §4.8. A card table that Endstep withholds for a deck, §3.6, leaves that deck out, and a line under the list reads "1 deck is left out because Endstep withholds its cards.", or "{n} decks are left out because Endstep withholds their cards." The page shares the site card, FR-15.
 
 ---
 
@@ -699,7 +761,7 @@ The code targets ES2025: `target` and `lib` in the three TypeScript configs, and
 No analytics, no cookies, no local storage of personal data, no third-party requests beyond the card-art hosts: Scryfall's CDN, and Endstep's image endpoint as the fallback. The theme choice, FR-13, is the one value the app keeps in local storage. It is a display preference, not personal data, and it never leaves the browser.
 
 ### NFR-10. Deployment
-Deployed on Vercel from the Git repository. A Vite build and three serverless functions. No environment variables and no secrets. Production waits until CI passes, §4.7.
+Deployed on Vercel from the Git repository. A Vite build and four serverless functions. No environment variables and no secrets. Production waits until CI passes, §4.7.
 
 ### NFR-11. CSS architecture
 Plain CSS files, processed by Vite. No CSS Modules, no CSS-in-JS and no framework, so class names ship exactly as the design system documents them.
@@ -751,7 +813,7 @@ A later layer overrides an earlier one, whatever the selectors' specificity and 
 
 ## 8. Out of scope
 
-- Deck page sections beyond the numbers, the sample list and the matchups row: the deck's full list of opponents, card usage and the rating distribution.
+- Deck page sections beyond the numbers, the sample list and the matchups row: the deck's full list of opponents, card usage and the rating distribution. Staples, FR-18, shows card usage across the top 24, not one deck's card table.
 - A matchup table beyond the top 24 decks.
 - Formats other than Pauper.
 - The `casual` population and rating-band filtering.
@@ -773,3 +835,4 @@ A later layer overrides an earlier one, whatever the selectors' specificity and 
 10. ~~The dark palette.~~ Settled: Soft graphite, chosen by the owner on 2026-10-16 over warm stone. NFR-1a gives its figures and the design system its tokens.
 11. ~~Card art from our server.~~ Settled on 2026-10-17: Scryfall, by name. The owner accepted that the art may differ from Endstep's, for 11 of the 24 decks when measured, because the site presents its own view of the data. §3.4 and §4.3 give the rules, E14 builds it.
 12. ~~A page that suggests a deck.~~ Settled on 2026-10-18: What to play?, FR-17. The owner chose the answer first, "Play {deck}!", the metagame as the reader's to change, kept in the address as changes rather than shares, and plain words for readers whose first language is not English.
+13. ~~The format's staple cards.~~ Settled on 2026-10-18: Staples, FR-18, its own page. The owner chose a list with large art over tiles, a card that opens the top-24 decks behind it rather than the deck search, which matched 80 decks for Counterspell, 30 cards with more up to 50, and the main deck or sideboard kept in the address.
