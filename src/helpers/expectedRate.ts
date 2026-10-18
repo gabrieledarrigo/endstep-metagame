@@ -53,7 +53,13 @@ function verdictOf(low: number, high: number): Verdict {
   return "neutral";
 }
 
-function toPoints(rate: number): number {
+/**
+ * Turns a rate into percentage points, snapped to a ten-thousandth of a point so float noise never crosses a whole point.
+ *
+ * @param rate - A rate from 0 to 1.
+ * @returns The rate in points, such as `7` for `0.07`.
+ */
+export function toPoints(rate: number): number {
   return Math.round(rate * 1e6) / 1e4;
 }
 

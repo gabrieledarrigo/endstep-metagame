@@ -1,4 +1,5 @@
 import type { MatrixDeck } from "../api/types";
+import { toPoints } from "./expectedRate";
 import { findDeck } from "./slug";
 
 const MOST_CHANGE = 100;
@@ -6,10 +7,6 @@ const ENTRY = /^(.+):(-?\d{1,3})$/;
 
 function snap(rate: number): number {
   return Math.round(rate * 1e6) / 1e6;
-}
-
-function points(rate: number): number {
-  return Math.round(rate * 1e6) / 1e4;
 }
 
 function shareOf(deck: MatrixDeck, change: number): number {
@@ -49,7 +46,7 @@ export function readMeta(
       continue;
     }
 
-    const counted = Math.max(change, -Math.ceil(points(deck.share)));
+    const counted = Math.max(change, -Math.ceil(toPoints(deck.share)));
 
     if (counted === 0) {
       continue;

@@ -6,6 +6,7 @@ import {
   pickDecks,
   rangeScale,
   rankDecks,
+  toPoints,
 } from "./expectedRate";
 
 const fixture = matrix as MatchupMatrix;
@@ -332,5 +333,12 @@ describe("rangeScale", () => {
       min: 0.4,
       max: 0.5,
     });
+  });
+});
+
+describe("toPoints", () => {
+  it("turns a rate into whole points without float noise", () => {
+    expect(toPoints(0.07)).toBe(7);
+    expect(toPoints(0.0939)).toBe(9.39);
   });
 });
