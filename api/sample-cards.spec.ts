@@ -129,22 +129,63 @@ function printingNames(card: Printing): string[] {
   );
 }
 
+function isPriced(card: Printing): boolean {
+  return [card.prices?.usd, card.prices?.eur, card.prices?.tix].some(
+    (price) => Number(price) > 0,
+  );
+}
+
+function matching(printings: Printing[], url: string): Printing[] {
+  const asked = termsOf(url).map((name) => name.toLowerCase());
+
+  return printings
+    .filter((card) => printingNames(card).some((name) => asked.includes(name)))
+    .filter(isPriced)
+    .toSorted((a, b) => a.name.localeCompare(b.name));
+}
+
+function notFound(): Response {
+  return Response.json({ object: "error", code: "not_found" }, { status: 404 });
+}
+
 function searchOf(printings: Printing[]): Route {
   return async (url) => {
-    const asked = termsOf(url).map((name) => name.toLowerCase());
-    const data = printings.filter((card) =>
-      printingNames(card).some((name) => asked.includes(name)),
-    );
+    const data = matching(printings, url);
 
     if (data.length === 0) {
-      return Response.json(
-        { object: "error", code: "not_found" },
-        { status: 404 },
-      );
+      return notFound();
     }
 
     return Response.json({ object: "list", has_more: false, data });
   };
+}
+
+function pagedSearchOf(printings: Printing[], size: number): Route {
+  return async (url) => {
+    const data = matching(printings, url);
+    const params = new URL(url).searchParams;
+    const page = Number(params.get("page") ?? "1");
+    const hasMore = page * size < data.length;
+
+    if (data.length === 0) {
+      return notFound();
+    }
+
+    params.set("page", String(page + 1));
+
+    return Response.json({
+      object: "list",
+      has_more: hasMore,
+      next_page: hasMore ? `${SEARCH}?${params}` : undefined,
+      data: data.slice((page - 1) * size, page * size),
+    });
+  };
+}
+
+function firstPages(fetchMock: Mock<typeof fetch>): string[] {
+  return scryfallUrls(fetchMock).filter(
+    (url) => url.startsWith(SEARCH) && !new URL(url).searchParams.has("page"),
+  );
 }
 
 function stub(routes: Routes): Mock<typeof fetch> {
@@ -588,7 +629,10 @@ describe("the sample cards function's prices", () => {
 
     const url = new URL(scryfallUrls(fetchMock)[1]);
     expect(url.searchParams.get("unique")).toBe("prints");
-    expect(url.searchParams.get("q")).toBe('!"Galvanic Blast"');
+    expect(url.searchParams.get("order")).toBe("name");
+    expect(url.searchParams.get("q")).toBe(
+      '(!"Galvanic Blast") (usd>0 or eur>0 or tix>0)',
+    );
     expect(cards["Galvanic Blast"]).toMatchObject({
       tix: 0.05,
       eur: 1.5,
@@ -652,6 +696,29 @@ describe("the sample cards function's prices", () => {
     });
   });
 
+  it("takes a 404 on a later page as a failure, not as no price", async () => {
+    stub({
+      detail: detail(["Seat of the Synod"]),
+      collection: collectionOf([printing("Seat of the Synod")]),
+      search: async (url): Promise<Response> => {
+        if (new URL(url).searchParams.has("page")) {
+          return notFound();
+        }
+
+        return Response.json({
+          has_more: true,
+          next_page: `${SEARCH}?page=2`,
+          data: [printing("Seat of the Synod", { tix: "0.50" })],
+        });
+      },
+    });
+
+    const response = await call();
+
+    expect(response.headers.get("cache-control")).toBe(FIVE_MINUTES);
+    expect((await cardsOf(response))["Seat of the Synod"].tix).toBeNull();
+  });
+
   it("never searches a name with a double quote, and gives it no price", async () => {
     const fetchMock = stub({ detail: detail(['Kongming, "Sleeping Dragon"']) });
 
@@ -664,7 +731,7 @@ describe("the sample cards function's prices", () => {
     ).toMatchObject({ tix: null });
   });
 
-  it("splits the names so that each query stays under 1,000 characters", async () => {
+  it("splits the names so that each query stays under 1,000 characters, the price filter included", async () => {
     const names = Array.from(
       { length: 50 },
       (_, index) => `A Card With A Rather Long Name Number ${index}`,
@@ -681,9 +748,14 @@ describe("the sample cards function's prices", () => {
 
     expect(queries.length).toBeGreaterThan(1);
     expect(queries.every((query) => query.length < 1000)).toBe(true);
-    expect(queries.slice(0, -1).every((query) => query.length > 900)).toBe(
-      true,
-    );
+    expect(
+      queries.every((query) => query.endsWith(") (usd>0 or eur>0 or tix>0)")),
+    ).toBe(true);
+    expect(
+      queries
+        .slice(0, -1)
+        .every((query) => query.length + names[0].length + 7 >= 1000),
+    ).toBe(true);
     expect(searchedNames(fetchMock).flat()).toEqual(names);
     expect(response.headers.get("cache-control")).toBe(AN_HOUR);
   });
@@ -749,7 +821,7 @@ describe("the sample cards function's pace", () => {
     };
   }
 
-  it("sends Scryfall at most five requests, and keeps no price from a search it could not finish", async () => {
+  it("sends Scryfall at most five requests, and gives no price to the name at the cut", async () => {
     const fetchMock = stub({
       detail: detail(["Seat of the Synod"]),
       collection: collectionOf([printing("Seat of the Synod")]),
@@ -767,6 +839,67 @@ describe("the sample cards function's pace", () => {
       eur: null,
       usd: null,
     });
+  });
+
+  function fourNames(): Printing[] {
+    return [
+      printing("Alpha", { tix: "0.50" }),
+      printing("Alpha", { tix: "0.30" }),
+      printing("Alpha", { eur: "1.00" }),
+      printing("Beta", { tix: "0.20" }),
+      printing("Beta", { tix: "0.10" }),
+      printing("Beta", { usd: "2.00" }),
+      printing("Delta", { tix: "1.00" }),
+      printing("Delta", { tix: "0.90" }),
+      printing("Delta", { tix: "0.80" }),
+      printing("Gamma", { tix: "3.00" }),
+      printing("Gamma", { tix: "2.00" }),
+    ];
+  }
+
+  it("keeps the prices of the names a cut-off search completed, and leaves the name at the cut and the later ones without", async () => {
+    const fetchMock = stub({
+      detail: detail(["Alpha", "Beta", "Delta", "Gamma"]),
+      collection: collectionOf(
+        ["Alpha", "Beta", "Delta", "Gamma"].map((name) => printing(name)),
+      ),
+      search: pagedSearchOf(fourNames(), 2),
+    });
+
+    const response = await call();
+    const cards = await cardsOf(response);
+
+    expect(scryfallUrls(fetchMock)).toHaveLength(5);
+    expect(response.headers.get("cache-control")).toBe(FIVE_MINUTES);
+    expect(cards.Alpha).toMatchObject({ tix: 0.3, eur: 1, usd: null });
+    expect(cards.Beta).toMatchObject({ tix: 0.1, eur: null, usd: 2 });
+    expect(cards.Delta).toMatchObject({ tix: null, eur: null, usd: null });
+    expect(cards.Gamma).toMatchObject({ tix: null, eur: null, usd: null });
+  });
+
+  it("finishes a list over two calls, asking the second time only for the names still missing", async () => {
+    const fetchMock = stub({
+      detail: detail(["Alpha", "Beta", "Delta", "Gamma"]),
+      collection: collectionOf(
+        ["Alpha", "Beta", "Delta", "Gamma"].map((name) => printing(name)),
+      ),
+      search: pagedSearchOf(fourNames(), 2),
+    });
+
+    const first = await call();
+    fetchMock.mockClear();
+    vi.setSystemTime(Date.now() + 1000);
+    const second = await call();
+    const cards = await cardsOf(second);
+
+    expect(first.headers.get("cache-control")).toBe(FIVE_MINUTES);
+    expect(collectionNames(fetchMock)).toEqual([]);
+    expect(firstPages(fetchMock).map(termsOf)).toEqual([["Delta", "Gamma"]]);
+    expect(second.headers.get("cache-control")).toBe(AN_HOUR);
+    expect(cards.Alpha).toMatchObject({ tix: 0.3 });
+    expect(cards.Beta).toMatchObject({ tix: 0.1 });
+    expect(cards.Delta).toMatchObject({ tix: 0.8 });
+    expect(cards.Gamma).toMatchObject({ tix: 2 });
   });
 
   it("starts Scryfall's requests one after another, at least 500ms apart", async () => {

@@ -21,6 +21,7 @@ const COLLECTION = `${SCRYFALL}cards/collection`;
 const SEARCH = `${SCRYFALL}cards/search`;
 const COLLECTION_LIMIT = 75;
 const QUERY_LIMIT = 1000;
+const PRICED = "(usd>0 or eur>0 or tix>0)";
 const MAX_REQUESTS = 5;
 const SPACING_MS = 500;
 const BOUND_MS = 6000;
@@ -291,24 +292,30 @@ async function lookUpImages(budget: Budget, names: string[]): Promise<void> {
   }
 }
 
+function queryOf(terms: string[]): string {
+  return `(${terms.join(" or ")}) ${PRICED}`;
+}
+
 function chunksOf(names: string[]): Chunk[] {
   const chunks: Chunk[] = [];
-  let chunk: Chunk = { query: "", keys: [] };
+  let terms: string[] = [];
+  let keys: string[] = [];
 
   for (const name of names) {
     const term = `!"${name}"`;
-    const joined = chunk.query === "" ? term : `${chunk.query} or ${term}`;
 
-    if (joined.length < QUERY_LIMIT) {
-      chunk = { query: joined, keys: [...chunk.keys, keyOf(name)] };
-    } else {
-      chunks.push(chunk);
-      chunk = { query: term, keys: [keyOf(name)] };
+    if (terms.length > 0 && queryOf([...terms, term]).length >= QUERY_LIMIT) {
+      chunks.push({ query: queryOf(terms), keys });
+      terms = [];
+      keys = [];
     }
+
+    terms = [...terms, term];
+    keys = [...keys, keyOf(name)];
   }
 
-  if (chunk.query !== "") {
-    chunks.push(chunk);
+  if (terms.length > 0) {
+    chunks.push({ query: queryOf(terms), keys });
   }
 
   return chunks;
@@ -327,41 +334,6 @@ function nextPageOf(body: unknown): string | null | undefined {
   }
 
   return body.next_page;
-}
-
-async function searchAll(
-  budget: Budget,
-  query: string,
-): Promise<ScryfallCard[] | null> {
-  const cards: ScryfallCard[] = [];
-  let url: string | null = `${SEARCH}?${new URLSearchParams({
-    unique: "prints",
-    q: query,
-  })}`;
-
-  while (url !== null) {
-    const answer = await ask(budget, url, { method: "GET" });
-
-    if (!answer) {
-      return null;
-    }
-
-    if (answer.status === 404 && cards.length === 0) {
-      return [];
-    }
-
-    const page = answer.status === 200 ? cardsOf(answer.body) : null;
-    const next = nextPageOf(answer.body);
-
-    if (!page || next === undefined) {
-      return null;
-    }
-
-    cards.push(...page);
-    url = next;
-  }
-
-  return cards;
 }
 
 function priceOf(value: unknown): number | null {
@@ -390,29 +362,75 @@ function lowest(current: number | null, price: number | null): number | null {
   return Math.min(current, price);
 }
 
-function lowestPrices(
-  cards: ScryfallCard[],
-  keys: string[],
-): Map<string, Prices> {
-  const found = new Map<string, Prices>();
+function withPrinting(current: Prices, card: ScryfallCard): Prices {
+  const listed = isRecord(card.prices) ? card.prices : {};
 
-  for (const card of cards) {
-    const listed = isRecord(card.prices) ? card.prices : {};
+  return {
+    tix: lowest(current.tix, priceOf(listed.tix)),
+    eur: lowest(current.eur, priceOf(listed.eur)),
+    usd: lowest(current.usd, priceOf(listed.usd)),
+  };
+}
 
-    for (const key of new Set(cardNames(card).map(keyOf))) {
-      if (keys.includes(key)) {
-        const current = found.get(key) ?? NO_PRICES;
+function matchedKey(card: ScryfallCard, keys: string[]): string | null {
+  return (
+    cardNames(card)
+      .map(keyOf)
+      .find((key) => keys.includes(key)) ?? null
+  );
+}
 
-        found.set(key, {
-          tix: lowest(current.tix, priceOf(listed.tix)),
-          eur: lowest(current.eur, priceOf(listed.eur)),
-          usd: lowest(current.usd, priceOf(listed.usd)),
-        });
-      }
+async function searchChunk(
+  budget: Budget,
+  chunk: Chunk,
+): Promise<Map<string, Prices>> {
+  const done = new Map<string, Prices>();
+  const seen = new Map<string, Prices>();
+  let current: string | null = null;
+  let first = true;
+  let url: string | null = `${SEARCH}?${new URLSearchParams({
+    unique: "prints",
+    order: "name",
+    q: chunk.query,
+  })}`;
+
+  while (url !== null) {
+    const answer = await ask(budget, url, { method: "GET" });
+
+    if (!answer) {
+      return done;
     }
+
+    if (answer.status === 404 && first) {
+      return new Map(chunk.keys.map((key) => [key, NO_PRICES]));
+    }
+
+    const page = answer.status === 200 ? cardsOf(answer.body) : null;
+    const next = nextPageOf(answer.body);
+
+    if (!page || next === undefined) {
+      return done;
+    }
+
+    for (const card of page) {
+      const key = matchedKey(card, chunk.keys);
+
+      if (current !== null && key !== current) {
+        done.set(current, seen.get(current) ?? NO_PRICES);
+      }
+
+      if (key !== null) {
+        seen.set(key, withPrinting(seen.get(key) ?? NO_PRICES, card));
+      }
+
+      current = key;
+    }
+
+    first = false;
+    url = next;
   }
 
-  return found;
+  return new Map(chunk.keys.map((key) => [key, seen.get(key) ?? NO_PRICES]));
 }
 
 async function lookUpPrices(budget: Budget, names: string[]): Promise<void> {
@@ -427,15 +445,11 @@ async function lookUpPrices(budget: Budget, names: string[]): Promise<void> {
   const chunks = chunksOf(missing.filter((name) => !name.includes('"')));
 
   for (const chunk of chunks) {
-    const cards = await searchAll(budget, chunk.query);
+    const done = await searchChunk(budget, chunk);
+    const at = Date.now();
 
-    if (cards) {
-      const found = lowestPrices(cards, chunk.keys);
-      const at = Date.now();
-
-      for (const key of chunk.keys) {
-        prices.set(key, { value: found.get(key) ?? NO_PRICES, at });
-      }
+    for (const [key, value] of done) {
+      prices.set(key, { value, at });
     }
   }
 }
