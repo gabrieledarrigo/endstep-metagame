@@ -79,6 +79,7 @@ export type Deck = DeckRef & {
     setCode: string | null;
     collectorNumber: string | null;
     pinned: boolean;
+    imageUrl?: string;
   };
   keyCards: string[];
   share: {

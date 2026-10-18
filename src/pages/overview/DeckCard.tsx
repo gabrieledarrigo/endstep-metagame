@@ -15,7 +15,7 @@ export function DeckCard({ deck }: { deck: Deck }) {
     >
       <img
         className="deck__art"
-        src={artSource(deck.art.cardName)}
+        src={artSource(deck.art)}
         alt={deck.art.cardName}
         loading="lazy"
         width="626"

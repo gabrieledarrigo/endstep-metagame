@@ -26,7 +26,7 @@ export function DeckHero({
     <div className="deck-hero">
       <img
         className="deck-hero__art"
-        src={artSource(deck.art.cardName)}
+        src={artSource(deck.art)}
         alt={deck.art.cardName}
         width="626"
         height="300"

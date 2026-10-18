@@ -81,9 +81,11 @@ Extracted from the Endstep client bundle. These are the authoritative values, no
 
 **The art comes from Scryfall by name.** The metagame function adds `art.imageUrl` to every deck in the deck list and the deck detail, §4.3. It is the `art_crop` address on Scryfall's CDN, `cards.scryfall.io`, which has no rate limit, so the browser loads the art with no redirect. Scryfall picks its default printing, which can differ from Endstep's choice. When `art.imageUrl` is missing, the browser falls back to Endstep's endpoint with `version=art_crop`, as before.
 
-- The function sends one `POST https://api.scryfall.com/cards/collection` per response, with one `{ "name": … }` identifier per deck, at most 50, the deck list's largest page, under Scryfall's limit of 75. It reads `image_uris.art_crop`, or `card_faces[0].image_uris.art_crop` for a double-faced card.
+- The function sends one `POST https://api.scryfall.com/cards/collection` per response, with one `{ "name": … }` identifier per distinct key card name, at most 50, the deck list's largest page, under Scryfall's limit of 75. A deck with a blank name gets no identifier.
 - It matches each returned card to a deck by name, ignoring case: the card's full name, or any of its faces' names. A double-faced card comes back as "Front // Back" while Endstep names its front face.
-- A name Scryfall reports in `not_found` is a stable answer. The deck falls back to Endstep's endpoint, and the response keeps its usual cache time.
+- A face's name takes that face's `image_uris.art_crop`, or the card's when the face has no image of its own, as on an adventure. The full name takes the card's `image_uris.art_crop`, or the first face's. The first match with an address on `cards.scryfall.io` wins.
+- A 200 is a stable answer. Every name asked that matched no card is stored as not found, whether Scryfall lists it in `not_found` or answers with another spelling. So is every card found with no art crop on `cards.scryfall.io`. The deck falls back to Endstep's endpoint, and the response keeps its usual cache time.
+- A 200 whose body the function cannot read, such as `data` that is not a list or a card without a string name, counts as a failed lookup, §4.3. Nothing is stored.
 - Scryfall allows 2 requests per second on that endpoint and requires a `User-Agent` naming the application and an `Accept` header. A 429 limits access for 30 seconds.
 - The function remembers each card's address, and each name Scryfall did not find, in memory for as long as its instance lives, so a warm instance asks Scryfall only for names it has not seen.
 - Nothing shares a rate limit across instances or regions. After a 429, an instance sends Scryfall nothing for 30 seconds, Scryfall's own lockout, and its responses use the fallback.
