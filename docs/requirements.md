@@ -56,11 +56,11 @@ Base URL: `https://endstep.cc/api/metagame/v1`. All endpoints are public and req
 | `/{format}/share-series` | Daily share per deck | `window`, `population` |
 | `/{format}/decks/{slug}` | One deck: its row, games, toss, texture, daily share. See §3.6 | `window`, `population` |
 | `/{format}/decks/{slug}/matchups` | One deck's results against each opponent. Called by the matchup function, not the browser. See §3.7 | `window`, `population`, `sort`, `dir`, `pageSize` |
-| `/{format}/decks/{slug}/cards` | One deck's cards: each card's play rate and average copies, for the main deck or the sideboard. Called by the staples function, not the browser. See §4.9 | `window`, `population`, `section`, `pageSize` |
+| `/{format}/decks/{slug}/cards` | One deck's cards: each card's play rate and average copies, for the main deck or the sideboard. Called by the staples function, not the browser. See §3.8 | `window`, `population`, `section`, `pageSize` |
 
 ### 3.2 Endpoints available but not used
 
-`/formats`, `/visibility`, `/{format}/decks/{slug}/ratings`. The last is reserved for the deferred deck page sections. `/cards` takes `section` as `main` or `side`, and a `pageSize` of at most 50, measured 2026-10-18.
+`/formats`, `/visibility`, `/{format}/decks/{slug}/ratings`. The last is reserved for the deferred deck page sections.
 
 ### 3.3 Parameter vocabulary
 
@@ -135,6 +135,15 @@ Measured 2026-10-03. About 15 KB at `pageSize=50`. The response has `provenance`
 
 There is **no endpoint for a format-wide matrix**. Endstep's own client shows matchups only as a list on each deck's page. A 24 by 24 table therefore costs 24 calls. At 30d, every top-24 opponent of every top-24 deck was inside the first 50 rows sorted by `matches`.
 
+
+### 3.8 Card tables
+
+Measured 2026-10-18. `/{format}/decks/{slug}/cards` lists one deck's cards for one part of the deck, `section=main` or `section=side`. Any other `section` returns 400. The response has `provenance`, `formatId`, `deck`, `section`, `withheld` and `cards {items, total, page, pageSize}`.
+
+- `pageSize` is at most 50, and larger values return 400. `page` walks the rest. The cards come in play-rate order, highest first, and `sort` is ignored.
+- Each item has `name`, `playRate {count, of, rate}`, the share of the deck's lists that hold the card, `averageCopies` in those lists, and `contrast`, the win rate with the card against without it, with `withMatches`, `withoutMatches` and `required`.
+- `withheld` was null for all 48 tables of the top 24 at 30d. When not null it is expected to take the shape of the deck detail's `cardTableWithheld`, `{reason, minPlayers}`, §3.6, with no items. The staples function leaves such a deck out, §4.9, and E15 checks the shape on a short window.
+- Main tables held 76 to 398 cards and sideboard tables 57 to 250, at 30d.
 ---
 
 ## 4. Architecture
@@ -242,10 +251,10 @@ The pages read the API through **TanStack Query 5**. It was chosen over SWR on t
 - One query client for the app. Each request is a query keyed by what it reads, such as `["decks", window]` or `["deck", slug, window]`.
 - A response stays fresh for five minutes, the edge cache's `s-maxage`, §4.3. Within that time a page renders it from memory, with no request and no loading state. After it, the page shows it and refetches it in the background. Responses stay in memory for the rest of the visit, so that holds however long the reader was away.
 - A section shows its data whenever it has some. A failed refetch keeps the data on screen. The error panel appears only when there is nothing to show, FR-9.
-- **A window change keeps the page on screen.** While another window loads, a page keeps the previous window's data, dimmed and marked busy, its window selector marked busy, and a status line saying which window is loading. A pick made during the load replaces the history entry. Every page behaves this way: the overview, the deck page with its matchups row, and the matchup table. The previous window's data is never presented as the new one: the dates and anything else that names the window wait for the new data. A section whose previous window had nothing to show shows its skeleton instead, so an empty state never speaks for a window that has not loaded. The deck page's matchups row loads on its own, FR-11: it dims and marks itself busy, while the selector and the status line follow the deck's numbers.
+- **A window change keeps the page on screen.** While another window loads, a page keeps the previous window's data, dimmed and marked busy, its window selector marked busy, and a status line saying which window is loading. A pick made during the load replaces the history entry. Every page behaves this way: the overview, the deck page with its matchups row, the matchup table, What to play? and Staples. The previous window's data is never presented as the new one: the dates and anything else that names the window wait for the new data. A section whose previous window had nothing to show shows its skeleton instead, so an empty state never speaks for a window that has not loaded. The deck page's matchups row loads on its own, FR-11: it dims and marks itself busy, while the selector and the status line follow the deck's numbers.
 - Requests run whether or not the browser reports itself online, so a reader without a connection sees the network error, not a page that waits.
 - Nothing refetches when the browser window regains focus, NFR-4.
-- A network error, a 429 or a 5xx is retried at most twice, after 400 ms and then 800 ms, NFR-4. Any other failure shows at once. In a background tab the retries wait until the tab is shown again. A query can turn retries off: the matchup table and the deck's matchups row do, FR-11 and FR-12.
+- A network error, a 429 or a 5xx is retried at most twice, after 400 ms and then 800 ms, NFR-4. Any other failure shows at once. In a background tab the retries wait until the tab is shown again. A query can turn retries off: the matchup table, the deck's matchups row, What to play? and Staples do, FR-11, FR-12, FR-17 and FR-18.
 - The query passes an abort signal to `fetch`, so a request for a window the reader has left is cancelled.
 - `getJson` makes one request. It turns a failed status into an error that carries its kind and status, and the query client decides whether to retry.
 
@@ -254,9 +263,9 @@ The pages read the API through **TanStack Query 5**. It was chosen over SWR on t
 `GET /api/staples?window=30d&section=main`. The staples page reads it, FR-18. `window` is one of the five values in §3.3 and `section` is `main` or `side`. As with the matchup function, §4.4, the raw query string must be exactly `?window=` and a value, then `&section=` and a value, byte for byte. Anything else returns 400, so every variant shares one cache entry. The format is Pauper and the population is `rated`, both fixed.
 
 1. Fetch the top 24 decks: `/Pauper/decks?window=…&population=rated&sort=share&dir=desc&pageSize=24`.
-2. Fetch `/Pauper/decks/{slug}/cards?window=…&population=rated&section=…&pageSize=50` for each of the 24, in parallel. 50 is the endpoint's largest page. The cards come in play-rate order, and on 2026-10-18 at 30d the 50th card of any deck was in at most 9% of its lists, so a card cut off by the page adds under 0.1 point to any figure below.
-3. Leave out a deck whose card table is withheld, and the basic lands: Plains, Island, Swamp, Mountain, Forest, Wastes and their snow-covered versions.
-4. For each card, across the decks: its share is the sum of each deck's share times the card's `playRate.rate` in that deck, divided by the 24 decks' total share. Its copies are the average of `averageCopies`, weighted by each deck's share times its play rate.
+2. Fetch `/Pauper/decks/{slug}/cards?window=…&population=rated&section=…&pageSize=50` for each of the 24, in parallel, §3.8. While a page's last card is in at least 2% of the deck's lists and the table goes on, fetch the deck's next page, up to 4 pages. Measured on 2026-10-18 at 30d, 10 decks needed a second page for the main deck and none for the sideboard, and every deck's last fetched card was then under 1%. A card cut off a deck's pages is under 2% of that deck's lists, so the decks behind a card, at 5% and up, are always complete, and a staple's share is short by under 2% of each cutting deck's part of the share.
+3. Leave out a deck whose card table is withheld: a 200 whose `withheld` is not null, §3.8. Leave out the basic lands too: Plains, Island, Swamp, Mountain, Forest, Wastes and their snow-covered versions.
+4. For each card, across the counted decks: its share is the sum of each deck's share times the card's `playRate.rate` in that deck, divided by the counted decks' total share. Its copies are the average of `averageCopies`, weighted by each deck's share times its play rate.
 5. Keep the 50 cards with the largest share, ties by name.
 6. Add each card's art, as the metagame function does for a deck's key card, §3.4 and §4.3: one Scryfall collection request for the 50 names, with the same matching, memory, one-second bound and fallback.
 
@@ -279,7 +288,7 @@ Response:
 
 Behaviour:
 
-- One cold build costs 25 upstream calls, the matchup function's cost, and one Scryfall request. Cache-Control follows the matchup function's rules: a success for 5 minutes, a 429 for 60 seconds, any other error `no-store`. A success whose art lookup fell back is held for one minute, as the proxy's is, §4.3.
+- One cold build costs the deck list and one call per page: 35 for the main deck and 25 for the sideboard on 2026-10-18 at 30d, and one Scryfall request. Card usage moves slowly, so a success is held for 30 minutes, with 30 more of stale-while-revalidate. A success whose art lookup fell back is held for one minute, as the proxy's is, §4.3. A 429 is held for 60 seconds and any other error is `no-store`, as the matchup function's are.
 - If any Endstep call fails, the whole request fails, with 429 for an upstream 429 and 502 otherwise. A failed art lookup never fails it.
 - Each upstream call has the proxy's 8 second timeout. Same method rules and CORS headers as the proxy, §4.3.
 
@@ -343,7 +352,7 @@ Where `shareChange.points` is present, the grid and table show the movement agai
 Every data-backed section has its own loading state. A failed fetch shows a readable error and a retry control. HTTP 429 is reported as a rate limit, not as a generic failure. A window that returns no decks renders an empty state rather than a broken chart. This applies on every page.
 
 ### FR-10. Navigation
-Every page has a header with links to the overview, the matchup table, What to play?, FR-17, and Staples, FR-18. Below 640px the links wrap onto a second line when they do not fit, at their own size. The current page is marked with `aria-current`. Every page carries the attribution required by NFR-5.
+Every page has a header with links to the overview, the matchup table, What to play?, FR-17, and Staples, FR-18. The links wrap onto a second line when they do not fit, at their own size. The current page is marked with `aria-current`. Every page carries the attribution required by NFR-5.
 
 The header names the site, "Pauper Endstep metagame", beside the site mark from the design system, in one link to the overview. The mark is decorative, so the link's name is the site's name. It is not a heading. Every page opens with its main heading, which names the page: "Overview", "Matchups", "What to play?", "Staples", or the deck's name on a deck page. The document title repeats it, such as "Overview · Pauper Endstep metagame". The heading therefore names the page when focus moves to it, §4.5.
 
@@ -557,12 +566,12 @@ The page lives at `/staples`. Its heading and the header link read "Staples", an
 
 **The decks behind a card.** The card's name is a button that opens the decks that play it, under its line.
 
-- The button carries `aria-expanded` and a chevron that turns when open. Several cards can be open at once. Which cards are open is not in the address, and a window change or a switch closes them.
+- The button carries `aria-expanded`, and `aria-controls` names its panel, which is always in the page and hidden while closed. A chevron turns when open. Several cards can be open at once. Which cards are open is not in the address, and a window change or a switch closes them.
 - The panel reads "Played in {n} of the top 24", then one line per deck that plays the card in at least 5% of its lists, by that share: the deck as a link to its page, a bar for the share from 640px, the share as a whole percentage, and the deck's average copies.
 - One sentence closes it: "The share of each deck's lists that play it."
 - Decks below 5% are left out. Those are a few unusual lists, not the deck's own choice.
 
-**States.** As the matchup table, FR-12: a skeleton while loading, the error panel with its retry, no automatic retry, because one cold build costs 25 upstream calls, and the previous window dimmed while the next loads, §4.8. A card table that Endstep withholds for a deck, §3.6, leaves that deck out, and a line under the list reads "1 deck is left out because Endstep withholds its cards.", or "{n} decks are left out because Endstep withholds their cards." The page shares the site card, FR-15.
+**States.** As the matchup table, FR-12: a skeleton while loading, the error panel with its retry, no automatic retry, because one cold build costs up to 35 upstream calls, and the previous window dimmed while the next loads, §4.8. A switch to the other list shows the skeleton until it arrives, because the cards on screen belong to the other list and must not stand under its name. A card table that Endstep withholds for a deck, §3.6, leaves that deck out, and a line under the list reads "1 deck is left out because Endstep withholds its cards.", or "{n} decks are left out because Endstep withholds their cards." The page shares the site card, FR-15.
 
 ---
 
@@ -724,15 +733,15 @@ Recharts covers the overview's three charts: `LineChart` for FR-5, a horizontal 
 
 ### NFR-3. Performance
 - Page interactive within 3 seconds on a normal broadband connection. The art lookup adds at most one second to an uncached deck list, §4.3.
-- Initial render API calls: exactly **two** on the overview, `decks` at `pageSize=24` and `share-series`, and a third when the address restores a search, FR-14. **Two** on the deck page: the deck detail and `/api/matchups`. The second is the matchup table's own request, so it shares that page's edge cache entry. **One** on the matchup table.
+- Initial render API calls: exactly **two** on the overview, `decks` at `pageSize=24` and `share-series`, and a third when the address restores a search, FR-14. **Two** on the deck page: the deck detail and `/api/matchups`. The second is the matchup table's own request, so it shares that page's edge cache entry. **One** on the matchup table, on What to play?, which shares it, and on Staples.
 - Script payload is a reference, not a gate. Draft v2 shipped about 743 KB brotli, 544 KB of it Babel Standalone. The mechanical Vite port measured 156 KB of script and 2 KB of CSS, brotli, on 2026-10-03.
 - Card art is lazy-loaded with `loading="lazy"` and sized to prevent layout shift.
 - Back, forward or a window switch to data fetched in the last five minutes renders from memory, with no request and no loading state, §4.8.
 
 ### NFR-4. Respecting the upstream service
-The application must not put meaningful load on Endstep. Edge caching (§4.3) means repeat visits and repeated window switches cost no upstream requests. Within five minutes, the client's own cache (§4.8) sends no request at all. The client must not poll. It must not retry more than twice. It must back off on 429. Total upstream traffic should stay well below the limit of 300 per 60 seconds. The matchup function costs 25 upstream calls per cold window, so warming all five windows costs 125 in each edge region that serves a request. The deck page's matchups row requests the same URL, so it adds no upstream calls once a window is warm. The deck page's HTML function, FR-15, adds one deck detail call per deck and window on an edge cache miss, the same call the page itself makes. A search costs one upstream call for each distinct normalised query, window and page. It runs 300ms after typing stops, from 2 characters, and the edge caches each query like any other deck list. Several regions warming every window inside one minute would pass the limit. At this site's traffic that is unlikely, and §4.4 holds a 429 at the edge for the full minute when it happens.
+The application must not put meaningful load on Endstep. Edge caching (§4.3) means repeat visits and repeated window switches cost no upstream requests. Within five minutes, the client's own cache (§4.8) sends no request at all. The client must not poll. It must not retry more than twice. It must back off on 429. Total upstream traffic should stay well below the limit of 300 per 60 seconds. The matchup function costs 25 upstream calls per cold window, so warming all five windows costs 125 in each edge region that serves a request. The deck page's matchups row requests the same URL, so it adds no upstream calls once a window is warm. The deck page's HTML function, FR-15, adds one deck detail call per deck and window on an edge cache miss, the same call the page itself makes. A search costs one upstream call for each distinct normalised query, window and page. It runs 300ms after typing stops, from 2 characters, and the edge caches each query like any other deck list. Several regions warming every window inside one minute would pass the limit. At this site's traffic that is unlikely, and §4.4 holds a 429 at the edge for the full minute when it happens. The staples function costs up to 35 calls per cold window and section, §4.9, about 300 to warm all ten. A reader who walks every window and both sections on a cold region in one minute, then opens the matchup table, could pass the limit. Its 30-minute cache makes that walk free afterwards, and a 429 is held for the minute, as the matchup function's is.
 
-The same care applies to Scryfall, §3.4. The metagame function sends one collection request per uncached deck list or deck detail, within Scryfall's 2 per second, and fewer once an instance has seen the cards. Each distinct search query is its own deck list, so the search's 300ms pause and its two-character floor, FR-14, also bound the Scryfall requests. A 429 is never retried, and the response goes out without the art.
+The same care applies to Scryfall, §3.4. The metagame function sends one collection request per uncached deck list or deck detail, and the staples function one per uncached window and section, within Scryfall's 2 per second, and fewer once an instance has seen the cards. Each distinct search query is its own deck list, so the search's 300ms pause and its two-character floor, FR-14, also bound the Scryfall requests. A 429 is never retried, and the response goes out without the art.
 
 ### NFR-5. Attribution
 The page states that the data comes from Endstep and links to `https://endstep.cc/metagame`. It does not present itself as an official Endstep product. The footer, laid out as the design system shows, carries:
