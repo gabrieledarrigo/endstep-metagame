@@ -140,10 +140,10 @@ function formatDate(value: string, withYear: boolean): string {
 }
 
 /**
- * Formats a date as its day and month in the user's locales, for a chart axis or a list of days.
+ * Formats a date as its day and month, for a chart axis or a list of days.
  *
  * @param day - A date in `YYYY-MM-DD` form.
- * @returns The day and month, such as `05 Sept`.
+ * @returns The day and month in the reader's locale, such as `05 Sept` in en-GB.
  */
 export function formatDay(day: string): string {
   return formatDate(day, false);
