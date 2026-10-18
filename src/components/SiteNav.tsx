@@ -5,6 +5,7 @@ import "./SiteNav.css";
 const PAGES = [
   { path: "/", label: "Overview" },
   { path: "/matchups", label: "Matchups" },
+  { path: "/what-to-play", label: "What to play?" },
 ];
 
 export function SiteNav({ className }: { className?: string }) {

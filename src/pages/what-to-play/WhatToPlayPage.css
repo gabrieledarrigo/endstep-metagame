@@ -1,0 +1,9 @@
+@layer components {
+  .what-to-play,
+  .what-to-play__results {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-width: 0;
+  }
+}

@@ -39,6 +39,17 @@ describe("vercel.json", () => {
     });
   });
 
+  it("serves the matchup table and What to play? from the built page", () => {
+    expect(vercel.rewrites).toContainEqual({
+      source: "/matchups",
+      destination: "/index.html",
+    });
+    expect(vercel.rewrites).toContainEqual({
+      source: "/what-to-play",
+      destination: "/index.html",
+    });
+  });
+
   it("caches the hashed assets for a year", () => {
     expect(vercelHeaders("/assets/(.*)")).toEqual({
       "Cache-Control": "public, max-age=31536000, immutable",

@@ -457,7 +457,7 @@ The page lives at `/what-to-play`. Its heading and the header link read "What to
 **The pick.** A panel under the window selector gives the answer first.
 
 - It reads "Our pick", then "Play {deck}!", the deck a link to its page.
-- When other decks are too close to tell apart from the best, the pick names them too, up to three decks in rate order: "Play {a} or {b}!", or "Play {a}, {b} or {c}!". A deck is too close when the top of its range is above the bottom of the best deck's range.
+- When other decks are too close to tell apart from the best, the pick names them too, up to three decks in rate order: "Play {a} or {b}!", or "Play {a}, {b} or {c}!". A deck is too close when the top of its range is above the bottom of the best deck's range. The pick takes such decks in rate order from second place, and stops at the first deck that is not too close.
 - One sentence follows. For one deck: "{deck} wins {rate} of its matches against the metagame you expect." For several: "They win the most matches against the metagame you expect: {rate}, {rate} and {rate}. The gap between them is too small to call." When more than three decks are too close, the sentence ends ", and 1 more deck is just as close." or ", and {n} more decks are just as close."
 - A last line gives the basis. With no changes it reads "Based on {period}. Change the metagame to match what you expect.", where the period is "the last day", "the last 7 days", "the last 14 days", "the last 30 days" or "this season", as the window says. With changes it reads "Based on the metagame you set."
 - Only the title is a polite live region, so a screen reader hears a new pick, not every changed rate.
@@ -466,7 +466,7 @@ The page lives at `/what-to-play`. Its heading and the header link read "What to
 
 - The 24 decks by expected rate, highest first, ties in share order. Each line holds the place, the deck as a link, its range bar, the rate and its movement.
 - A note beside the title reads "Metagame of {period}", with the basis line's period, or "The metagame you set".
-- The range bar draws the range on a scale shared by the 24 lines, with a line at 50% and a tick at the rate. It is blue when the rate is clearly above 50%, red when clearly below, and neutral when too close to call, the matchup table's colours, FR-12. A legend says the rule in words. The scale runs from the lowest bound to the highest, rounded out to 5 points and always holding 50%.
+- The range bar draws the range on a scale shared by the 24 lines, with a line at 50% and a tick at the rate. It is blue when the rate is clearly above 50%, red when clearly below, and neutral when too close to call, the matchup table's colours, FR-12. A legend says the rule in words. The scale runs from the lowest bound to the highest, rounded out to 5 points, always holding 50% and always at least 5 points wide.
 - Movement is the number of places a deck rose or fell against the window's own metagame, with no changes: "↑2" or "↓1". A deck that has not moved shows nothing. Assistive technology hears "up 2" or "down 1".
 - Each line is read as the place, the deck, the rate, "likely between {low} and {high}", and the movement.
 - Below 640px the bar takes its own row under the deck and the rate.

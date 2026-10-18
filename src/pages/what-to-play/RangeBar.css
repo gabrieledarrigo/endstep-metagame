@@ -1,0 +1,44 @@
+@layer components {
+  .range-bar {
+    position: relative;
+    display: block;
+    height: 18px;
+  }
+
+  .range-bar__mid {
+    position: absolute;
+    top: -3px;
+    bottom: -3px;
+    width: 1px;
+    background: var(--baseline);
+  }
+
+  .range-bar__span {
+    position: absolute;
+    top: 5px;
+    height: 8px;
+    border-radius: 4px;
+    background: var(--mirror);
+    box-shadow: inset 0 0 0 1px var(--baseline);
+  }
+
+  .range-bar__span--win {
+    background: var(--win);
+    box-shadow: none;
+  }
+
+  .range-bar__span--loss {
+    background: var(--loss);
+    box-shadow: none;
+  }
+
+  .range-bar__dot {
+    position: absolute;
+    top: 3px;
+    width: 3px;
+    height: 12px;
+    margin-left: -1.5px;
+    border-radius: 2px;
+    background: var(--text-900);
+  }
+}
