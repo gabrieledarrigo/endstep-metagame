@@ -1389,17 +1389,18 @@ Covers §4.9.
 
 **Tasks**
 
-1. `api/staples.ts`: the top 24 decks, then their card tables for the asked section, 50 cards each, in parallel. The raw query string checked byte for byte, as the matchup function does.
-2. The aggregation: withheld decks and basic lands left out, each card's share and copies weighted as §4.9 sets out, the 50 largest kept, ties by name, and the decks that play each card in at least 5% of their lists.
+1. `api/staples.ts`: the top 24 decks, then their card tables for the asked section, 50 cards a page, in parallel, with a deck's next page while its last card is in at least 2% of its lists, up to 4 pages. The raw query string checked byte for byte, as the matchup function does.
+2. The aggregation: withheld decks and basic lands left out, each card's share and copies weighted over the counted decks as §4.9 sets out, the 50 largest kept, ties by name, and the decks that play each card in at least 5% of their lists.
 3. The art, through the metagame function's Scryfall lookup, shared rather than copied, with its fallback and its one-minute cache.
-4. The cache rules, the failure rules and the timeout, as the matchup function's.
-5. The route in `vercel.json` and in the development plugin, §4.6, and `.vercelignore` keeping its spec out of the deploy.
-6. A spec beside the function: the query check, the weighting on a small fixture, a withheld deck, the basic lands, the 5% floor, the tie order, an upstream 429 and 502, and an art lookup that fails.
+4. The cache rules: 30 minutes for a success, one for a fallen-back art lookup, 60 seconds for a 429. The failure rules and the timeout, as the matchup function's.
+5. Check the shape of a withheld card table on a short window, where small decks are common, and record it in §3.8.
+6. The route in `vercel.json` and in the development plugin, §4.6, and `.vercelignore` keeping its spec out of the deploy.
+7. A spec beside the function: the query check, the paging rule, the weighting on a small fixture, a withheld deck, the basic lands, the 5% floor, the tie order, an upstream 429 and 502, and an art lookup that fails.
 
 **Done when**
 
 - `/api/staples?window=30d&section=main` in production returns 50 cards whose top five match a hand computation from the 24 card tables, to the decimal shown.
-- A repeat request within five minutes is a cache hit.
+- A repeat request within 30 minutes is a cache hit.
 - Any other query string returns 400.
 
 **Blocked by** nothing. **Blocks** S28.
@@ -1419,7 +1420,7 @@ Covers FR-18's page and list, and FR-10's fourth link.
 3. The panel: the Main deck and Sideboard switch kept in `section`, the sentence, and 30 cards with "Show 20 more" up to 50.
 4. Each line: the place, the art with its fallback, the name, "Core in", the bar from 640px, the share and the copies. Below 640px the smaller art and the share under the name.
 5. The line for withheld decks, when there are any.
-6. Loading, the error and the window change, as the matchup table.
+6. Loading, the error and the window change, as the matchup table. A switch to the other list shows the skeleton until it arrives.
 7. A spec beside each component it changes.
 
 **Done when**
@@ -1440,7 +1441,7 @@ Covers FR-18's decks behind a card.
 
 **Tasks**
 
-1. The card's name as a button with `aria-expanded`, `aria-controls` and the chevron. Several open at once, all closed by a window change or a switch.
+1. The card's name as a button with `aria-expanded`, `aria-controls` naming a panel that is always in the page and hidden while closed, and the chevron. Several open at once, all closed by a window change or a switch.
 2. The panel: "Played in {n} of the top 24", one line per deck from the response, each a link to the deck page with the window, the bar from 640px, the share of its lists and its copies, and the closing sentence.
 3. Two columns from 640px, one below.
 4. A spec beside each component it changes, including focus staying on the button that opened the panel.
