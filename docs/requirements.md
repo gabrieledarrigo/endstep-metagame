@@ -466,7 +466,7 @@ The page lives at `/what-to-play`. Its heading and the header link read "What to
 
 - The 24 decks by expected rate, highest first, ties in share order. Each line holds the place, the deck as a link, its range bar, the rate and its movement.
 - A note beside the title reads "Metagame of {period}", with the basis line's period, or "The metagame you set".
-- The range bar draws the range on a scale shared by the 24 lines, with a line at 50% and a tick at the rate. It is blue when the rate is clearly above 50%, red when clearly below, and neutral when too close to call, the matchup table's colours, FR-12. A legend says the rule in words. The scale runs from the lowest bound to the highest, rounded out to 5 points and always holding 50%.
+- The range bar draws the range on a scale shared by the 24 lines, with a line at 50% and a tick at the rate. It is blue when the rate is clearly above 50%, red when clearly below, and neutral when too close to call, the matchup table's colours, FR-12. A legend says the rule in words. The scale runs from the lowest bound to the highest, rounded out to 5 points, always holding 50% and always at least 5 points wide.
 - Movement is the number of places a deck rose or fell against the window's own metagame, with no changes: "↑2" or "↓1". A deck that has not moved shows nothing. Assistive technology hears "up 2" or "down 1".
 - Each line is read as the place, the deck, the rate, "likely between {low} and {high}", and the movement.
 - Below 640px the bar takes its own row under the deck and the rate.
