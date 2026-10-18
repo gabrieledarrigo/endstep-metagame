@@ -11,7 +11,10 @@ describe("SiteFooter", () => {
       "https://company.wizards.com/en/legal/fancontentpolicy",
     ],
     ["Gabriele D'Arrigo", "https://github.com/gabrieledarrigo"],
-    ["Source code", "https://github.com/gabrieledarrigo/endstep-metagame"],
+    [
+      "Source code",
+      "https://github.com/gabrieledarrigo/pauper-endstep-metagame",
+    ],
   ])("links %s to %s, in the same tab", (name, href) => {
     render(<SiteFooter />);
 
