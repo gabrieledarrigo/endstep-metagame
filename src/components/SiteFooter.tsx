@@ -14,7 +14,7 @@ export function SiteFooter() {
           Made by{" "}
           <a href="https://github.com/gabrieledarrigo">Gabriele D'Arrigo</a>
           {" · "}
-          <a href="https://github.com/gabrieledarrigo/endstep-metagame">
+          <a href="https://github.com/gabrieledarrigo/pauper-endstep-metagame">
             Source code
           </a>
         </span>

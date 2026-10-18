@@ -45,7 +45,7 @@ const SCRYFALL_TIMEOUT_MS = 1000;
 const SCRYFALL_PAUSE_MS = 30_000;
 const SCRYFALL_HEADERS: Readonly<Record<string, string>> = {
   "User-Agent":
-    "PauperEndstepMetagame/1.0 (+https://github.com/gabrieledarrigo/endstep-metagame)",
+    "PauperEndstepMetagame/1.0 (+https://github.com/gabrieledarrigo/pauper-endstep-metagame)",
   Accept: "application/json",
   "Content-Type": "application/json",
 };
