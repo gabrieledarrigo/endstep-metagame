@@ -122,8 +122,19 @@ describe("the overview page", () => {
 describe("the page before it first paints", () => {
   const prePaint = /<script>([\s\S]*?)<\/script>/.exec(page);
 
+  const head = new DOMParser().parseFromString(page, "text/html").head;
+
   function runPrePaint(): void {
     new Function(prePaint?.[1] ?? "")();
+  }
+
+  function addThemeColours(): Element[] {
+    const metas = [...head.querySelectorAll('meta[name="theme-color"]')].map(
+      (meta) => meta.cloneNode() as Element,
+    );
+    document.head.append(...metas);
+
+    return metas;
   }
 
   afterEach(() => {
@@ -149,9 +160,7 @@ describe("the page before it first paints", () => {
   });
 
   it("sets the theme colour of a stored dark choice before the app mounts", () => {
-    const head = new DOMParser().parseFromString(page, "text/html").head;
-    const metas = [...head.querySelectorAll('meta[name="theme-color"]')];
-    document.head.append(...metas);
+    const metas = addThemeColours();
     localStorage.setItem("theme", "dark");
 
     runPrePaint();
@@ -172,6 +181,19 @@ describe("the page before it first paints", () => {
     runPrePaint();
 
     expect(document.documentElement.dataset.theme).toBe("light");
+  });
+
+  it("sets the theme colour of a stored light choice, whatever the device's setting", () => {
+    stubColourScheme(true);
+    const metas = addThemeColours();
+    localStorage.setItem("theme", "light");
+
+    runPrePaint();
+
+    expect(metas.map((meta) => meta.getAttribute("content"))).toEqual([
+      "#f9f9f7",
+      "#f9f9f7",
+    ]);
   });
 
   it("leaves the theme to the device with no choice stored, or a value it does not know", () => {
