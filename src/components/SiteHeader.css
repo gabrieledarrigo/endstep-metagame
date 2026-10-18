@@ -9,11 +9,22 @@
   }
 
   .site-header__brand {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    width: fit-content;
+    padding-top: 4px;
     font-size: 22px;
+    line-height: 28px;
     font-weight: 700;
     letter-spacing: -0.015em;
     color: var(--text-900);
     text-decoration: none;
+  }
+
+  .site-header__mark {
+    width: 28px;
+    height: 28px;
   }
 
   .site-header__nav {
@@ -33,7 +44,15 @@
     }
 
     .site-header__brand {
+      gap: 12px;
+      padding-top: 0;
       font-size: 30px;
+      line-height: 36px;
+    }
+
+    .site-header__mark {
+      width: 36px;
+      height: 36px;
     }
 
     .site-header__nav {
