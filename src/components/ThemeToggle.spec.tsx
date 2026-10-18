@@ -146,16 +146,34 @@ describe("ThemeToggle", () => {
     expect(themeColours()).toEqual(["#f9f9f7", "#f9f9f7"]);
   });
 
-  it("keeps the theme colour of the reader's choice when the device setting changes", () => {
-    const setDevice = stubColourScheme(false);
+  it("keeps the theme colour of a dark choice when the device turns light and back", () => {
+    const setDevice = stubColourScheme(true);
+    document.documentElement.dataset.theme = "dark";
     addThemeColours();
     render(<ThemeToggle />);
 
-    fireEvent.click(toggle());
-    act(() => setDevice(true));
     act(() => setDevice(false));
 
     expect(themeColours()).toEqual(["#353537", "#353537"]);
+
+    act(() => setDevice(true));
+
+    expect(themeColours()).toEqual(["#353537", "#353537"]);
+  });
+
+  it("keeps the theme colour of a light choice when the device turns dark and back", () => {
+    const setDevice = stubColourScheme(false);
+    document.documentElement.dataset.theme = "light";
+    addThemeColours();
+    render(<ThemeToggle />);
+
+    act(() => setDevice(true));
+
+    expect(themeColours()).toEqual(["#f9f9f7", "#f9f9f7"]);
+
+    act(() => setDevice(false));
+
+    expect(themeColours()).toEqual(["#f9f9f7", "#f9f9f7"]);
   });
 
   it("still switches the theme when the page has no theme colour", () => {
