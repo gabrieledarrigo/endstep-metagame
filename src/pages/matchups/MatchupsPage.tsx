@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   NavigationType,
   useLocation,
@@ -15,6 +15,7 @@ import { SegmentedControl } from "../../components/SegmentedControl";
 import { WINDOWS } from "../../config";
 import { findDeck, formatWindow } from "../../helpers";
 import { useMatchups } from "../../hooks/useMatchups";
+import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { useTimeWindow } from "../../hooks/useTimeWindow";
 import { DeckPicker } from "./DeckPicker";
 import { MatchupList, MatchupListSkeleton } from "./MatchupList";
@@ -22,26 +23,13 @@ import { MatchupTable, MatchupTableSkeleton } from "./MatchupTable";
 
 const TABLE_WIDTH = "(min-width: 640px)";
 
-function subscribeToWidth(onChange: () => void): () => void {
-  const query = window.matchMedia(TABLE_WIDTH);
-  query.addEventListener("change", onChange);
-
-  return (): void => {
-    query.removeEventListener("change", onChange);
-  };
-}
-
-function fitsTable(): boolean {
-  return window.matchMedia(TABLE_WIDTH).matches;
-}
-
 export function MatchupsPage() {
   const [timeWindow, selectTimeWindow] = useTimeWindow();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigationType = useNavigationType();
   const { key, pathname, search, hash } = useLocation();
   const navigate = useNavigate();
-  const wide = useSyncExternalStore(subscribeToWidth, fitsTable);
+  const wide = useMediaQuery(TABLE_WIDTH);
   const matchups = useMatchups(timeWindow);
   const loadingWindow = matchups.isPlaceholderData;
   const loading = matchups.isPending || loadingWindow;
