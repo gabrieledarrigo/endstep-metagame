@@ -305,7 +305,6 @@ describe("rangeScale", () => {
     const scale = rangeScale(rankDecks(matrixOf(["a"], {}), { a: 1 }));
 
     expect(scale).toEqual({ min: 0.5, max: 0.55 });
-    expect(scale.max).toBeGreaterThan(scale.min);
   });
 
   it("rounds the lowest and the highest bound out to 5 points", () => {
