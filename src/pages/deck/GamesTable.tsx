@@ -103,13 +103,21 @@ export function GamesTable({
   }
 
   const rows = [
-    ...results.rows.map((row) => ({
+    ...results.rows.map((row, index) => ({
       key: String(row.gameNumber),
       label: `Game ${row.gameNumber}`,
       split: row,
-      total: false,
+      className:
+        index === results.rows.length - 1
+          ? "games__row games__row--last"
+          : "games__row",
     })),
-    { key: "all", label: "All games", split: results.total, total: true },
+    {
+      key: "all",
+      label: "All games",
+      split: results.total,
+      className: "games__row games__row--total",
+    },
   ];
 
   const grid = rows.map((row) => ({
@@ -163,12 +171,7 @@ export function GamesTable({
             </thead>
             <tbody>
               {grid.map((row) => (
-                <tr
-                  key={row.key}
-                  className={
-                    row.total ? "games__row games__row--total" : "games__row"
-                  }
-                >
+                <tr key={row.key} className={row.className}>
                   <th scope="row" className="games__head">
                     {row.label}
                   </th>
