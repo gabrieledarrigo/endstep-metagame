@@ -82,10 +82,16 @@ export function previewDeckPage(): Plugin {
     configurePreviewServer(server): void {
       server.middlewares.use(async (req, res, next) => {
         try {
-          const origin = previewOrigin(server);
           const match = DECK_PAGE.exec(req.url ?? "/");
 
-          if (match === null || origin === null) {
+          if (match === null) {
+            next();
+            return;
+          }
+
+          const origin = previewOrigin(server);
+
+          if (origin === null) {
             next();
             return;
           }
