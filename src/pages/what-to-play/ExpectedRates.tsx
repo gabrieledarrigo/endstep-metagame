@@ -1,7 +1,7 @@
 import { Panel } from "../../components/Panel";
 import { Skeleton } from "../../components/Skeleton";
 import { WindowLink } from "../../components/WindowLink";
-import { type RankedDeck, percent, rangeScale } from "../../helpers";
+import { type RankedDeck, axisShare, percent, rangeScale } from "../../helpers";
 import { RangeBar } from "./RangeBar";
 import "./ExpectedRates.css";
 
@@ -35,10 +35,7 @@ function ExpectedHead({ period }: { period?: string }) {
   );
 }
 
-function ticks(min: number, max: number): number[] {
-  const first = Math.round(min * 100);
-  const last = Math.round(max * 100);
-
+function ticks(first: number, last: number): number[] {
   return Array.from(
     { length: (last - first) / TICK_STEP + 1 },
     (_, index) => first + index * TICK_STEP,
@@ -52,7 +49,8 @@ type ExpectedRatesProps = {
 
 export function ExpectedRates({ ranking, period }: ExpectedRatesProps) {
   const { min, max } = rangeScale(ranking);
-  const span = Math.round(max * 100) - Math.round(min * 100);
+  const first = Math.round(min * 100);
+  const last = Math.round(max * 100);
 
   return (
     <Panel className="expected">
@@ -61,7 +59,7 @@ export function ExpectedRates({ ranking, period }: ExpectedRatesProps) {
         <span className="expected__gap" />
         <span className="expected__gap" />
         <span className="expected__scale">
-          {ticks(min, max).map((tick) => (
+          {ticks(first, last).map((tick) => (
             <span
               key={tick}
               className={
@@ -70,10 +68,10 @@ export function ExpectedRates({ ranking, period }: ExpectedRatesProps) {
                   : "expected__tick expected__tick--minor"
               }
               style={{
-                left: `${(((tick - Math.round(min * 100)) / span) * 100).toFixed(2)}%`,
+                left: `${(((tick - first) / (last - first)) * 100).toFixed(2)}%`,
               }}
             >
-              {tick}%
+              {axisShare(tick)}
             </span>
           ))}
         </span>
