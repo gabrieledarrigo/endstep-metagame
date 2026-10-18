@@ -44,6 +44,11 @@
     background: var(--primary-hover);
   }
 
+  .segmented--small .segmented__option {
+    padding: 5px 10px;
+    font-size: 12px;
+  }
+
   .segmented[data-busy] {
     background: var(--rule);
   }
