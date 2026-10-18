@@ -22,6 +22,16 @@ export function hasNoBody(status: number): boolean {
 }
 
 /**
+ * Checks whether a value is a plain object, so its properties can be read.
+ *
+ * @param value - Any parsed JSON value.
+ * @returns `true` for an object that is not `null`, arrays included.
+ */
+export function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+/**
  * Builds a JSON error response.
  *
  * @param status - The HTTP status to answer with.

@@ -3,6 +3,7 @@ import {
   cacheControl,
   errorResponse,
   hasNoBody,
+  isRecord,
   methodResponse,
 } from "./_shared.js";
 
@@ -19,6 +20,20 @@ describe("hasNoBody", () => {
     [404, false],
   ])("for status %i returns %s", (status, expected) => {
     expect(hasNoBody(status)).toBe(expected);
+  });
+});
+
+describe("isRecord", () => {
+  it.each([
+    [{}, true],
+    [{ a: 1 }, true],
+    [[], true],
+    [null, false],
+    [undefined, false],
+    ["text", false],
+    [1, false],
+  ])("for %j returns %s", (value, expected) => {
+    expect(isRecord(value)).toBe(expected);
   });
 });
 

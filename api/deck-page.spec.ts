@@ -11,6 +11,7 @@ import {
   vi,
 } from "vitest";
 import vercel from "../vercel.json" with { type: "json" };
+import { WINDOWS } from "./_shared.js";
 
 const source = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 const readFile = vi.hoisted(() => vi.fn());
@@ -269,6 +270,23 @@ describe("deck-page", () => {
       `9.6% of the Pauper field ${period}, 52.4% match win rate, 1,204 players.`,
     );
   });
+
+  it.each(WINDOWS)(
+    "names a period for every window the functions share, %s",
+    async (timeWindow) => {
+      proxy({ deck: deck() });
+
+      const html = await (
+        await deckPage.fetch(
+          request(`slug=affinity-e93f5f74&window=${timeWindow}`),
+        )
+      ).text();
+      const [text] = meta(html, "property", "og:description");
+
+      expect(text).toMatch(/^9\.6% of the Pauper field (over the last|this) /);
+      expect(text).not.toContain("undefined");
+    },
+  );
 
   it.each([
     [

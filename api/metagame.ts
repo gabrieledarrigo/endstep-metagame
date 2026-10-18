@@ -6,6 +6,7 @@ import {
   cacheControl,
   errorResponse,
   hasNoBody,
+  isRecord,
   methodResponse,
 } from "./_shared.js";
 
@@ -108,16 +109,6 @@ function forwardedQuery(query: URLSearchParams): string {
   const search = params.toString();
 
   return search ? `?${search}` : "";
-}
-
-/**
- * Checks whether a value is a plain object, so its properties can be read.
- *
- * @param value - Any parsed JSON value.
- * @returns `true` for an object that is not `null`.
- */
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
 }
 
 /**

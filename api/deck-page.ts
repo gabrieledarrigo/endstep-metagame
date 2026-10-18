@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { SEGMENT, WINDOWS } from "./_shared.js";
+import { SEGMENT, WINDOWS, isRecord } from "./_shared.js";
 
 const SITE_ORIGIN = "https://endstep-metagame.vercel.app";
 const SITE_NAME = "Pauper Endstep metagame";
@@ -88,10 +88,6 @@ function targetOf(query: URLSearchParams): Target | null {
   }
 
   return { slug: slugs[0], window: timeWindow };
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
 }
 
 function isPreviewDeck(value: unknown): value is PreviewDeck {
