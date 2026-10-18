@@ -6,4 +6,17 @@
     gap: 20px;
     min-width: 0;
   }
+
+  .what-to-play__columns {
+    display: grid;
+    gap: 20px;
+    align-items: start;
+    min-width: 0;
+  }
+
+  @media (min-width: 1100px) {
+    .what-to-play__columns {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+  }
 }

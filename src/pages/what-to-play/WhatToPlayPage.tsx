@@ -1,16 +1,42 @@
+import { type ReactNode, useState } from "react";
+import { useLocation, useNavigate, useSearchParams } from "react-router";
 import type { MatrixDeck } from "../../api/types";
 import { EmptyWindow } from "../../components/EmptyWindow";
 import { PageTitle } from "../../components/PageTitle";
 import { Section } from "../../components/Section";
 import { SegmentedControl } from "../../components/SegmentedControl";
 import { PERIODS, WINDOWS } from "../../config";
-import { formatWindow, pickDecks, rankDecks } from "../../helpers";
+import {
+  formatWindow,
+  metagameShares,
+  pickDecks,
+  rankDecks,
+  readMeta,
+  readableSearch,
+  writeMeta,
+} from "../../helpers";
 import { useMatchups } from "../../hooks/useMatchups";
+import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { useTimeWindow } from "../../hooks/useTimeWindow";
 import { ExpectedRates, ExpectedRatesSkeleton } from "./ExpectedRates";
 import { HowItWorks } from "./HowItWorks";
+import { Metagame, MetagameSkeleton } from "./Metagame";
 import { Pick, PickSkeleton } from "./Pick";
 import "./WhatToPlayPage.css";
+
+const COLUMNS_WIDTH = "(min-width: 1100px)";
+
+function columns(
+  wide: boolean,
+  ranking: ReactNode,
+  metagame: ReactNode,
+): ReactNode {
+  return (
+    <div className="what-to-play__columns">
+      {wide ? [ranking, metagame] : [metagame, ranking]}
+    </div>
+  );
+}
 
 function sharesOf(decks: MatrixDeck[]): Record<string, number> {
   return Object.fromEntries(decks.map((deck) => [deck.slug, deck.share]));
@@ -18,10 +44,32 @@ function sharesOf(decks: MatrixDeck[]): Record<string, number> {
 
 export function WhatToPlayPage() {
   const [timeWindow, selectTimeWindow] = useTimeWindow();
+  const [searchParams] = useSearchParams();
+  const { hash } = useLocation();
+  const navigate = useNavigate();
+  const wide = useMediaQuery(COLUMNS_WIDTH);
+  const [open, setOpen] = useState(false);
   const matchups = useMatchups(timeWindow);
   const loadingWindow = matchups.isPlaceholderData;
   const loading = matchups.isPending || loadingWindow;
   const period = loadingWindow ? undefined : PERIODS[timeWindow];
+  const meta = searchParams.get("meta");
+
+  const writeChanges = (
+    changes: Record<string, number>,
+    decks: MatrixDeck[],
+  ): void => {
+    const params = new URLSearchParams(searchParams);
+    const value = writeMeta(changes, decks);
+
+    if (value === "") {
+      params.delete("meta");
+    } else {
+      params.set("meta", value);
+    }
+
+    navigate({ search: `?${readableSearch(params)}`, hash }, { replace: true });
+  };
 
   return (
     <>
@@ -60,7 +108,11 @@ export function WhatToPlayPage() {
             skeleton={
               <>
                 <PickSkeleton />
-                <ExpectedRatesSkeleton />
+                {columns(
+                  wide,
+                  <ExpectedRatesSkeleton key="ranking" />,
+                  <MetagameSkeleton key="metagame" foldable={!wide} />,
+                )}
               </>
             }
             title="The ranking could not be loaded"
@@ -75,13 +127,49 @@ export function WhatToPlayPage() {
                 );
               }
 
-              const ranking = rankDecks(data, sharesOf(data.decks));
+              const changes = readMeta(meta, data.decks);
+              const changed = Object.keys(changes).length > 0;
+              const own = rankDecks(data, sharesOf(data.decks));
+              const ranking = changed
+                ? rankDecks(data, metagameShares(data.decks, changes))
+                : own;
               const pick = pickDecks(ranking);
+
+              const step = (slug: string, by: 1 | -1): void => {
+                writeChanges(
+                  { ...changes, [slug]: (changes[slug] ?? 0) + by },
+                  data.decks,
+                );
+              };
 
               return (
                 <>
-                  <Pick decks={pick.decks} more={pick.more} period={period} />
-                  <ExpectedRates ranking={ranking} period={period} />
+                  <Pick
+                    decks={pick.decks}
+                    more={pick.more}
+                    changed={changed}
+                    period={period}
+                  />
+                  {columns(
+                    wide,
+                    <ExpectedRates
+                      key="ranking"
+                      ranking={ranking}
+                      baseline={own}
+                      changed={changed}
+                      period={period}
+                    />,
+                    <Metagame
+                      key="metagame"
+                      decks={data.decks}
+                      changes={changes}
+                      foldable={!wide}
+                      open={open}
+                      onToggle={() => setOpen(!open)}
+                      onStep={step}
+                      onReset={() => writeChanges({}, data.decks)}
+                    />,
+                  )}
                 </>
               );
             }}
