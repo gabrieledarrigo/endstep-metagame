@@ -698,6 +698,7 @@ a.button { display:inline-block; text-decoration:none; }
 .card-sheet { position:fixed; inset:0; z-index:30; display:grid; place-items:center; padding:24px; background:rgba(11,11,11,.55); }
 .card-sheet__box { display:flex; flex-direction:column; align-items:center; gap:12px; width:min(300px, 100%); }
 .card-sheet__img { display:block; width:100%; height:auto; border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.4); }
+.card-sheet__error { width:100%; margin:0; padding:16px; border-radius:14px; background:var(--surface); color:var(--text-900); font-size:14px; text-align:center; }
 .list-cost { display:flex; flex-direction:column; gap:6px; padding:14px; border-radius:8px; background:var(--background); }
 .list-cost__head { display:flex; flex-direction:column; align-items:flex-start; gap:6px; }
 .list-cost__label { font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.07em; color:var(--text-400); }
@@ -2096,7 +2097,8 @@ a.button { display:inline-block; text-decoration:none; }
   <span class="mono">--baseline</span>, 4px below, that turns solid <span class="mono">--text-900</span> on hover and focus.
   <b>Preview</b> The card at 244px wide with a 12px radius and the menu shadow, on the side of the panel with room, 16px from it,
   level with the name and kept 12px inside the window. It follows its name when the page scrolls, and hides once the name
-  leaves the window. Here it stands beside the panel for the specimen. It never takes the pointer.</p>
+  leaves the window. Here it stands beside the panel for the specimen. It never takes the pointer. In the app it is a manual
+  popover, in the browser&rsquo;s top layer, so no part of the page covers or dims it.</p>
   <h4 class="sub">Cost to build, after the lists</h4>
   <div class="theme-demos">
     <div class="theme-demo theme-demo--page scope-light" inert style="flex:1 1 300px"><section class="list-cost" aria-labelledby="cost-a"><div class="list-cost__head"><h3 class="list-cost__label" id="cost-a">Cost to build</h3><div class="segmented segmented--small" role="group" aria-label="Currency"><button type="button" class="segmented__option" aria-pressed="true">MTGO</button><button type="button" class="segmented__option" aria-pressed="false">&euro;</button><button type="button" class="segmented__option" aria-pressed="false">$</button></div></div><p class="list-cost__total">238.41 <span class="list-cost__unit">tix</span></p><p class="list-cost__split">Main deck 83.55 tix &middot; Sideboard 154.86 tix</p><p class="list-cost__source">Prices from Scryfall, at each card&rsquo;s cheapest printing.</p></section></div>
@@ -2117,7 +2119,10 @@ a.button { display:inline-block; text-decoration:none; }
   </div>
   <p class="spec"><b>Dialog</b> Activating a name opens it on every device: the way to see a card on a touch screen, and the
   way for keyboard and screen reader users and touch laptops. A 55% scrim over the page, the card up to 300px wide with a 14px radius, and a secondary Close
-  button under it, which takes focus. Close, Escape or a tap on the scrim closes it, and focus returns to the name.</p>
+  button under it, which takes focus. Close, Escape or a tap on the scrim closes it, and focus returns to the name. It is a
+  modal <span class="mono">&lt;dialog&gt;</span>, in the top layer like the preview. When the image does not load,
+  &ldquo;The card&rsquo;s image could not be loaded.&rdquo; takes its place, 14px <span class="mono">--text-900</span> on
+  <span class="mono">--surface</span>, 16px in, with the card&rsquo;s radius.</p>
 </section>
 <section id="whattoplay">
   <div class="shead"><h3>What to play?</h3>
