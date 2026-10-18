@@ -381,6 +381,29 @@ describe("SampleList card previews", () => {
     expect(previews()).toEqual([]);
   });
 
+  it("goes back to the focused name's card when the pointer leaves another name", () => {
+    stubWidth(1280, { hover: true });
+    render(<SampleList list={LIST} cards={CARDS} />);
+    focusVisibly(name("Thoughtcast"), true);
+
+    fireEvent.pointerOver(name("Galvanic Blast"), { pointerType: "mouse" });
+    expect(previews().map((image) => image.getAttribute("src"))).toEqual([
+      CARDS["Galvanic Blast"].imageUrl,
+    ]);
+
+    fireEvent.pointerOut(name("Galvanic Blast"), { pointerType: "mouse" });
+    expect(previews().map((image) => image.getAttribute("src"))).toEqual([
+      CARDS.Thoughtcast.imageUrl,
+    ]);
+
+    act(() => {
+      name("Thoughtcast").blur();
+    });
+    fireEvent.pointerOver(name("Galvanic Blast"), { pointerType: "mouse" });
+    fireEvent.pointerOut(name("Galvanic Blast"), { pointerType: "mouse" });
+    expect(previews()).toEqual([]);
+  });
+
   it("opens the card in a dialog on activation, and returns focus to its name when it closes", () => {
     stubWidth(1280, { hover: true });
     render(<SampleList list={LIST} cards={CARDS} />);

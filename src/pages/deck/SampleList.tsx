@@ -105,6 +105,7 @@ export function SampleList({ list, cards, cardsPending }: SampleListProps) {
   const [sheet, setSheet] = useState<Opened | null>(null);
   const text = useRef<HTMLTextAreaElement>(null);
   const panel = useRef<HTMLDivElement>(null);
+  const focused = useRef<Previewed | null>(null);
   const canHover = useMediaQuery("(hover: hover)");
   const hidePreview = useCallback(() => setPreview(null), []);
 
@@ -141,7 +142,16 @@ export function SampleList({ list, cards, cardsPending }: SampleListProps) {
     }
   };
 
-  const hideFrom = (element: HTMLButtonElement): void => {
+  const leave = (element: HTMLButtonElement): void => {
+    const fallback = focused.current;
+    setPreview((shown) => (shown?.element === element ? fallback : shown));
+  };
+
+  const blur = (element: HTMLButtonElement): void => {
+    if (focused.current?.element === element) {
+      focused.current = null;
+    }
+
     setPreview((shown) => (shown?.element === element ? null : shown));
   };
 
@@ -176,7 +186,8 @@ export function SampleList({ list, cards, cardsPending }: SampleListProps) {
         return;
       }
 
-      setPreview({ ...shown, element: event.currentTarget });
+      focused.current = { ...shown, element: event.currentTarget };
+      setPreview(focused.current);
     };
 
     return (
@@ -189,9 +200,9 @@ export function SampleList({ list, cards, cardsPending }: SampleListProps) {
         }
         aria-haspopup="dialog"
         onPointerEnter={onPointerEnter}
-        onPointerLeave={(event) => hideFrom(event.currentTarget)}
+        onPointerLeave={(event) => leave(event.currentTarget)}
         onFocus={onFocus}
-        onBlur={(event) => hideFrom(event.currentTarget)}
+        onBlur={(event) => blur(event.currentTarget)}
         onClick={(event) => {
           setPreview(null);
           setSheet({ ...shown, trigger: event.currentTarget });
