@@ -2,6 +2,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { type Mock, afterEach, describe, expect, it, vi } from "vitest";
 import decks from "../test/fixtures/decks.json";
 import series from "../test/fixtures/share-series.json";
+import { addThemeColours } from "../test/addThemeColours";
 import { stubColourScheme } from "../test/stubColourScheme";
 import page from "../index.html?raw";
 import { ThemeToggle } from "./components/ThemeToggle";
@@ -120,21 +121,13 @@ describe("the overview page", () => {
 });
 
 describe("the page before it first paints", () => {
-  const prePaint = /<script>([\s\S]*?)<\/script>/.exec(page);
-
-  const head = new DOMParser().parseFromString(page, "text/html").head;
+  const parsed = new DOMParser().parseFromString(page, "text/html");
+  const prePaint = [...parsed.head.querySelectorAll("script")].find(
+    (script) => script.attributes.length === 0,
+  );
 
   function runPrePaint(): void {
-    new Function(prePaint?.[1] ?? "")();
-  }
-
-  function addThemeColours(): Element[] {
-    const metas = [...head.querySelectorAll('meta[name="theme-color"]')].map(
-      (meta) => meta.cloneNode() as Element,
-    );
-    document.head.append(...metas);
-
-    return metas;
+    new Function(prePaint?.textContent ?? "")();
   }
 
   afterEach(() => {
@@ -147,19 +140,24 @@ describe("the page before it first paints", () => {
   });
 
   it("runs from the head, before the app's script", () => {
-    expect(prePaint?.index).toBeLessThan(page.indexOf("</head>"));
-    expect(prePaint?.index).toBeLessThan(page.indexOf('type="module"'));
+    const app = parsed.querySelector('script[type="module"]');
+
+    expect(prePaint).toBeDefined();
+    expect(app).not.toBeNull();
+    expect(
+      prePaint!.compareDocumentPosition(app!) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
   });
 
   it("comes after both theme colours in the head, so it can set them", () => {
-    const script = head.querySelector("script:not([src])");
-    const metas = [...head.querySelectorAll('meta[name="theme-color"]')];
+    const metas = [...parsed.head.querySelectorAll('meta[name="theme-color"]')];
 
-    expect(script).not.toBeNull();
+    expect(prePaint).toBeDefined();
     expect(metas).toHaveLength(2);
     metas.forEach((meta) => {
       expect(
-        meta.compareDocumentPosition(script!) &
+        meta.compareDocumentPosition(prePaint!) &
           Node.DOCUMENT_POSITION_FOLLOWING,
       ).toBeTruthy();
     });

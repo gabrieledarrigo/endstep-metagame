@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { addThemeColours } from "../../test/addThemeColours";
 import { stubColourScheme } from "../../test/stubColourScheme";
-import page from "../../index.html?raw";
 import { ThemeToggle } from "./ThemeToggle";
 
 function toggle(): HTMLElement {
@@ -14,11 +14,6 @@ function icon(): string | undefined {
   return ["sun", "moon"].find((name) =>
     drawn?.classList.contains(`theme-toggle__icon--${name}`),
   );
-}
-
-function addThemeColours(): void {
-  const head = new DOMParser().parseFromString(page, "text/html").head;
-  document.head.append(...head.querySelectorAll('meta[name="theme-color"]'));
 }
 
 function themeColours(): (string | null)[] {
