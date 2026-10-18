@@ -214,27 +214,38 @@ describe("previewDeckPage", () => {
     expect(deckPageFetch).not.toHaveBeenCalled();
   });
 
-  it.each([
-    ["a request line that is not a URL", "http://[", undefined],
-    ["a function that throws", "/decks/abc", new Error("no dist")],
-  ])(
-    "passes %s to the error handler and never rejects",
-    async (_, url, error) => {
-      deckPageFetch.mockRejectedValueOnce(error);
-      const next = vi.fn();
+  it("passes a request line that is not a URL to the error handler, with no call", async () => {
+    const next = vi.fn();
 
-      await expect(
-        middleware()(
-          { url, method: "GET", headers: { host: "localhost" } },
-          response(),
-          next,
-        ),
-      ).resolves.toBeUndefined();
+    await expect(
+      middleware()(
+        { url: "http://[", method: "GET", headers: { host: "localhost" } },
+        response(),
+        next,
+      ),
+    ).resolves.toBeUndefined();
 
-      expect(next).toHaveBeenCalledOnce();
-      expect(next.mock.calls[0][0]).toBeInstanceOf(Error);
-    },
-  );
+    expect(deckPageFetch).not.toHaveBeenCalled();
+    expect(next).toHaveBeenCalledOnce();
+    expect(next.mock.calls[0][0]).toBeInstanceOf(Error);
+  });
+
+  it("passes a function that throws to the error handler and never rejects", async () => {
+    deckPageFetch.mockRejectedValueOnce(new Error("no dist"));
+    const next = vi.fn();
+
+    await expect(
+      middleware()(
+        { url: "/decks/abc", method: "GET", headers: { host: "localhost" } },
+        response(),
+        next,
+      ),
+    ).resolves.toBeUndefined();
+
+    expect(deckPageFetch).toHaveBeenCalledOnce();
+    expect(next).toHaveBeenCalledOnce();
+    expect(next.mock.calls[0][0]).toEqual(new Error("no dist"));
+  });
 
   it("leaves the dev server on its own index.html", () => {
     expect(previewDeckPage().configureServer).toBeUndefined();
