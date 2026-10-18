@@ -233,6 +233,22 @@ describe("Beat", () => {
     ).toBeTruthy();
     expect(screen.getByRole("table")).toBeTruthy();
   });
+  it("keeps the changed metagame readable in the address when it writes a deck", () => {
+    renderAt(
+      "/what-to-play?window=30d&meta=mono-red-madness-60596e8a:5",
+      <Beat matrix={MATRIX} ranking={rankingOf(MATRIX)} />,
+    );
+
+    fireEvent.change(picker(), {
+      target: { value: "mono-red-madness-60596e8a" },
+    });
+
+    expect(
+      screen.getByText(
+        "Address: ?window=30d&meta=mono-red-madness-60596e8a:5&beat=mono-red-madness-60596e8a, REPLACE",
+      ),
+    ).toBeTruthy();
+  });
 });
 
 describe("BeatSkeleton", () => {

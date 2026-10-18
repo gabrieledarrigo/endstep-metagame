@@ -1,4 +1,4 @@
-import { useSearchParams } from "react-router";
+import { useLocation, useNavigate, useSearchParams } from "react-router";
 import type { MatchupMatrix } from "../../api/types";
 import { DeckPicker } from "../../components/DeckPicker";
 import { Panel } from "../../components/Panel";
@@ -11,6 +11,7 @@ import {
   findDeck,
   percent,
   rangeScale,
+  readableSearch,
 } from "../../helpers";
 import { RangeBar } from "./RangeBar";
 import "./Beat.css";
@@ -104,7 +105,9 @@ type BeatProps = {
 };
 
 export function Beat({ matrix, ranking, loadingWindow }: BeatProps) {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
+  const { hash } = useLocation();
+  const navigate = useNavigate();
   const wanted = searchParams.get("beat");
   const chosen =
     (wanted === null ? undefined : findDeck(matrix.decks, wanted)) ??
@@ -116,13 +119,10 @@ export function Beat({ matrix, ranking, loadingWindow }: BeatProps) {
       return;
     }
 
-    setSearchParams(
-      (params) => {
-        params.set("beat", slug);
-        return params;
-      },
-      { replace: true },
-    );
+    const params = new URLSearchParams(searchParams);
+    params.set("beat", slug);
+
+    navigate({ search: `?${readableSearch(params)}`, hash }, { replace: true });
   };
 
   return (
