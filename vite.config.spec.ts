@@ -92,6 +92,7 @@ describe("previewDeckPage", () => {
 
   function middleware(
     address: Address = { address: "127.0.0.1", family: "IPv4", port: 4196 },
+    https = false,
   ): Middleware {
     const use = vi.fn();
     const hook = previewDeckPage().configurePreviewServer;
@@ -105,6 +106,7 @@ describe("previewDeckPage", () => {
       {
         middlewares: { use },
         httpServer: { address: () => address },
+        config: { preview: { https: https ? {} : undefined } },
       } as unknown as PreviewServer,
     );
 
@@ -188,19 +190,26 @@ describe("previewDeckPage", () => {
     },
   );
 
-  it("brackets an IPv6 address", async () => {
-    deckPageFetch.mockResolvedValueOnce(new Response("<html>"));
+  it.each([
+    ["an IPv4 address", "127.0.0.1", "IPv4", false, "http://127.0.0.1:4196"],
+    ["an IPv6 address", "::1", "IPv6", false, "http://[::1]:4196"],
+    ["every IPv4 address", "0.0.0.0", "IPv4", false, "http://127.0.0.1:4196"],
+    ["every IPv6 address", "::", "IPv6", false, "http://[::1]:4196"],
+    ["https", "127.0.0.1", "IPv4", true, "https://127.0.0.1:4196"],
+  ])(
+    "fetches from a reachable origin when the server listens on %s",
+    async (_, ip, family, https, origin) => {
+      deckPageFetch.mockResolvedValueOnce(new Response("<html>"));
 
-    await middleware({ address: "::1", family: "IPv6", port: 4196 })(
-      { url: "/decks/abc", method: "GET", headers: { host: "localhost" } },
-      response(),
-      vi.fn(),
-    );
+      await middleware({ address: ip, family, port: 4196 }, https)(
+        { url: "/decks/abc", method: "GET", headers: { host: "localhost" } },
+        response(),
+        vi.fn(),
+      );
 
-    expect(new URL(deckPageFetch.mock.calls[0][0].url).origin).toBe(
-      "http://[::1]:4196",
-    );
-  });
+      expect(new URL(deckPageFetch.mock.calls[0][0].url).origin).toBe(origin);
+    },
+  );
 
   it("passes the request on when the server has no address yet", async () => {
     const next = vi.fn();

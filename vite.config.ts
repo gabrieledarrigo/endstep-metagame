@@ -1,5 +1,10 @@
 /// <reference types="vitest/config" />
-import { defineConfig, type Connect, type Plugin } from "vite";
+import {
+  defineConfig,
+  type Connect,
+  type Plugin,
+  type PreviewServer,
+} from "vite";
 import react from "@vitejs/plugin-react";
 import deckPage from "./api/deck-page.ts";
 import matchups from "./api/matchups.ts";
@@ -10,6 +15,10 @@ const METAGAME = "/api/metagame";
 const METAGAME_PREFIX = `${METAGAME}/`;
 const MATCHUPS = "/api/matchups";
 const DECK_PAGE = /^\/decks\/([^/?]+)(\?.*)?$/;
+const LOOPBACK = new Map([
+  ["::", "::1"],
+  ["0.0.0.0", "127.0.0.1"],
+]);
 
 export const CATCH_ALL_SOURCE = "/(.*)";
 
@@ -48,6 +57,20 @@ export function previewSecurityHeaders(): Plugin {
   };
 }
 
+function previewOrigin(server: PreviewServer): string | null {
+  const address = server.httpServer.address();
+
+  if (address === null || typeof address === "string") {
+    return null;
+  }
+
+  const ip = LOOPBACK.get(address.address) ?? address.address;
+  const host = address.family === "IPv6" ? `[${ip}]` : ip;
+  const scheme = server.config.preview.https ? "https" : "http";
+
+  return `${scheme}://${host}:${address.port}`;
+}
+
 /**
  * Serves `/decks/:slug` through the deck page's function in `vite preview`, with the rewrite from `vercel.json`, so the link preview can be checked before a merge.
  *
@@ -59,25 +82,15 @@ export function previewDeckPage(): Plugin {
     configurePreviewServer(server): void {
       server.middlewares.use(async (req, res, next) => {
         try {
-          const address = server.httpServer.address();
+          const origin = previewOrigin(server);
           const match = DECK_PAGE.exec(req.url ?? "/");
 
-          if (
-            match === null ||
-            address === null ||
-            typeof address === "string"
-          ) {
+          if (match === null || origin === null) {
             next();
             return;
           }
 
-          const host =
-            address.family === "IPv6"
-              ? `[${address.address}]`
-              : address.address;
-          const target = new URL(
-            `http://${host}:${address.port}/api/deck-page`,
-          );
+          const target = new URL(`${origin}/api/deck-page`);
           target.search = match[2] ?? "";
           target.searchParams.append("slug", match[1]);
 
