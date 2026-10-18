@@ -45,6 +45,15 @@ describe("CardSheet", () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
+  it("closes on a click around the card, beside the Close button", () => {
+    const onClose = renderSheet();
+    const close = screen.getByRole("button", { name: "Close" });
+
+    fireEvent.click(close.parentElement as HTMLElement);
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
   it("says so when the image does not load", () => {
     renderSheet();
 

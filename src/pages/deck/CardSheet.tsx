@@ -11,11 +11,16 @@ type CardSheetProps = {
 export function CardSheet({ name, imageUrl, onClose }: CardSheetProps) {
   const [failed, setFailed] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
+  const image = useRef<HTMLImageElement>(null);
+  const close = useRef<HTMLButtonElement>(null);
 
   useLayoutEffect(() => {
-    if (dialog.current !== null && !dialog.current.open) {
-      dialog.current.showModal();
+    if (dialog.current === null || dialog.current.open) {
+      return;
     }
+
+    dialog.current.showModal();
+    close.current?.focus();
   }, []);
 
   return (
@@ -25,7 +30,7 @@ export function CardSheet({ name, imageUrl, onClose }: CardSheetProps) {
       aria-label={name}
       onClose={onClose}
       onClick={(event) => {
-        if (event.target === event.currentTarget) {
+        if (event.target !== image.current) {
           event.currentTarget.close();
         }
       }}
@@ -37,6 +42,7 @@ export function CardSheet({ name, imageUrl, onClose }: CardSheetProps) {
           </p>
         ) : (
           <img
+            ref={image}
             className="card-sheet__img"
             src={imageUrl}
             alt={name}
@@ -46,8 +52,8 @@ export function CardSheet({ name, imageUrl, onClose }: CardSheetProps) {
           />
         )}
         <Button
+          ref={close}
           variant="secondary"
-          autoFocus
           onClick={() => dialog.current?.close()}
         >
           Close
