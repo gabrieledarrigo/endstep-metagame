@@ -8,14 +8,24 @@ import "./ExpectedRates.css";
 const TICK_STEP = 5;
 const MAJOR_TICK = 10;
 
-function ExpectedHead({ period }: { period?: string }) {
+function noteOf(changed: boolean, period?: string): string | undefined {
+  if (changed) {
+    return "The metagame you set";
+  }
+
+  if (period === undefined) {
+    return undefined;
+  }
+
+  return `Metagame of ${period}`;
+}
+
+function ExpectedHead({ note }: { note?: string }) {
   return (
     <>
       <div className="expected__head">
         <h2 className="expected__title">Expected match win rate</h2>
-        {period !== undefined && (
-          <span className="expected__note">Metagame of {period}</span>
-        )}
+        {note !== undefined && <span className="expected__note">{note}</span>}
       </div>
       <div className="expected__legend">
         <span className="expected__key">
@@ -42,19 +52,56 @@ function ticks(first: number, last: number): number[] {
   );
 }
 
+function Movement({ places }: { places: number }) {
+  if (places === 0) {
+    return <span className="expected__move" />;
+  }
+
+  const up = places > 0;
+  const count = Math.abs(places);
+
+  return (
+    <span
+      className={
+        up
+          ? "expected__move expected__move--up"
+          : "expected__move expected__move--down"
+      }
+    >
+      <span aria-hidden="true">
+        {up ? "↑" : "↓"}
+        {count}
+      </span>
+      <span className="visually-hidden">
+        , {up ? "up" : "down"} {count}
+      </span>
+    </span>
+  );
+}
+
 type ExpectedRatesProps = {
   ranking: RankedDeck[];
+  baseline?: RankedDeck[];
+  changed?: boolean;
   period?: string;
 };
 
-export function ExpectedRates({ ranking, period }: ExpectedRatesProps) {
+export function ExpectedRates({
+  ranking,
+  baseline = ranking,
+  changed = false,
+  period,
+}: ExpectedRatesProps) {
   const { min, max } = rangeScale(ranking);
   const first = Math.round(min * 100);
   const last = Math.round(max * 100);
+  const places = new Map(
+    baseline.map((entry, index) => [entry.deck.slug, index]),
+  );
 
   return (
     <Panel className="expected">
-      <ExpectedHead period={period} />
+      <ExpectedHead note={noteOf(changed, period)} />
       <div className="expected__axis" aria-hidden="true">
         <span className="expected__gap" />
         <span className="expected__gap" />
@@ -103,7 +150,7 @@ export function ExpectedRates({ ranking, period }: ExpectedRatesProps) {
                 , likely between {percent(entry.low)} and {percent(entry.high)}
               </span>
             </span>
-            <span className="expected__move" />
+            <Movement places={(places.get(entry.deck.slug) ?? index) - index} />
           </li>
         ))}
       </ol>

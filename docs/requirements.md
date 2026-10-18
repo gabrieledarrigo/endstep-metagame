@@ -226,6 +226,7 @@ The front end uses **React Router 8 in declarative mode**: `BrowserRouter`, `Rou
 - Back, forward and reload therefore return to a page as the reader left it. A link carries only `?window=`, so it opens a page in its default view. This is the browser's own rule: history returns to a page, a link is a new visit. The one exception is the deck page's link to the matchup table, which also carries `?deck=`, FR-11.
 - The theme is not view state. It is the reader's preference, kept in local storage, so a link never carries it. See FR-13. The sample list's currency is the same kind of preference, FR-19.
 - Back and forward work. A route change does not reload the page.
+- `BrowserRouter` sets `useTransitions={false}`, so each navigation renders at once rather than as a React transition. With transitions, quick presses of Enter on a stepper's button read the address before the last press had rendered, and some presses were lost, FR-17.
 - Any other path is a Vercel 404. A path that reaches the app without a route, such as `/index.html`, shows a Not found page.
 - A route change moves focus to the new page's main heading, so keyboard and screen reader users know the page changed. A link scrolls the new page to the top, except a link to the matchup table that names a deck, which scrolls as FR-12 sets out. Back and forward keep the scroll position the browser restores. Declarative mode does none of this, because `ScrollRestoration` exists only in data mode, so the app does it when the path changes. A change to the query string alone is not a route change.
 
@@ -526,7 +527,7 @@ The page lives at `/what-to-play`. Its heading and the header link read "What to
 
 **The expected match win rate.**
 
-- The metagame is each top-24 deck's share from the matchup response, plus the reader's changes, below. A share never goes below zero. If the changes would leave every share at zero, the page ignores them and uses the window's own metagame.
+- The metagame is each top-24 deck's share from the matchup response, plus the reader's changes, below. A share never goes below zero. If the changes would leave every share at zero, the page ignores them all and uses the window's own metagame.
 - A deck's expected match win rate is its match win rate against each of the 24, weighted by that deck's part of the 24's total share, and added up. The mirror counts as 50%. So do a gated pair, §6.8, and a pair with no entry.
 - Its range comes from the cells' ranges. Each cell gives a standard error of (`high` − `low`) / 3.92. The expected rate's range is 1.96 times the square root of the sum of (weight × standard error)². A gated pair or a pair with no entry adds an error of 0.25, as a rate anywhere from 0% to 100% would. The mirror adds none. This treats the 23 pairs as independent, which is close enough: each pair is its own set of matches.
 - A rate is clearly above 50% when its whole range is above 50%, clearly below when the whole range is below, and too close to call otherwise.
@@ -538,13 +539,13 @@ The page lives at `/what-to-play`. Its heading and the header link read "What to
 - It reads "Our pick", then "Play {deck}!", the deck a link to its page.
 - When other decks are too close to tell apart from the best, the pick names them too, up to three decks in rate order: "Play {a} or {b}!", or "Play {a}, {b} or {c}!". A deck is too close when the top of its range is above the bottom of the best deck's range. The pick takes such decks in rate order from second place, and stops at the first deck that is not too close.
 - One sentence follows. For one deck: "{deck} wins {rate} of its matches against the metagame you expect." For several: "They win the most matches against the metagame you expect: {rate}, {rate} and {rate}. The gap between them is too small to call." When more than three decks are too close, the sentence ends ", and 1 more deck is just as close." or ", and {n} more decks are just as close."
-- A last line gives the basis. With no changes it reads "Based on {period}. Change the metagame to match what you expect.", where the period is "the last day", "the last 7 days", "the last 14 days", "the last 30 days" or "this season", as the window says. With changes it reads "Based on the metagame you set."
+- A last line gives the basis. With no changes it reads "Based on {period}. Change the metagame to match what you expect.", where the period is "the last day", "the last 7 days", "the last 14 days", "the last 30 days" or "this season", as the window says. With changes it reads "Based on the metagame you set.", also while another window loads, because it names no window.
 - Only the title is a polite live region, so a screen reader hears a new pick, not every changed rate.
 
 **The ranking.** A panel named "Expected match win rate".
 
 - The 24 decks by expected rate, highest first, ties in share order. Each line holds the place, the deck as a link, its range bar, the rate and its movement.
-- A note beside the title reads "Metagame of {period}", with the basis line's period, or "The metagame you set".
+- A note beside the title reads "Metagame of {period}", with the basis line's period, or "The metagame you set", which also shows while another window loads.
 - The range bar draws the range on a scale shared by the 24 lines, with a line at 50% and a tick at the rate. It is blue when the rate is clearly above 50%, red when clearly below, and neutral when too close to call, the matchup table's colours, FR-12. A legend says the rule in words. The scale runs from the lowest bound to the highest, rounded out to 5 points, always holding 50% and always at least 5 points wide.
 - Movement is the number of places a deck rose or fell against the window's own metagame, with no changes: "↑2" or "↓1". A deck that has not moved shows nothing. Assistive technology hears "up 2" or "down 1".
 - Each line is read as the place, the deck, the rate, "likely between {low} and {high}", and the movement.
@@ -553,17 +554,17 @@ The page lives at `/what-to-play`. Its heading and the header link read "What to
 **The metagame you expect.** A panel where the reader changes the metagame.
 
 - A note reads "How often you expect to meet each deck. Each step is one point."
-- The 24 decks in the window's share order, which a change does not reorder. Each line holds the deck's name and a stepper: a button named "Less {deck}", the share to one decimal place, and a button named "More {deck}". A press moves the share by one point.
-- "Less" cannot act at 0.0%, or on the last deck above zero, so the metagame is never empty. It carries `aria-disabled` and ignores presses, rather than `disabled`, so a keyboard user's focus stays on it.
+- The 24 decks in the window's share order, which a change does not reorder. Each line holds the deck's name and a stepper: a button named "Less {deck}", the share to one decimal place, and a button named "More {deck}". Both buttons are described by the share, so a screen reader reads it with the button's name. A press moves the share by one point, and focus stays on the button. The share reads "<0.1%" when it is above zero but would round to 0.0%.
+- "Less" cannot act at 0.0%, or on the last deck above zero, so the metagame is never empty. "More" cannot act once the change is 100 points, the most the address holds. A button that cannot act carries `aria-disabled` and ignores presses, rather than `disabled`, so a keyboard user's focus stays on it.
 - A changed deck shows "was {share}" after its name.
-- Reset appears once anything has changed. It returns every share and removes `meta` from the address.
-- A line under the list reads "The top 24 hold {share} of registrations. The other {share} are left out of the sum."
-- From 1,100px the ranking and the metagame stand side by side. Below 1,100px they stack, the metagame first, folded into its heading with "Change" to open it and "Close" to fold it. It starts folded, so the ranking is one tap away rather than 24 lines down. A width check at 1,100px in script picks the layout, as the matchup table's check at 640px picks its phone list, FR-12. The page renders the two panels in the order they appear, so the reading and focus order match the screen.
+- Reset appears once anything has changed. It returns every share and removes `meta` from the address. Reset then goes away, so a press moves focus to the panel's title.
+- A line under the list reads "The top 24 hold {share} of registrations. The other {share} are left out of the sum." It sums the window's own shares, not the changed ones. It names the number of decks the window has, which can be fewer than 24. The other share is 100% less the top's share as shown, so the two add up to 100.0%.
+- From 1,100px the ranking and the metagame stand side by side. Below 1,100px they stack, the metagame first, folded into its heading with "Change" to open it and "Close" to fold it. The toggle is a button with `aria-expanded`. The list stays in the page, hidden while folded, so the toggle's `aria-controls` always names it. The panel starts folded, so the ranking is one tap away rather than 24 lines down. It keeps the reader's choice when the window crosses 1,100px. A width check at 1,100px in script picks the layout, as the matchup table's check at 640px picks its phone list, FR-12. The page renders the two panels in the order they appear, so the reading and focus order match the screen.
 
 **In the address.** The changes are view state, §4.5, so a copied address shares them.
 
 - `meta` lists only the changed decks, as `{slug}:{change}`, joined by commas, in share order. The change is a whole number of points, with a minus sign when it lowers the share and no sign when it raises it, because a `+` in a typed address reads as a space: `meta=affinity-e93f5f74:-4,elves-262fdcbd:3`.
-- The page writes `meta` itself, so its colons and commas stay readable, where `URLSearchParams` would write `%3A` and `%2C`. It reads both forms.
+- The page writes `meta` itself, so its colons and commas stay readable, where `URLSearchParams` would write `%3A` and `%2C`. It reads both forms. A window change, and the window the app adds to an address that has none, §4.5, keep them readable too.
 - Decks are matched by the 8-character suffix of their slug, §6.11. An entry that cannot be read, has a change of zero or outside −100 to 100, names a deck outside the window's top 24, or repeats a deck already read is ignored. The page still opens.
 - A change that lowers a share past zero counts as the smallest change that reaches zero, the share rounded up, so one press of "More" always moves it off 0.0%. The next write puts the counted change in the address.
 - A change replaces the history entry, and no change leaves `meta` out.

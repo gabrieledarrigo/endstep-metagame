@@ -149,6 +149,14 @@
     font-variant-numeric: tabular-nums;
   }
 
+  .expected__move--up {
+    color: var(--up);
+  }
+
+  .expected__move--down {
+    color: var(--down);
+  }
+
   .expected__skeleton {
     height: 1400px;
   }

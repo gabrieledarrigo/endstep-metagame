@@ -2,6 +2,7 @@ import { Navigate, Outlet, useLocation } from "react-router";
 import { SiteFooter } from "./components/SiteFooter";
 import { SiteHeader } from "./components/SiteHeader";
 import { useRouteFocus } from "./hooks/useRouteFocus";
+import { readableSearch } from "./helpers";
 import { useTimeWindow } from "./hooks/useTimeWindow";
 
 export function Layout() {
@@ -13,7 +14,12 @@ export function Layout() {
 
   if (params.get("window") !== timeWindow) {
     params.set("window", timeWindow);
-    return <Navigate replace to={{ pathname, search: `?${params}`, hash }} />;
+    return (
+      <Navigate
+        replace
+        to={{ pathname, search: `?${readableSearch(params)}`, hash }}
+      />
+    );
   }
 
   return (

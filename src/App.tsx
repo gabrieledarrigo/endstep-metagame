@@ -14,7 +14,7 @@ export function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
+      <BrowserRouter useTransitions={false}>
         <Routes>
           <Route element={<Layout />}>
             <Route index element={<OverviewPage />} />

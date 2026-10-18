@@ -62,6 +62,59 @@ describe("ExpectedRates", () => {
     expect(screen.getByText("Clearly below 50%")).toBeTruthy();
   });
 
+  it("names the metagame the reader set, even with no period to name", () => {
+    renderAt(<ExpectedRates ranking={RANKING} changed />);
+
+    expect(screen.getByText("The metagame you set")).toBeTruthy();
+    expect(screen.queryByText(/Metagame of/)).toBeNull();
+  });
+
+  it("shows how many places each deck rose or fell against the window's own metagame", () => {
+    const container = renderAt(
+      <ExpectedRates
+        ranking={[...RANKING].reverse()}
+        baseline={RANKING}
+        changed
+      />,
+    );
+
+    expect(
+      within(screen.getByRole("list"))
+        .getAllByRole("listitem")
+        .map((item) => item.textContent),
+    ).toEqual([
+      "1Mono Red Madness47.5%, likely between 44.4% and 50.7%↑3, up 3",
+      "2Naya Gates50.0%, likely between 22.3% and 77.7%↑1, up 1",
+      "3Monster Tron50.3%, likely between 46.9% and 53.7%↓1, down 1",
+      "4Affinity51.7%, likely between 48.7% and 54.6%↓3, down 3",
+    ]);
+    expect(
+      Array.from(container.querySelectorAll(".expected__move")).map(
+        (move) => move.className,
+      ),
+    ).toEqual([
+      "expected__move expected__move--up",
+      "expected__move expected__move--up",
+      "expected__move expected__move--down",
+      "expected__move expected__move--down",
+    ]);
+    expect(
+      container.querySelector(".expected__move > [aria-hidden]")?.textContent,
+    ).toBe("↑3");
+  });
+
+  it("shows no movement for a deck in its own place", () => {
+    const container = renderAt(
+      <ExpectedRates ranking={RANKING} baseline={RANKING} changed />,
+    );
+
+    expect(
+      Array.from(container.querySelectorAll(".expected__move")).map(
+        (move) => move.textContent,
+      ),
+    ).toEqual(["", "", "", ""]);
+  });
+
   it("leaves the period out when there is none to name", () => {
     renderAt(<ExpectedRates ranking={RANKING} />);
 

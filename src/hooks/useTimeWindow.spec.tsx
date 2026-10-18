@@ -68,6 +68,18 @@ describe("useTimeWindow", () => {
     expect(result.current.address).toBe("/?window=7d&deck=affinity");
   });
 
+  it("keeps the colons and commas of the other parameters readable", () => {
+    const { result } = renderAt(
+      "/what-to-play?window=30d&meta=affinity-e93f5f74:-4,elves-262fdcbd:3",
+    );
+
+    act(() => result.current.select("7d"));
+
+    expect(result.current.address).toBe(
+      "/what-to-play?window=7d&meta=affinity-e93f5f74:-4,elves-262fdcbd:3",
+    );
+  });
+
   it("replaces the history entry when asked", () => {
     const { result } = renderAt("/?window=30d");
 
