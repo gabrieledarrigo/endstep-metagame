@@ -1,10 +1,14 @@
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import "./ThemeToggle.css";
 
 type Theme = "light" | "dark";
 
 const DARK_DEVICE = "(prefers-color-scheme: dark)";
 const THEME_KEY = "theme";
+const THEME_COLOURS: Record<Theme, string> = {
+  light: "#f9f9f7",
+  dark: "#353537",
+};
 
 function subscribeToDevice(onChange: () => void): () => void {
   const query = window.matchMedia(DARK_DEVICE);
@@ -32,6 +36,15 @@ export function ThemeToggle({ className }: { className?: string }) {
   const deviceDark = useSyncExternalStore(subscribeToDevice, deviceIsDark);
   const [chosen, setChosen] = useState(chosenTheme);
   const dark = chosen === null ? deviceDark : chosen === "dark";
+
+  useEffect(() => {
+    const colour = dark ? THEME_COLOURS.dark : THEME_COLOURS.light;
+    document
+      .querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')
+      .forEach((meta) => {
+        meta.content = colour;
+      });
+  }, [dark]);
 
   const toggle = (): void => {
     const next = dark ? "light" : "dark";

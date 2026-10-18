@@ -16,11 +16,32 @@
       content="Which Pauper decks are played, how they perform, and how they do against each other."
     />
     <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="apple-mobile-web-app-title" content="Pauper meta" />
+    <meta
+      name="theme-color"
+      media="(prefers-color-scheme: light)"
+      content="#f9f9f7"
+    />
+    <meta
+      name="theme-color"
+      media="(prefers-color-scheme: dark)"
+      content="#353537"
+    />
     <script>
       try {
         const stored = localStorage.getItem("theme");
         if (stored === "light" || stored === "dark") {
           document.documentElement.dataset.theme = stored;
+          const colour = stored === "dark" ? "#353537" : "#f9f9f7";
+          for (const meta of document.querySelectorAll(
+            'meta[name="theme-color"]',
+          )) {
+            meta.content = colour;
+          }
         }
       } catch {}
     </script>

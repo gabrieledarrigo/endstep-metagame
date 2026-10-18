@@ -2,6 +2,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { type Mock, afterEach, describe, expect, it, vi } from "vitest";
 import decks from "../test/fixtures/decks.json";
 import series from "../test/fixtures/share-series.json";
+import { addThemeColours } from "../test/addThemeColours";
 import { stubColourScheme } from "../test/stubColourScheme";
 import page from "../index.html?raw";
 import { ThemeToggle } from "./components/ThemeToggle";
@@ -120,21 +121,46 @@ describe("the overview page", () => {
 });
 
 describe("the page before it first paints", () => {
-  const prePaint = /<script>([\s\S]*?)<\/script>/.exec(page);
+  const parsed = new DOMParser().parseFromString(page, "text/html");
+  const prePaint = [...parsed.head.querySelectorAll("script")].find(
+    (script) => script.attributes.length === 0,
+  );
 
   function runPrePaint(): void {
-    new Function(prePaint?.[1] ?? "")();
+    new Function(prePaint?.textContent ?? "")();
   }
 
   afterEach(() => {
     localStorage.clear();
     document.documentElement.removeAttribute("data-theme");
+    document.head
+      .querySelectorAll('meta[name="theme-color"]')
+      .forEach((meta) => meta.remove());
     vi.restoreAllMocks();
   });
 
   it("runs from the head, before the app's script", () => {
-    expect(prePaint?.index).toBeLessThan(page.indexOf("</head>"));
-    expect(prePaint?.index).toBeLessThan(page.indexOf('type="module"'));
+    const app = parsed.querySelector('script[type="module"]');
+
+    expect(prePaint).toBeDefined();
+    expect(app).not.toBeNull();
+    expect(
+      prePaint!.compareDocumentPosition(app!) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
+  it("comes after both theme colours in the head, so it can set them", () => {
+    const metas = [...parsed.head.querySelectorAll('meta[name="theme-color"]')];
+
+    expect(prePaint).toBeDefined();
+    expect(metas).toHaveLength(2);
+    metas.forEach((meta) => {
+      expect(
+        meta.compareDocumentPosition(prePaint!) &
+          Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+    });
   });
 
   it("applies a stored dark choice", () => {
@@ -145,12 +171,44 @@ describe("the page before it first paints", () => {
     expect(document.documentElement.dataset.theme).toBe("dark");
   });
 
+  it("sets the theme colour of a stored dark choice before the app mounts", () => {
+    const metas = addThemeColours();
+    localStorage.setItem("theme", "dark");
+
+    runPrePaint();
+
+    expect(metas.map((meta) => meta.getAttribute("media"))).toEqual([
+      "(prefers-color-scheme: light)",
+      "(prefers-color-scheme: dark)",
+    ]);
+    expect(metas.map((meta) => meta.getAttribute("content"))).toEqual([
+      "#353537",
+      "#353537",
+    ]);
+  });
+
   it("applies a stored light choice, whatever the device's setting", () => {
     localStorage.setItem("theme", "light");
 
     runPrePaint();
 
     expect(document.documentElement.dataset.theme).toBe("light");
+  });
+
+  it("sets the theme colour of a stored light choice, whatever the device's setting", () => {
+    const metas = addThemeColours();
+    localStorage.setItem("theme", "light");
+
+    runPrePaint();
+
+    expect(metas.map((meta) => meta.getAttribute("media"))).toEqual([
+      "(prefers-color-scheme: light)",
+      "(prefers-color-scheme: dark)",
+    ]);
+    expect(metas.map((meta) => meta.getAttribute("content"))).toEqual([
+      "#f9f9f7",
+      "#f9f9f7",
+    ]);
   });
 
   it("leaves the theme to the device with no choice stored, or a value it does not know", () => {
