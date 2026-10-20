@@ -854,6 +854,7 @@ The name of the card is a button. It opens the decks that play the card, under t
   - The share, as a whole percentage.
   - The average copies of the deck.
 - One sentence closes the panel: "The share of each deck's lists that play it."
+- If no deck plays the card in at least 5% of its lists, the panel holds only one sentence: "No deck plays it in 5% of its lists or more."
 - The panel leaves out the decks below 5%. Those are a few unusual lists, not the choice of the deck itself.
 
 #### States
