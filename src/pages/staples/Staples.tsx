@@ -26,8 +26,6 @@ type StaplesProps = {
   section: StaplesSection;
   onSection: (next: StaplesSection) => void;
   onWindow: (next: TimeWindow) => void;
-  busy: boolean;
-  loading: boolean;
 };
 
 function withheldText(withheld: number): string {
@@ -44,10 +42,10 @@ export function Staples({
   section,
   onSection,
   onWindow,
-  busy,
-  loading,
 }: StaplesProps) {
   const id = useId();
+  const dimmed = query.isPlaceholderData;
+  const loading = query.isPending || dimmed;
   const shown = query.data
     ? `${query.data.section}:${query.data.window.from}:${query.data.window.to}`
     : "";
@@ -83,8 +81,8 @@ export function Staples({
         The percentage is the share of the top 24's decks that play the card.
       </p>
       <div
-        className={busy ? "staples__body busy" : "staples__body"}
-        aria-busy={busy || undefined}
+        className={dimmed ? "staples__body busy" : "staples__body"}
+        aria-busy={dimmed || undefined}
       >
         <Section
           query={query}

@@ -38,15 +38,11 @@ function withCards(count: number, withheld = 0): StaplesResponse {
 function Harness({
   timeWindow = "30d",
   section = "main",
-  busy = false,
-  loading = false,
   onSection = (): void => {},
   onWindow = (): void => {},
 }: {
   timeWindow?: TimeWindow;
   section?: StaplesSection;
-  busy?: boolean;
-  loading?: boolean;
   onSection?: (next: StaplesSection) => void;
   onWindow?: (next: TimeWindow) => void;
 }) {
@@ -54,6 +50,10 @@ function Harness({
     queryKey: ["staples", timeWindow, section],
     queryFn: ({ signal }) => fetchStaples(timeWindow, section, signal),
     retry: false,
+    placeholderData: (previous, previousQuery) =>
+      previousQuery?.queryKey[2] === section && previous?.cards.length
+        ? previous
+        : undefined,
   });
 
   return (
@@ -64,8 +64,6 @@ function Harness({
         section={section}
         onSection={onSection}
         onWindow={onWindow}
-        busy={busy}
-        loading={loading}
       />
     </MemoryRouter>
   );
@@ -235,7 +233,19 @@ describe("Staples", () => {
   });
 
   it("shows 30 again for another window", async () => {
-    stubApi(withCards(50));
+    let calls = 0;
+    stubApi(() => {
+      calls += 1;
+
+      return Response.json(
+        calls === 1
+          ? withCards(50)
+          : {
+              ...withCards(50),
+              window: { from: "2026-10-14", to: "2026-10-21" },
+            },
+      );
+    });
     const rerender = renderSwitchable(<Harness />);
 
     fireEvent.click(
@@ -340,8 +350,8 @@ describe("Staples", () => {
   });
 
   it("marks the switch busy while a list loads", () => {
-    stubApi(withCards(6));
-    renderWithQueries(<Harness loading />);
+    stubApi(() => new Promise<Response>(() => {}));
+    renderWithQueries(<Harness />);
 
     expect(
       screen
@@ -362,18 +372,35 @@ describe("Staples", () => {
     ).toBeNull();
   });
 
-  it("dims and marks busy the list, not the switch, while another window loads", async () => {
-    stubApi(withCards(6));
-    renderWithQueries(<Harness busy />);
+  it("dims the list and marks it and the switch busy while another window loads", async () => {
+    let calls = 0;
+    stubApi(() => {
+      calls += 1;
 
-    const list = await screen.findByRole("list");
+      return calls === 1
+        ? Response.json(withCards(6))
+        : new Promise<Response>(() => {});
+    });
+    const rerender = renderSwitchable(<Harness />);
+    await screen.findByText("Lightning Bolt");
+
+    rerender(<Harness timeWindow="7d" />);
+
+    const list = screen.getAllByRole("list")[0];
+    expect(screen.getByText("Lightning Bolt")).toBeTruthy();
     expect(list.closest('[aria-busy="true"]')?.className).toBe(
       "staples__body busy",
     );
-    expect(
-      screen
-        .getByRole("group", { name: "Part of the deck" })
-        .closest("[aria-busy]"),
-    ).toBeNull();
+    const parts = screen.getByRole("group", { name: "Part of the deck" });
+    expect(parts.getAttribute("data-busy")).toBe("true");
+    expect(parts.closest("[aria-busy]")).toBeNull();
+  });
+
+  it("neither dims the list nor marks it busy once it is on screen", async () => {
+    stubApi(withCards(6));
+    renderWithQueries(<Harness />);
+
+    await screen.findByText("Lightning Bolt");
+    expect(screen.getAllByRole("list")[0].closest("[aria-busy]")).toBeNull();
   });
 });
