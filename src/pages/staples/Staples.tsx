@@ -46,10 +46,9 @@ export function Staples({
   const id = useId();
   const dimmed = query.isPlaceholderData;
   const loading = query.isPending || dimmed;
-  const shown = query.data
-    ? `${query.data.section}:${query.data.window.from}:${query.data.window.to}`
-    : "";
-  const [listKey, setListKey] = useState(shown);
+  const [listKey, setListKey] = useState("");
+  const current = query.data ? `${timeWindow}:${section}` : "";
+  const shown = dimmed ? listKey : current;
   const [more, setMore] = useState(false);
   const firstMore = useRef<HTMLButtonElement>(null);
 

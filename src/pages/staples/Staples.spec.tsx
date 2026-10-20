@@ -232,20 +232,8 @@ describe("Staples", () => {
     expect(screen.queryByRole("button", { name: /more/ })).toBeNull();
   });
 
-  it("shows 30 again for another window", async () => {
-    let calls = 0;
-    stubApi(() => {
-      calls += 1;
-
-      return Response.json(
-        calls === 1
-          ? withCards(50)
-          : {
-              ...withCards(50),
-              window: { from: "2026-10-14", to: "2026-10-21" },
-            },
-      );
-    });
+  it("shows 30 again for another window, even one with the same dates", async () => {
+    stubApi(withCards(50));
     const rerender = renderSwitchable(<Harness />);
 
     fireEvent.click(
@@ -427,6 +415,32 @@ describe("Staples", () => {
       await screen.findByRole("button", { name: "Show 20 more" }),
     ).toBeTruthy();
     expect(lines()).toHaveLength(30);
+  });
+
+  it("keeps the cards shown on the dimmed list, and shows 30 once the next window arrives", async () => {
+    let calls = 0;
+    let answer: (response: Response) => void = () => {};
+    stubApi(() => {
+      calls += 1;
+
+      return calls === 1
+        ? Response.json(withCards(50))
+        : new Promise<Response>((resolve) => (answer = resolve));
+    });
+    const rerender = renderSwitchable(<Harness />);
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Show 20 more" }),
+    );
+    rerender(<Harness timeWindow="7d" />);
+
+    expect(lines()).toHaveLength(50);
+
+    answer(Response.json(withCards(50)));
+
+    await waitFor(() => {
+      expect(lines()).toHaveLength(30);
+    });
   });
 
   it("neither dims the list nor marks it busy once it is on screen", async () => {
