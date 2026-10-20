@@ -75,6 +75,7 @@ export async function upstream<Body>(
   );
 
   if (!response.ok) {
+    await response.body?.cancel();
     throw new UpstreamError(response.status);
   }
 

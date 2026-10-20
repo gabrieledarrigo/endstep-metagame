@@ -181,6 +181,23 @@ describe("upstream", () => {
     expect(timeout.mock.calls).toEqual([[8000]]);
   });
 
+  it.each([429, 500])(
+    "cancels the body of a %i, so the connection is freed",
+    async (status) => {
+      const cancel = vi.fn();
+      vi.stubGlobal(
+        "fetch",
+        vi.fn<typeof fetch>(
+          async () => new Response(new ReadableStream({ cancel }), { status }),
+        ),
+      );
+
+      await upstream("Pauper/decks", {}).catch(() => undefined);
+
+      expect(cancel).toHaveBeenCalledOnce();
+    },
+  );
+
   it("uses the timeout it is given", async () => {
     vi.stubGlobal(
       "fetch",
