@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-26. Derived from [`requirements.md`](./requirements.md) and [`design-system.html`](./design-system.html).
 
-Milestone 1 has sixteen items: four enablers, nine user stories and three hardening items. Milestones 2 to 7 follow at the end of this file. Each item gets a separate branch and a separate review. No item assumes one large implementation pass.
+Milestone 1 has sixteen items: four enablers, nine user stories and three hardening items. Milestones 2 to 8 follow at the end of this file. Each item gets a separate branch and a separate review. No item assumes one large implementation pass.
 
 Every item lists what blocks it, what it blocks, and how to know that it is done.
 
@@ -2015,3 +2015,99 @@ H6 and E17 run in parallel. Both touch `src/helpers/format.ts`. H6 changes only 
 E17 touches about 70 components, but each change is mechanical. It can go out as a stack of pull requests, one group of pages in each.
 
 S33 waits for the owner. The owner writes the translations in `locales.json`, once E17 has made that file.
+
+---
+
+# Milestone 8: page previews
+
+**Date:** 2026-10-20. This milestone comes from Draft v17 of the requirements.
+
+This milestone has one enabler and one user story, for §4.2, FR-15 and §4.7. On 2026-10-20 the owner asked to split the shared server code by subject before S34 adds to it. The milestone changes no screen, so it has no design item.
+
+| Wave | Items | Runs in parallel |
+|---|---|---|
+| 34 | E18 | Yes, beside milestone 7 |
+| 35 | S34 | No |
+
+```
+E18 the server code by subject ──┐
+E17 the strings in one file ─────┴─► S34 a preview for each page
+```
+
+---
+
+## E18. Split the shared server code by subject
+
+This enabler covers the `server/` folder of §4.2 and the configs of NFR-1. It moves code and changes no behaviour.
+
+**Tasks**
+
+1. Create `server/` with `endstep.ts`, `scryfall.ts`, `cards.ts`, `http.ts` and `head.ts`, as §4.2 lists them.
+2. Move each part of `api/_shared.ts` to its file. Then delete `api/_shared.ts`.
+3. Move these copies to one place:
+   - The basic lands of `api/staples.ts` and `api/sample-cards.ts` go to `cards.ts`. Keep the snow-covered basics as their own list. The staples leave them out, but the sample list prices them, FR-19.
+   - `nameKey` and the `keyOf` of `api/sample-cards.ts` become one function in `cards.ts`.
+   - The Scryfall address and the 30 second pause of `api/sample-cards.ts` use the constants of `scryfall.ts`. Each function keeps its own pause.
+   - `escapeHtml`, `withMeta`, `SITE_ORIGIN`, `SITE_NAME` and the head writing of `api/deck-page.ts` go to `head.ts`.
+4. Split `api/_shared.spec.ts` the same way, into a spec beside each file. Move the specs of the moved copies with them.
+5. Add `server/tsconfig.json`, which extends `api/tsconfig.json`. List it in the root `tsconfig.json` and in `npm run typecheck`.
+6. Add `server/**` to the Node scope of ESLint and to the `api` project of Vitest.
+7. Update §4.2, §4.7 and NFR-1 if the code differs from them in any detail.
+
+**Done when**
+
+- `api/_shared.ts` is gone. Every TypeScript file in `api/` is a function or its spec.
+- Every spec passes. The moved specs check the same cases as before.
+- An offline `vercel build` builds every function with no error.
+- In production, each function answers as before: the proxy, the matchup function, the staples function, the sample cards function and the deck page's function.
+
+**Blocked by** nothing. **Blocks** S34.
+
+---
+
+## S34. Share a page with its own preview
+
+As a Pauper player, I want a shared link to name the page it opens. Then a friend knows what the link shows before they open it.
+
+This story covers the previews of the matchup table, What to play? and Staples, in FR-15 and §4.7.
+
+**Tasks**
+
+1. In `server/head.ts`, list the path, the title and the description of the three pages, FR-15.
+2. Use the full address of each page for its canonical link and `og:url`.
+3. Add a Vite plugin that writes `dist/matchups.html`, `dist/what-to-play.html` and `dist/staples.html` from `dist/index.html`, with the code of `server/head.ts`.
+4. In `vercel.json`, set `cleanUrls` and remove the three page rewrites.
+5. Check that `vite preview` serves each file at its path. Add code only if it does not.
+6. On each route change, set the canonical link and `og:url` to the new full address, with no query.
+7. Add both tags if the HTML has none. Remove both on a Not found page.
+8. Add `SITE_ORIGIN` to `src/config.ts`, beside `SITE_NAME`.
+9. Update §4.5, §4.6 and §4.7 if the code differs from them in any detail.
+10. Add specs for these cases:
+   - Each built file has its title, description, `og:title`, `og:description`, canonical link and `og:url`.
+   - Each built file keeps the image of the site card.
+   - `dist/index.html` does not change.
+   - The inline theme script is the same in all four files, so its hash in the security policy holds.
+   - `vercel.json` sets `cleanUrls` and has no page rewrite left.
+   - Each title matches the English heading of its page in `src/locales/locales.json`.
+   - `SITE_ORIGIN` in `src/config.ts` equals the origin in `server/head.ts`.
+   - A Not found page has no canonical link and no `og:url`.
+   - After a route change, the canonical link and `og:url` name the new path, on a deck page and on the overview too.
+   - The deck page's function writes the same preview as before.
+
+**Done when**
+
+- `npm run build` writes the three files, and each holds the values of FR-15.
+- In production, the HTML of `/matchups`, `/what-to-play` and `/staples` holds the title and the description of that page.
+- In production, `/staples.html` redirects to `/staples`.
+- Each page loads and works as before, with no error in the security policy.
+- The specs pass.
+
+**Blocked by** E18 and E17. **Blocks** nothing.
+
+---
+
+## Notes on sequencing, milestone 8
+
+E18 moves code and changes no behaviour. It touches no file in `src/`, so it runs beside milestone 7.
+
+S34 waits for E18, because it adds its list to `server/head.ts`. It also waits for E17. Its spec reads the page headings from `locales.json`, and its route change code sits in the layout that E17 rewrites.
