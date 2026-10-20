@@ -1,0 +1,60 @@
+@layer components {
+  .staples {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+    background: var(--surface);
+    border: 1px solid var(--edge);
+    border-radius: 10px;
+    padding: 22px;
+  }
+
+  .staples__head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px 16px;
+  }
+
+  .staples__title {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 600;
+  }
+
+  .staples__note {
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-600);
+  }
+
+  .staples__body {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+  }
+
+  .staples__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .staples__more {
+    align-self: center;
+  }
+
+  .staples__skeleton {
+    width: 100%;
+    height: calc(6 * 91px);
+  }
+
+  @media (min-width: 640px) {
+    .staples__skeleton {
+      height: calc(6 * 109px);
+    }
+  }
+}
