@@ -6,6 +6,7 @@ import {
   errorResponse,
   findArt,
   isRateLimit,
+  isRecord,
   methodResponse,
   upstream,
 } from "./_shared.js";
@@ -118,7 +119,7 @@ async function tableOf(
       { timeoutMs: TABLE_TIMEOUT_MS, signal },
     );
 
-    if (body.withheld !== null) {
+    if (isRecord(body.withheld)) {
       return { deck, cards: null };
     }
 

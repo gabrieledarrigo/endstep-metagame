@@ -69,7 +69,7 @@ function deck(slug: string, share: number): Deck {
 
 function cardsBody(page: Page, pageNumber: number): object {
   return {
-    withheld: page.withheld ?? null,
+    withheld: "withheld" in page ? page.withheld : null,
     cards: {
       items: page.rows.map(([name, rate, copies]) => ({
         name,
@@ -427,6 +427,40 @@ describe("the staples function's cards", () => {
 
     expect(body.withheld).toBe(1);
     expect(body.cards.map((card) => card.name)).toEqual(["Counterspell"]);
+  });
+
+  it.each([
+    ["null", null],
+    ["missing", undefined],
+    ["a string", "no"],
+  ])("counts a deck whose withheld field is %s", async (_, withheld) => {
+    endstep({
+      decks: [deck("a", 0.2)],
+      pages: { a: [{ withheld, rows: [["Counterspell", 1, 4]] }] },
+    });
+
+    const body = await bodyOf(await staples.fetch(request(MAIN_30D)));
+
+    expect(body.withheld).toBe(0);
+    expect(body.cards.map((card) => card.name)).toEqual(["Counterspell"]);
+  });
+
+  it("answers 502 for a card table with no cards", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>(async (input) =>
+        String(input).includes("/cards")
+          ? Response.json({ section: "main" })
+          : Response.json({
+              provenance: { window: { from: "2026-09-21", to: "2026-10-21" } },
+              decks: { items: [deck("a", 0.2)] },
+            }),
+      ),
+    );
+
+    const response = await staples.fetch(request(MAIN_30D));
+
+    expect(response.status).toBe(502);
   });
 
   it("answers no cards, and asks Scryfall nothing, when every deck is withheld", async () => {
