@@ -46,13 +46,15 @@ export function Staples({
   busy,
 }: StaplesProps) {
   const id = useId();
-  const key = `${timeWindow}:${section}`;
-  const [listKey, setListKey] = useState(key);
+  const shown = query.data
+    ? `${query.data.section}:${query.data.window.from}:${query.data.window.to}`
+    : "";
+  const [listKey, setListKey] = useState(shown);
   const [more, setMore] = useState(false);
   const firstMore = useRef<HTMLLIElement>(null);
 
-  if (listKey !== key) {
-    setListKey(key);
+  if (listKey !== shown) {
+    setListKey(shown);
     setMore(false);
   }
 

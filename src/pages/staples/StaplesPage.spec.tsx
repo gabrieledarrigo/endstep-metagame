@@ -18,6 +18,16 @@ const WEEK: StaplesResponse = {
   window: { from: "2026-10-14", to: "2026-10-21" },
 };
 
+function fifty(body: StaplesResponse): StaplesResponse {
+  const cards = Array.from({ length: 50 }, (_, index) => ({
+    ...body.cards[index % body.cards.length],
+    name: `Card ${index + 1}`,
+    share: 0.2 - index / 1000,
+  }));
+
+  return { ...body, cards };
+}
+
 type Answer = () => Response | Promise<Response>;
 
 function stubApi(answers: Record<string, Answer[]>): Mock<typeof fetch> {
@@ -204,6 +214,30 @@ describe("StaplesPage", () => {
       screen.getByText("Lightning Bolt").closest("[aria-busy]"),
     ).toBeNull();
     expect(status()).toBe("");
+  });
+
+  it("shows 30 cards for the next window when the reader shows more on the dimmed list while it loads", async () => {
+    let answer: (response: Response) => void = () => {};
+    stubApi({
+      "/api/staples?window=30d&section=main": [json(fifty(MAIN))],
+      "/api/staples?window=7d&section=main": [
+        (): Promise<Response> =>
+          new Promise<Response>((resolve) => (answer = resolve)),
+      ],
+    });
+    renderAt("/staples?window=30d");
+    await screen.findByText("Card 1");
+
+    fireEvent.click(screen.getByRole("button", { name: "7d" }));
+    fireEvent.click(screen.getByRole("button", { name: "Show 20 more" }));
+    expect(screen.getByText("Card 50")).toBeTruthy();
+
+    answer(Response.json(fifty(WEEK)));
+
+    expect(await screen.findByText("14 Oct to 20 Oct 2026")).toBeTruthy();
+    expect(screen.getByText("Card 30")).toBeTruthy();
+    expect(screen.queryByText("Card 31")).toBeNull();
+    expect(screen.getByRole("button", { name: "Show 20 more" })).toBeTruthy();
   });
 
   it("keeps the sideboard in the address when the window changes", async () => {
