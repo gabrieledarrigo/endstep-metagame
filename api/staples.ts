@@ -99,25 +99,55 @@ function targetOf(search: string): Target | null {
   return { window: match[1], section: match[2] };
 }
 
+function isTimeout(error: unknown): boolean {
+  return error instanceof DOMException && error.name === "TimeoutError";
+}
+
+function pageOf(
+  deck: UpstreamDeck,
+  target: Target,
+  page: number,
+  signal: AbortSignal,
+): Promise<CardsBody> {
+  return upstream<CardsBody>(
+    `Pauper/decks/${encodeURIComponent(deck.slug)}/cards`,
+    {
+      window: target.window,
+      population: "rated",
+      section: target.section,
+      pageSize: String(PAGE_SIZE),
+      page: String(page),
+    },
+    { timeoutMs: TABLE_TIMEOUT_MS, signal },
+  );
+}
+
 async function tableOf(
   deck: UpstreamDeck,
   target: Target,
   signal: AbortSignal,
+  endsAt: number,
 ): Promise<Table> {
   const cards = new Map<string, CardRow>();
+  let retried = false;
 
   for (let page = 1; page <= MAX_PAGES; page += 1) {
-    const body = await upstream<CardsBody>(
-      `Pauper/decks/${encodeURIComponent(deck.slug)}/cards`,
-      {
-        window: target.window,
-        population: "rated",
-        section: target.section,
-        pageSize: String(PAGE_SIZE),
-        page: String(page),
-      },
-      { timeoutMs: TABLE_TIMEOUT_MS, signal },
-    );
+    let body: CardsBody;
+
+    try {
+      body = await pageOf(deck, target, page, signal);
+    } catch (error) {
+      if (
+        retried ||
+        !isTimeout(error) ||
+        endsAt - Date.now() < TABLE_TIMEOUT_MS
+      ) {
+        throw error;
+      }
+
+      retried = true;
+      body = await pageOf(deck, target, page, signal);
+    }
 
     if (isRecord(body.withheld) && !Array.isArray(body.withheld)) {
       return { deck, cards: null };
@@ -198,16 +228,19 @@ async function tablesOf(
   decks: UpstreamDeck[],
   target: Target,
   controller: AbortController,
+  endsAt: number,
 ): Promise<Table[]> {
   const results = await Promise.allSettled(
     decks.map((deck) =>
-      tableOf(deck, target, controller.signal).catch((error: unknown) => {
-        if (isRateLimit(error)) {
-          controller.abort();
-        }
+      tableOf(deck, target, controller.signal, endsAt).catch(
+        (error: unknown) => {
+          if (isRateLimit(error)) {
+            controller.abort();
+          }
 
-        throw error;
-      }),
+          throw error;
+        },
+      ),
     ),
   );
   const failures = results
@@ -227,9 +260,10 @@ async function build(
   target: Target,
 ): Promise<{ staples: Staples; complete: boolean }> {
   const controller = new AbortController();
+  const endsAt = Date.now() + DEADLINE_MS;
   const deadline = setTimeout(() => {
     controller.abort();
-  }, DEADLINE_MS);
+  }, endsAt - Date.now());
   let top: DecksBody;
   let tables: Table[];
 
@@ -245,7 +279,7 @@ async function build(
       },
       { signal: controller.signal },
     );
-    tables = await tablesOf(top.decks.items, target, controller);
+    tables = await tablesOf(top.decks.items, target, controller, endsAt);
   } finally {
     clearTimeout(deadline);
   }
@@ -284,7 +318,7 @@ export default {
   /**
    * Builds the 50 cards the top 24 decks play most, weighted by each deck's share, for the main deck or the sideboard, §4.9.
    *
-   * The query string must be exactly `?window=` and one of the five windows, then `&section=` and `main` or `side`. The function reads the top 24 decks, then each deck's card table in pages of 50, all decks in parallel. It reads a deck's next page while that page's last card is in at least 5% of the deck's lists, up to 4 pages. The deck list has an 8 second timeout and each card table request, one page, 20 seconds. A 429 on a card table, or 50 seconds without an answer, aborts the calls still open. It leaves out withheld decks and the basic lands, and adds each card's art from Scryfall. GET and HEAD build the response. OPTIONS answers the CORS preflight with 204.
+   * The query string must be exactly `?window=` and one of the five windows, then `&section=` and `main` or `side`. The function reads the top 24 decks, then each deck's card table in pages of 50, all decks in parallel. It reads a deck's next page while that page's last card is in at least 5% of the deck's lists, up to 4 pages. The deck list has an 8 second timeout and each card table request, one page, 20 seconds. If a card table request times out and the deadline leaves at least 20 seconds, the function sends that page request once more. Only a timeout gets a second request, and each deck's table gets at most one. A 429 on a card table, or 50 seconds without an answer, aborts the calls still open. It leaves out withheld decks and the basic lands, and adds each card's art from Scryfall. GET and HEAD build the response. OPTIONS answers the CORS preflight with 204.
    *
    * @param req - The incoming request.
    * @returns A Promise resolving to `{ window, section, withheld, cards }`, cached for 30 minutes with 30 more of stale-while-revalidate, or for five minutes when the art lookup failed. Otherwise a JSON error: 400 for any other query string, 405 for any other method, 429 when Endstep rate limits a call, cached for 60 seconds, and 502 when any other call fails.
