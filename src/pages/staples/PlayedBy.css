@@ -1,0 +1,110 @@
+@layer components {
+  .played-by {
+    margin: 0 0 12px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    background: var(--background);
+  }
+
+  .played-by[hidden] {
+    display: none;
+  }
+
+  .played-by__title {
+    margin: 0 0 6px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-400);
+  }
+
+  .played-by__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 2px 28px;
+  }
+
+  .played-by__item {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 0;
+    border-bottom: 1px solid var(--rule);
+    font-size: 14px;
+  }
+
+  .played-by__deck {
+    min-width: 0;
+    color: var(--text-900);
+    font-weight: 500;
+    text-decoration: none;
+    overflow-wrap: anywhere;
+  }
+
+  .played-by__deck:hover {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .played-by__bar {
+    display: none;
+  }
+
+  .played-by__fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    border-radius: inherit;
+    background: var(--seq-500);
+  }
+
+  .played-by__rate {
+    text-align: right;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .played-by__copies {
+    text-align: right;
+    font-size: 12px;
+    color: var(--text-600);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .played-by__note {
+    margin: 0;
+    padding-top: 8px;
+    font-size: 12px;
+    color: var(--text-600);
+  }
+
+  .played-by__empty {
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-600);
+  }
+
+  @media (min-width: 640px) {
+    .played-by__item {
+      grid-template-columns: minmax(0, 1fr) 72px 4.5em 5.2em;
+    }
+
+    .played-by__bar {
+      display: block;
+      position: relative;
+      height: 8px;
+      border-radius: 4px;
+      background: var(--hover);
+      overflow: hidden;
+    }
+  }
+
+  @media (min-width: 1100px) {
+    .played-by__list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+}
