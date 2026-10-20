@@ -1723,7 +1723,7 @@ This item covers the behaviour of §4.9. On 2026-10-20 the first build of a cold
 **Tasks**
 
 1. In `api/staples.ts`, if a card table request times out or fails with a network error, and the deadline leaves at least 20 seconds, send that page request once more.
-2. Give each deck's table at most one second request, for the page that timed out. A second failure on that page fails the build, as today.
+2. Give each deck's table at most one second request, for the page that failed. A second failure on that page fails the build, as today.
 3. Send no second request after a 429 or a 5xx. Send none for a call that the deadline or a 429 aborts.
 4. Update the JSDoc of the handler for the second request.
 5. Add a spec beside the function for these cases:
