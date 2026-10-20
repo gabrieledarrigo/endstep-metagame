@@ -1,6 +1,6 @@
 # Endstep Pauper Metagame Viewer: Requirements
 
-Status: Draft v14 · Date: 2026-10-20
+Status: Draft v15 · Date: 2026-10-20
 
 Scope: five pages.
 
@@ -390,22 +390,26 @@ The matchups row of the deck page loads on its own, FR-11. It dims itself and ma
 
 #### Behaviour
 
-- One cold build costs one Endstep call for the deck list and one for each page. This is at most 97 calls: the deck list, and 4 pages for each of the 24 decks. The build also sends one Scryfall request.
+- One cold build costs one Endstep call for the deck list and one for each page. This is at most 97 calls: the deck list, and 4 pages for each of the 24 decks. A second request for a slow table, below, adds at most 24. So the limit is 121 calls. The build also sends one Scryfall request.
 - On 2026-10-20 at 30d and 7d, a build cost 29 calls for the main deck and 25 for the sideboard. At 1d, the deck list ran past its 8 second timeout on every try that day. So 1d has no count.
 - The deck list has the 8 second timeout of the proxy. Each card table request, one page, has 20 seconds. Endstep is slow on a table that it has not built yet.
 - We measured cold builds on 2026-10-20, with an 8 second timeout on each table:
   - At 30d, 12 of the 24 main deck tables timed out. At 7d, 22 of 24 timed out. These first builds returned 502.
   - Builds a few minutes later found the tables in Endstep's cache. They took 1.9 to 2.8 seconds.
 - A deadline of 50 seconds covers the deck list and the card tables. When it passes, the function aborts the open calls and returns 502 with `no-store`.
-- After the Endstep calls, the art lookup has up to 3 seconds. So the worst case is about 53 seconds. This is under the function's `maxDuration` of 60 seconds.
+- If a card table request times out, and the deadline leaves at least 20 seconds, the function sends that page request once more. Endstep keeps building a table after our request stops waiting, so the second request is usually fast.
+- Each deck's table gets at most one second request, for the page that timed out. A second timeout on that page is final.
+- Only a timeout gets a second request. A 429, a 5xx or a network error gets none. A call that the deadline or a 429 aborts gets none.
+- Checks on 2026-10-20 showed the need. Cold builds at 7d and 14d still returned 502 after 20 to 22 seconds, and the next build found every table ready.
+- After the Endstep calls, the art lookup has up to 3 seconds. The second requests stay inside the deadline. So the worst case is about 53 seconds. This is under the function's `maxDuration` of 60 seconds.
 - A 429 on a card table aborts the other open requests. So no further page goes to Endstep, NFR-4.
-- After a 500 or a timeout, the other tables finish, so a 429 among them still shows. The function returns 429 if any call returned 429.
+- After a 500 or a final timeout, the other tables finish, so a 429 among them still shows. The function returns 429 if any call returned 429.
 - We measured the collection request for 50 names at 2 seconds. With a one-second bound, it ran out of time in 3 of 4 builds. That is why the bound is 3 seconds.
 - With the 3 second bound, a 30d main deck build took 1.8 seconds on 2026-10-20. Its collection request took 1 second and found art for all 50 cards.
 - Card usage changes slowly. So the function holds a success for 30 minutes, with 30 more of stale-while-revalidate.
-- If the art lookup fell back, the function holds the success for five minutes, with `public, s-maxage=300, stale-while-revalidate=600`. A rebuild costs up to 97 Endstep calls.
+- If the art lookup fell back, the function holds the success for five minutes, with `public, s-maxage=300, stale-while-revalidate=600`. A rebuild costs up to 121 Endstep calls.
 - The function holds a 429 for 60 seconds. Any other error gets `no-store`. These two rules are the same as in the matchup function.
-- If any Endstep call fails, the whole request fails. It returns 429 for an upstream 429, and 502 for any other failure. A failed art lookup never fails the request.
+- If any Endstep call fails, the whole request fails. A timeout that a second request recovers is not a failure. It returns 429 for an upstream 429, and 502 for any other failure. A failed art lookup never fails the request.
 - The function uses the same method rules and CORS headers as the proxy, §4.3.
 
 ### 4.10 Sample cards function
@@ -863,7 +867,7 @@ The states follow the matchup table, FR-12:
 
 - While the page loads, it shows a skeleton.
 - If loading fails, the page shows the error panel with its retry.
-- The page does not retry on its own, because one cold build costs up to 97 upstream calls.
+- The page does not retry on its own, because one cold build costs up to 121 upstream calls.
 - While the next window loads, the page dims the previous window, §4.8.
 - A switch to the other list shows the skeleton until that list arrives. The cards on the screen belong to the other list, and they must not stand under its name.
 - If Endstep withholds the card table of a deck, §3.6, the page leaves that deck out. A line under the list then reads "1 deck is left out because Endstep withholds its cards.", or "{n} decks are left out because Endstep withholds their cards."
@@ -1171,7 +1175,7 @@ The goal is that total upstream traffic stays well below the limit of 300 per 60
 
 A search costs one upstream call for each distinct normalised query, window and page. The search runs 300ms after the reader stops typing, from 2 characters. The edge caches each query like any other deck list. If several regions warm every window inside one minute, they will pass the limit. At the traffic of this site, that is unlikely. If it happens, §4.4 holds a 429 at the edge for the full minute.
 
-The staples function costs at most 97 calls for each cold window and section, §4.9. On 2026-10-20 we measured 29 calls for the main deck and 25 for the sideboard, at 30d and 7d. If the other windows follow the same pattern, to warm all ten costs about 270 calls. This figure is an estimate. A reader can open every window and both sections on a cold region in one minute, and then open the matchup table. That walk may pass the limit. After it, the 30-minute cache of the staples function makes the same walk free. A 429 from the staples function is held for the minute, as it is for the matchup function.
+The staples function costs at most 121 calls for each cold window and section, §4.9. On 2026-10-20 we measured 29 calls for the main deck and 25 for the sideboard, at 30d and 7d. If the other windows follow the same pattern, to warm all ten costs about 270 calls. This figure is an estimate. On a cold window, the second requests of §4.9 add up to 24 calls. But they save the rebuild that a 502 used to need. A reader can open every window and both sections on a cold region in one minute, and then open the matchup table. That walk may pass the limit. After it, the 30-minute cache of the staples function makes the same walk free. A 429 from the staples function is held for the minute, as it is for the matchup function.
 
 The same care applies to Scryfall, §3.4. Each function sends fewer requests after an instance sees the cards:
 
