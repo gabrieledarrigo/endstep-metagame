@@ -288,7 +288,9 @@ async function lookUpArt(names: Map<string, string>): Promise<boolean> {
       method: "POST",
       headers: SCRYFALL_HEADERS,
       body: JSON.stringify({
-        identifiers: missing.map(([, name]) => ({ name })),
+        identifiers: missing.map(([, name]) => ({
+          name: name.split(" // ")[0],
+        })),
       }),
       signal: AbortSignal.timeout(SCRYFALL_TIMEOUT_MS),
     });

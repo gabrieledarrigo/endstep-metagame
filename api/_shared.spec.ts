@@ -334,6 +334,43 @@ describe("findArt", () => {
     },
   );
 
+  it.each([
+    [
+      "a split card",
+      "Fire // Ice",
+      "Fire",
+      {
+        name: "Fire // Ice",
+        image_uris: { art_crop: GUTTERSNIPE_ART },
+        card_faces: [{ name: "Fire" }, { name: "Ice" }],
+      },
+      GUTTERSNIPE_ART,
+    ],
+    [
+      "a double-faced card",
+      "Delver of Secrets // Insectile Aberration",
+      "Delver of Secrets",
+      {
+        name: "Delver of Secrets // Insectile Aberration",
+        card_faces: [
+          { name: "Delver of Secrets", image_uris: { art_crop: DELVER_ART } },
+          { name: "Insectile Aberration" },
+        ],
+      },
+      DELVER_ART,
+    ],
+  ])(
+    "asks for %s by its first half and matches the answer by its full name",
+    async (_, name, asked, answer, art) => {
+      const fetchMock = scryfall(collection([answer]));
+
+      const found = await findArt([name]);
+
+      expect(scryfallNames(fetchMock)).toEqual([[asked]]);
+      expect(found.art.get(name)).toBe(art);
+    },
+  );
+
   it("gives a face without its own image the card's art, as for an adventure", async () => {
     const giant =
       "https://cards.scryfall.io/art_crop/front/1/a/1a8bdc8b-bonecrusher-giant.jpg?1";

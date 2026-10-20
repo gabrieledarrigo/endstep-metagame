@@ -107,6 +107,7 @@ The proxy adds `art.imageUrl` to every deck in the deck list and in the deck det
   - The request has at most 50 identifiers, the largest page of the deck list. This is under Scryfall's limit of 75.
   - A deck with a blank name gets no identifier.
 - The proxy matches each card that Scryfall returns to a deck by name, and ignores case. The name can be the card's full name or the name of any of its faces. A double-faced card comes back as "Front // Back", but Endstep names its front face.
+- The lookup sends a name with two halves, "Front // Back", as its first half. It matches the answer by the full name. The collection does not find a split card by its full name, §4.10. Endstep's card tables name a card with two faces in full, §3.8.
 - A face's name gets that face's `image_uris.art_crop`. If the face has no image of its own, as on an adventure, the face's name gets the card's art crop. The full name gets the card's `image_uris.art_crop`, or the first face's art crop. The first match with an address on `cards.scryfall.io` wins.
 - A 200 is a stable answer:
   - The proxy stores every name that matched no card as not found. Scryfall shows such a name in one of two ways: it lists the name in `not_found`, or it answers with another spelling.
