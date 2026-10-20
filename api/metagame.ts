@@ -13,6 +13,7 @@ import {
 } from "./_shared.js";
 
 const RATE_LIMIT_SECONDS = 10;
+const ART_BOUND_MS = 1000;
 
 const ENDPOINTS = [
   ["formats"],
@@ -165,6 +166,7 @@ async function withArt(
 
   const { art, complete } = await findArt(
     decks.map((deck) => deck.art.cardName),
+    ART_BOUND_MS,
   );
   let added = false;
 

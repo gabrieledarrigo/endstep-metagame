@@ -341,6 +341,18 @@ describe("the metagame proxy's card art", () => {
     expect(await artOf(response)).toEqual([BARGAIN_ART]);
   });
 
+  it("gives the art lookup a one-second bound", async () => {
+    endstepAndScryfall(
+      deckList("Guttersnipe"),
+      collection([card("Guttersnipe", GUTTERSNIPE_ART)]),
+    );
+    const timeout = vi.spyOn(AbortSignal, "timeout");
+
+    await metagame.fetch(request(DECKS));
+
+    expect(timeout.mock.calls).toEqual([[8000], [1000]]);
+  });
+
   it("leaves a card Scryfall does not find to the fallback and keeps the usual cache time", async () => {
     endstepAndScryfall(
       deckList("Guttersnipe"),

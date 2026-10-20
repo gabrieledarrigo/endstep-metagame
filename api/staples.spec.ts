@@ -240,7 +240,7 @@ describe("the staples function's calls", () => {
       `${UPSTREAM}/Pauper/decks/b/cards?window=7d&population=rated&section=side&pageSize=50&page=1`,
       SCRYFALL,
     ]);
-    expect(timeout.mock.calls).toEqual([[8000], [8000], [8000], [1000]]);
+    expect(timeout.mock.calls).toEqual([[8000], [8000], [8000], [3000]]);
   });
 
   it("fetches a deck's next page while the last card is in at least 5% of its lists", async () => {

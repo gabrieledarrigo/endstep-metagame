@@ -11,6 +11,7 @@ import {
 } from "./_shared.js";
 
 const RATE_LIMIT_SECONDS = 60;
+const ART_BOUND_MS = 3000;
 const SUCCESS_CACHE = "public, s-maxage=1800, stale-while-revalidate=1800";
 const QUERY = /^\?window=([^&]*)&section=(main|side)$/;
 const TOP_DECKS = 24;
@@ -205,7 +206,10 @@ async function build(
     .filter((result) => result.status === "fulfilled")
     .map((result) => result.value);
   const staples = staplesOf(tables);
-  const { art, complete } = await findArt(staples.map((card) => card.name));
+  const { art, complete } = await findArt(
+    staples.map((card) => card.name),
+    ART_BOUND_MS,
+  );
 
   return {
     staples: {

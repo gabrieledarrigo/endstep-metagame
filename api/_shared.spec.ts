@@ -20,6 +20,7 @@ import {
 } from "./_shared.js";
 
 const SCRYFALL = "https://api.scryfall.com/cards/collection";
+const BOUND = 1000;
 const BARGAIN_ART =
   "https://cards.scryfall.io/art_crop/front/6/3/6338942d-d650-4571-8ec6-4d658792c53e.jpg?1783923877";
 const GUTTERSNIPE_ART =
@@ -261,11 +262,10 @@ describe("findArt", () => {
       ]),
     );
 
-    const found = await findArt([
-      "Reckoner's Bargain",
-      "Guttersnipe",
-      "reckoner's bargain",
-    ]);
+    const found = await findArt(
+      ["Reckoner's Bargain", "Guttersnipe", "reckoner's bargain"],
+      BOUND,
+    );
 
     expect(fetchMock).toHaveBeenCalledWith(SCRYFALL, {
       method: "POST",
@@ -289,7 +289,7 @@ describe("findArt", () => {
   it("sends nothing for no names", async () => {
     const fetchMock = scryfall(collection([]));
 
-    const found = await findArt([]);
+    const found = await findArt([], BOUND);
 
     expect(fetchMock).not.toHaveBeenCalled();
     expect(found).toEqual({ art: new Map(), complete: true });
@@ -316,7 +316,7 @@ describe("findArt", () => {
       ]),
     );
 
-    const found = await findArt(["delver of secrets"]);
+    const found = await findArt(["delver of secrets"], BOUND);
 
     expect(found.art.get("delver of secrets")).toBe(DELVER_ART);
   });
@@ -346,7 +346,7 @@ describe("findArt", () => {
       ]),
     );
 
-    const found = await findArt([name]);
+    const found = await findArt([name], BOUND);
 
     expect(found.art.get(name)).toBe(DELVER_ART.replace("/front/", side));
   });
@@ -396,7 +396,7 @@ describe("findArt", () => {
     async (_, cards) => {
       scryfall(collection(cards));
 
-      const found = await findArt(["Guttersnipe"]);
+      const found = await findArt(["Guttersnipe"], BOUND);
 
       expect(found.complete).toBe(true);
       expect(found.art.get("Guttersnipe")).toBe(GUTTERSNIPE_ART);
@@ -433,7 +433,7 @@ describe("findArt", () => {
     async (_, name, asked, answer, art) => {
       const fetchMock = scryfall(collection([answer]));
 
-      const found = await findArt([name]);
+      const found = await findArt([name], BOUND);
 
       expect(scryfallNames(fetchMock)).toEqual([[asked]]);
       expect(found.art.get(name)).toBe(art);
@@ -453,7 +453,7 @@ describe("findArt", () => {
       ]),
     );
 
-    const found = await findArt(["Stomp"]);
+    const found = await findArt(["Stomp"], BOUND);
 
     expect(found.art.get("Stomp")).toBe(giant);
   });
@@ -479,8 +479,8 @@ describe("findArt", () => {
     async (_, answer) => {
       const fetchMock = scryfall(answer);
 
-      const first = await findArt(["Guttersnipe"]);
-      const second = await findArt(["Guttersnipe"]);
+      const first = await findArt(["Guttersnipe"], BOUND);
+      const second = await findArt(["Guttersnipe"], BOUND);
 
       expect(first).toEqual({ art: new Map(), complete: true });
       expect(second).toEqual({ art: new Map(), complete: true });
@@ -492,10 +492,10 @@ describe("findArt", () => {
     const first = scryfall(
       collection([card("Reckoner's Bargain", BARGAIN_ART)]),
     );
-    await findArt(["Reckoner's Bargain"]);
+    await findArt(["Reckoner's Bargain"], BOUND);
 
     const second = scryfall(collection([card("Guttersnipe", GUTTERSNIPE_ART)]));
-    const found = await findArt(["Reckoner's Bargain", "Guttersnipe"]);
+    const found = await findArt(["Reckoner's Bargain", "Guttersnipe"], BOUND);
 
     expect(scryfallNames(first)).toEqual([["Reckoner's Bargain"]]);
     expect(scryfallNames(second)).toEqual([["Guttersnipe"]]);
@@ -505,14 +505,17 @@ describe("findArt", () => {
     });
   });
 
-  it("gives the lookup a one-second bound", async () => {
-    scryfall(collection([card("Guttersnipe", GUTTERSNIPE_ART)]));
-    const timeout = vi.spyOn(AbortSignal, "timeout");
+  it.each([1000, 3000])(
+    "gives the lookup the bound it is passed, %i ms",
+    async (bound) => {
+      scryfall(collection([card("Guttersnipe", GUTTERSNIPE_ART)]));
+      const timeout = vi.spyOn(AbortSignal, "timeout");
 
-    await findArt(["Guttersnipe"]);
+      await findArt(["Guttersnipe"], bound);
 
-    expect(timeout.mock.calls).toEqual([[1000]]);
-  });
+      expect(timeout.mock.calls).toEqual([[bound]]);
+    },
+  );
 
   it.each([
     [
@@ -536,8 +539,8 @@ describe("findArt", () => {
     async (_, answer) => {
       const fetchMock = scryfall(answer);
 
-      const first = await findArt(["Guttersnipe"]);
-      await findArt(["Guttersnipe"]);
+      const first = await findArt(["Guttersnipe"], BOUND);
+      await findArt(["Guttersnipe"], BOUND);
 
       expect(first).toEqual({ art: new Map(), complete: false });
       expect(scryfallNames(fetchMock)).toEqual([
@@ -555,7 +558,7 @@ describe("findArt", () => {
         async () => new Response(new ReadableStream({ cancel }), { status }),
       );
 
-      await findArt(["Guttersnipe"]);
+      await findArt(["Guttersnipe"], BOUND);
 
       expect(cancel).toHaveBeenCalledOnce();
     },
@@ -584,8 +587,8 @@ describe("findArt", () => {
     async (_, payload) => {
       const fetchMock = scryfall(async () => Response.json(payload));
 
-      const first = await findArt(["Guttersnipe"]);
-      await findArt(["Guttersnipe"]);
+      const first = await findArt(["Guttersnipe"], BOUND);
+      await findArt(["Guttersnipe"], BOUND);
 
       expect(first).toEqual({ art: new Map(), complete: false });
       expect(scryfallNames(fetchMock)).toEqual([
@@ -600,14 +603,17 @@ describe("findArt", () => {
     const first = scryfall(
       collection([card("Reckoner's Bargain", BARGAIN_ART)]),
     );
-    await findArt(["Reckoner's Bargain"]);
+    await findArt(["Reckoner's Bargain"], BOUND);
 
     const limited = scryfall(async () => new Response(null, { status: 429 }));
-    const rateLimited = await findArt(["Reckoner's Bargain", "Guttersnipe"]);
+    const rateLimited = await findArt(
+      ["Reckoner's Bargain", "Guttersnipe"],
+      BOUND,
+    );
     vi.advanceTimersByTime(29_999);
-    const paused = await findArt(["Reckoner's Bargain", "Guttersnipe"]);
+    const paused = await findArt(["Reckoner's Bargain", "Guttersnipe"], BOUND);
     vi.advanceTimersByTime(1);
-    await findArt(["Reckoner's Bargain", "Guttersnipe"]);
+    await findArt(["Reckoner's Bargain", "Guttersnipe"], BOUND);
 
     expect(scryfallNames(first)).toEqual([["Reckoner's Bargain"]]);
     expect(rateLimited.complete).toBe(false);

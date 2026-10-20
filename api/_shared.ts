@@ -21,7 +21,6 @@ export const BASE_HEADERS: Readonly<Record<string, string>> = {
 
 const NO_BODY = [204, 205, 304];
 const SCRYFALL_COLLECTION = "https://api.scryfall.com/cards/collection";
-const SCRYFALL_TIMEOUT_MS = 1000;
 const SCRYFALL_PAUSE_MS = 30_000;
 
 type ScryfallImages = { art_crop?: string };
@@ -329,10 +328,14 @@ function remember(asked: Set<string>, cards: ScryfallCard[]): void {
  * Never retries. After a 429 it sends nothing for 30 seconds, Scryfall's own lockout.
  *
  * @param names - The card names by memory key, each in the spelling Endstep sent.
+ * @param boundMs - The longest the collection request can take, in milliseconds.
  * @returns A Promise resolving to `true` when every name has an address or a not-found answer in memory, and `false` when the lookup failed, timed out, met a 429, was paused, or got a body it could not read. A failed lookup stores nothing.
  * @see https://scryfall.com/docs/api/cards/collection
  */
-async function lookUpArt(names: Map<string, string>): Promise<boolean> {
+async function lookUpArt(
+  names: Map<string, string>,
+  boundMs: number,
+): Promise<boolean> {
   const missing = [...names].filter(([key]) => !artByName.has(key));
 
   if (missing.length === 0) {
@@ -352,7 +355,7 @@ async function lookUpArt(names: Map<string, string>): Promise<boolean> {
           name: frontOf(name),
         })),
       }),
-      signal: AbortSignal.timeout(SCRYFALL_TIMEOUT_MS),
+      signal: AbortSignal.timeout(boundMs),
     });
 
     if (response.status === 429) {
@@ -383,14 +386,16 @@ async function lookUpArt(names: Map<string, string>): Promise<boolean> {
 }
 
 /**
- * Finds the art crop of each card name on Scryfall's CDN, §3.4. A warm instance asks Scryfall only for the names it has not seen, in one collection request with a one-second bound.
+ * Finds the art crop of each card name on Scryfall's CDN, §3.4. A warm instance asks Scryfall only for the names it has not seen, in one collection request.
  *
  * @param names - The card names, in the spelling Endstep sent. A name repeated in another case is asked once.
+ * @param boundMs - The longest the collection request can take, in milliseconds.
  * @returns A Promise resolving to the address of each name that has one, keyed by the name as given, and whether every name has an address or a not-found answer in memory. `complete` is `false` when the lookup failed, timed out, met a 429, was paused, or got a body it could not read.
  * @see https://scryfall.com/docs/api/cards/collection
  */
 export async function findArt(
   names: string[],
+  boundMs: number,
 ): Promise<{ art: Map<string, string>; complete: boolean }> {
   const asked = new Map<string, string>();
 
@@ -402,7 +407,7 @@ export async function findArt(
     }
   }
 
-  const complete = await lookUpArt(asked);
+  const complete = await lookUpArt(asked, boundMs);
   const art = new Map<string, string>();
 
   for (const name of names) {
