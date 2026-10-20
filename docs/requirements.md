@@ -1,6 +1,6 @@
 # Endstep Pauper Metagame Viewer: Requirements
 
-Status: Draft v15 · Date: 2026-10-20
+Status: Draft v16 · Date: 2026-10-20
 
 Scope: five pages.
 
@@ -397,9 +397,10 @@ The matchups row of the deck page loads on its own, FR-11. It dims itself and ma
   - At 30d, 12 of the 24 main deck tables timed out. At 7d, 22 of 24 timed out. These first builds returned 502.
   - Builds a few minutes later found the tables in Endstep's cache. They took 1.9 to 2.8 seconds.
 - A deadline of 50 seconds covers the deck list and the card tables. When it passes, the function aborts the open calls and returns 502 with `no-store`.
-- If a card table request times out, and the deadline leaves at least 20 seconds, the function sends that page request once more. Endstep keeps building a table after our request stops waiting, so the second request is usually fast.
-- Each deck's table gets at most one second request, for the page that timed out. A second timeout on that page is final.
-- Only a timeout gets a second request. A 429, a 5xx or a network error gets none. A call that the deadline or a 429 aborts gets none.
+- If a card table request times out or fails with a network error, and the deadline leaves at least 20 seconds, the function sends that page request once more. Endstep keeps building a table after our request stops waiting, so the second request is usually fast. On a cold build, some tables also fail at once with a network error.
+- Each deck's table gets at most one second request, for the page that failed. A second failure on that page is final.
+- Only a timeout or a network error gets a second request. A 429 or a 5xx gets none. A call that the deadline or a 429 aborts gets none.
+- Once any table has failed for good, no table gets a second request or asks for a further page. The build can then only return 502. Calls already open still finish, so a 429 among them still shows.
 - Checks on 2026-10-20 showed the need. Cold builds at 7d and 14d still returned 502 after 20 to 22 seconds, and the next build found every table ready.
 - On 2026-10-20 we measured a cold build of the main deck at season with the second requests, from a local dev server. It cost 48 calls. 21 of the 24 tables ran past their 20 second timeout. Each of their second requests answered 200, in 13.5 to 15.9 seconds. 3 other tables failed at once with a network error. That build gave a network error no second request, so it returned 502 after 39 seconds.
 - After the Endstep calls, the art lookup has up to 3 seconds. The second requests stay inside the deadline. So the worst case is about 53 seconds. This is under the function's `maxDuration` of 60 seconds.
@@ -410,7 +411,7 @@ The matchups row of the deck page loads on its own, FR-11. It dims itself and ma
 - Card usage changes slowly. So the function holds a success for 30 minutes, with 30 more of stale-while-revalidate.
 - If the art lookup fell back, the function holds the success for five minutes, with `public, s-maxage=300, stale-while-revalidate=600`. A rebuild costs up to 121 Endstep calls.
 - The function holds a 429 for 60 seconds. Any other error gets `no-store`. These two rules are the same as in the matchup function.
-- If any Endstep call fails, the whole request fails. A timeout that a second request recovers is not a failure. It returns 429 for an upstream 429, and 502 for any other failure. A failed art lookup never fails the request.
+- If any Endstep call fails, the whole request fails. A timeout or a network error that a second request recovers is not a failure. It returns 429 for an upstream 429, and 502 for any other failure. A failed art lookup never fails the request.
 - The function uses the same method rules and CORS headers as the proxy, §4.3.
 
 ### 4.10 Sample cards function
