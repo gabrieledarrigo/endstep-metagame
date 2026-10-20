@@ -42,6 +42,13 @@ class UpstreamError extends Error {
   }
 }
 
+class NetworkError extends Error {
+  constructor(cause: TypeError) {
+    super("Endstep could not be reached", { cause });
+    this.name = "NetworkError";
+  }
+}
+
 /**
  * Fetches one Endstep endpoint and parses its JSON body.
  *
@@ -50,7 +57,9 @@ class UpstreamError extends Error {
  * @param options - `timeoutMs`, the call's timeout, 8 seconds by default. `signal`, which aborts the call, or stops it before it starts.
  * @returns A Promise resolving to the parsed body.
  * @throws An `UpstreamError` with the status when Endstep answers anything other than a success.
- * @throws The fetch or parse error when Endstep is unreachable, too slow, or answers with a body that is not JSON.
+ * @throws An error that `isNetworkError` reads as a network failure, when `fetch` fails before Endstep answers.
+ * @throws A `TimeoutError` when the call runs past its timeout.
+ * @throws The read or parse error when the body breaks off or is not JSON.
  * @throws The signal's reason when the signal is aborted.
  */
 export async function upstream<Body>(
@@ -72,7 +81,13 @@ export async function upstream<Body>(
       },
       signal: signal ? AbortSignal.any([timeout, signal]) : timeout,
     },
-  );
+  ).catch((error: unknown) => {
+    if (error instanceof TypeError) {
+      throw new NetworkError(error);
+    }
+
+    throw error;
+  });
 
   if (!response.ok) {
     await response.body?.cancel();
@@ -90,6 +105,16 @@ export async function upstream<Body>(
  */
 export function isRateLimit(error: unknown): boolean {
   return error instanceof UpstreamError && error.status === 429;
+}
+
+/**
+ * Checks whether an error is a network failure: `fetch` failed before Endstep sent an answer.
+ *
+ * @param error - The error a call failed with.
+ * @returns `true` only for the error `upstream` throws when `fetch` itself fails. A timeout, an abort, an error status, and a body that breaks off or is not JSON give `false`.
+ */
+export function isNetworkError(error: unknown): boolean {
+  return error instanceof NetworkError;
 }
 
 /**

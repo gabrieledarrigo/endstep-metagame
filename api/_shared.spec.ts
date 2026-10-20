@@ -13,6 +13,7 @@ import {
   errorResponse,
   frontOf,
   hasNoBody,
+  isNetworkError,
   isRateLimit,
   isRecord,
   methodResponse,
@@ -264,6 +265,78 @@ describe("upstream", () => {
       expect(isRateLimit(error)).toBe(limited);
     },
   );
+});
+
+describe("upstream's network failure", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("rejects a failed fetch with an error that isNetworkError reads, with the fetch error as its cause", async () => {
+    const failure = new TypeError("fetch failed");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>(async () => {
+        throw failure;
+      }),
+    );
+
+    const error: unknown = await upstream("Pauper/decks", {}).catch(
+      (reason: unknown) => reason,
+    );
+
+    expect(isNetworkError(error)).toBe(true);
+    expect(error).toMatchObject({ cause: failure });
+  });
+
+  it.each([
+    [
+      "a timeout",
+      async (): Promise<Response> => {
+        throw new DOMException("The operation timed out", "TimeoutError");
+      },
+    ],
+    [
+      "an abort",
+      async (): Promise<Response> => {
+        throw new DOMException("Aborted", "AbortError");
+      },
+    ],
+    [
+      "a 500",
+      async (): Promise<Response> => new Response(null, { status: 500 }),
+    ],
+    [
+      "a body that breaks off",
+      async (): Promise<Response> =>
+        new Response(
+          new ReadableStream({
+            start(controller): void {
+              controller.error(new TypeError("terminated"));
+            },
+          }),
+        ),
+    ],
+    [
+      "a body that is not JSON",
+      async (): Promise<Response> => new Response("<html>"),
+    ],
+  ])("keeps %s apart from a network failure", async (_, answer) => {
+    vi.stubGlobal("fetch", vi.fn<typeof fetch>(answer));
+
+    const error: unknown = await upstream("Pauper/decks", {}).catch(
+      (reason: unknown) => reason,
+    );
+
+    expect(error).toBeInstanceOf(Error);
+    expect(isNetworkError(error)).toBe(false);
+  });
+});
+
+describe("isNetworkError", () => {
+  it("reads an error that upstream did not throw as no network failure", () => {
+    expect(isNetworkError(new TypeError("fetch failed"))).toBe(false);
+  });
 });
 
 describe("isRateLimit", () => {

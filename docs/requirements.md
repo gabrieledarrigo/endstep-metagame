@@ -401,6 +401,7 @@ The matchups row of the deck page loads on its own, FR-11. It dims itself and ma
 - Each deck's table gets at most one second request, for the page that timed out. A second timeout on that page is final.
 - Only a timeout gets a second request. A 429, a 5xx or a network error gets none. A call that the deadline or a 429 aborts gets none.
 - Checks on 2026-10-20 showed the need. Cold builds at 7d and 14d still returned 502 after 20 to 22 seconds, and the next build found every table ready.
+- On 2026-10-20 we measured a cold build of the main deck at season with the second requests, from a local dev server. It cost 48 calls. 21 of the 24 tables ran past their 20 second timeout. Each of their second requests answered 200, in 13.5 to 15.9 seconds. 3 other tables failed at once with a network error. That build gave a network error no second request, so it returned 502 after 39 seconds.
 - After the Endstep calls, the art lookup has up to 3 seconds. The second requests stay inside the deadline. So the worst case is about 53 seconds. This is under the function's `maxDuration` of 60 seconds.
 - A 429 on a card table aborts the other open requests. So no further page goes to Endstep, NFR-4.
 - After a 500 or a final timeout, the other tables finish, so a 429 among them still shows. The function returns 429 if any call returned 429.
