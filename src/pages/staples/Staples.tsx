@@ -47,11 +47,17 @@ export function Staples({
 }: StaplesProps) {
   const id = useId();
   const key = `${timeWindow}:${section}`;
-  const [moreFor, setMoreFor] = useState<string | null>(null);
+  const [listKey, setListKey] = useState(key);
+  const [more, setMore] = useState(false);
   const firstMore = useRef<HTMLLIElement>(null);
 
+  if (listKey !== key) {
+    setListKey(key);
+    setMore(false);
+  }
+
   const showMore = (): void => {
-    flushSync(() => setMoreFor(key));
+    flushSync(() => setMore(true));
     firstMore.current?.focus();
   };
 
@@ -94,10 +100,7 @@ export function Staples({
               );
             }
 
-            const cards = data.cards.slice(
-              0,
-              moreFor === key ? FIRST + MORE : FIRST,
-            );
+            const cards = data.cards.slice(0, more ? FIRST + MORE : FIRST);
             const rest =
               Math.min(data.cards.length, FIRST + MORE) - cards.length;
 
