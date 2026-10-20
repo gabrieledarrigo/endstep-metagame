@@ -44,6 +44,22 @@ export function percent(rate: number): string {
 }
 
 /**
+ * Formats a card's average copies with one decimal in the user's locales, FR-18.
+ *
+ * @param copies - The average copies of the card in the lists that play it.
+ * @returns The copies, such as `3.9 copies`.
+ */
+export function formatCopies(copies: number): string {
+  const locales = userLocales();
+  const count = new Intl.NumberFormat(locales, {
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  }).format(copies);
+
+  return `${count} copies`;
+}
+
+/**
  * Formats a meta share with one decimal in the user's locales. A share above zero never reads as zero.
  *
  * @param rate - A share between 0 and 1.
