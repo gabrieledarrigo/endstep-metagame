@@ -26,7 +26,7 @@ const TABLE_TIMEOUT_MS = 20_000;
 const DEADLINE_MS = 50_000;
 const FLOOR = 0.05;
 const KEPT = 50;
-const LANDS = [...BASICS, ...SNOW_COVERED_BASICS];
+const ALL_BASICS = [...BASICS, ...SNOW_COVERED_BASICS];
 
 type Target = { window: string; section: string };
 
@@ -183,7 +183,7 @@ function staplesOf(tables: Table[]): Staple[] {
 
   for (const { deck, cards } of counted) {
     for (const card of cards) {
-      if (LANDS.includes(nameKey(card.name))) {
+      if (ALL_BASICS.includes(nameKey(card.name))) {
         continue;
       }
 
