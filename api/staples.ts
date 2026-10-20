@@ -103,7 +103,7 @@ async function tableOf(
   target: Target,
   signal: AbortSignal,
 ): Promise<Table> {
-  const cards: CardRow[] = [];
+  const cards = new Map<string, CardRow>();
 
   for (let page = 1; page <= MAX_PAGES; page += 1) {
     const body = await upstream<CardsBody>(
@@ -122,7 +122,12 @@ async function tableOf(
       return { deck, cards: null };
     }
 
-    cards.push(...body.cards.items);
+    for (const row of body.cards.items) {
+      if (!cards.has(row.name)) {
+        cards.set(row.name, row);
+      }
+    }
+
     const last = body.cards.items.at(-1);
 
     if (
@@ -134,7 +139,7 @@ async function tableOf(
     }
   }
 
-  return { deck, cards };
+  return { deck, cards: [...cards.values()] };
 }
 
 function staplesOf(tables: Table[]): Staple[] {

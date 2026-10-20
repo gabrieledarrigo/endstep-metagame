@@ -351,6 +351,44 @@ describe("the staples function's cards", () => {
     expect(body.cards[1].art).toBeNull();
   });
 
+  it("counts a card once per deck when it moves across a page boundary between two pages", async () => {
+    endstep({
+      decks: [deck("a", 0.2)],
+      pages: {
+        a: [
+          {
+            total: 100,
+            rows: [
+              ["Counterspell", 1, 4],
+              ["Ponder", 0.5, 2],
+            ],
+          },
+          {
+            total: 100,
+            rows: [
+              ["Ponder", 0.49, 3],
+              ["Preordain", 0.01, 1],
+            ],
+          },
+        ],
+      },
+    });
+
+    const body = await bodyOf(await staples.fetch(request(MAIN_30D)));
+    const ponder = body.cards.find((card) => card.name === "Ponder");
+
+    expect(body.cards.map((card) => card.name)).toEqual([
+      "Counterspell",
+      "Ponder",
+      "Preordain",
+    ]);
+    expect(ponder?.share).toBeCloseTo(0.5, 10);
+    expect(ponder?.copies).toBeCloseTo(2, 10);
+    expect(ponder?.decks).toEqual([
+      { slug: "a", name: "A", playRate: 0.5, copies: 2 },
+    ]);
+  });
+
   it("leaves out a withheld deck, divides by the counted decks' share, and counts it", async () => {
     endstep({
       decks: [...decks, deck("d", 0.6)],
