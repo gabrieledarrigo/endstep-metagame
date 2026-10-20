@@ -1,6 +1,6 @@
 # Endstep Pauper Metagame Viewer: Requirements
 
-Status: Draft v13 · Date: 2026-10-20
+Status: Draft v14 · Date: 2026-10-20
 
 Scope: five pages.
 
@@ -26,7 +26,7 @@ This document describes a browser application. It reads the public Endstep metag
 - "What to play?" ranks the top decks against the metagame that the reader expects. It names the best deck.
 - Staples lists the cards that the top decks play most.
 
-The application is read-only. It stores only two display preferences: the theme, FR-13, and the sample list's currency, FR-19. It has no authentication and no accounts. It has no affiliation with Endstep.
+The application is read-only. It stores only three display preferences: the theme, FR-13, the sample list's currency, FR-19, and the language, FR-20. It has no authentication and no accounts. It has no affiliation with Endstep.
 
 ---
 
@@ -57,6 +57,7 @@ The application is read-only. It stores only two display preferences: the theme,
 | Sharing | Each deck page shares with its own title, figures and art. Every other page shares the site card, FR-15 |
 | What to play? | The top 24, ranked by expected match win rate against a metagame that the reader can change. The data comes from the matchup table. No new calls to Endstep, FR-17 |
 | Staples | The 50 cards that the top 24 play most, weighted by share, for the main deck and the sideboard. The staples function builds them, FR-18 and §4.9 |
+| Languages | English, Italian, Spanish and Portuguese, through i18next. The page detects the language from the browser, and a switch in the header changes it, FR-20 |
 | Sample list extras | Card images on hover or tap. The cost to build, at each card's cheapest printing. Both come from Scryfall through the sample cards function, FR-19 and §4.10 |
 
 ---
@@ -287,7 +288,7 @@ The front end uses React Router 8 in declarative mode, with `BrowserRouter`, `Ro
   - The section of the staples list in `section`, FR-18.
 - A change to the view state replaces the history entry. So Back leaves the page, and does not undo a sort. The default view leaves the parameters out.
 - So Back, forward and reload return to a page as the reader left it. A link carries only `?window=`, so it opens a page in its default view. This is the rule of the browser itself. History returns to a page, and a link is a new visit. The one exception is the link from the deck page to the matchup table. That link also carries `?deck=`, FR-11.
-- The theme is not view state. It is a preference of the reader, kept in local storage, so a link never carries it. See FR-13. The currency of the sample list is the same kind of preference, FR-19.
+- The theme is not view state. It is a preference of the reader, kept in local storage, so a link never carries it. See FR-13. The currency of the sample list, FR-19, and the language, FR-20, are the same kind of preference.
 - Back and forward work. A route change does not reload the page.
 - `BrowserRouter` sets `useTransitions={false}`. So each navigation renders at once, not as a React transition. With transitions, quick presses of Enter on a stepper button read the address before the last press rendered. The app then lost some presses, FR-17.
 - Any other path is a Vercel 404. If a path reaches the app without a route, such as `/index.html`, the app shows a Not found page.
@@ -646,8 +647,8 @@ Below 640px, the page shows the row of one deck as a list, in place of the table
 Every page has a light theme and a dark theme. The design system specifies both palettes, NFR-1a.
 
 - On a first visit, the page follows the setting of the device, `prefers-color-scheme`. If the device has no setting, the page uses the light theme. Until the reader chooses, the page also follows a change to the device setting while the page is open. The toggle and the charts also follow that change.
-- A 36px round button at the top right of the site header switches between the two themes. It is on every page and at every width. It is a toggle button named Dark theme, with `aria-pressed`. Its icon shows the current theme, a sun or a moon, so the icon agrees with `aria-pressed`.
-- Below 1,100px, the button shares the first row with the site name, and the links take the second row. From 1,100px, they share one row. If the three links share one row at 640px, the name wraps to three lines. If the name runs out of room, it wraps to two lines and the button stays at the top right.
+- A 36px round button at the top right of the site header switches between the two themes. The language switch sits before it, FR-20. It is on every page and at every width. It is a toggle button named Dark theme, with `aria-pressed`. Its icon shows the current theme, a sun or a moon, so the icon agrees with `aria-pressed`.
+- Below 1,100px, the language switch and the button share the first row with the site name, and the links take the second row. On a 360px phone, the name then takes three lines. From 1,100px, they share one row. If the three links share one row at 640px, the name wraps to three lines. If the name runs out of room, it wraps onto more lines, and the button stays at the top right.
 - The page keeps the choice of the reader in local storage. From then on, the choice wins over the device setting. The choice is not in the address, §4.5.
 - The page applies the theme before its first paint, so a dark page never flashes light.
 - A switch recolours the charts at once, with no reload. Native controls and scrollbars follow the theme through `color-scheme`.
@@ -905,6 +906,57 @@ A block after the lists shows the cost to build.
 - The six basic lands cost nothing. Snow-covered basics get a price.
 - During a window change, the block follows §4.8. It never shows the cost of one window under the list of another window.
 
+### FR-20. Languages
+
+The site reads in English, Italian, Spanish and Portuguese, and the reader can choose the language. The design system's Page header section shows the language switch.
+
+#### The languages
+
+- `en`, English. English is the source of every string.
+- `it`, Italian.
+- `es`, Spanish, in a neutral form for Spain and Latin America.
+- `pt`, Portuguese, in its Brazilian form.
+
+Each language needs a translation of every string before it enters the site. Until then, the switch does not list it. With only one language, the site shows no switch.
+
+#### The first visit
+
+- The page reads the preferred languages of the browser, `navigator.languages`, in order. It takes the first language whose primary code is one of the four. For example, `pt-PT` and `pt-BR` both give `pt`.
+- If no language matches, the page uses English.
+
+#### The switch
+
+- A pill sits at the top right of the site header, before the theme toggle, FR-13. It is on every page and at every width, once the site has two or more languages. It shows the code of the current language, such as "EN", and a chevron.
+- A native select lies over the pill, invisible, so a tap or a click opens it. It is named "Language" in the current language. Each option names the language in its own words: "English", "Italiano", "Español", "Português".
+- A choice changes every text on the page at once, with no reload.
+- The page keeps the choice of the reader in local storage, as it keeps the theme. From then on, the choice wins over the browser. The choice is not in the address, §4.5.
+- The `lang` attribute of the `html` element holds the full tag of the formats below, such as `pt-BR`. A screen reader then uses the right voice.
+
+#### Formats
+
+- Numbers, percentages and dates follow the current language, through `Intl`. English shows "57.5%" and "5 Sept". Italian shows "57,5%" and "5 set".
+- The page takes the region from the first entry of `navigator.languages` whose primary code is the current language. For example, `en-US` shows "Sep 5". If no entry has that code, the page uses `en-GB`, `it-IT`, `es-ES` or `pt-BR`.
+- A date shows its day as a plain number, "5", not "05".
+
+#### What stays in English
+
+- The names of decks, which come from Endstep.
+- The names of cards. MTGO runs in English, and players use the English names.
+- The Fan Content notice, NFR-5, in the policy's own words.
+- The name of the site, "Pauper Endstep metagame".
+- The HTML that chat apps and search engines read, FR-15. §8 keeps link previews in other languages out of scope.
+
+#### The strings
+
+- One file, `src/locales/locales.json`, holds every string. Each language is a top-level key. Its strings sit under `translation`, the default namespace of i18next.
+- A key names the place of its string, such as `pick.title`. A placeholder uses double braces, such as `{{deck}}`.
+- A plural uses the endings that i18next asks for each language, through `Intl.PluralRules`. English needs `_one` and `_other`. Italian, Spanish and Portuguese also need `_many`, which they use for large round numbers such as a million.
+- TypeScript makes sure that each language in the file holds every key of English, and every plural ending of its own language. A missing key fails the build.
+- If a string is missing when the page runs, the page shows the English string.
+- The words that the formatting helpers add, such as the "to" in a window range and "Not available", are strings in the file too.
+- The quoted UI text in this document is the English text. Each language translates it.
+- Specs render in English, so they keep their queries by the English text.
+
 ---
 
 ## 6. Data caveats the UI must handle
@@ -977,6 +1029,7 @@ The front end is a Vite application in TypeScript with React 19. `npm run build`
 | React, ReactDOM | 19 |
 | React Router | 8, declarative mode |
 | TanStack Query | 5. See §4.8 |
+| i18next, react-i18next | 26 and 17. See FR-20 |
 | Recharts | 3.10 |
 | Vite | 8 |
 | TypeScript | 6.0, strict mode. See below |
@@ -1152,7 +1205,7 @@ The site supports the current versions of Chrome, Firefox, Safari and Edge. It d
 The code targets ES2025 in these places: `target` and `lib` in the three TypeScript configuration files, and `build.target` in Vite. The site does not support older browser versions.
 
 ### NFR-9. Privacy
-The site has no analytics and no cookies. It keeps no personal data in local storage. It sends no third-party requests beyond the card-art hosts: the Scryfall CDN, and the Endstep image endpoint as the fallback. The app keeps two values in local storage: the theme choice, FR-13, and the currency of the sample list, FR-19. Both are display preferences, not personal data. They never leave the browser.
+The site has no analytics and no cookies. It keeps no personal data in local storage. It sends no third-party requests beyond the card-art hosts: the Scryfall CDN, and the Endstep image endpoint as the fallback. The app keeps three values in local storage: the theme choice, FR-13, the currency of the sample list, FR-19, and the language, FR-20. All three are display preferences, not personal data. They never leave the browser.
 
 ### NFR-10. Deployment
 Vercel deploys the site from the Git repository. The deploy is a Vite build and five serverless functions. It uses no environment variables and no secrets. Production waits until CI passes, §4.7.
@@ -1216,6 +1269,7 @@ The project has no CSS linter for now. Prettier formats the CSS, and review enfo
 - Deck page sections beyond the numbers, the sample list and the matchups row. These are the full list of opponents of the deck, card usage and the rating distribution. Staples, FR-18, shows card usage across the top 24, not the card table of one deck.
 - A matchup table beyond the top 24 decks.
 - Formats other than Pauper.
+- Languages beyond the four of FR-20. A language in the address, such as `/it/` paths. Link previews in other languages.
 - The `casual` population and rating-band filtering.
 - `minMatches` filtering, and pages of the top list of the overview beyond 24. Search results have pages, FR-14.
 
@@ -1247,3 +1301,8 @@ The project has no CSS linter for now. Prettier formats the CSS, and review enfo
     - A switch for MTGO, € and $.
     - The split between the main deck and the sideboard.
     - One sentence about the source.
+16. ~~More languages.~~ Settled on 2026-10-20: FR-20. The owner chose:
+    - English, Italian, Spanish and Portuguese.
+    - A switch beside the theme toggle that shows the code and a chevron, with a native select over it.
+    - One file for all the strings, and i18next.
+    - Translations that the owner writes.
