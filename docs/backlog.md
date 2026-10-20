@@ -2022,15 +2022,44 @@ S33 waits for the owner. The owner writes the translations in `locales.json`, on
 
 **Date:** 2026-10-20. This milestone comes from Draft v17 of the requirements.
 
-This milestone has one user story, for FR-15 and §4.7. It changes no screen, so it has no design item.
+This milestone has one enabler and one user story, for §4.2, FR-15 and §4.7. On 2026-10-20 the owner asked to split the shared server code by subject before S34 adds to it. The milestone changes no screen, so it has no design item.
 
 | Wave | Items | Runs in parallel |
 |---|---|---|
-| 34 | S34 | Yes, beside milestone 7 |
+| 34 | E18 | Yes, beside milestone 7 |
+| 35 | S34 | Yes, beside milestone 7 |
 
 ```
-S34 a preview for each page
+E18 the server code by subject ──► S34 a preview for each page
 ```
+
+---
+
+## E18. Split the shared server code by subject
+
+This enabler covers the `server/` folder of §4.2 and the configs of NFR-1. It moves code and changes no behaviour.
+
+**Tasks**
+
+1. Create `server/` with `endstep.ts`, `scryfall.ts`, `cards.ts`, `http.ts` and `head.ts`, as §4.2 lists them.
+2. Move each part of `api/_shared.ts` to its file. Then delete `api/_shared.ts`.
+3. Move these copies to one place:
+   - The basic lands of `api/staples.ts` and `api/sample-cards.ts` go to `cards.ts`. Keep the snow-covered basics as their own list. The staples leave them out, but the sample list prices them, FR-19.
+   - `nameKey` and the `keyOf` of `api/sample-cards.ts` become one function in `cards.ts`.
+   - The Scryfall address and the 30 second pause of `api/sample-cards.ts` use the constants of `scryfall.ts`. Each function keeps its own pause.
+   - `escapeHtml`, `withMeta`, `SITE_ORIGIN`, `SITE_NAME` and the head writing of `api/deck-page.ts` go to `head.ts`.
+4. Split `api/_shared.spec.ts` the same way, into a spec beside each file. Move the specs of the moved copies with them.
+5. Make `api/tsconfig.json` cover `server/`. Add `server/**` to the Node scope of ESLint and to the `api` project of Vitest. Add `server/**/*.spec.ts` to `.vercelignore`.
+6. Update §4.2, §4.7 and NFR-1 if the code differs from them in any detail.
+
+**Done when**
+
+- `api/_shared.ts` is gone. Every file in `api/` is a function or its spec.
+- Every spec passes. The moved specs check the same cases as before.
+- An offline `vercel build` builds every function with no error.
+- In production, each function answers as before: the proxy, the matchup function, the staples function, the sample cards function and the deck page's function.
+
+**Blocked by** nothing. **Blocks** S34.
 
 ---
 
@@ -2042,14 +2071,13 @@ This story covers the previews of the matchup table, What to play? and Staples, 
 
 **Tasks**
 
-1. Move the code that writes the title, the description, the canonical link and `og:url` from `api/deck-page.ts` to `api/_shared.ts`. The deck page's function keeps its behaviour.
-2. In `api/_shared.ts`, add one list with the path, the title and the description of each of the three pages, as FR-15 gives them. Use its full addresses for the canonical link and `og:url`.
-3. Add a Vite plugin that writes `dist/matchups.html`, `dist/what-to-play.html` and `dist/staples.html` from `dist/index.html`, with the shared code.
-4. In `vercel.json`, set `cleanUrls` and remove the three page rewrites.
-5. Check that `vite preview` serves each file at its path. Add code only if it does not.
-6. On each route change, set the canonical link and `og:url` to the full address of the new path, with no query string. Add them if the HTML has none.
-7. Update §4.5, §4.6 and §4.7 if the code differs from them in any detail.
-8. Add specs for these cases:
+1. In `server/head.ts`, add one list with the path, the title and the description of each of the three pages, as FR-15 gives them. Use its full addresses for the canonical link and `og:url`.
+2. Add a Vite plugin that writes `dist/matchups.html`, `dist/what-to-play.html` and `dist/staples.html` from `dist/index.html`, with the code of `server/head.ts`.
+3. In `vercel.json`, set `cleanUrls` and remove the three page rewrites.
+4. Check that `vite preview` serves each file at its path. Add code only if it does not.
+5. On each route change, set the canonical link and `og:url` to the full address of the new path, with no query string. Add them if the HTML has none.
+6. Update §4.5, §4.6 and §4.7 if the code differs from them in any detail.
+7. Add specs for these cases:
    - Each built file has its title, description, `og:title`, `og:description`, canonical link and `og:url`.
    - Each built file keeps the image of the site card.
    - `dist/index.html` does not change.
@@ -2067,10 +2095,12 @@ This story covers the previews of the matchup table, What to play? and Staples, 
 - Each page loads and works as before, with no error in the security policy.
 - The specs pass.
 
-**Blocked by** nothing. **Blocks** nothing.
+**Blocked by** E18. **Blocks** nothing.
 
 ---
 
 ## Notes on sequencing, milestone 8
 
-S34 changes the build, `vercel.json` and the deck page's function. It touches no component, so it runs beside milestone 7.
+E18 moves code and changes no behaviour. S34 waits for it, because it adds its list to `server/head.ts`.
+
+Neither item touches a component, so both run beside milestone 7. E17 moves strings in `src/` only, so it does not conflict with E18.

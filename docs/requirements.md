@@ -107,7 +107,7 @@ The proxy adds `art.imageUrl` to every deck in the deck list and in the deck det
 - The proxy sends one `POST https://api.scryfall.com/cards/collection` for each response. The request has one `{ "name": … }` identifier for each distinct key card name.
   - The request has at most 50 identifiers, the largest page of the deck list. This is under Scryfall's limit of 75.
   - A deck with a blank name gets no identifier.
-- The staples function uses the same lookup, `findArt` in `api/_shared.ts`, for its 50 cards, §4.9.
+- The staples function uses the same lookup, `findArt` in `server/scryfall.ts`, for its 50 cards, §4.9.
 - The proxy matches each card that Scryfall returns to a deck by name, and ignores case. The name can be the card's full name or the name of any of its faces. A double-faced card comes back as "Front // Back", but Endstep names its front face.
 - The lookup sends a name with two halves, "Front // Back", as its first half. It matches the answer by the full name. The collection does not find a split card by its full name, §4.10. Endstep's card tables name a card with two faces in full, §3.8.
 - A face's name gets that face's `image_uris.art_crop`. If the face has no image of its own, as on an adventure, the face's name gets the card's art crop. The full name gets the card's `image_uris.art_crop`, or the first face's art crop. The first match with an address on `cards.scryfall.io` wins.
@@ -194,7 +194,12 @@ On 2026-09-20, the project tested public CORS proxies and rejected them. All six
 1. The front end is a Vite application in `src/`. Vercel builds it to `dist/`. It serves the overview from `index.html`. The matchup table, What to play? and Staples each have a copy of that file with their own title and description, §4.7.
 2. `api/metagame.ts` is the proxy. It forwards `GET` requests to `https://endstep.cc/api/metagame/v1/...`. It keeps the allow-listed query parameters and returns the upstream body with CORS headers. For the deck list and the deck detail, it also adds the art address of each deck from Scryfall, §3.4. So the proxy is no longer a pure pass-through.
 3. `api/matchups.ts` is the matchup function. It builds the top-24 matrix on the server and returns it in one response. See §4.4. It is a separate function, so that the proxy keeps to one upstream call per request.
-4. `api/_shared.ts` holds the code that the functions share. This code is the upstream address, its timeout and the fetch of an Endstep endpoint. It is also the CORS headers, the method rules, the error responses and the cache rules. The art lookup on Scryfall, §3.4, is here too. So is the code that writes a title, a description, a canonical link and `og:url` into the HTML. The deck page's function and the build plugin both use it, FR-15. Vercel does not deploy a file in `api/` whose name starts with an underscore. So this file is not a function of its own.
+4. `server/` holds the code that the functions and the build share. Vercel deploys only the files in `api/` as functions, so no file here is a function. A function bundles the files it imports. Each file covers one subject:
+   - `endstep.ts`: the upstream address, its timeout and the fetch of an Endstep endpoint. It also holds the windows, the slug rule and the address of a deck detail.
+   - `scryfall.ts`: the art lookup on Scryfall, §3.4, with its memory and its pause.
+   - `cards.ts`: the rules for card names, the six basic lands and their snow-covered versions.
+   - `http.ts`: the CORS headers, the method rules, the error responses and the cache rules.
+   - `head.ts`: the code that writes a title, a description, a canonical link and `og:url` into the HTML, and the list of page previews. The deck page's function and the build plugin both use it, FR-15.
 5. `api/deck-page.ts` is the deck page's HTML function. It writes the title, the description and the image of the deck into the built `index.html` for link previews, FR-15. `vercel.json` sends `/decks/:slug` to this function in place of the static rewrite.
 6. `api/staples.ts` is the staples function. It builds the 50 most played cards of the top 24 decks on the server, with their art. It returns them in one response. See §4.9.
 7. `api/sample-cards.ts` is the sample cards function. It gets the card images and prices of the sample list from Scryfall, for one deck and window. See §4.10.
@@ -320,7 +325,7 @@ Vercel runs `npm run build` and serves `dist/`. Vercel builds the functions in `
   - Connections to the site only.
   - Inline style attributes, which the charts set.
 - Vercel serves only `dist/`. Nobody can reach the source files, `docs/` or the development files from the public site any more.
-- Vercel deploys every file in `api/` as a function. So `.vercelignore` excludes `api/**/*.spec.ts`, and Vercel never deploys the specs beside the functions.
+- Vercel deploys every file in `api/` as a function. So `.vercelignore` excludes `api/**/*.spec.ts`, and Vercel never deploys the specs beside the functions. It excludes `server/**/*.spec.ts` too.
 
 #### Production waits for CI
 
@@ -695,7 +700,7 @@ Every page carries the data that browsers, search engines and chat apps read wit
   - The `og:title` and `og:description` repeat the title and the description.
   - The canonical link and `og:url` of each page are its full address with no query string, such as `https://pauper-endstep-metagame.vercel.app/staples`. So every window of a page counts as one page.
   - The build writes these values into the copies of `index.html`, §4.7.
-  - One list in `api/_shared.ts` holds the path, the title and the description of each page. The plugin reads it, and a spec checks the built files against it.
+  - One list in `server/head.ts` holds the path, the title and the description of each page. The plugin reads it, and a spec checks the built files against it.
   - A spec checks each title against the English heading of its page. So the preview and the page do not drift apart.
   - These words stay in English, FR-20.
 - The app keeps the canonical link and `og:url` in step with the page on the screen:
@@ -1070,7 +1075,7 @@ The front end is a Vite application in TypeScript with React 19. `npm run build`
 
   | Config | Covers |
   |---|---|
-  | `api/tsconfig.json` | `api/`. It is the config nearest to the function, so the function build on Vercel reads it |
+  | `api/tsconfig.json` | `api/` and `server/`. It is the config nearest to the function, so the function build on Vercel reads it |
   | `tsconfig.app.json` | `src/` and `test/`, with the client types of Vite |
   | `tsconfig.node.json` | `vite.config.ts` and `eslint.config.ts`, with the types of Node. The Vite config imports the functions. So this config also checks `api/metagame.ts`, `api/matchups.ts`, `api/deck-page.ts`, `api/sample-cards.ts` and `api/staples.ts` without the DOM lib, as the dev server runs them |
 
