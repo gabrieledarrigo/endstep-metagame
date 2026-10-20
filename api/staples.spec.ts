@@ -434,6 +434,7 @@ describe("the staples function's cards", () => {
     ["null", null],
     ["missing", undefined],
     ["a string", "no"],
+    ["an array", []],
   ])("counts a deck whose withheld field is %s", async (_, withheld) => {
     endstep({
       decks: [deck("a", 0.2)],

@@ -119,7 +119,7 @@ async function tableOf(
       { timeoutMs: TABLE_TIMEOUT_MS, signal },
     );
 
-    if (isRecord(body.withheld)) {
+    if (isRecord(body.withheld) && !Array.isArray(body.withheld)) {
       return { deck, cards: null };
     }
 
