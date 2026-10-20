@@ -190,10 +190,15 @@ function staplesOf(tables: Table[]): Staple[] {
 async function tablesOf(
   decks: UpstreamDeck[],
   target: Target,
-  signal: AbortSignal,
+  controller: AbortController,
 ): Promise<Table[]> {
   const results = await Promise.allSettled(
-    decks.map((deck) => tableOf(deck, target, signal)),
+    decks.map((deck) =>
+      tableOf(deck, target, controller.signal).catch((error: unknown) => {
+        controller.abort();
+        throw error;
+      }),
+    ),
   );
   const failures = results
     .filter((result) => result.status === "rejected")
@@ -226,7 +231,7 @@ async function build(
       dir: "desc",
       pageSize: String(TOP_DECKS),
     });
-    tables = await tablesOf(top.decks.items, target, controller.signal);
+    tables = await tablesOf(top.decks.items, target, controller);
   } finally {
     clearTimeout(deadline);
   }
@@ -265,7 +270,7 @@ export default {
   /**
    * Builds the 50 cards the top 24 decks play most, weighted by each deck's share, for the main deck or the sideboard, §4.9.
    *
-   * The query string must be exactly `?window=` and one of the five windows, then `&section=` and `main` or `side`. The function reads the top 24 decks, then each deck's card table in pages of 50, all decks in parallel. It reads a deck's next page while that page's last card is in at least 5% of the deck's lists, up to 4 pages. The deck list has an 8 second timeout and each card table 20 seconds. If the Endstep calls are still open after 50 seconds, the function aborts them and answers 502. It leaves out withheld decks and the basic lands, and adds each card's art from Scryfall. GET and HEAD build the response. OPTIONS answers the CORS preflight with 204.
+   * The query string must be exactly `?window=` and one of the five windows, then `&section=` and `main` or `side`. The function reads the top 24 decks, then each deck's card table in pages of 50, all decks in parallel. It reads a deck's next page while that page's last card is in at least 5% of the deck's lists, up to 4 pages. The deck list has an 8 second timeout and each card table 20 seconds. The first failed card table, or 50 seconds without an answer, aborts the calls still open. It leaves out withheld decks and the basic lands, and adds each card's art from Scryfall. GET and HEAD build the response. OPTIONS answers the CORS preflight with 204.
    *
    * @param req - The incoming request.
    * @returns A Promise resolving to `{ window, section, withheld, cards }`, cached for 30 minutes with 30 more of stale-while-revalidate, or for five minutes when the art lookup failed. Otherwise a JSON error: 400 for any other query string, 405 for any other method, 429 when Endstep rate limits a call, cached for 60 seconds, and 502 when any other call fails.

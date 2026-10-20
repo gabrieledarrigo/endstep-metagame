@@ -40,6 +40,7 @@ type Upstream = {
   decks: Deck[];
   pages?: Record<string, Page[]>;
   status?: (url: URL) => number | undefined;
+  delay?: (url: URL) => number;
   scryfall?: () => Promise<Response>;
 };
 
@@ -104,10 +105,18 @@ function endstep({
   decks,
   pages = {},
   status = (): undefined => undefined,
+  delay = (): number => 0,
   scryfall = collection(),
 }: Upstream): Mock<typeof fetch> {
   const fetchMock = vi.fn<typeof fetch>(async (input) => {
     const url = new URL(String(input));
+    const wait = delay(url);
+
+    if (wait > 0) {
+      await new Promise((resolve) => {
+        setTimeout(resolve, wait);
+      });
+    }
 
     if (String(input) === SCRYFALL) {
       return scryfall();
@@ -573,24 +582,21 @@ describe("the staples function's responses", () => {
     expect(await response.text()).toBe("");
   });
 
-  it("answers 429, held for 60 seconds, when a later page is rate limited and an earlier deck fails", async () => {
+  it("answers 429, held for 60 seconds, when one deck is rate limited and an earlier deck fails later", async () => {
     endstep({
       decks: [deck("a", 0.2), deck("b", 0.1)],
-      pages: {
-        a: [{ rows: [["Counterspell", 1, 4]] }],
-        b: [{ total: 100, rows: [["Counterspell", 1, 4]] }],
-      },
       status: (url) => {
         if (url.pathname.includes("/decks/a/")) {
           return 500;
         }
 
-        if (url.pathname.includes("/decks/b/") && url.search.endsWith("=2")) {
+        if (url.pathname.includes("/decks/b/")) {
           return 429;
         }
 
         return undefined;
       },
+      delay: (url) => (url.pathname.includes("/decks/a/") ? 20 : 0),
     });
 
     const response = await staples.fetch(request(MAIN_30D));
@@ -623,6 +629,26 @@ describe("the staples function's responses", () => {
     expect(await response.json()).toEqual({
       error: "Endstep did not answer every call",
     });
+  });
+
+  it("stops the other decks' pages after the first failure, and still answers its 429", async () => {
+    const fetchMock = endstep({
+      decks: [deck("a", 0.2), deck("b", 0.1)],
+      pages: {
+        b: [
+          { total: 200, rows: [["Counterspell", 1, 4]] },
+          { total: 200, rows: [["Brainstorm", 1, 4]] },
+        ],
+      },
+      status: (url) => (url.pathname.includes("/decks/a/") ? 429 : undefined),
+      delay: (url) => (url.pathname.includes("/decks/b/") ? 20 : 0),
+    });
+
+    const response = await staples.fetch(request(MAIN_30D));
+
+    expect(response.status).toBe(429);
+    expect(pagesOf(fetchMock, "a")).toEqual([1]);
+    expect(pagesOf(fetchMock, "b")).toEqual([1]);
   });
 
   it("aborts the open card tables and answers 502 after 50 seconds", async () => {
