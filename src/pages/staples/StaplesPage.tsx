@@ -89,6 +89,7 @@ export function StaplesPage() {
           onSection={selectSection}
           onWindow={selectTimeWindow}
           busy={loadingWindow}
+          loading={loading}
         />
       </div>
     </>

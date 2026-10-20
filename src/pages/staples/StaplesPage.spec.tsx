@@ -183,6 +183,31 @@ describe("StaplesPage", () => {
     );
   });
 
+  it("marks the switch busy while the other list loads, and idle once it arrives", async () => {
+    let answer: (response: Response) => void = () => {};
+    stubApi({
+      "/api/staples?window=30d&section=side": [
+        (): Promise<Response> =>
+          new Promise<Response>((resolve) => (answer = resolve)),
+      ],
+    });
+    renderAt("/staples?window=30d");
+    await screen.findByText("Lightning Bolt");
+    const parts = (): string | null =>
+      screen
+        .getByRole("group", { name: "Part of the deck" })
+        .getAttribute("data-busy");
+    expect(parts()).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Sideboard" }));
+    expect(parts()).toBe("true");
+
+    answer(Response.json(SIDE));
+
+    expect(await screen.findByText("Lightning Bolt (side)")).toBeTruthy();
+    expect(parts()).toBeNull();
+  });
+
   it("keeps the list on screen, dimmed and busy, while another window loads, and holds back its dates", async () => {
     let answer: (response: Response) => void = () => {};
     stubApi({
@@ -200,6 +225,11 @@ describe("StaplesPage", () => {
     expect(
       screen
         .getByRole("group", { name: "Time window" })
+        .getAttribute("data-busy"),
+    ).toBe("true");
+    expect(
+      screen
+        .getByRole("group", { name: "Part of the deck" })
         .getAttribute("data-busy"),
     ).toBe("true");
     expect(

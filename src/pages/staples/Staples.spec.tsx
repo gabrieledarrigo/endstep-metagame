@@ -38,12 +38,14 @@ function Harness({
   timeWindow = "30d",
   section = "main",
   busy = false,
+  loading = false,
   onSection = (): void => {},
   onWindow = (): void => {},
 }: {
   timeWindow?: TimeWindow;
   section?: StaplesSection;
   busy?: boolean;
+  loading?: boolean;
   onSection?: (next: StaplesSection) => void;
   onWindow?: (next: TimeWindow) => void;
 }) {
@@ -61,6 +63,7 @@ function Harness({
       onSection={onSection}
       onWindow={onWindow}
       busy={busy}
+      loading={loading}
     />
   );
 }
@@ -294,6 +297,29 @@ describe("Staples", () => {
     expect(
       within(panel).getByRole("button", { name: "Sideboard" }),
     ).toBeTruthy();
+  });
+
+  it("marks the switch busy while a list loads", () => {
+    stubApi(withCards(6));
+    renderWithQueries(<Harness loading />);
+
+    expect(
+      screen
+        .getByRole("group", { name: "Part of the deck" })
+        .getAttribute("data-busy"),
+    ).toBe("true");
+  });
+
+  it("leaves the switch idle once the list is on screen", async () => {
+    stubApi(withCards(6));
+    renderWithQueries(<Harness />);
+
+    await screen.findByText("Lightning Bolt");
+    expect(
+      screen
+        .getByRole("group", { name: "Part of the deck" })
+        .getAttribute("data-busy"),
+    ).toBeNull();
   });
 
   it("dims and marks busy the list, not the switch, while another window loads", async () => {

@@ -27,6 +27,7 @@ type StaplesProps = {
   onSection: (next: StaplesSection) => void;
   onWindow: (next: TimeWindow) => void;
   busy: boolean;
+  loading: boolean;
 };
 
 function withheldText(withheld: number): string {
@@ -44,6 +45,7 @@ export function Staples({
   onSection,
   onWindow,
   busy,
+  loading,
 }: StaplesProps) {
   const id = useId();
   const shown = query.data
@@ -74,6 +76,7 @@ export function Staples({
           options={LISTS}
           value={section === "side" ? "Sideboard" : "Main deck"}
           onChange={(next) => onSection(next === "Sideboard" ? "side" : "main")}
+          busy={loading}
         />
       </div>
       <p className="staples__note">
