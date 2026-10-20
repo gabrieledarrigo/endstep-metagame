@@ -135,6 +135,21 @@ export function winRateText(value: number): string {
   }).format(value / 100);
 }
 
+function formatDate(
+  value: string,
+  month: "short" | "long",
+  withYear: boolean,
+): string {
+  const locales = userLocales();
+
+  return new Date(value).toLocaleDateString(locales, {
+    day: "numeric",
+    month,
+    year: withYear ? "numeric" : undefined,
+    timeZone: "UTC",
+  });
+}
+
 /**
  * Formats a date in full, for a tooltip.
  *
@@ -142,27 +157,7 @@ export function winRateText(value: number): string {
  * @returns The day, the month and the year in the reader's locale, such as `7 October 2026` in en-GB.
  */
 export function longDay(day: string): string {
-  const locales = userLocales();
-
-  return new Date(`${day}T00:00:00Z`).toLocaleDateString(locales, {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    timeZone: "UTC",
-  });
-}
-
-function formatDate(value: string, withYear: boolean): string {
-  const locales = userLocales();
-
-  const date = new Date(value).toLocaleDateString(locales, {
-    day: "numeric",
-    month: "short",
-    year: withYear ? "numeric" : undefined,
-    timeZone: "UTC",
-  });
-
-  return date;
+  return formatDate(day, "long", true);
 }
 
 /**
@@ -172,7 +167,7 @@ function formatDate(value: string, withYear: boolean): string {
  * @returns The day and month in the reader's locale, such as `5 Sept` in en-GB.
  */
 export function formatDay(day: string): string {
-  return formatDate(day, false);
+  return formatDate(day, "short", false);
 }
 
 function lastCoveredDay(to: string): string {
@@ -195,7 +190,7 @@ export function formatWindow({
   const last = lastCoveredDay(to);
   const sameYear = from.slice(0, 4) === last.slice(0, 4);
 
-  return `${formatDate(from, !sameYear)} to ${formatDate(last, true)}`;
+  return `${formatDate(from, "short", !sameYear)} to ${formatDate(last, "short", true)}`;
 }
 
 /**
