@@ -1,6 +1,6 @@
 # Endstep Pauper Metagame Viewer: Requirements
 
-Status: Draft v16 · Date: 2026-10-20
+Status: Draft v17 · Date: 2026-10-20
 
 Scope: five pages.
 
@@ -54,7 +54,7 @@ The application is read-only. It stores only three display preferences: the them
 | Matchup table | A page of its own. The top 24 decks. Colour only the clear pairs. Below 640px, the list of one deck, FR-12 |
 | Card art | From Scryfall by name. The proxy adds it. Endstep's image endpoint is the fallback, §3.4 |
 | Install | The reader can install the site as an app. No offline caching and no service worker, FR-16 |
-| Sharing | Each deck page shares with its own title, figures and art. Every other page shares the site card, FR-15 |
+| Sharing | Each deck page shares with its own title, figures and art. Every other page shares its own title and description, with the site card, FR-15 |
 | What to play? | The top 24, ranked by expected match win rate against a metagame that the reader can change. The data comes from the matchup table. No new calls to Endstep, FR-17 |
 | Staples | The 50 cards that the top 24 play most, weighted by share, for the main deck and the sideboard. The staples function builds them, FR-18 and §4.9 |
 | Languages | English, Italian, Spanish and Portuguese, through i18next. The page detects the language from the browser, and a switch in the header changes it, FR-20 |
@@ -191,10 +191,10 @@ On 2026-09-20, the project tested public CORS proxies and rejected them. All six
 
 ### 4.2 Components
 
-1. The front end is a Vite application in `src/`. Vercel builds it to `dist/`. It serves every page from one `index.html`.
+1. The front end is a Vite application in `src/`. Vercel builds it to `dist/`. It serves the overview from `index.html`. The matchup table, What to play? and Staples each have a copy of that file with their own title and description, §4.7.
 2. `api/metagame.ts` is the proxy. It forwards `GET` requests to `https://endstep.cc/api/metagame/v1/...`. It keeps the allow-listed query parameters and returns the upstream body with CORS headers. For the deck list and the deck detail, it also adds the art address of each deck from Scryfall, §3.4. So the proxy is no longer a pure pass-through.
 3. `api/matchups.ts` is the matchup function. It builds the top-24 matrix on the server and returns it in one response. See §4.4. It is a separate function, so that the proxy keeps to one upstream call per request.
-4. `api/_shared.ts` holds the code that the functions share. This code is the upstream address, its timeout and the fetch of an Endstep endpoint. It is also the CORS headers, the method rules, the error responses and the cache rules. The art lookup on Scryfall, §3.4, is here too. Vercel does not deploy a file in `api/` whose name starts with an underscore. So this file is not a function of its own.
+4. `api/_shared.ts` holds the code that the functions share. This code is the upstream address, its timeout and the fetch of an Endstep endpoint. It is also the CORS headers, the method rules, the error responses and the cache rules. The art lookup on Scryfall, §3.4, is here too. So is the code that writes a title, a description, a canonical link and `og:url` into the HTML. The deck page's function and the build plugin both use it, FR-15. Vercel does not deploy a file in `api/` whose name starts with an underscore. So this file is not a function of its own.
 5. `api/deck-page.ts` is the deck page's HTML function. It writes the title, the description and the image of the deck into the built `index.html` for link previews, FR-15. `vercel.json` sends `/decks/:slug` to this function in place of the static rewrite.
 6. `api/staples.ts` is the staples function. It builds the 50 most played cards of the top 24 decks on the server, with their art. It returns them in one response. See §4.9.
 7. `api/sample-cards.ts` is the sample cards function. It gets the card images and prices of the sample list from Scryfall, for one deck and window. See §4.10.
@@ -276,7 +276,7 @@ The front end uses React Router 8 in declarative mode, with `BrowserRouter`, `Ro
 | `/what-to-play` | What to play?, FR-17 |
 | `/staples` | Staples, FR-18 |
 
-- `vercel.json` rewrites `/matchups`, `/what-to-play` and `/staples` to `/index.html`. It sends `/decks/:slug` to the deck page's HTML function. That function serves the same `index.html` with the link preview of the deck, FR-15. Vercel applies rewrites after it checks for real files, so the rewrites do not affect built assets.
+- `vercel.json` rewrites `/matchups`, `/what-to-play` and `/staples` to their copies of `index.html`: `/matchups.html`, `/what-to-play.html` and `/staples.html`, §4.7. It sends `/decks/:slug` to the deck page's HTML function. That function serves the same `index.html` with the link preview of the deck, FR-15. Vercel applies rewrites after it checks for real files, so the rewrites do not affect built assets.
 - `?window=` belongs to every page, and links carry it from page to page. Pages read and write it with `useSearchParams`. See FR-1.
 - If the window is missing or unknown, the layout route replaces it with the default, with a replace navigation. So the address always names the window on the screen.
 - The view state also lives in the address:
@@ -301,7 +301,7 @@ The front end uses React Router 8 in declarative mode, with `BrowserRouter`, `Ro
 
 The plugin serves each response from memory for its `s-maxage`, the same lifetime that the edge uses. It does not serve stale responses and does not evict expired entries, so it is simpler than the edge. Without this memory, every reload of the matchup page in development costs 25 upstream calls. Then a dozen reloads in a minute reach the rate limit.
 
-The plugin replaces `dev-server.js`, which the project deletes. For the page routes, the Vite dev server already falls back to `index.html`. `vite preview` also serves `/decks/:slug` through the deck page's HTML function, with the rewrite from `vercel.json`. So a developer can check a link preview on a local build. The dev server does not do this, because its `index.html` is the source file.
+The plugin replaces `dev-server.js`, which the project deletes. For the page routes, the Vite dev server already falls back to `index.html`. `vite preview` also serves `/decks/:slug` through the deck page's HTML function, with the rewrite from `vercel.json`. It serves the three copies of `index.html` at their paths, with the rewrites from `vercel.json`. So a developer can check a link preview on a local build. The dev server does not do this, because its `index.html` is the source file.
 
 ### 4.7 What deploys
 
@@ -309,8 +309,10 @@ Vercel runs `npm run build` and serves `dist/`. Vercel builds the functions in `
 
 - `vercel.json` pins `"framework": "vite"`. The Vercel project started with the "Other" preset. Without the pin, Vercel may skip the build and serve the source `index.html`. That file renders a blank page.
 - `vercel.json` also carries the proxy rewrite (§4.3) and the page rewrites (§4.5).
+- After Vite writes `dist/index.html`, a small Vite plugin writes `matchups.html`, `what-to-play.html` and `staples.html` beside it. Each is a copy of `index.html` with the title, the description, the canonical link and the `og:url` of its page, FR-15. Nothing runs for each request.
+- The copies keep the inline theme script unchanged. So its hash in the security policy stays the same.
 - `public/` holds the icons, the web app manifest, the site card image and `robots.txt`. Vite copies it into `dist/` unchanged.
-- Vercel serves the hashed files under `/assets/` with `public, max-age=31536000, immutable`, because their names change with every build. `index.html` keeps a short cache, so a deploy reaches readers at once.
+- Vercel serves the hashed files under `/assets/` with `public, max-age=31536000, immutable`, because their names change with every build. The HTML files keep a short cache, so a deploy reaches readers at once.
 - Every response carries the security headers that `vercel.json` sets: a Content Security Policy, `X-Content-Type-Options: nosniff` and `Referrer-Policy: strict-origin-when-cross-origin`. The policy forbids framing with `frame-ancestors 'none'`. The policy allows these:
   - Scripts from the site, and the inline theme script by its hash.
   - Images from the site, `endstep.cc` and `cards.scryfall.io`.
@@ -678,8 +680,22 @@ The overview finds any deck in the window, by its name or by a card in its lists
 ### FR-15. Page metadata and link previews
 Every page carries the data that browsers, search engines and chat apps read without running the script.
 
-- `index.html` has a description, "Which Pauper decks are played, how they perform, and how they do against each other." It also has Open Graph tags, a `summary_large_image` Twitter card, the icon set, FR-16, and `theme-color` for each theme. The theme toggle updates `theme-color` with the theme, FR-13. `robots.txt` allows every page. `index.html` carries no canonical link and no `og:url`, because the same file serves every path.
-- The overview and the matchup table share the site card. The site card has the name of the site, the description, and a 1200 by 630 image with the site mark, from the design system.
+- `index.html` has a description, "Which Pauper decks are played, how they perform, and how they do against each other." It also has Open Graph tags, a `summary_large_image` Twitter card, the icon set, FR-16, and `theme-color` for each theme. The theme toggle updates `theme-color` with the theme, FR-13. `robots.txt` allows every page. `index.html` carries no canonical link and no `og:url`, because it is also the template of the deck pages and of the three copies.
+- The overview shares the site card. The site card has the name of the site, the description, and a 1200 by 630 image with the site mark, from the design system.
+- The matchup table, What to play? and Staples each share their own title and description. Their image is the site card.
+
+  | Page | Title | Description |
+  |---|---|---|
+  | Matchups | Matchups · Pauper Endstep metagame | How the top 24 Pauper decks do against each other. |
+  | What to play? | What to play? · Pauper Endstep metagame | The Pauper deck that wins most against the decks you expect to meet. |
+  | Staples | Staples · Pauper Endstep metagame | The cards the top 24 Pauper decks play most. |
+
+  - The titles repeat the document titles of FR-10.
+  - The `og:title` and `og:description` repeat the title and the description.
+  - The canonical link and `og:url` of each page are its path, such as `/staples`, with no query string. So every window of a page counts as one page.
+  - The build writes these values into the copies of `index.html`, §4.7.
+  - One list in the code holds the path, the title and the description of each page. The plugin reads it, and a spec checks the built files against it.
+  - These words stay in English, FR-20.
 - A deck page shares its own preview:
   - Its title reads "{deck} · Pauper Endstep metagame".
   - Its description reads "{share} of the Pauper field {period}, {win rate} match win rate, {players} players." Here, {period} follows the window of the link: "over the last day", "over the last 7 days", "over the last 14 days", "over the last 30 days" or "this season". The default is 30 days.
@@ -821,7 +837,7 @@ The states follow the matchup table, FR-12:
 - The page does not retry on its own, because one cold build costs 25 upstream calls.
 - While the next window loads, the page dims the previous window, §4.8.
 
-The page shares the site card, FR-15.
+The page shares its own title and description, with the site card, FR-15.
 
 ### FR-18. Staples
 This page shows the cards that the top 24 decks play most, weighted by the share of each deck. It makes one call to `/api/staples`, §4.9. The Staples section of the design system is the visual specification.
@@ -878,7 +894,7 @@ The states follow the matchup table, FR-12:
 - If Endstep withholds the card table of every deck, the list has no cards. The page then shows the empty state "No cards in this window", with that line as its detail.
 - While a list loads, the status line names it and the window: "Loading the main deck for the 7d window." or "Loading the sideboard for the 7d window."
 
-The page shares the site card, FR-15.
+The page shares its own title and description, with the site card, FR-15.
 
 ### FR-19. Card previews and cost to build
 The sample list of the deck page, FR-11, shows the image of each card on demand and what the list costs to build. It makes one call to `/api/sample-cards`, §4.10. The Card previews and cost section of the design system is the visual specification.
@@ -1305,6 +1321,9 @@ The project has no CSS linter for now. Prettier formats the CSS, and review enfo
     - A card that opens the top-24 decks behind it, not the deck search. The deck search matched 80 decks for Counterspell.
     - 30 cards, with more up to 50.
     - The main deck or the sideboard, kept in the address.
+14. ~~A title and description for each page.~~ Settled on 2026-10-20: FR-15 and §4.7. The owner raised it on 2026-10-18 and parked it. On 2026-10-20 the owner chose copies of `index.html`, written at build time. The owner set aside two other ways:
+    - The deck page's HTML function for every page. It adds a function to the path of every page, for words that never change.
+    - A move to Next.js. It has page metadata built in, but it means rewriting the routes, the data loading, the build and most specs.
 15. ~~Card previews and the cost of a list.~~ Settled on 2026-10-18: FR-19. The owner chose previews on hover and focus, with a tap on touch screens. The owner also chose prices at the cheapest printing of each card, and accepted the extra Scryfall requests for accuracy. The cost is a block after the lists. It shows no price for each card. It has these parts:
     - A switch for MTGO, € and $.
     - The split between the main deck and the sideboard.
