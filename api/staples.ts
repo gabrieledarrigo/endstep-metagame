@@ -60,6 +60,8 @@ type CardsBody = {
 
 type Table = { deck: UpstreamDeck; cards: CardRow[] | null };
 
+type Run = { signal: AbortSignal; endsAt: number; failed: boolean };
+
 type CountedTable = { deck: UpstreamDeck; cards: CardRow[] };
 
 type StapleDeck = {
@@ -104,6 +106,14 @@ function isTimeout(error: unknown): boolean {
   return error instanceof DOMException && error.name === "TimeoutError";
 }
 
+function canAskAgain(error: unknown, run: Run): boolean {
+  return (
+    (isTimeout(error) || isNetworkError(error)) &&
+    !run.failed &&
+    run.endsAt - Date.now() >= TABLE_TIMEOUT_MS
+  );
+}
+
 function pageOf(
   deck: UpstreamDeck,
   target: Target,
@@ -126,8 +136,7 @@ function pageOf(
 async function tableOf(
   deck: UpstreamDeck,
   target: Target,
-  signal: AbortSignal,
-  endsAt: number,
+  run: Run,
 ): Promise<Table> {
   const cards = new Map<string, CardRow>();
   let retried = false;
@@ -136,18 +145,14 @@ async function tableOf(
     let body: CardsBody;
 
     try {
-      body = await pageOf(deck, target, page, signal);
+      body = await pageOf(deck, target, page, run.signal);
     } catch (error) {
-      if (
-        retried ||
-        !(isTimeout(error) || isNetworkError(error)) ||
-        endsAt - Date.now() < TABLE_TIMEOUT_MS
-      ) {
+      if (retried || !canAskAgain(error, run)) {
         throw error;
       }
 
       retried = true;
-      body = await pageOf(deck, target, page, signal);
+      body = await pageOf(deck, target, page, run.signal);
     }
 
     if (isRecord(body.withheld) && !Array.isArray(body.withheld)) {
@@ -231,17 +236,18 @@ async function tablesOf(
   controller: AbortController,
   endsAt: number,
 ): Promise<Table[]> {
+  const run = { signal: controller.signal, endsAt, failed: false };
   const results = await Promise.allSettled(
     decks.map((deck) =>
-      tableOf(deck, target, controller.signal, endsAt).catch(
-        (error: unknown) => {
-          if (isRateLimit(error)) {
-            controller.abort();
-          }
+      tableOf(deck, target, run).catch((error: unknown) => {
+        run.failed = true;
 
-          throw error;
-        },
-      ),
+        if (isRateLimit(error)) {
+          controller.abort();
+        }
+
+        throw error;
+      }),
     ),
   );
   const failures = results
@@ -319,7 +325,7 @@ export default {
   /**
    * Builds the 50 cards the top 24 decks play most, weighted by each deck's share, for the main deck or the sideboard, §4.9.
    *
-   * The query string must be exactly `?window=` and one of the five windows, then `&section=` and `main` or `side`. The function reads the top 24 decks, then each deck's card table in pages of 50, all decks in parallel. It reads a deck's next page while that page's last card is in at least 5% of the deck's lists, up to 4 pages. The deck list has an 8 second timeout and each card table request, one page, 20 seconds. If a card table request times out or fails with a network error, and the deadline leaves at least 20 seconds, the function sends that page request once more. Only a timeout or a network error gets a second request, and each deck's table gets at most one. A 429 on a card table, or 50 seconds without an answer, aborts the calls still open. It leaves out withheld decks and the basic lands, and adds each card's art from Scryfall. GET and HEAD build the response. OPTIONS answers the CORS preflight with 204.
+   * The query string must be exactly `?window=` and one of the five windows, then `&section=` and `main` or `side`. The function reads the top 24 decks, then each deck's card table in pages of 50, all decks in parallel. It reads a deck's next page while that page's last card is in at least 5% of the deck's lists, up to 4 pages. The deck list has an 8 second timeout and each card table request, one page, 20 seconds. If a card table request times out or fails with a network error, and the deadline leaves at least 20 seconds, the function sends that page request once more. Only a timeout or a network error gets a second request, and each deck's table gets at most one. Once any table has failed for good, no table gets a second request. A 429 on a card table, or 50 seconds without an answer, aborts the calls still open. It leaves out withheld decks and the basic lands, and adds each card's art from Scryfall. GET and HEAD build the response. OPTIONS answers the CORS preflight with 204.
    *
    * @param req - The incoming request.
    * @returns A Promise resolving to `{ window, section, withheld, cards }`, cached for 30 minutes with 30 more of stale-while-revalidate, or for five minutes when the art lookup failed. Otherwise a JSON error: 400 for any other query string, 405 for any other method, 429 when Endstep rate limits a call, cached for 60 seconds, and 502 when any other call fails.

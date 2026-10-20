@@ -1089,6 +1089,21 @@ describe("the staples function's second request", () => {
     },
   );
 
+  it("sends no second request for a table that times out after another table has failed for good", async () => {
+    const fetchMock = endstep({
+      decks: [deck("a", 0.2), deck("b", 0.1)],
+      pages: { b: counterspell },
+      status: (url) => (onPage(url, "a", 1) ? 500 : undefined),
+      timesOut: (url, call) => onPage(url, "b", 1) && call === 1,
+    });
+
+    const response = await settled(staples.fetch(request(MAIN_30D)));
+
+    expect(response.status).toBe(502);
+    expect(pagesOf(fetchMock, "a")).toEqual([1]);
+    expect(pagesOf(fetchMock, "b")).toEqual([1]);
+  });
+
   it("answers 429 and aborts the other tables when the second request is rate limited", async () => {
     const fetchMock = endstep({
       decks: [deck("a", 0.2), deck("b", 0.1)],
