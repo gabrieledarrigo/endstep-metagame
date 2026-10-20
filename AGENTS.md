@@ -27,15 +27,15 @@ These rules apply to documents, PR descriptions, commit messages and UI copy. Th
 - Use one word for one meaning in the whole document. For example, write "window" every time, not "window", "period" and "time span".
 - Do not use em dashes or semicolons. Write two sentences.
 - State the fact, not its importance. Delete words that carry no fact. `references/word-swaps.md` in the skill lists them.
-- Use a vertical list for three or more steps or parallel items. Put one instruction in each item.
-- Do not use bold lead-ins or bold for emphasis. The backlog keeps its bold labels, "Tasks", "Done when" and "Blocked by", because the issues copy them.
+- Use a vertical list for three or more steps or parallel items. Put one instruction in each item. A numbered step can hold one level of bullets for its parts.
+- Do not use bold lead-ins or bold for emphasis. The backlog keeps its bold labels, because the issues copy them: "Date", "Tasks", "Done when", "Blocked by" and "Blocks".
 - Keep British spelling, as the documents use it.
 - Do not change code, identifiers, file paths, quoted text, numbers or facts when you rewrite.
 
 ## Commits
 
 - Author is the repository's local git config, `Gabriele D'Arrigo <darrigo.g@gmail.com>`. Do not override it.
-- **No `Co-Authored-By` trailer. No attribution trailer of any kind.**
+- No `Co-Authored-By` trailer. No attribution trailer of any kind.
 - One sentence per message. No trailing full stop.
 - Commit per logical step rather than one commit per issue.
 
@@ -64,19 +64,19 @@ Open one when an issue is done.
 
 - Before every push, `npm run format:check`, `npm run lint`, `npm test` and `npm run build` pass. CI runs the same four checks on every pull request and on `main`.
 - Title is the issue title, verbatim.
-- **No attribution footer.**
+- No attribution footer.
 - Link the issue with `Closes #N` so it closes on merge.
 - Assign `gabrieledarrigo` as assignee. Do not request a reviewer, GitHub rejects a self-review request.
 - Carry over the issue's labels, both the type label and the wave label.
 - Do not merge. That is the reviewer's call.
 
-The description is a reading guide for the human reviewer, who wants to understand the code without reading every line. It has two parts.
+The description is a reading guide for the human reviewer, who wants to understand the code without reading every line. It has two parts, each under its own heading:
 
-1. **What changed.** A short bullet list of what was done.
-2. **How to read it.**
+1. `## What changed`: a short bullet list of what was done.
+2. `## How to read it`:
    - The flow in a few sentences: what calls what, and where the data goes.
    - The files in the order to read them.
-   - The decisions the reviewer might not expect, each with its reason.
+   - The decisions the reviewer does not expect, each with its reason.
    - What is safe to skim, such as mechanical moves and spec boilerplate.
 
 Keep one concern per pull request. When work depends on an open pull request, stack it on that branch and say so in the description.
@@ -87,23 +87,23 @@ Every pull request gets an independent review before it reaches the human review
 
 1. Open the pull request.
 2. Run `/code-review <pr-number>` without `--comment`. It runs in its own context and returns its findings to the author. Nothing is posted.
-3. A finding counts only when it names a concrete failure: wrong behaviour, a regression, a spec that cannot fail, or a mismatch with the requirements, the design system or this agreement. The author may take or leave anything else without recording it.
+3. A finding counts only when it names a concrete failure: wrong behaviour, a regression, a spec that cannot fail, or a mismatch with the requirements, the design system or this agreement. The author can take or leave anything else without recording it.
 4. Grade every finding that counts. Fix it, decline it, or hand it to the human reviewer when it is a trade-off only the owner can decide.
 5. To fix: change the code, commit, and push to the same branch.
 6. Run a second round on `git diff <first-round-head>..HEAD`, the commits pushed after the first round, and on the code they touch. Name that range in the reviewer's brief, so it does not review the whole pull request again. Skip the round when the first one pushed no commits, or only docs. Two rounds is the cap, whatever the second round returns.
-7. Post one comment on the pull request, headed **Review**:
+7. Post one comment on the pull request. Start it with the heading `## Review`. It holds:
    - how many findings each round returned, and how many were fixed, declined and handed over;
    - each fix in one line, with its commit;
    - each decline in one line, with its reason.
 8. Post an inline comment for each decision handed to the human reviewer: the question, the options, and a recommendation. Leave these threads open. Nothing else gets a thread. When the owner settles one, the author adds the answer to Settled decisions.
 
-The loop runs unattended. Report once at the end, in the same shape as the **Review** comment.
+The loop runs unattended. Report once at the end, in the same shape as the Review comment.
 
 The reviewer checks three things, and raises nothing listed under Settled decisions.
 
-- **Correctness.** Bugs, edge cases, wrong behaviour.
-- **This agreement.** Simple code, few abstractions, no explanatory inline comments.
-- **Acceptance criteria.** Whether the issue's "Done when" list is actually met.
+- Correctness: bugs, edge cases and wrong behaviour.
+- This agreement: simple code, few abstractions and no explanatory inline comments.
+- Acceptance criteria: whether the issue's "Done when" list is met.
 
 Never merge. That decision belongs to the human reviewer.
 
@@ -116,7 +116,7 @@ The owner has decided these. Reviews do not raise them again. A change goes to t
 - Data goes through TanStack Query, and the view state lives in the address, §4.5 and §4.8. The share chart's highlighted deck is kept by its slug.
 - The brand is a link, not a heading. Each page's h1 names the page, FR-10.
 - Back and forward keep the scroll position the browser restores, §4.5.
-- A parent may add its own class to a child's root, a BEM mix, and every block class sits on its component's root, NFR-11.
+- A parent can add its own class to a child's root, a BEM mix, and every block class sits on its component's root, NFR-11.
 - Doc comments go on API functions and exported helpers only, never on types or their properties.
 - Vercel previews sit behind Vercel Authentication. A "Done when" that names a preview is met by an offline `vercel build`, or by production after the merge.
 - Below 1,100px the matchup table's header row scrolls away with the table. Only from 1,100px up does it stay at the top of the window, FR-12.
