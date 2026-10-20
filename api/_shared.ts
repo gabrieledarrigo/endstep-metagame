@@ -47,21 +47,30 @@ class UpstreamError extends Error {
  *
  * @param path - The endpoint path after the API version, such as `Pauper/decks`.
  * @param params - The query parameters, in the order they are sent.
+ * @param options - `timeoutMs`, the call's timeout, 8 seconds by default. `signal`, which aborts the call, or stops it before it starts.
  * @returns A Promise resolving to the parsed body.
  * @throws An `UpstreamError` with the status when Endstep answers anything other than a success.
  * @throws The fetch or parse error when Endstep is unreachable, too slow, or answers with a body that is not JSON.
+ * @throws The signal's reason when the signal is aborted.
  */
 export async function upstream<Body>(
   path: string,
   params: Record<string, string>,
+  {
+    timeoutMs = TIMEOUT_MS,
+    signal,
+  }: { timeoutMs?: number; signal?: AbortSignal } = {},
 ): Promise<Body> {
+  signal?.throwIfAborted();
+
+  const timeout = AbortSignal.timeout(timeoutMs);
   const response = await fetch(
     `${UPSTREAM}/${path}?${new URLSearchParams(params)}`,
     {
       headers: {
         accept: "application/json",
       },
-      signal: AbortSignal.timeout(TIMEOUT_MS),
+      signal: signal ? AbortSignal.any([timeout, signal]) : timeout,
     },
   );
 

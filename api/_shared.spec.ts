@@ -181,6 +181,52 @@ describe("upstream", () => {
     expect(timeout.mock.calls).toEqual([[8000]]);
   });
 
+  it("uses the timeout it is given", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>(async () => Response.json({ ok: true })),
+    );
+    const timeout = vi.spyOn(AbortSignal, "timeout");
+
+    await upstream("Pauper/decks", {}, { timeoutMs: 20_000 });
+
+    expect(timeout.mock.calls).toEqual([[20_000]]);
+  });
+
+  it("sends nothing when its signal is already aborted", async () => {
+    const fetchMock = vi.fn<typeof fetch>(async () =>
+      Response.json({ ok: true }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const controller = new AbortController();
+    controller.abort();
+
+    await expect(
+      upstream("Pauper/decks", {}, { signal: controller.signal }),
+    ).rejects.toThrow();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("aborts the call when its signal aborts", async () => {
+    const controller = new AbortController();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>(
+        (_, init) =>
+          new Promise<Response>((_resolve, reject) => {
+            init?.signal?.addEventListener("abort", () => {
+              reject(new DOMException("Aborted", "AbortError"));
+            });
+          }),
+      ),
+    );
+
+    const call = upstream("Pauper/decks", {}, { signal: controller.signal });
+    controller.abort();
+
+    await expect(call).rejects.toThrow("Aborted");
+  });
+
   it.each([
     [429, true],
     [500, false],

@@ -53,6 +53,7 @@ beforeEach(async () => {
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
+  vi.useRealTimers();
 });
 
 function request(search: string, method = "GET"): Request {
@@ -221,7 +222,7 @@ describe("the staples function's query", () => {
 });
 
 describe("the staples function's calls", () => {
-  it("fetches the top 24 decks, then each deck's card table for the section, with the 8 second timeout", async () => {
+  it("fetches the top 24 decks, then each deck's card table for the section: 8 seconds for the list, 20 for each table and 3 for Scryfall", async () => {
     const fetchMock = endstep({
       decks: [deck("a", 0.2), deck("b", 0.1)],
       pages: {
@@ -240,7 +241,7 @@ describe("the staples function's calls", () => {
       `${UPSTREAM}/Pauper/decks/b/cards?window=7d&population=rated&section=side&pageSize=50&page=1`,
       SCRYFALL,
     ]);
-    expect(timeout.mock.calls).toEqual([[8000], [8000], [8000], [3000]]);
+    expect(timeout.mock.calls).toEqual([[8000], [20000], [20000], [3000]]);
   });
 
   it("fetches a deck's next page while the last card is in at least 5% of its lists", async () => {
@@ -622,6 +623,47 @@ describe("the staples function's responses", () => {
     expect(await response.json()).toEqual({
       error: "Endstep did not answer every call",
     });
+  });
+
+  it("aborts the open card tables and answers 502 after 50 seconds", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    const aborted: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>(async (input, init) => {
+        const url = String(input);
+
+        if (url.includes("/cards")) {
+          return new Promise<Response>((_, reject) => {
+            init?.signal?.addEventListener("abort", () => {
+              aborted.push(url);
+              reject(new DOMException("Aborted", "AbortError"));
+            });
+          });
+        }
+
+        return Response.json({
+          provenance: { window: { from: "2026-09-21", to: "2026-10-21" } },
+          decks: { items: [deck("a", 0.2), deck("b", 0.1)] },
+        });
+      }),
+    );
+
+    let settled = false;
+    const pending = staples.fetch(request(MAIN_30D)).then((response) => {
+      settled = true;
+      return response;
+    });
+    await vi.advanceTimersByTimeAsync(49_999);
+
+    expect(settled).toBe(false);
+
+    await vi.advanceTimersByTimeAsync(1);
+    const response = await pending;
+
+    expect(aborted).toHaveLength(2);
+    expect(response.status).toBe(502);
+    expect(response.headers.get("cache-control")).toBe("no-store");
   });
 
   it.each([

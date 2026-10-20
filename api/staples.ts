@@ -17,6 +17,8 @@ const QUERY = /^\?window=([^&]*)&section=(main|side)$/;
 const TOP_DECKS = 24;
 const PAGE_SIZE = 50;
 const MAX_PAGES = 4;
+const TABLE_TIMEOUT_MS = 20_000;
+const DEADLINE_MS = 50_000;
 const FLOOR = 0.05;
 const KEPT = 50;
 const BASICS = [
@@ -96,7 +98,11 @@ function targetOf(search: string): Target | null {
   return { window: match[1], section: match[2] };
 }
 
-async function tableOf(deck: UpstreamDeck, target: Target): Promise<Table> {
+async function tableOf(
+  deck: UpstreamDeck,
+  target: Target,
+  signal: AbortSignal,
+): Promise<Table> {
   const cards: CardRow[] = [];
 
   for (let page = 1; page <= MAX_PAGES; page += 1) {
@@ -109,6 +115,7 @@ async function tableOf(deck: UpstreamDeck, target: Target): Promise<Table> {
         pageSize: String(PAGE_SIZE),
         page: String(page),
       },
+      { timeoutMs: TABLE_TIMEOUT_MS, signal },
     );
 
     if (body.withheld !== null) {
@@ -180,19 +187,13 @@ function staplesOf(tables: Table[]): Staple[] {
     .slice(0, KEPT);
 }
 
-async function build(
+async function tablesOf(
+  decks: UpstreamDeck[],
   target: Target,
-): Promise<{ staples: Staples; complete: boolean }> {
-  const top = await upstream<DecksBody>("Pauper/decks", {
-    window: target.window,
-    population: "rated",
-    sort: "share",
-    dir: "desc",
-    pageSize: String(TOP_DECKS),
-  });
-
+  signal: AbortSignal,
+): Promise<Table[]> {
   const results = await Promise.allSettled(
-    top.decks.items.map((deck) => tableOf(deck, target)),
+    decks.map((deck) => tableOf(deck, target, signal)),
   );
   const failures = results
     .filter((result) => result.status === "rejected")
@@ -202,9 +203,34 @@ async function build(
     throw failures.find(isRateLimit) ?? failures[0];
   }
 
-  const tables = results
+  return results
     .filter((result) => result.status === "fulfilled")
     .map((result) => result.value);
+}
+
+async function build(
+  target: Target,
+): Promise<{ staples: Staples; complete: boolean }> {
+  const controller = new AbortController();
+  const deadline = setTimeout(() => {
+    controller.abort();
+  }, DEADLINE_MS);
+  let top: DecksBody;
+  let tables: Table[];
+
+  try {
+    top = await upstream<DecksBody>("Pauper/decks", {
+      window: target.window,
+      population: "rated",
+      sort: "share",
+      dir: "desc",
+      pageSize: String(TOP_DECKS),
+    });
+    tables = await tablesOf(top.decks.items, target, controller.signal);
+  } finally {
+    clearTimeout(deadline);
+  }
+
   const staples = staplesOf(tables);
   const { art, complete } = await findArt(
     staples.map((card) => card.name),
@@ -239,7 +265,7 @@ export default {
   /**
    * Builds the 50 cards the top 24 decks play most, weighted by each deck's share, for the main deck or the sideboard, §4.9.
    *
-   * The query string must be exactly `?window=` and one of the five windows, then `&section=` and `main` or `side`. The function reads the top 24 decks, then each deck's card table in pages of 50, all decks in parallel. It reads a deck's next page while that page's last card is in at least 5% of the deck's lists, up to 4 pages. It leaves out withheld decks and the basic lands, and adds each card's art from Scryfall. GET and HEAD build the response. OPTIONS answers the CORS preflight with 204.
+   * The query string must be exactly `?window=` and one of the five windows, then `&section=` and `main` or `side`. The function reads the top 24 decks, then each deck's card table in pages of 50, all decks in parallel. It reads a deck's next page while that page's last card is in at least 5% of the deck's lists, up to 4 pages. The deck list has an 8 second timeout and each card table 20 seconds. If the Endstep calls are still open after 50 seconds, the function aborts them and answers 502. It leaves out withheld decks and the basic lands, and adds each card's art from Scryfall. GET and HEAD build the response. OPTIONS answers the CORS preflight with 204.
    *
    * @param req - The incoming request.
    * @returns A Promise resolving to `{ window, section, withheld, cards }`, cached for 30 minutes with 30 more of stale-while-revalidate, or for five minutes when the art lookup failed. Otherwise a JSON error: 400 for any other query string, 405 for any other method, 429 when Endstep rate limits a call, cached for 60 seconds, and 502 when any other call fails.
