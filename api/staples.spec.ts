@@ -1096,6 +1096,46 @@ describe("the staples function's second request", () => {
     expect(pagesOf(fetchMock, "b")).toEqual([1]);
   });
 
+  it("sends no request for page 2 of a table after another table has failed for good", async () => {
+    const fetchMock = endstep({
+      decks: [deck("a", 0.2), deck("b", 0.1)],
+      pages: { b: twoPages },
+      delay: (url) => (onPage(url, "b", 1) ? 5_000 : 0),
+      status: (url) => (onPage(url, "a", 1) ? 500 : undefined),
+    });
+
+    const response = await settled(staples.fetch(request(MAIN_30D)));
+
+    expect(response.status).toBe(502);
+    expect(pagesOf(fetchMock, "b")).toEqual([1]);
+  });
+
+  it("still answers 429 for a call left open when a table stops before page 2", async () => {
+    endstep({
+      decks: [deck("a", 0.2), deck("b", 0.1), deck("c", 0.1)],
+      pages: { b: twoPages },
+      delay: (url) => {
+        if (onPage(url, "b", 1)) {
+          return 5_000;
+        }
+
+        return onPage(url, "c", 1) ? 10_000 : 0;
+      },
+      status: (url) => {
+        if (onPage(url, "a", 1)) {
+          return 500;
+        }
+
+        return onPage(url, "c", 1) ? 429 : undefined;
+      },
+    });
+
+    const response = await settled(staples.fetch(request(MAIN_30D)));
+
+    expect(response.status).toBe(429);
+    expect(response.headers.get("cache-control")).toBe("public, s-maxage=60");
+  });
+
   it("answers 429 and aborts the other tables when the second request is rate limited", async () => {
     const fetchMock = endstep({
       decks: [deck("a", 0.2), deck("b", 0.1)],
