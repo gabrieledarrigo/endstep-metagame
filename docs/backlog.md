@@ -1906,11 +1906,12 @@ This item covers the strings of FR-20.
    - The text on the pages and in the panels.
    - The accessibility labels and the visually hidden text.
    - The document titles, the status lines and the error messages.
-3. For each string that counts, use the `_one` and `_other` endings.
+3. For each string that counts, use the plural endings of i18next: `_one` and `_other` in English.
 4. Keep these strings out of the file: the names of decks and cards, the Fan Content notice and the name of the site.
 5. Type the keys from the English strings, so that an unknown key fails the build. Make sure that the build also fails when a language in the file lacks a key of English.
-6. Leave the formats and the specs as they are. The specs render in English and keep their queries by the English text.
-7. Add a spec for the setup and for the type check.
+6. Move the words of the formatting helpers into the file too, such as the "to" of a window range and "Not available". Leave the number and date formats as they are.
+7. Leave the specs as they are. The specs render in English and keep their queries by the English text.
+8. Add a spec for the setup and for the type check.
 
 **Done when**
 
@@ -1931,11 +1932,11 @@ This story covers the first visit, the switch and the formats of FR-20.
 **Tasks**
 
 1. On the first visit, read `navigator.languages` in order. Use the first language whose primary code is in the file. If none matches, use English.
-2. Add the switch before the theme toggle, as the design system shows. It is a pill with the code and a chevron, over a native select named "Language". Each option names the language in its own words.
+2. Add the switch before the theme toggle, as the design system shows. It is a pill with the code and a chevron. A native select named "Language" lies over it, invisible. Each option names the language in its own words.
 3. Show the switch only when the file holds two or more languages.
 4. When the reader chooses a language, change every text at once, with no reload. Keep the choice in local storage under `language`, inside a try and catch, as the theme does.
-5. Set the `lang` attribute of the `html` element to the current language.
-6. Make the formatting helpers follow the current language. If the language of the browser matches, take the region from the browser. Otherwise use `en-GB`, `it-IT`, `es-ES` or `pt-BR`.
+5. Set the `lang` attribute of the `html` element to the full tag of the formats, such as `pt-BR`.
+6. Make the formatting helpers follow the current language. Take the region from the first entry of `navigator.languages` with the same primary code. If no entry has it, use `en-GB`, `it-IT`, `es-ES` or `pt-BR`.
 7. Add a spec beside each component that changes. Use a second language in a test fixture, so that the switch shows.
 
 **Done when**
@@ -1956,7 +1957,7 @@ This story covers the languages of FR-20.
 
 **Tasks**
 
-1. Add the translations that the owner writes to `locales.json`: `it`, `es` and `pt`. Add each language only when it holds every key.
+1. Add the translations that the owner writes to `locales.json`: `it`, `es` and `pt`. Add each language only when it holds every key, with the `_many` plural ending that each of these languages also needs.
 2. Check each language on every page, at 360px, 640px and 1,280px, in both themes. Look for text that is too long, in the header links, the switches, the pick title and the table headers. Report each place that breaks, before you shorten any text.
 3. Make sure that the plurals and the formats are right in each language.
 4. Add a spec that renders one page in each language and finds one translated string.

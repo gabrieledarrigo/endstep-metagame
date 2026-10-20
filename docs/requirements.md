@@ -648,7 +648,7 @@ Every page has a light theme and a dark theme. The design system specifies both 
 
 - On a first visit, the page follows the setting of the device, `prefers-color-scheme`. If the device has no setting, the page uses the light theme. Until the reader chooses, the page also follows a change to the device setting while the page is open. The toggle and the charts also follow that change.
 - A 36px round button at the top right of the site header switches between the two themes. The language switch sits before it, FR-20. It is on every page and at every width. It is a toggle button named Dark theme, with `aria-pressed`. Its icon shows the current theme, a sun or a moon, so the icon agrees with `aria-pressed`.
-- Below 1,100px, the language switch and the button share the first row with the site name, and the links take the second row. On a 360px phone, the name then takes three lines. From 1,100px, they share one row. If the three links share one row at 640px, the name wraps to three lines. If the name runs out of room, it wraps to two lines and the button stays at the top right.
+- Below 1,100px, the language switch and the button share the first row with the site name, and the links take the second row. On a 360px phone, the name then takes three lines. From 1,100px, they share one row. If the three links share one row at 640px, the name wraps to three lines. If the name runs out of room, it wraps onto more lines, and the button stays at the top right.
 - The page keeps the choice of the reader in local storage. From then on, the choice wins over the device setting. The choice is not in the address, §4.5.
 - The page applies the theme before its first paint, so a dark page never flashes light.
 - A switch recolours the charts at once, with no reload. Native controls and scrollbars follow the theme through `color-scheme`.
@@ -917,7 +917,7 @@ The site reads in English, Italian, Spanish and Portuguese, and the reader can c
 - `es`, Spanish, in a neutral form for Spain and Latin America.
 - `pt`, Portuguese, in its Brazilian form.
 
-A language enters the site only when every string has a translation. Until then, the switch does not list it.
+Each language needs a translation of every string before it enters the site. Until then, the switch does not list it. With only one language, the site shows no switch.
 
 #### The first visit
 
@@ -926,16 +926,16 @@ A language enters the site only when every string has a translation. Until then,
 
 #### The switch
 
-- A pill sits at the top right of the site header, before the theme toggle, FR-13. It is on every page and at every width. It shows the code of the current language, such as "EN", and a chevron.
-- A native select lies under the pill, named "Language" in the current language. Each option names the language in its own words: "English", "Italiano", "Español", "Português".
+- A pill sits at the top right of the site header, before the theme toggle, FR-13. It is on every page and at every width, once the site has two or more languages. It shows the code of the current language, such as "EN", and a chevron.
+- A native select lies over the pill, invisible, so a tap or a click opens it. It is named "Language" in the current language. Each option names the language in its own words: "English", "Italiano", "Español", "Português".
 - A choice changes every text on the page at once, with no reload.
 - The page keeps the choice of the reader in local storage, as it keeps the theme. From then on, the choice wins over the browser. The choice is not in the address, §4.5.
-- The `lang` attribute of the `html` element names the current language, so a screen reader uses the right voice.
+- The `lang` attribute of the `html` element holds the full tag of the formats below, such as `pt-BR`. A screen reader then uses the right voice.
 
 #### Formats
 
 - Numbers, percentages and dates follow the current language, through `Intl`. English shows "57.5%" and "5 Sept". Italian shows "57,5%" and "5 set".
-- If the language of the browser matches the current language, the page takes the region from the browser. For example, `en-US` shows "Sep 5". Otherwise the page uses `en-GB`, `it-IT`, `es-ES` or `pt-BR`.
+- The page takes the region from the first entry of `navigator.languages` whose primary code is the current language. For example, `en-US` shows "Sep 5". If no entry has that code, the page uses `en-GB`, `it-IT`, `es-ES` or `pt-BR`.
 - A date shows its day as a plain number, "5", not "05".
 
 #### What stays in English
@@ -944,15 +944,16 @@ A language enters the site only when every string has a translation. Until then,
 - The names of cards. MTGO runs in English, and players use the English names.
 - The Fan Content notice, NFR-5, in the policy's own words.
 - The name of the site, "Pauper Endstep metagame".
-- The HTML that chat apps and search engines read, FR-15. Open item 14 covers it.
+- The HTML that chat apps and search engines read, FR-15. §8 keeps link previews in other languages out of scope.
 
 #### The strings
 
 - One file, `src/locales/locales.json`, holds every string. Each language is a top-level key. Its strings sit under `translation`, the default namespace of i18next.
 - A key names the place of its string, such as `pick.title`. A placeholder uses double braces, such as `{{deck}}`.
-- A plural uses the `_one` and `_other` endings of i18next. i18next follows the plural rules of each language through `Intl.PluralRules`.
-- TypeScript makes sure that each language in the file holds every key of English. A missing key fails the build.
+- A plural uses the endings that i18next asks for each language, through `Intl.PluralRules`. English needs `_one` and `_other`. Italian, Spanish and Portuguese also need `_many`, which they use for large round numbers such as a million.
+- TypeScript makes sure that each language in the file holds every key of English, and every plural ending of its own language. A missing key fails the build.
 - If a string is missing when the page runs, the page shows the English string.
+- The words that the formatting helpers add, such as the "to" in a window range and "Not available", are strings in the file too.
 - The quoted UI text in this document is the English text. Each language translates it.
 - Specs render in English, so they keep their queries by the English text.
 
@@ -1302,6 +1303,6 @@ The project has no CSS linter for now. Prettier formats the CSS, and review enfo
     - One sentence about the source.
 16. ~~More languages.~~ Settled on 2026-10-20: FR-20. The owner chose:
     - English, Italian, Spanish and Portuguese.
-    - A switch beside the theme toggle that shows the code and a chevron, over a native select.
+    - A switch beside the theme toggle that shows the code and a chevron, with a native select over it.
     - One file for all the strings, and i18next.
     - Translations that the owner writes.

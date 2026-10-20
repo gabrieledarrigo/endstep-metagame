@@ -343,7 +343,7 @@ body { container-type:inline-size; }
 .lang-switch { position:relative; display:inline-flex; align-items:center; gap:6px; height:36px; padding:0 10px 0 12px; border:1px solid var(--edge);
   border-radius:18px; background:var(--surface); color:var(--text-600); font:600 13px/1 var(--sans); letter-spacing:.04em; cursor:pointer; }
 .lang-switch:hover { background:var(--hover); color:var(--text-900); }
-.lang-switch:focus-within { outline:2px solid var(--primary); outline-offset:2px; }
+.lang-switch:has(:focus-visible) { outline:2px solid var(--primary); outline-offset:2px; }
 .lang-switch__chevron { width:12px; height:12px; flex:none; fill:none; stroke:currentColor; stroke-width:2; }
 .lang-switch__select { position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; font-size:16px; }
 .theme-toggle { width:36px; height:36px; display:grid; place-items:center; padding:0; border-radius:50%;
@@ -1776,11 +1776,11 @@ a.button { display:inline-block; text-decoration:none; }
   <span class="mono">--primary</span> ring. <b>Language switch</b> FR-20. A 36px pill before the toggle, 8px from it, with
   the same border, surface and hover. It shows the code of the language in 13px 600 capitals, &ldquo;EN&rdquo;, and a 12px
   chevron. A native select named Language lies over the whole pill, invisible, so a phone opens its own picker and a keyboard
-  works as usual. Its options name each language in its own words: English, Italiano, Espa&ntilde;ol, Portugu&ecirc;s. Focus
-  draws the 2px <span class="mono">--primary</span> ring around the pill. <b>Layout</b> The header is a grid. Below 1,100px the
+  works as usual. Its options name each language in its own words: English, Italiano, Espa&ntilde;ol, Portugu&ecirc;s. Keyboard focus
+  draws the 2px <span class="mono">--primary</span> ring around the pill, through <span class="mono">:focus-visible</span>, as on every other control. <b>Layout</b> The header is a grid. Below 1,100px the
   name takes the free width and the two controls keep the first row, with the links on the second. On a 360px phone the name
   then takes three lines, and at 640px it takes two. The owner accepted both for the switch. When the name runs out of room, at a 320px
-  screen, with a wide system font or with enlarged text, the name wraps to two lines and the toggle stays where it is.
+  screen, with a wide system font or with enlarged text, the name wraps onto more lines and the controls stay where they are.
   From 1,100px the name, the links and the two controls share one row, the toggle last. With three or four links, one row at 640px would
   squeeze the name into three lines, so the tablet keeps the links on their own row, as the second pair shows. The six specimens above are forced to one theme each and are inert, whatever theme this page is in. The toggle at the top of this page works: it switches the whole
   design system, and the choice is kept for the next visit.</p>
