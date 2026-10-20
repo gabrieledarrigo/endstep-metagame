@@ -181,6 +181,7 @@ function staplesOf(tables: Table[]): Staple[] {
   }
 
   return [...tallies.values()]
+    .filter((tally) => tally.weight > 0)
     .map((tally) => ({
       name: tally.name,
       share: tally.weight / total,

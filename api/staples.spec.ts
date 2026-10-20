@@ -463,6 +463,40 @@ describe("the staples function's cards", () => {
     expect(response.status).toBe(502);
   });
 
+  it("leaves out a card whose weight is zero, so no share or copies is NaN", async () => {
+    endstep({
+      decks: [deck("a", 0.2), deck("z", 0)],
+      pages: {
+        a: [
+          {
+            rows: [
+              ["Counterspell", 1, 4],
+              ["Ponder", 0, 0],
+            ],
+          },
+        ],
+        z: [{ rows: [["Preordain", 1, 4]] }],
+      },
+    });
+
+    const body = await bodyOf(await staples.fetch(request(MAIN_30D)));
+
+    expect(body.cards.map((card) => card.name)).toEqual(["Counterspell"]);
+    expect(body.cards[0].share).toBe(1);
+    expect(body.cards[0].copies).toBe(4);
+  });
+
+  it("answers no cards when every counted deck has a share of zero", async () => {
+    endstep({
+      decks: [deck("z", 0)],
+      pages: { z: [{ rows: [["Preordain", 1, 4]] }] },
+    });
+
+    const body = await bodyOf(await staples.fetch(request(MAIN_30D)));
+
+    expect(body.cards).toEqual([]);
+  });
+
   it("answers no cards, and asks Scryfall nothing, when every deck is withheld", async () => {
     const withheld: Page = { withheld: { reason: "x" }, rows: [] };
     const fetchMock = endstep({
