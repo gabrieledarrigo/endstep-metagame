@@ -15,6 +15,7 @@ import {
   CHART_AXIS,
   CHART_BASELINE,
   CHART_CARTESIAN_GRID,
+  CHART_DAY_AXIS,
   CHART_SURFACE,
 } from "../../charts/theme";
 import { Panel } from "../../components/Panel";
@@ -71,12 +72,7 @@ export function DeckShare({ name, dates, points }: DeckShareProps) {
             accessibilityLayer
           >
             <CartesianGrid {...CHART_CARTESIAN_GRID} />
-            <XAxis
-              dataKey="day"
-              tickFormatter={formatDay}
-              minTickGap={24}
-              {...CHART_AXIS}
-            />
+            <XAxis {...CHART_DAY_AXIS} />
             <YAxis tickFormatter={axisShare} width={46} {...CHART_AXIS} />
             <Tooltip
               cursor={{ stroke: CHART_BASELINE }}

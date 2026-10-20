@@ -18,11 +18,12 @@ import { ChartFrame } from "../../charts/ChartFrame";
 import { ChartLegend, ChartLegendSkeleton } from "../../charts/ChartLegend";
 import { ChartTooltip } from "../../charts/ChartTooltip";
 import { seriesColours } from "../../charts/seriesColours";
-import { axisShare, formatDay, longDay, tooltipShare } from "../../helpers";
+import { axisShare, longDay, tooltipShare } from "../../helpers";
 import {
   CHART_AXIS,
   CHART_BASELINE,
   CHART_CARTESIAN_GRID,
+  CHART_DAY_AXIS,
   CHART_SURFACE,
 } from "../../charts/theme";
 import { Panel } from "../../components/Panel";
@@ -270,12 +271,7 @@ export function ShareOverTime({ series }: { series: ShareSeries[] }) {
               accessibilityLayer
             >
               <CartesianGrid {...CHART_CARTESIAN_GRID} />
-              <XAxis
-                dataKey="day"
-                tickFormatter={formatDay}
-                minTickGap={24}
-                {...CHART_AXIS}
-              />
+              <XAxis {...CHART_DAY_AXIS} />
               <YAxis tickFormatter={axisShare} width={46} {...CHART_AXIS} />
               <Tooltip
                 cursor={{ stroke: CHART_BASELINE }}
