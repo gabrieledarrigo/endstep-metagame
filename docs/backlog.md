@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-26. Derived from [`requirements.md`](./requirements.md) and [`design-system.html`](./design-system.html).
 
-Milestone 1 has sixteen items: four enablers, nine user stories and three hardening items. Milestones 2 to 7 follow at the end of this file. Each item gets a separate branch and a separate review. No item assumes one large implementation pass.
+Milestone 1 has sixteen items: four enablers, nine user stories and three hardening items. Milestones 2 to 8 follow at the end of this file. Each item gets a separate branch and a separate review. No item assumes one large implementation pass.
 
 Every item lists what blocks it, what it blocks, and how to know that it is done.
 
@@ -2015,3 +2015,58 @@ H6 and E17 run in parallel. Both touch `src/helpers/format.ts`. H6 changes only 
 E17 touches about 70 components, but each change is mechanical. It can go out as a stack of pull requests, one group of pages in each.
 
 S33 waits for the owner. The owner writes the translations in `locales.json`, once E17 has made that file.
+
+---
+
+# Milestone 8: page previews
+
+**Date:** 2026-10-20. This milestone comes from Draft v17 of the requirements.
+
+This milestone has one user story, for FR-15 and §4.7. It changes no screen, so it has no design item.
+
+| Wave | Items | Runs in parallel |
+|---|---|---|
+| 34 | S34 | Yes, beside milestone 7 |
+
+```
+S34 a preview for each page
+```
+
+---
+
+## S34. Share a page with its own preview
+
+As a Pauper player, I want a shared link to name the page it opens. Then a friend knows what the link shows before they open it.
+
+This story covers the previews of the matchup table, What to play? and Staples, in FR-15 and §4.7.
+
+**Tasks**
+
+1. Move the code that writes the title, the description, the canonical link and `og:url` from `api/deck-page.ts` to `api/_shared.ts`. The deck page's function keeps its behaviour.
+2. Add one list with the path, the title and the description of each of the three pages, as FR-15 gives them.
+3. Add a Vite plugin that writes `dist/matchups.html`, `dist/what-to-play.html` and `dist/staples.html` from `dist/index.html`, with the shared code.
+4. In `vercel.json`, point the three page rewrites to the new files.
+5. Make `vite preview` serve the three files at their paths, with the rewrites from `vercel.json`.
+6. Update §4.5, §4.6 and §4.7 if the code differs from them in any detail.
+7. Add specs for these cases:
+   - Each built file has its title, description, `og:title`, `og:description`, canonical link and `og:url`.
+   - Each built file keeps the image of the site card.
+   - `dist/index.html` does not change.
+   - The inline theme script is the same in all four files, so its hash in the security policy holds.
+   - The rewrites in `vercel.json` name the three files.
+   - The deck page's function writes the same preview as before.
+
+**Done when**
+
+- `npm run build` writes the three files, and each holds the values of FR-15.
+- In production, the HTML of `/matchups`, `/what-to-play` and `/staples` holds the title and the description of that page.
+- Each page loads and works as before, with no error in the security policy.
+- The specs pass.
+
+**Blocked by** nothing. **Blocks** nothing.
+
+---
+
+## Notes on sequencing, milestone 8
+
+S34 changes the build, `vercel.json` and the deck page's function. It touches no component, so it runs beside milestone 7.
