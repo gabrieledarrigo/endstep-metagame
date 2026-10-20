@@ -76,8 +76,12 @@ describe("DeckShare", () => {
 
   it("labels the axis with the day and the short month, with no leading zero", () => {
     const days = ["2026-09-04", "2026-09-05", "2026-09-06"];
-    const container = renderShare(
-      days.map((day, index) => ({ ...POINTS[index], day })),
+    const { container } = render(
+      <DeckShare
+        name="Affinity"
+        dates="4 Sept to 6 Sept 2026"
+        points={days.map((day, index) => ({ ...POINTS[index], day }))}
+      />,
     );
 
     expect(xAxisTicks(container)).toEqual(["6 Sept"]);
