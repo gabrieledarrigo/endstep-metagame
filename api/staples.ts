@@ -234,13 +234,17 @@ async function build(
   let tables: Table[];
 
   try {
-    top = await upstream<DecksBody>("Pauper/decks", {
-      window: target.window,
-      population: "rated",
-      sort: "share",
-      dir: "desc",
-      pageSize: String(TOP_DECKS),
-    });
+    top = await upstream<DecksBody>(
+      "Pauper/decks",
+      {
+        window: target.window,
+        population: "rated",
+        sort: "share",
+        dir: "desc",
+        pageSize: String(TOP_DECKS),
+      },
+      { signal: controller.signal },
+    );
     tables = await tablesOf(top.decks.items, target, controller);
   } finally {
     clearTimeout(deadline);

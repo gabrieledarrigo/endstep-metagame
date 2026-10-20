@@ -822,6 +822,28 @@ describe("the staples function's responses", () => {
     expect(response.headers.get("cache-control")).toBe("no-store");
   });
 
+  it("aborts a deck list still open after 50 seconds and answers 502", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>(
+        (_, init) =>
+          new Promise<Response>((_resolve, reject) => {
+            init?.signal?.addEventListener("abort", () => {
+              reject(new DOMException("Aborted", "AbortError"));
+            });
+          }),
+      ),
+    );
+
+    const pending = staples.fetch(request(MAIN_30D));
+    await vi.advanceTimersByTimeAsync(50_000);
+    const response = await pending;
+
+    expect(response.status).toBe(502);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+  });
+
   it.each([
     [
       "times out",
