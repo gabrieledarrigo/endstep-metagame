@@ -149,13 +149,13 @@ export function shortDay(day: string): string {
  * Formats a date in full, for a tooltip.
  *
  * @param day - A date in `YYYY-MM-DD` form.
- * @returns The date in in the user's locales
+ * @returns The day, the month and the year in the reader's locale, such as `7 October 2026` in en-GB.
  */
 export function longDay(day: string): string {
   const locales = userLocales();
 
   return new Date(`${day}T00:00:00Z`).toLocaleDateString(locales, {
-    day: "2-digit",
+    day: "numeric",
     month: "long",
     year: "numeric",
     timeZone: "UTC",
@@ -166,7 +166,7 @@ function formatDate(value: string, withYear: boolean): string {
   const locales = userLocales();
 
   const date = new Date(value).toLocaleDateString(locales, {
-    day: "2-digit",
+    day: "numeric",
     month: "short",
     year: withYear ? "numeric" : undefined,
     timeZone: "UTC",
@@ -179,7 +179,7 @@ function formatDate(value: string, withYear: boolean): string {
  * Formats a date as its day and month, for a chart axis or a list of days.
  *
  * @param day - A date in `YYYY-MM-DD` form.
- * @returns The day and month in the reader's locale, such as `05 Sept` in en-GB.
+ * @returns The day and month in the reader's locale, such as `5 Sept` in en-GB.
  */
 export function formatDay(day: string): string {
   return formatDate(day, false);
@@ -196,7 +196,7 @@ function lastCoveredDay(to: string): string {
  * Formats the dates a window covers, ending on its last covered day rather than on its exclusive `to`, §6.7.
  *
  * @param window - The window from a response's provenance.
- * @returns The range, such as `10 Sep to 9 Oct 2026`. The first date carries its year only when the years differ.
+ * @returns The range, such as `10 Sept to 9 Oct 2026`. The first date carries its year only when the years differ.
  */
 export function formatWindow({
   from,

@@ -2,6 +2,7 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import detail from "../../../test/fixtures/deck.json";
 import { sizeCharts } from "../../../test/sizeCharts";
+import { xAxisTicks } from "../../../test/xAxisTicks";
 import type { DeckDetail, SharePoint } from "../../api/types";
 import { DeckShare } from "./DeckShare";
 
@@ -73,6 +74,15 @@ describe("DeckShare", () => {
     );
   });
 
+  it("labels the axis with the day and the short month, with no leading zero", () => {
+    const days = ["2026-09-04", "2026-09-05", "2026-09-06"];
+    const container = renderShare(
+      days.map((day, index) => ({ ...POINTS[index], day })),
+    );
+
+    expect(xAxisTicks(container)).toEqual(["6 Sept"]);
+  });
+
   it("lists every day and its share, with no data for a day without a share", () => {
     renderShare([
       {
@@ -91,7 +101,7 @@ describe("DeckShare", () => {
       within(list)
         .getAllByRole("term")
         .map((term) => term.textContent),
-    ).toEqual(["04 Sept", "11 Sept", "12 Sept"]);
+    ).toEqual(["4 Sept", "11 Sept", "12 Sept"]);
     expect(
       within(list)
         .getAllByRole("definition")

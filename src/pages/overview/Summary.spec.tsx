@@ -21,7 +21,7 @@ describe("Summary", () => {
       ["Registrations", "236,728"],
       ["Players", "8,355"],
       ["Archetypes", "252"],
-      ["Window", "06 Sept to 05 Oct 2026"],
+      ["Window", "6 Sept to 5 Oct 2026"],
       ["Population", "Rated"],
     ]);
   });
