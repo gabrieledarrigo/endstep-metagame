@@ -2043,23 +2043,27 @@ This story covers the previews of the matchup table, What to play? and Staples, 
 **Tasks**
 
 1. Move the code that writes the title, the description, the canonical link and `og:url` from `api/deck-page.ts` to `api/_shared.ts`. The deck page's function keeps its behaviour.
-2. Add one list with the path, the title and the description of each of the three pages, as FR-15 gives them.
+2. In `api/_shared.ts`, add one list with the path, the title and the description of each of the three pages, as FR-15 gives them. Use its full addresses for the canonical link and `og:url`.
 3. Add a Vite plugin that writes `dist/matchups.html`, `dist/what-to-play.html` and `dist/staples.html` from `dist/index.html`, with the shared code.
-4. In `vercel.json`, point the three page rewrites to the new files.
-5. Make `vite preview` serve the three files at their paths, with the rewrites from `vercel.json`.
-6. Update §4.5, §4.6 and §4.7 if the code differs from them in any detail.
-7. Add specs for these cases:
+4. In `vercel.json`, set `cleanUrls` and remove the three page rewrites.
+5. Check that `vite preview` serves each file at its path. Add code only if it does not.
+6. On each route change, set the canonical link and `og:url` to the full address of the new path, with no query string. Add them if the HTML has none.
+7. Update §4.5, §4.6 and §4.7 if the code differs from them in any detail.
+8. Add specs for these cases:
    - Each built file has its title, description, `og:title`, `og:description`, canonical link and `og:url`.
    - Each built file keeps the image of the site card.
    - `dist/index.html` does not change.
    - The inline theme script is the same in all four files, so its hash in the security policy holds.
-   - The rewrites in `vercel.json` name the three files.
+   - `vercel.json` sets `cleanUrls` and has no page rewrite left.
+   - Each title matches the English heading of its page.
+   - After a route change, the canonical link and `og:url` name the new path, on a deck page and on the overview too.
    - The deck page's function writes the same preview as before.
 
 **Done when**
 
 - `npm run build` writes the three files, and each holds the values of FR-15.
 - In production, the HTML of `/matchups`, `/what-to-play` and `/staples` holds the title and the description of that page.
+- In production, `/staples.html` redirects to `/staples`.
 - Each page loads and works as before, with no error in the security policy.
 - The specs pass.
 

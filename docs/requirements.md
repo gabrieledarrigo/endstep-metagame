@@ -54,7 +54,7 @@ The application is read-only. It stores only three display preferences: the them
 | Matchup table | A page of its own. The top 24 decks. Colour only the clear pairs. Below 640px, the list of one deck, FR-12 |
 | Card art | From Scryfall by name. The proxy adds it. Endstep's image endpoint is the fallback, §3.4 |
 | Install | The reader can install the site as an app. No offline caching and no service worker, FR-16 |
-| Sharing | Each deck page shares with its own title, figures and art. Every other page shares its own title and description, with the site card, FR-15 |
+| Sharing | Each deck page shares with its own title, figures and art. The overview shares the site card. The other pages share their own title and description, with the site card as image, FR-15 |
 | What to play? | The top 24, ranked by expected match win rate against a metagame that the reader can change. The data comes from the matchup table. No new calls to Endstep, FR-17 |
 | Staples | The 50 cards that the top 24 play most, weighted by share, for the main deck and the sideboard. The staples function builds them, FR-18 and §4.9 |
 | Languages | English, Italian, Spanish and Portuguese, through i18next. The page detects the language from the browser, and a switch in the header changes it, FR-20 |
@@ -276,7 +276,7 @@ The front end uses React Router 8 in declarative mode, with `BrowserRouter`, `Ro
 | `/what-to-play` | What to play?, FR-17 |
 | `/staples` | Staples, FR-18 |
 
-- `vercel.json` rewrites `/matchups`, `/what-to-play` and `/staples` to their copies of `index.html`: `/matchups.html`, `/what-to-play.html` and `/staples.html`, §4.7. It sends `/decks/:slug` to the deck page's HTML function. That function serves the same `index.html` with the link preview of the deck, FR-15. Vercel applies rewrites after it checks for real files, so the rewrites do not affect built assets.
+- `vercel.json` sets `cleanUrls`. So Vercel serves each of the three pages from its copy of `index.html`, §4.7. It serves `/staples` from `staples.html`, for example. A request for `/staples.html` gets a 308 redirect to `/staples`, and `/index.html` one to `/`. It sends `/decks/:slug` to the deck page's HTML function. That function serves the same `index.html` with the link preview of the deck, FR-15. Vercel applies rewrites after it checks for real files, so the rewrites do not affect built assets.
 - `?window=` belongs to every page, and links carry it from page to page. Pages read and write it with `useSearchParams`. See FR-1.
 - If the window is missing or unknown, the layout route replaces it with the default, with a replace navigation. So the address always names the window on the screen.
 - The view state also lives in the address:
@@ -291,7 +291,8 @@ The front end uses React Router 8 in declarative mode, with `BrowserRouter`, `Ro
 - The theme is not view state. It is a preference of the reader, kept in local storage, so a link never carries it. See FR-13. The currency of the sample list, FR-19, and the language, FR-20, are the same kind of preference.
 - Back and forward work. A route change does not reload the page.
 - `BrowserRouter` sets `useTransitions={false}`. So each navigation renders at once, not as a React transition. With transitions, quick presses of Enter on a stepper button read the address before the last press rendered. The app then lost some presses, FR-17.
-- Any other path is a Vercel 404. If a path reaches the app without a route, such as `/index.html`, the app shows a Not found page.
+- Any other path is a Vercel 404. If a path reaches the app without a route, the app shows a Not found page.
+- On each route change, the app sets the canonical link and `og:url` to the new path, FR-15.
 - A route change moves focus to the main heading of the new page. Then readers who use a keyboard or a screen reader know that the page changed.
 - A link scrolls the new page to the top. The exception is a link to the matchup table that names a deck. That link scrolls as FR-12 sets out. Back and forward keep the scroll position that the browser restores. Declarative mode does none of this, because `ScrollRestoration` exists only in data mode. So the app does it on each change of the path. A change to the query string alone is not a route change.
 
@@ -301,14 +302,14 @@ The front end uses React Router 8 in declarative mode, with `BrowserRouter`, `Ro
 
 The plugin serves each response from memory for its `s-maxage`, the same lifetime that the edge uses. It does not serve stale responses and does not evict expired entries, so it is simpler than the edge. Without this memory, every reload of the matchup page in development costs 25 upstream calls. Then a dozen reloads in a minute reach the rate limit.
 
-The plugin replaces `dev-server.js`, which the project deletes. For the page routes, the Vite dev server already falls back to `index.html`. `vite preview` also serves `/decks/:slug` through the deck page's HTML function, with the rewrite from `vercel.json`. It serves the three copies of `index.html` at their paths, with the rewrites from `vercel.json`. So a developer can check a link preview on a local build. The dev server does not do this, because its `index.html` is the source file.
+The plugin replaces `dev-server.js`, which the project deletes. For the page routes, the Vite dev server already falls back to `index.html`. `vite preview` also serves `/decks/:slug` through the deck page's HTML function, with the rewrite from `vercel.json`. Vite's own fallback serves `staples.html` for `/staples`, as Vercel does with `cleanUrls`. The same holds for the other two copies. So a developer can check a link preview on a local build. The dev server does not do this, because its `index.html` is the source file.
 
 ### 4.7 What deploys
 
 Vercel runs `npm run build` and serves `dist/`. Vercel builds the functions in `api/` from source, as before. Through `includeFiles`, `vercel.json` deploys `dist/index.html` with the deck page's HTML function, FR-15.
 
 - `vercel.json` pins `"framework": "vite"`. The Vercel project started with the "Other" preset. Without the pin, Vercel may skip the build and serve the source `index.html`. That file renders a blank page.
-- `vercel.json` also carries the proxy rewrite (§4.3) and the page rewrites (§4.5).
+- `vercel.json` also carries the proxy rewrite (§4.3), the deck page rewrite and `cleanUrls` (§4.5).
 - After Vite writes `dist/index.html`, a small Vite plugin writes `matchups.html`, `what-to-play.html` and `staples.html` beside it. Each is a copy of `index.html` with the title, the description, the canonical link and the `og:url` of its page, FR-15. Nothing runs for each request.
 - The copies keep the inline theme script unchanged. So its hash in the security policy stays the same.
 - `public/` holds the icons, the web app manifest, the site card image and `robots.txt`. Vite copies it into `dist/` unchanged.
@@ -692,10 +693,15 @@ Every page carries the data that browsers, search engines and chat apps read wit
 
   - The titles repeat the document titles of FR-10.
   - The `og:title` and `og:description` repeat the title and the description.
-  - The canonical link and `og:url` of each page are its path, such as `/staples`, with no query string. So every window of a page counts as one page.
+  - The canonical link and `og:url` of each page are its full address with no query string, such as `https://pauper-endstep-metagame.vercel.app/staples`. So every window of a page counts as one page.
   - The build writes these values into the copies of `index.html`, §4.7.
-  - One list in the code holds the path, the title and the description of each page. The plugin reads it, and a spec checks the built files against it.
+  - One list in `api/_shared.ts` holds the path, the title and the description of each page. The plugin reads it, and a spec checks the built files against it.
+  - A spec checks each title against the English heading of its page. So the preview and the page do not drift apart.
   - These words stay in English, FR-20.
+- The app keeps the canonical link and `og:url` in step with the page on the screen:
+  - The HTML sets them for the first page only. Without this rule, they still name that page after the reader moves on. Chrome on Android then shares the wrong page.
+  - So on each route change, the app sets both to the full address of the new path, with no query string, §4.5. If the HTML has none, the app adds them.
+  - This covers the deck pages and the overview too.
 - A deck page shares its own preview:
   - Its title reads "{deck} · Pauper Endstep metagame".
   - Its description reads "{share} of the Pauper field {period}, {win rate} match win rate, {players} players." Here, {period} follows the window of the link: "over the last day", "over the last 7 days", "over the last 14 days", "over the last 30 days" or "this season". The default is 30 days.
