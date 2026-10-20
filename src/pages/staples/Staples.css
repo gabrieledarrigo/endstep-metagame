@@ -49,10 +49,10 @@
 
   .staples__skeleton {
     width: 100%;
-    height: calc(6 * 142px);
+    height: calc(6 * 146px);
   }
 
-  @media (min-width: 1100px) {
+  @media (min-width: 640px) {
     .staples__skeleton {
       height: calc(6 * 109px);
     }
