@@ -11,7 +11,6 @@ import {
   formatWindow,
   longDay,
   percent,
-  shortDay,
   tooltipShare,
   wholePercent,
   winRateText,
@@ -104,28 +103,28 @@ describe("winRateText", () => {
   });
 });
 
-describe("shortDay", () => {
-  it("keeps the month and the day", () => {
-    expect(shortDay("2026-10-07")).toBe("10-07");
-  });
-});
-
 describe("longDay", () => {
   it("writes the date in full, in British English", () => {
-    expect(longDay("2026-10-07")).toBe("07 October 2026");
+    expect(longDay("2026-10-07")).toBe("7 October 2026");
   });
 });
 
 describe("formatDay", () => {
   it("writes the day and the short month", () => {
-    expect(formatDay("2026-09-05")).toBe("05 Sept");
+    expect(formatDay("2026-09-05")).toBe("5 Sept");
   });
 });
 
 describe("formatWindow", () => {
   it("ends on the last covered day, the day before the exclusive end", () => {
     expect(formatWindow(range("2026-09-06", "2026-10-06"))).toBe(
-      "06 Sept to 05 Oct 2026",
+      "6 Sept to 5 Oct 2026",
+    );
+  });
+
+  it("writes each day as a plain number, with no leading zero", () => {
+    expect(formatWindow(range("2026-09-05", "2026-10-05"))).toBe(
+      "5 Sept to 4 Oct 2026",
     );
   });
 
@@ -137,7 +136,7 @@ describe("formatWindow", () => {
 
   it("counts a window that ends on the first of the year as ending in the year before", () => {
     expect(formatWindow(range("2025-12-02", "2026-01-01"))).toBe(
-      "02 Dec to 31 Dec 2025",
+      "2 Dec to 31 Dec 2025",
     );
   });
 });

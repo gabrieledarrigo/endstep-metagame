@@ -232,7 +232,7 @@ describe("OverviewPage", () => {
         : Response.json(decks),
     );
     renderAt("/?window=30d");
-    await screen.findByText("06 Sept to 05 Oct 2026");
+    await screen.findByText("6 Sept to 5 Oct 2026");
 
     fireEvent.click(screen.getByRole("button", { name: "7d" }));
 
@@ -248,11 +248,11 @@ describe("OverviewPage", () => {
         .closest("[aria-busy]"),
     ).toBeTruthy();
     expect(screen.getByText("236,728")).toBeTruthy();
-    expect(screen.queryByText("06 Sept to 05 Oct 2026")).toBeNull();
+    expect(screen.queryByText("6 Sept to 5 Oct 2026")).toBeNull();
 
     answer(Response.json(decks));
 
-    expect(await screen.findByText("06 Sept to 05 Oct 2026")).toBeTruthy();
+    expect(await screen.findByText("6 Sept to 5 Oct 2026")).toBeTruthy();
     expect(
       screen
         .getByRole("region", { name: "Decks by meta share" })
@@ -299,7 +299,7 @@ describe("OverviewPage", () => {
       }),
     );
     renderAt("/?window=30d");
-    await screen.findByText("06 Sept to 05 Oct 2026");
+    await screen.findByText("6 Sept to 5 Oct 2026");
 
     fireEvent.click(screen.getByRole("button", { name: "7d" }));
 
@@ -1064,7 +1064,7 @@ describe("OverviewPage search", () => {
     fireEvent.click(screen.getByRole("button", { name: "7d" }));
 
     await statusReads("Loading the 7d window.");
-    expect(await screen.findByText("06 Sept to 05 Oct 2026")).toBeTruthy();
+    expect(await screen.findByText("6 Sept to 5 Oct 2026")).toBeTruthy();
     expect(screen.getByRole("status").textContent).toBe(
       "Loading the 7d window.",
     );

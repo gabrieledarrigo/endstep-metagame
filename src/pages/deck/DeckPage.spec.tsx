@@ -322,7 +322,7 @@ describe("DeckPage", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "7d" }));
 
-    expect(await screen.findByText("04 Oct to 10 Oct 2026")).toBeTruthy();
+    expect(await screen.findByText("4 Oct to 10 Oct 2026")).toBeTruthy();
     expect(screen.queryByText("Copied the list.")).toBeNull();
   });
 
