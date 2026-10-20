@@ -14,6 +14,7 @@ const COUNTERSPELL_ART =
   "https://cards.scryfall.io/art_crop/front/1/b/1b73577a-counterspell.jpg?1";
 const HALF_HOUR = "public, s-maxage=1800, stale-while-revalidate=1800";
 const FIVE_MINUTES = "public, s-maxage=300, stale-while-revalidate=600";
+const TABLE_TIMEOUT_MS = 20_000;
 
 type Staples = (typeof import("./staples"))["default"];
 
@@ -39,8 +40,10 @@ type Body = {
 type Upstream = {
   decks: Deck[];
   pages?: Record<string, Page[]>;
-  status?: (url: URL) => number | undefined;
+  status?: (url: URL, call: number) => number | undefined;
   delay?: (url: URL) => number;
+  timesOut?: (url: URL, call: number) => boolean;
+  offline?: (url: URL) => boolean;
   scryfall?: () => Promise<Response>;
 };
 
@@ -101,29 +104,52 @@ function collection(...names: string[]): () => Promise<Response> {
     });
 }
 
+function pause(ms: number, signal?: AbortSignal | null): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(resolve, ms);
+
+    signal?.addEventListener("abort", () => {
+      clearTimeout(timer);
+      reject(signal.reason);
+    });
+  });
+}
+
 function endstep({
   decks,
   pages = {},
   status = (): undefined => undefined,
   delay = (): number => 0,
+  timesOut = (): boolean => false,
+  offline = (): boolean => false,
   scryfall = collection(),
 }: Upstream): Mock<typeof fetch> {
+  const callsByUrl = new Map<string, number>();
   const fetchMock = vi.fn<typeof fetch>(async (input, init) => {
     const url = new URL(String(input));
+    const call = (callsByUrl.get(String(input)) ?? 0) + 1;
     const wait = delay(url);
 
+    callsByUrl.set(String(input), call);
+
     if (wait > 0) {
-      await new Promise((resolve) => {
-        setTimeout(resolve, wait);
-      });
-      init?.signal?.throwIfAborted();
+      await pause(wait, init?.signal);
     }
 
     if (String(input) === SCRYFALL) {
       return scryfall();
     }
 
-    const failure = status(url);
+    if (timesOut(url, call)) {
+      await pause(TABLE_TIMEOUT_MS, init?.signal);
+      throw new DOMException("The operation timed out", "TimeoutError");
+    }
+
+    if (offline(url)) {
+      throw new TypeError("fetch failed");
+    }
+
+    const failure = status(url, call);
 
     if (failure !== undefined) {
       return new Response(null, { status: failure });
@@ -863,5 +889,254 @@ describe("the staples function's responses", () => {
 
     expect(response.status).toBe(502);
     expect(response.headers.get("cache-control")).toBe("no-store");
+  });
+});
+
+describe("the staples function's second request", () => {
+  const counterspell: Page[] = [{ rows: [["Counterspell", 1, 4]] }];
+  const twoPages: Page[] = [
+    { total: 100, rows: [["Counterspell", 1, 4]] },
+    { total: 100, rows: [["Brainstorm", 1, 4]] },
+  ];
+
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
+  });
+
+  function onPage(url: URL, slug: string, page: number): boolean {
+    return (
+      url.pathname.includes(`/decks/${slug}/`) &&
+      url.searchParams.get("page") === String(page)
+    );
+  }
+
+  async function settled(pending: Promise<Response>): Promise<Response> {
+    await vi.advanceTimersByTimeAsync(60_000);
+    return pending;
+  }
+
+  it("asks once more for a page that times out, and answers 200 with its cards", async () => {
+    const fetchMock = endstep({
+      decks: [deck("a", 0.2), deck("b", 0.1)],
+      pages: { a: counterspell, b: [{ rows: [["Brainstorm", 1, 4]] }] },
+      timesOut: (url, call) => onPage(url, "a", 1) && call === 1,
+      scryfall: collection("Counterspell", "Brainstorm"),
+    });
+
+    const response = await settled(staples.fetch(request(MAIN_30D)));
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toBe(HALF_HOUR);
+    expect(pagesOf(fetchMock, "a")).toEqual([1, 1]);
+    expect(pagesOf(fetchMock, "b")).toEqual([1]);
+    expect((await bodyOf(response)).cards.map(({ name }) => name)).toEqual([
+      "Counterspell",
+      "Brainstorm",
+    ]);
+  });
+
+  it("answers 502 when the second request times out too", async () => {
+    const fetchMock = endstep({
+      decks: [deck("a", 0.2)],
+      pages: { a: counterspell },
+      timesOut: (url) => onPage(url, "a", 1),
+    });
+
+    const response = await settled(staples.fetch(request(MAIN_30D)));
+
+    expect(response.status).toBe(502);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(pagesOf(fetchMock, "a")).toEqual([1, 1]);
+  });
+
+  it("sends no second request for page 2 after page 1 had one", async () => {
+    const fetchMock = endstep({
+      decks: [deck("a", 0.2)],
+      pages: { a: twoPages },
+      timesOut: (url, call) =>
+        (onPage(url, "a", 1) && call === 1) || onPage(url, "a", 2),
+    });
+
+    const response = await settled(staples.fetch(request(MAIN_30D)));
+
+    expect(response.status).toBe(502);
+    expect(pagesOf(fetchMock, "a")).toEqual([1, 1, 2]);
+  });
+
+  it("gives a deck's table at most one second request, even with time left", async () => {
+    const answer = endstep({ decks: [deck("a", 0.2)], pages: { a: twoPages } });
+    const fetchMock = vi.fn<typeof fetch>(async (input, init) => {
+      const url = new URL(String(input));
+
+      if (
+        onPage(url, "a", 2) ||
+        (onPage(url, "a", 1) && pagesOf(fetchMock, "a").length === 1)
+      ) {
+        throw new DOMException("The operation timed out", "TimeoutError");
+      }
+
+      return answer(input, init);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const response = await settled(staples.fetch(request(MAIN_30D)));
+
+    expect(response.status).toBe(502);
+    expect(pagesOf(fetchMock, "a")).toEqual([1, 1, 2]);
+  });
+
+  it("asks once more for page 2 when its timeout leaves exactly 20 seconds before the deadline", async () => {
+    const fetchMock = endstep({
+      decks: [deck("a", 0.2)],
+      pages: { a: twoPages },
+      delay: (url) => (onPage(url, "a", 1) ? 10_000 : 0),
+      timesOut: (url, call) => onPage(url, "a", 2) && call === 1,
+    });
+
+    const response = await settled(staples.fetch(request(MAIN_30D)));
+
+    expect(response.status).toBe(200);
+    expect(pagesOf(fetchMock, "a")).toEqual([1, 2, 2]);
+  });
+
+  it("sends no second request when the timeout leaves less than 20 seconds before the deadline", async () => {
+    const fetchMock = endstep({
+      decks: [deck("a", 0.2)],
+      pages: { a: twoPages },
+      delay: (url) => (onPage(url, "a", 1) ? 10_001 : 0),
+      timesOut: (url, call) => onPage(url, "a", 2) && call === 1,
+    });
+
+    const response = await settled(staples.fetch(request(MAIN_30D)));
+
+    expect(response.status).toBe(502);
+    expect(pagesOf(fetchMock, "a")).toEqual([1, 2]);
+  });
+
+  it.each([
+    [
+      "a 429",
+      {
+        status: (url: URL): number | undefined =>
+          onPage(url, "a", 1) ? 429 : undefined,
+      },
+      429,
+    ],
+    [
+      "a 500",
+      {
+        status: (url: URL): number | undefined =>
+          onPage(url, "a", 1) ? 500 : undefined,
+      },
+      502,
+    ],
+    [
+      "a network error",
+      { offline: (url: URL): boolean => onPage(url, "a", 1) },
+      502,
+    ],
+  ])("sends no second request after %s", async (_, failure, expected) => {
+    const fetchMock = endstep({
+      decks: [deck("a", 0.2)],
+      pages: { a: counterspell },
+      ...failure,
+    });
+
+    const response = await settled(staples.fetch(request(MAIN_30D)));
+
+    expect(response.status).toBe(expected);
+    expect(pagesOf(fetchMock, "a")).toEqual([1]);
+  });
+
+  it("answers 429 and aborts the other tables when the second request is rate limited", async () => {
+    const fetchMock = endstep({
+      decks: [deck("a", 0.2), deck("b", 0.1)],
+      pages: { a: counterspell, b: twoPages },
+      delay: (url) => (onPage(url, "b", 1) ? 30_000 : 0),
+      timesOut: (url, call) => onPage(url, "a", 1) && call === 1,
+      status: (url, call) =>
+        onPage(url, "a", 1) && call === 2 ? 429 : undefined,
+    });
+
+    const response = await settled(staples.fetch(request(MAIN_30D)));
+
+    expect(response.status).toBe(429);
+    expect(response.headers.get("cache-control")).toBe("public, s-maxage=60");
+    expect(pagesOf(fetchMock, "a")).toEqual([1, 1]);
+    expect(pagesOf(fetchMock, "b")).toEqual([1]);
+  });
+
+  it("aborts a second request still open when another table answers 429", async () => {
+    endstep({
+      decks: [deck("a", 0.2), deck("b", 0.1)],
+      delay: (url) => (onPage(url, "b", 1) ? 25_000 : 0),
+      timesOut: (url) => onPage(url, "a", 1),
+      status: (url) => (onPage(url, "b", 1) ? 429 : undefined),
+    });
+
+    let done = false;
+    const pending = staples.fetch(request(MAIN_30D)).then((response) => {
+      done = true;
+      return response;
+    });
+    await vi.advanceTimersByTimeAsync(25_000);
+
+    expect(done).toBe(true);
+    expect((await pending).status).toBe(429);
+  });
+
+  it("answers 502 when the second request fails with 500", async () => {
+    const fetchMock = endstep({
+      decks: [deck("a", 0.2)],
+      pages: { a: counterspell },
+      timesOut: (url, call) => onPage(url, "a", 1) && call === 1,
+      status: (url, call) =>
+        onPage(url, "a", 1) && call === 2 ? 500 : undefined,
+    });
+
+    const response = await settled(staples.fetch(request(MAIN_30D)));
+
+    expect(response.status).toBe(502);
+    expect(pagesOf(fetchMock, "a")).toEqual([1, 1]);
+  });
+
+  it("sends no second request for a call that a 429 on another table aborts", async () => {
+    const fetchMock = endstep({
+      decks: [deck("a", 0.2), deck("b", 0.1)],
+      pages: { b: counterspell },
+      delay: (url) => (onPage(url, "a", 1) ? 5_000 : 0),
+      status: (url) => (onPage(url, "a", 1) ? 429 : undefined),
+      timesOut: (url) => onPage(url, "b", 1),
+    });
+
+    const response = await settled(staples.fetch(request(MAIN_30D)));
+
+    expect(response.status).toBe(429);
+    expect(pagesOf(fetchMock, "a")).toEqual([1]);
+    expect(pagesOf(fetchMock, "b")).toEqual([1]);
+  });
+
+  it("sends no second request for a call that the deadline aborts", async () => {
+    const fetchMock = endstep({
+      decks: [deck("a", 0.2)],
+      pages: { a: counterspell },
+      delay: (url) => (onPage(url, "a", 1) ? 60_000 : 0),
+    });
+
+    let done = false;
+    const pending = staples.fetch(request(MAIN_30D)).then((response) => {
+      done = true;
+      return response;
+    });
+    await vi.advanceTimersByTimeAsync(49_999);
+
+    expect(done).toBe(false);
+
+    await vi.advanceTimersByTimeAsync(1);
+    const response = await pending;
+
+    expect(response.status).toBe(502);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(pagesOf(fetchMock, "a")).toEqual([1]);
   });
 });
