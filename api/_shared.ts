@@ -33,6 +33,56 @@ type ScryfallCard = ScryfallFace & { card_faces?: ScryfallFace[] };
 const artByName = new Map<string, string | null>();
 let pausedUntil = 0;
 
+class UpstreamError extends Error {
+  readonly status: number;
+
+  constructor(status: number) {
+    super(`Endstep answered ${status}`);
+    this.name = "UpstreamError";
+    this.status = status;
+  }
+}
+
+/**
+ * Fetches one Endstep endpoint and parses its JSON body.
+ *
+ * @param path - The endpoint path after the API version, such as `Pauper/decks`.
+ * @param params - The query parameters, in the order they are sent.
+ * @returns A Promise resolving to the parsed body.
+ * @throws An `UpstreamError` with the status when Endstep answers anything other than a success.
+ * @throws The fetch or parse error when Endstep is unreachable, too slow, or answers with a body that is not JSON.
+ */
+export async function upstream<Body>(
+  path: string,
+  params: Record<string, string>,
+): Promise<Body> {
+  const response = await fetch(
+    `${UPSTREAM}/${path}?${new URLSearchParams(params)}`,
+    {
+      headers: {
+        accept: "application/json",
+      },
+      signal: AbortSignal.timeout(TIMEOUT_MS),
+    },
+  );
+
+  if (!response.ok) {
+    throw new UpstreamError(response.status);
+  }
+
+  return (await response.json()) as Body;
+}
+
+/**
+ * Checks whether an error is Endstep's rate limit.
+ *
+ * @param error - The error a build failed with.
+ * @returns `true` for an upstream 429.
+ */
+export function isRateLimit(error: unknown): boolean {
+  return error instanceof UpstreamError && error.status === 429;
+}
+
 /**
  * Builds the address of a deck detail on our own proxy, exactly as the deck page requests it, so every caller shares the deck page's edge cache entry.
  *

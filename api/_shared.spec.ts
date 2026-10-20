@@ -12,8 +12,10 @@ import {
   deckDetailUrl,
   errorResponse,
   hasNoBody,
+  isRateLimit,
   isRecord,
   methodResponse,
+  upstream,
 } from "./_shared.js";
 
 const SCRYFALL = "https://api.scryfall.com/cards/collection";
@@ -137,6 +139,61 @@ describe("deckDetailUrl", () => {
     expect(deckDetailUrl("http://127.0.0.1:4201", "a b", "season")).toBe(
       "http://127.0.0.1:4201/api/metagame/Pauper/decks/a%20b?window=season&population=rated",
     );
+  });
+});
+
+describe("upstream", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+  });
+
+  it("asks Endstep for the path with the parameters in order, with the 8 second timeout, and parses the body", async () => {
+    const fetchMock = vi.fn<typeof fetch>(async () =>
+      Response.json({ ok: true }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const timeout = vi.spyOn(AbortSignal, "timeout");
+
+    const body = await upstream("Pauper/decks", { window: "30d", page: "2" });
+
+    expect(body).toEqual({ ok: true });
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://endstep.cc/api/metagame/v1/Pauper/decks?window=30d&page=2",
+      {
+        headers: { accept: "application/json" },
+        signal: expect.any(AbortSignal),
+      },
+    );
+    expect(timeout.mock.calls).toEqual([[8000]]);
+  });
+
+  it.each([
+    [429, true],
+    [500, false],
+    [404, false],
+  ])(
+    "rejects a %i with an error that isRateLimit reads as %s",
+    async (status, limited) => {
+      vi.stubGlobal(
+        "fetch",
+        vi.fn<typeof fetch>(async () => new Response(null, { status })),
+      );
+
+      const error: unknown = await upstream("Pauper/decks", {}).catch(
+        (reason: unknown) => reason,
+      );
+
+      expect(error).toBeInstanceOf(Error);
+      expect(isRateLimit(error)).toBe(limited);
+    },
+  );
+});
+
+describe("isRateLimit", () => {
+  it("reads any error other than Endstep's own 429 as no rate limit", () => {
+    expect(isRateLimit(new Error("429"))).toBe(false);
+    expect(isRateLimit({ status: 429 })).toBe(false);
   });
 });
 
