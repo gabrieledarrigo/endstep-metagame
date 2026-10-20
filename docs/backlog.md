@@ -1496,7 +1496,7 @@ This item covers §4.10.
    - Follow each page of results.
    - For each card, keep the lowest price in tix, in euros and in dollars.
    - If a search returns 404, its names have no price.
-   - Give the six basic lands a price of zero. Give snow-covered basics their real price.
+   - Do not search prices for the six basic lands. Give them a price of zero in the response. Search snow-covered basics like other cards.
 4. In both lookups, match a card by its full name or by the name of any face. Ignore case, as §3.4 does.
 5. Return a price for each card, not totals. Keep each card in memory for one hour in each instance.
 6. Send the requests one after another, 500ms apart, and send at most five. All the requests share a bound of 6 seconds. Keep the answers that arrived before the bound.
@@ -1546,7 +1546,7 @@ This story covers the cost to build in FR-19 and the Scryfall credit in NFR-5.
    - The sentence that names the source of the prices.
 3. Calculate each cost from the price of each card in the response. Count only the cards in the list on the screen.
 4. Keep the currency of the reader in local storage, as the page keeps the theme. If no currency is stored, use MTGO.
-5. If a card has no price, show the line that counts the cards without a price.
+5. If a card has no price in the selected currency, show the line that counts the cards without a price.
 6. If the list is `mainOnly`, show only the cost of the main deck.
 7. If the request fails, do not show the block.
 8. When the reader changes the window, follow §4.8.
@@ -1557,7 +1557,7 @@ This story covers the cost to build in FR-19 and the Scryfall credit in NFR-5.
 
 - On the Affinity deck page at 30d, the total cost and the two parts agree with the list on the screen. They also agree with the prices in the response. This is true for each currency, in the two themes, at 360px and at 1,280px.
 - The currency that the reader selects on one deck page is selected on the next deck page.
-- If `/api/sample-cards` fails, the sample list shows as before, and the block does not show.
+- If `/api/sample-cards` fails, the page shows the sample list as before, without the block.
 
 **Blocked by** E16. **Blocks** nothing.
 
@@ -1573,9 +1573,9 @@ This story covers the card previews in FR-19.
 
 1. If the image of a card came back, show its name as a button with the dotted underline.
 2. On a device that can hover, show the preview next to the panel in two cases: the pointer is on the name, or the name has keyboard focus.
-   - Put the preview on the side of the panel that has room, level with the name and inside the window.
+   - Put the preview on the side of the panel that has room, level with the name and inside the screen.
    - When the page scrolls, move the preview with its name.
-   - Hide the preview in these cases: the name leaves the window, the pointer leaves, the name loses focus, or the reader presses Escape.
+   - Hide the preview in these cases: the name leaves the screen, the pointer leaves, the name loses focus, or the reader presses Escape.
    - Set `aria-hidden` on the preview.
 3. On every device, if the reader activates a name with a tap, a click, Enter or Space, open the dialog. The dialog has the image, its `alt` and a Close button. Close, Escape or a tap outside the image closes the dialog. Then focus goes back to the name.
 4. If the request fails or a card has no image, show the plain name.
@@ -1583,7 +1583,7 @@ This story covers the card previews in FR-19.
 
 **Done when**
 
-- When the pointer is on a name in the Affinity list, or the name has keyboard focus, the page shows its card. The card stays inside the window at 1,280px and at 1,024px.
+- When the pointer is on a name in the Affinity list, or the name has keyboard focus, the page shows its card. The card stays inside the screen at 1,280px and at 1,024px.
 - On a phone, a tap opens the card. With a keyboard, Enter opens the card. Close moves focus back to the name.
 - If `/api/sample-cards` fails, the names are plain text.
 
@@ -1595,4 +1595,4 @@ This story covers the card previews in FR-19.
 
 E16 starts at once. It is only server code, so it runs beside milestones 4 and 5.
 
-S30 and S31 run in parallel. Both stories change the sample list. S30 adds a block after the lists, and S31 changes how a name shows. Both stories use the same request. The first story to merge adds the request, and the second story uses it.
+S30 and S31 run in parallel. Both stories change the sample list. S30 adds a block after the lists, and S31 changes how the page renders a name. Both stories use the same request. The first story to merge adds the request, and the second story uses it.
