@@ -378,7 +378,7 @@ This item covers NFR-10 and NFR-5.
 3. Put the attribution copy in place.
 4. Write a README. It covers what the app is, where the data comes from, and how to run it.
 
-**Blocked by** nothing. The owner dropped H1 and H2.
+**Blocked by** nothing. H1 and H2 were dropped.
 
 ---
 
@@ -390,7 +390,7 @@ E3 runs in parallel at no cost. It touches no network and no data. You can build
 
 S7 is small, but its place in the order matters. If you add the window selector after the charts, you must go back to all three charts. If you add it before, you write the charts for a changing window from the start.
 
-S8 is last among the stories on purpose. It touches two surfaces that must exist first. Its most common state today is the unavailable one. When something already exists to put it next to, that state is easier to get right.
+S8 is last among the stories on purpose. It touches two surfaces that must exist first. Its most common state today is the unavailable one. When something already exists to put it beside, that state is easier to get right.
 
 ---
 
@@ -801,7 +801,7 @@ E8 gives the stories empty pages. Then S10 and S11 each fill one page and do not
 ---
 # Milestone 3: connected pages
 
-**Date:** 2026-10-13. This milestone comes from Draft v4 of the requirements. On 2026-10-14, Draft v5 added D3 and S18. On 2026-10-17, Draft v6 added D4, S19, S20 and S21. The same day, Draft v7 added D5, E13, S22, S23 and S24, and Draft v8 added E14. Draft v9 added H4 the same day, and H5 on 2026-10-18.
+**Date:** 2026-10-13. This milestone comes from Draft v4 of the requirements. D3 and S18 were added on 2026-10-14, from Draft v5. D4, S19, S20 and S21 were added on 2026-10-17, from Draft v6. D5, E13, S22, S23 and S24 were added the same day, from Draft v7, and E14 from Draft v8. H4 was added the same day. H5 was added on 2026-10-18, from Draft v9.
 
 This milestone has twenty items: four design items, two enablers, twelve user stories and two hardening items. Two stories, the enablers and H4 need no design, so they start at once. The design of H5 is done. It waits only for the mark component of the footer, S24. The other items wait for D2, D3, D4 or D5. Each of them changes how a page looks, and the owner chooses the design first.
 
@@ -1164,7 +1164,7 @@ This story covers FR-3 and FR-4.
 2. Show the cards by default, with no `view` in the address. Table writes `?view=table`, and Cards removes it. A change replaces the history entry, §4.5.
 3. Show one view at a time. While the decks load, show only the skeleton of the chosen view.
 4. Apply the sort to the table only. Keep the sort in the address while the cards show.
-5. Add a spec next to each component that the story adds or changes.
+5. Add a spec beside each component that the story adds or changes.
 
 **Done when**
 
@@ -1194,7 +1194,7 @@ This story covers FR-13, NFR-1a and NFR-9.
 5. When the theme changes, recolour the charts. This includes a change to the device setting before the reader chooses.
    - Before S18, every chart read its tokens once, when its module loaded: `src/charts/theme.ts`, `DeckShare`, `RankedBars` and `WinRateScatter`.
    - S18 gives the charts their colours as CSS variables instead. Then the browser resolves the colours on every paint.
-6. Add a spec next to each component, hook and helper that the story adds or changes.
+6. Add a spec beside each component, hook and helper that the story adds or changes.
 
 **Done when**
 
@@ -1226,7 +1226,7 @@ This story covers FR-14 and NFR-4.
 6. Show a win rate from under 20 decided matches as too few to call, §6.8.
 7. If no results come back, show the panel with "Clear the search". That button returns focus to the field.
 8. Keep the summary and the charts on the top 24.
-9. Add a spec next to each component, hook and helper that the story adds or changes.
+9. Add a spec beside each component, hook and helper that the story adds or changes.
 
 **Done when**
 
@@ -1254,7 +1254,7 @@ This story covers FR-5.
 2. Draw the highlighted line at 3px, on top. Fade every other line, its end dot and its end label to `--line-fade`: 25% in light and 35% in dark.
 3. Keep the slug of the highlighted deck in `?highlight=`, and replace the history entry. If the slug is not in the chart, show no highlight.
 4. Remove the hiding of lines and the `hide` parameter.
-5. Add a spec next to each component that changes.
+5. Add a spec beside each component that changes.
 
 **Done when**
 
@@ -1276,7 +1276,7 @@ This story covers FR-6 and FR-7.
 
 1. If the pointer is on the row of a deck in the ranked bars, underline the name of the deck. Also fill its bar with `--seq-600`. `Other` does not react.
 2. If the pointer is on a marker in the scatter, fill the marker with `--seq-600` at full opacity. If the marker has a label, underline the label.
-3. If a spec can test the behaviour of a component that changes, add a spec next to that component.
+3. If a spec can test the behaviour of a component that changes, add a spec beside that component.
 
 **Done when**
 
@@ -1302,12 +1302,12 @@ This story covers FR-16 and the icons of FR-15.
 2. Add the icon links to `index.html`: the SVG favicon, the ICO and the Apple touch icon.
 3. Set `theme-color` for each theme. The theme toggle updates it.
 4. Do not add a service worker.
-5. Add a spec next to each component that changes. For example, the spec of the toggle covers the update of `theme-color`.
+5. Add a spec beside each component that changes. For example, the spec of the toggle covers the update of `theme-color`.
 
 **Done when**
 
 - Chrome on Android and on desktop offers to install the site. Safari on iOS adds the site to the home screen with its icon.
-- The installed app opens on the overview, in its own window.
+- The installed app opens on the overview, in standalone mode.
 - Browser tabs show the favicon in both themes.
 
 **Blocked by** D5. **Blocks** nothing.
@@ -1332,7 +1332,7 @@ This story covers FR-15.
 2. In `index.html`, add the image tag of the site card, for every other page.
 3. In `vercel.json`, send `/decks/:slug` to the function. Cache each page at the edge for five minutes.
 4. Make sure that the previews work in Discord, Slack and WhatsApp. Test an art address from the Scryfall CDN, and test the fallback. Each app must follow the fallback through its redirect.
-5. Add a spec next to the function. The spec covers these cases:
+5. Add a spec beside the function. The spec covers these cases:
    - The injected tags.
    - The escaping.
    - A rejected slug.
@@ -1361,7 +1361,7 @@ This story covers NFR-5.
    - On one side, put the site, the author and the link to the source code.
    - On the other side, put the data source, the independence from Endstep, the Scryfall credit and the Fan Content notice.
 2. Below 640px, stack the parts of the footer.
-3. Add a spec next to the footer.
+3. Add a spec beside the footer.
 
 **Done when**
 
@@ -1384,7 +1384,7 @@ This item covers FR-11 and NFR-6. On 2026-10-17 the owner found the gaps and cho
    - Flow the list into columns at least 9.5em wide and 32px apart.
    - Do not split a pair across columns.
    - If a day has no data, show "no data" in `--text-600`.
-3. Add a spec next to each component that changes.
+3. Add a spec beside each component that changes.
 
 **Done when**
 
@@ -1412,7 +1412,7 @@ This item covers FR-10 and FR-16. On 2026-10-18 the owner chose to put the site 
    - Below 640px, give the link 4px of top padding. Then the mark and the first line share the centre of the toggle.
 3. Make the link no wider than the mark and the name on one line. Then the free space beside a one-line name is not a link. A wrapped name fills its column.
 4. Keep `aria-hidden` on the mark. Then the name of the link stays "Pauper Endstep metagame".
-5. Add a spec next to each component that changes. The specs cover two facts: the brand link holds the mark, and `SiteMark` passes its class on.
+5. Add a spec beside each component that changes. The specs cover two facts: the brand link holds the mark, and `SiteMark` passes its class on.
 
 **Done when**
 
@@ -1494,7 +1494,7 @@ This story covers the page, the pick and the ranking in FR-17, and the third lin
    - Show the retry.
    - Do not retry automatically.
    - Show the previous window dimmed.
-8. Add a spec next to each component that changes. Add a spec for the helper, with these worked cases:
+8. Add a spec beside each component that changes. Add a spec for the helper, with these worked cases:
    - The mirror.
    - A gated pair.
    - A pair with no entry.
@@ -1543,7 +1543,7 @@ This story covers the metagame panel in FR-17 and its place in the address.
    - Ignore changes that empty the metagame.
    - Let a change replace the history entry.
    - When the window changes, keep the changes in the address.
-6. Add a spec next to each component that changes. Add a spec for reading and writing `meta`.
+6. Add a spec beside each component that changes. Add a spec for reading and writing `meta`.
 
 **Done when**
 
@@ -1568,7 +1568,7 @@ This story covers the Beat a deck panel in FR-17.
 2. Show the sentence and the table. The table lists the decks whose pair with the chosen deck is clear in their favour, by the rule of FR-12. Order the decks by their rate against the chosen deck.
 3. From 640px, show the range bar of the pair, on its own scale. Show the expected rate of the deck against the metagame.
 4. If nothing clearly beats the chosen deck, show the sentence for that case, with no table.
-5. Add a spec next to each component that changes.
+5. Add a spec beside each component that changes.
 
 **Done when**
 
@@ -1630,7 +1630,7 @@ This item covers §4.9.
    Use the failure rules and the timeout of the matchup function.
 5. Check the shape of a withheld card table on a short window, where small decks are common. Record the shape in §3.8.
 6. Add the route to `vercel.json` and to the development plugin, §4.6. Make sure that `.vercelignore` keeps the spec out of the deploy.
-7. Add a spec next to the function. The spec covers these cases:
+7. Add a spec beside the function. The spec covers these cases:
    - The query check.
    - The paging rule.
    - The weighting on a small fixture.
@@ -1674,7 +1674,7 @@ This story covers the page and the list in FR-18, and the fourth link in FR-10.
    - The share and the copies.
 5. If there are withheld decks, show the line for them.
 6. Handle loading, the error and the window change as the matchup table does. When the reader switches to the other list, show the skeleton until that list arrives.
-7. Add a spec next to each component that changes.
+7. Add a spec beside each component that changes.
 
 **Done when**
 
@@ -1703,7 +1703,7 @@ This story covers the decks behind a card in FR-18.
    - One line for each deck in the response. Each line holds the deck as a link to its deck page, with the window. Each line also shows the bar from 640px, the share of the deck's lists and its copies.
    - The closing sentence.
 3. Use two columns from 640px, and one column below that width.
-4. Add a spec next to each component that changes. Include a case where focus stays on the button that opened the panel.
+4. Add a spec beside each component that changes. Include a case where focus stays on the button that opened the panel.
 
 **Done when**
 
@@ -1764,7 +1764,7 @@ This item covers §4.10.
    - A 429: 60 seconds.
    - A 404, and any other failure: `no-store`.
 8. Add the route to `vercel.json` and to the development plugin, §4.6. Make sure that `.vercelignore` keeps the spec out of the deploy.
-9. Add a spec next to the function. The spec covers these cases:
+9. Add a spec beside the function. The spec covers these cases:
    - The query check.
    - A withheld list.
    - A card with two faces.
@@ -1809,7 +1809,7 @@ This story covers the cost to build in FR-19 and the Scryfall credit in NFR-5.
 7. If the request fails, do not show the block.
 8. When the reader changes the window, follow §4.8.
 9. Change the credit in the footer to "Card images and prices from Scryfall."
-10. Add a spec next to each component that changes.
+10. Add a spec beside each component that changes.
 
 **Done when**
 
@@ -1830,14 +1830,14 @@ This story covers the card previews in FR-19.
 **Tasks**
 
 1. If the image of a card came back, show its name as a button with the dotted underline.
-2. On a device that can hover, show the preview next to the panel in two cases: the pointer is on the name, or the name has keyboard focus.
+2. On a device that can hover, show the preview beside the panel in two cases: the pointer is on the name, or the name has keyboard focus.
    - Put the preview on the side of the panel that has room, level with the name and inside the screen.
    - When the page scrolls, move the preview with its name.
    - Hide the preview in these cases: the name leaves the screen, the pointer leaves, the name loses focus, or the reader presses Escape.
    - Set `aria-hidden` on the preview.
 3. On every device, if the reader activates a name with a tap, a click, Enter or Space, open the dialog. The dialog has the image, its `alt` and a Close button. Close, Escape or a tap outside the image closes the dialog. Then focus goes back to the name.
 4. If the request fails or a card has no image, show the plain name.
-5. Add a spec next to each component that changes.
+5. Add a spec beside each component that changes.
 
 **Done when**
 

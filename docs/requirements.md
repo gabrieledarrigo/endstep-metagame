@@ -115,7 +115,7 @@ The proxy adds `art.imageUrl` to every deck in the deck list and in the deck det
 - If the proxy cannot read the body of a 200, the lookup counts as failed, §4.3. For example, `data` is not a list, or a card has no string name. The proxy stores nothing.
 - Scryfall allows 2 requests per second on that endpoint. It requires a `User-Agent` that names the application, and an `Accept` header. A 429 limits access for 30 seconds.
 - The proxy keeps two things in memory for as long as its instance lives: each card's address, and each name that Scryfall did not find. So a warm instance asks Scryfall only for names that are new to it.
-- Instances and regions do not share a rate limit. After a 429, an instance sends nothing to Scryfall for 30 seconds. This span is Scryfall's own lockout. During that time, the responses of that instance use the fallback.
+- The functions keep no rate-limit state that instances or regions share. After a 429, an instance sends nothing to Scryfall for 30 seconds. This span is Scryfall's own lockout. During that time, the responses of that instance use the fallback.
 
 ### 3.5 Measured values
 
@@ -380,7 +380,7 @@ The matchups row of the deck page loads on its own, FR-11. It dims itself and ma
 
 #### Behaviour
 
-- One cold build costs the deck list, one call for each page, and one Scryfall request. On 2026-10-18 at 30d, this came to 35 calls for the main deck and 25 for the sideboard.
+- One cold build costs one Endstep call for the deck list and one for each page. On 2026-10-18 at 30d, this came to 35 calls for the main deck and 25 for the sideboard. The build also sends one Scryfall request.
 - Card usage changes slowly. So the function holds a success for 30 minutes, with 30 more of stale-while-revalidate.
 - If the art lookup fell back, the function holds the success for one minute, as the proxy does, §4.3.
 - The function holds a 429 for 60 seconds. Any other error gets `no-store`. These two rules are the same as in the matchup function.
@@ -608,7 +608,7 @@ This page has one table. The table shows the top 24 decks by share, against each
 - The row header and the column header of the deck turn `--primary` on a `--primary-wash` band. So the spotlight does not rest on the fade alone.
 - If a link opens the page with a deck, the page scrolls to the deck, not to the top. A choice of a deck in the picker does the same. Back and forward keep the scroll position that the browser restores, §4.5. Focus stays where §4.5 puts it.
   - From 1,100px, the header row is sticky. The row of the deck scrolls into view just under it. The tab stop of the table moves to the row header of the deck.
-  - From 640px to 1,099px, the header row is not sticky. The page scrolls the top of the table into view, so the column names stay on the screen. The band scrolls sideways to bring the column of the deck next to the first column. The tab stop moves to the column header of the deck, which is on the screen. The row of the deck can sit below the screen, marked by its band.
+  - From 640px to 1,099px, the header row is not sticky. The page scrolls the top of the table into view, so the column names stay on the screen. The band scrolls sideways to bring the column of the deck beside the first column. The tab stop moves to the column header of the deck, which is on the screen. The row of the deck can sit below the screen, marked by its band.
   - Below 640px, the page shows the one-deck list, which opens on the deck. The page has nothing to scroll to.
 - The page matches the deck by the 8-character suffix of its slug. So a slug under an old name still finds the deck, §6.11.
 - A window change keeps `deck` in the address. If the deck is not in the top 24 of the new window, the table shows no spotlight. The picker shows the deck as an extra first option, "{name} (not in the top 24)". So any choice replaces it, "All decks" included. A line above the table reads "{name} isn't in the top 24 for the selected time window." If the reader selects a window where the deck is in the top 24, the spotlight comes back. The name comes from the deck detail, §3.6. The page requests the deck detail only in this case. Until it arrives, or if the request fails, the line names "This deck".
@@ -627,7 +627,7 @@ Every page has a light theme and a dark theme. The design system specifies both 
 
 - On a first visit, the page follows the setting of the device, `prefers-color-scheme`. If the device has no setting, the page uses the light theme. Until the reader chooses, the page also follows a change to the device setting while the page is open. The toggle and the charts also follow that change.
 - A 36px round button at the top right of the site header switches between the two themes. It is on every page and at every width. It is a toggle button named Dark theme, with `aria-pressed`. Its icon shows the current theme, a sun or a moon, so the icon agrees with `aria-pressed`.
-- Below 1,100px, the button shares the first row with the site name, and the links take the second row. From 1,100px, they share one row. With three links, one row at 640px squeezes the name into three lines. If the name runs out of room, it wraps to two lines and the button stays at the top right.
+- Below 1,100px, the button shares the first row with the site name, and the links take the second row. From 1,100px, they share one row. If the three links share one row at 640px, the name wraps to three lines. If the name runs out of room, it wraps to two lines and the button stays at the top right.
 - The page keeps the choice of the reader in local storage. From then on, the choice wins over the device setting. The choice is not in the address, §4.5.
 - The page applies the theme before its first paint, so a dark page never flashes light.
 - A switch recolours the charts at once, with no reload. Native controls and scrollbars follow the theme through `color-scheme`.
@@ -656,7 +656,7 @@ Every page carries the data that browsers, search engines and chat apps read wit
 - A deck page shares its own preview:
   - Its title reads "{deck} · Pauper Endstep metagame".
   - Its description reads "{share} of the Pauper field {period}, {win rate} match win rate, {players} players." Here, {period} follows the window of the link: "over the last day", "over the last 7 days", "over the last 14 days", "over the last 30 days" or "this season". The default is 30 days.
-  - The win rate reads as too few to call whenever the deck page calls it so, §6.8. This happens for the gate of fewer than 20 decided matches, or for a null low or high rate. The description then reads "{share} of the Pauper field {period}, match win rate too few to call, {players} players."
+  - The win rate reads as too few to call whenever the deck page calls it so, §6.8. This happens in four cases: a gate, fewer than 20 decided matches, a null rate, or a null low or high. The description then reads "{share} of the Pauper field {period}, match win rate too few to call, {players} players."
   - Its image is the art crop of the deck, `art.imageUrl` from the deck detail. If that is missing, the image is Endstep's image endpoint with `version=art_crop`, §3.4.
   - Its canonical link and `og:url` are `/decks/{slug}`, with no query string, so every window of one deck counts as one page.
 - A server function, §4.2, writes these values into `index.html` for `/decks/:slug`:
@@ -1090,17 +1090,17 @@ The application must not put meaningful load on Endstep. The edge cache (§4.3) 
 - It must not retry more than twice.
 - It must back off on 429.
 
-Total upstream traffic must stay well below the limit of 300 per 60 seconds. The matchup function costs 25 upstream calls for each cold window. To warm all five windows costs 125 calls in each edge region that serves a request. The matchups row of the deck page requests the same URL. When a window is warm, the row adds no upstream calls. On an edge cache miss, the deck page's HTML function, FR-15, adds one deck detail call for each deck and window. It is the same call that the page makes.
+The goal is that total upstream traffic stays well below the limit of 300 per 60 seconds. The matchup function costs 25 upstream calls for each cold window. To warm all five windows costs 125 calls in each edge region that serves a request. The matchups row of the deck page requests the same URL. When a window is warm, the row adds no upstream calls. On an edge cache miss, the deck page's HTML function, FR-15, adds one deck detail call for each deck and window. It is the same call that the page makes.
 
 A search costs one upstream call for each distinct normalised query, window and page. The search runs 300ms after the reader stops typing, from 2 characters. The edge caches each query like any other deck list. If several regions warm every window inside one minute, they will pass the limit. At the traffic of this site, that is unlikely. If it happens, §4.4 holds a 429 at the edge for the full minute.
 
 The staples function costs up to 35 calls for each cold window and section, §4.9. To warm all ten costs about 300 calls. A reader can open every window and both sections on a cold region in one minute, and then open the matchup table. That walk may pass the limit. After it, the 30-minute cache of the staples function makes the same walk free. A 429 from the staples function is held for the minute, as it is for the matchup function.
 
-The same care applies to Scryfall, §3.4. The functions stay within the Scryfall limit of 2 per second, and each sends fewer requests after an instance sees the cards:
+The same care applies to Scryfall, §3.4. Each function sends fewer requests after an instance sees the cards:
 
 - The proxy sends one collection request for each uncached deck list or deck detail.
 - The staples function sends one for each uncached window and section.
-- The sample cards function sends at most five for each uncached deck and window, 500ms apart, §4.10.
+- The sample cards function sends at most five for each uncached deck and window, 500ms apart, §4.10. The spacing keeps it within the Scryfall limit of 2 per second.
 
 Each distinct search query is its own deck list. The 300ms pause of the search and its two-character floor, FR-14, therefore also limit the Scryfall requests. If Scryfall returns 429, the function does not retry. The response goes out without the art.
 
@@ -1201,10 +1201,10 @@ The project has no CSS linter for now. Prettier formats the CSS, and review enfo
 
 1. ~~Deck card link target.~~ Settled: our deck page, which links to endstep.cc. FR-10.
 2. ~~Share composition chart form.~~ Settled: ranked horizontal bars, FR-6.
-3. **Series count on the time chart.** The count is now the API default of 8. If the page passes deck UUIDs to `share-series`, the chart can show more than 8 of the 24 grid decks. This costs no extra request.
+3. Series count on the time chart. The count is now the API default of 8. If the page passes deck UUIDs to `share-series`, the chart can show more than 8 of the 24 grid decks. This costs no extra request.
 4. ~~Matchup coverage on other windows.~~ Settled: a check on 2026-10-10 covered all five windows. At `7d`, `14d`, `30d` and `season`, all 276 pairs of the top 24 appear in both directions. At `1d`, 270 pairs appear in both directions, and 3 appear in one direction only. §4.4 fills the missing direction. The other 3 pairs never met. In each of them, one deck has all its opponents inside its first 50 rows. The 50-row limit lost no pair.
 5. ~~What the toss blocks count.~~ Settled: game 1. For Affinity at 30d on 2026-10-10, `tossWon` and `tossLost` hold 12,623 and 12,951 games. That is 25,574 in all, exactly the decided games in `games.game1`. `choseToDraw` counts 47 of the same 12,623 tosses won. FR-11 labels them game 1 win rates.
-6. **Deployment Checks on this plan.** The Vercel documentation does not say which plans offer Deployment Checks. If the plan of this project does not have them, the fallback is to turn off the Git deploys of Vercel. The site then deploys from the `ci` workflow with the Vercel CLI. That needs a `VERCEL_TOKEN` secret and the project IDs in GitHub.
+6. Deployment Checks on this plan. The Vercel documentation does not say which plans offer Deployment Checks. If the plan of this project does not have them, the fallback is to turn off the Git deploys of Vercel. The site then deploys from the `ci` workflow with the Vercel CLI. That needs a `VERCEL_TOKEN` secret and the project IDs in GitHub.
 7. ~~The matchup table on a phone.~~ Settled: below 640px, the table shows the row of one deck as a list. It opens on the top deck by share. FR-12.
 8. ~~Finding a deck in the matchup table.~~ Settled: `?deck=` puts one deck in the spotlight and fades the other cells. A picker chooses the deck, and the matchups row of the deck page links to it. The table has no hover crosshair. FR-11 and FR-12.
 9. ~~Cards or a table on the overview.~~ Settled: the overview shows one view at a time. The reader chooses it with a switch, kept in `view`. The default is cards. FR-3 and FR-4.
