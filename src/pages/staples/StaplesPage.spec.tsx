@@ -250,7 +250,7 @@ describe("StaplesPage", () => {
     expect(status()).toBe("");
   });
 
-  it("shows 30 cards for the next window when the reader shows more on the dimmed list while it loads", async () => {
+  it("hides Show more on the dimmed list while the next window loads, and offers it again with 30 cards when the window arrives", async () => {
     let answer: (response: Response) => void = () => {};
     stubApi({
       "/api/staples?window=30d&section=main": [json(fifty(MAIN))],
@@ -260,11 +260,16 @@ describe("StaplesPage", () => {
       ],
     });
     renderAt("/staples?window=30d");
-    await screen.findByText("Card 1");
+    expect(
+      await screen.findByRole("button", { name: "Show 20 more" }),
+    ).toBeTruthy();
 
     fireEvent.click(screen.getByRole("button", { name: "7d" }));
-    fireEvent.click(screen.getByRole("button", { name: "Show 20 more" }));
-    expect(screen.getByText("Card 50")).toBeTruthy();
+
+    expect(
+      screen.getByText("Card 30").closest('[aria-busy="true"]'),
+    ).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /more/ })).toBeNull();
 
     answer(Response.json(fifty(WEEK)));
 

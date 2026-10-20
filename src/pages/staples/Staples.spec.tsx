@@ -396,6 +396,39 @@ describe("Staples", () => {
     expect(parts.closest("[aria-busy]")).toBeNull();
   });
 
+  it("hides Show more while the list is dimmed, and shows it again with the next window's cards", async () => {
+    let calls = 0;
+    let answer: (response: Response) => void = () => {};
+    stubApi(() => {
+      calls += 1;
+
+      return calls === 1
+        ? Response.json(withCards(50))
+        : new Promise<Response>((resolve) => (answer = resolve));
+    });
+    const rerender = renderSwitchable(<Harness />);
+    expect(
+      await screen.findByRole("button", { name: "Show 20 more" }),
+    ).toBeTruthy();
+
+    rerender(<Harness timeWindow="7d" />);
+
+    expect(lines()).toHaveLength(30);
+    expect(screen.queryByRole("button", { name: /more/ })).toBeNull();
+
+    answer(
+      Response.json({
+        ...withCards(50),
+        window: { from: "2026-10-14", to: "2026-10-21" },
+      }),
+    );
+
+    expect(
+      await screen.findByRole("button", { name: "Show 20 more" }),
+    ).toBeTruthy();
+    expect(lines()).toHaveLength(30);
+  });
+
   it("neither dims the list nor marks it busy once it is on screen", async () => {
     stubApi(withCards(6));
     renderWithQueries(<Harness />);

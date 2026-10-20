@@ -120,7 +120,7 @@ export function Staples({
                     />
                   ))}
                 </ol>
-                {rest > 0 && (
+                {rest > 0 && !dimmed && (
                   <Button
                     variant="secondary"
                     className="staples__more"
