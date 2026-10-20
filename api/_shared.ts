@@ -84,6 +84,16 @@ export function isRateLimit(error: unknown): boolean {
 }
 
 /**
+ * Takes the first half of a card name with two halves, "Front // Back". Scryfall's collection does not find a split card by its full name, §4.10.
+ *
+ * @param name - A card name, in the spelling Endstep sent.
+ * @returns The part before " // ", or the whole name when it has one part.
+ */
+export function frontOf(name: string): string {
+  return name.split(" // ")[0];
+}
+
+/**
  * Builds the address of a deck detail on our own proxy, exactly as the deck page requests it, so every caller shares the deck page's edge cache entry.
  *
  * @param origin - The site's origin, such as `https://pauper-endstep-metagame.vercel.app`.
@@ -339,7 +349,7 @@ async function lookUpArt(names: Map<string, string>): Promise<boolean> {
       headers: SCRYFALL_HEADERS,
       body: JSON.stringify({
         identifiers: missing.map(([, name]) => ({
-          name: name.split(" // ")[0],
+          name: frontOf(name),
         })),
       }),
       signal: AbortSignal.timeout(SCRYFALL_TIMEOUT_MS),

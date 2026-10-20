@@ -11,6 +11,7 @@ import {
   cacheControl,
   deckDetailUrl,
   errorResponse,
+  frontOf,
   hasNoBody,
   isRateLimit,
   isRecord,
@@ -139,6 +140,17 @@ describe("deckDetailUrl", () => {
     expect(deckDetailUrl("http://127.0.0.1:4201", "a b", "season")).toBe(
       "http://127.0.0.1:4201/api/metagame/Pauper/decks/a%20b?window=season&population=rated",
     );
+  });
+});
+
+describe("frontOf", () => {
+  it.each([
+    ["Fire // Ice", "Fire"],
+    ["Tithing Blade // Consuming Sepulcher", "Tithing Blade"],
+    ["Counterspell", "Counterspell"],
+    ["Who // What // When // Where // Why", "Who"],
+  ])("takes %j to %j", (name, front) => {
+    expect(frontOf(name)).toBe(front);
   });
 });
 

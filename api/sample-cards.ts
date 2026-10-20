@@ -9,6 +9,7 @@ import {
   cacheControl,
   deckDetailUrl,
   errorResponse,
+  frontOf,
   isRecord,
   methodResponse,
 } from "./_shared.js";
@@ -245,10 +246,6 @@ function imageOf(card: ScryfallCard): string | null {
   }
 
   return address;
-}
-
-function frontOf(name: string): string {
-  return name.split(" // ")[0];
 }
 
 async function lookUpImages(budget: Budget, names: string[]): Promise<void> {
