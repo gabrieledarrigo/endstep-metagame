@@ -7,6 +7,7 @@ import {
   within,
 } from "@testing-library/react";
 import type { ReactElement } from "react";
+import { MemoryRouter } from "react-router";
 import { type Mock, afterEach, describe, expect, it, vi } from "vitest";
 import staples from "../../../test/fixtures/staples.json";
 import { renderWithQueries } from "../../../test/renderWithQueries";
@@ -56,15 +57,17 @@ function Harness({
   });
 
   return (
-    <Staples
-      query={query}
-      timeWindow={timeWindow}
-      section={section}
-      onSection={onSection}
-      onWindow={onWindow}
-      busy={busy}
-      loading={loading}
-    />
+    <MemoryRouter>
+      <Staples
+        query={query}
+        timeWindow={timeWindow}
+        section={section}
+        onSection={onSection}
+        onWindow={onWindow}
+        busy={busy}
+        loading={loading}
+      />
+    </MemoryRouter>
   );
 }
 
@@ -91,7 +94,15 @@ function renderSwitchable(ui: ReactElement): (next: ReactElement) => void {
 }
 
 function lines(): HTMLElement[] {
-  return within(screen.getByRole("list")).getAllByRole("listitem");
+  const list = screen.getAllByRole("list")[0];
+
+  return within(list)
+    .getAllByRole("listitem")
+    .filter((item) => item.parentElement === list);
+}
+
+function expanded(name: string): string | null {
+  return screen.getByRole("button", { name }).getAttribute("aria-expanded");
 }
 
 afterEach(() => {
@@ -156,7 +167,7 @@ describe("Staples", () => {
     expect(screen.queryByRole("list")).toBeNull();
   });
 
-  it("shows the first 30 cards in order, then 20 more, and moves focus to the first new card", async () => {
+  it("shows the first 30 cards in order, then 20 more, and moves focus to the name of the first new card", async () => {
     stubApi(withCards(50));
     renderWithQueries(<Harness />);
 
@@ -170,8 +181,37 @@ describe("Staples", () => {
     expect(lines()).toHaveLength(50);
     expect(lines()[49].textContent).toMatch(/^50Card 50/);
     expect(screen.queryByRole("button", { name: /more/ })).toBeNull();
-    expect(document.activeElement).toBe(lines()[30]);
+    expect(document.activeElement).toBe(
+      within(lines()[30]).getByRole("button", { name: "Card 31" }),
+    );
     expect(lines()[30].textContent).toMatch(/^31Card 31/);
+  });
+
+  it("opens several cards at once", async () => {
+    stubApi(withCards(6));
+    renderWithQueries(<Harness />);
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Lightning Bolt" }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Counterspell" }));
+
+    expect(expanded("Lightning Bolt")).toBe("true");
+    expect(expanded("Counterspell")).toBe("true");
+    expect(expanded("Bojuka Bog")).toBe("false");
+  });
+
+  it("keeps the open cards open when the reader shows more", async () => {
+    stubApi(withCards(50));
+    renderWithQueries(<Harness />);
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Lightning Bolt" }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Show 20 more" }));
+
+    expect(expanded("Lightning Bolt")).toBe("true");
+    expect(expanded("Card 31")).toBe("false");
   });
 
   it("offers only the cards that remain when fewer than 20 do", async () => {

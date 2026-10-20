@@ -77,6 +77,10 @@ function status(): string {
   return screen.getByRole("status").textContent ?? "";
 }
 
+function expanded(name: string): string | null {
+  return screen.getByRole("button", { name }).getAttribute("aria-expanded");
+}
+
 function pressed(name: string): string | null {
   return screen.getByRole("button", { name }).getAttribute("aria-pressed");
 }
@@ -268,6 +272,49 @@ describe("StaplesPage", () => {
     expect(screen.getByText("Card 30")).toBeTruthy();
     expect(screen.queryByText("Card 31")).toBeNull();
     expect(screen.getByRole("button", { name: "Show 20 more" })).toBeTruthy();
+  });
+
+  it("closes the open cards when the reader picks another window, and keeps a card opened during the load open", async () => {
+    let answer: (response: Response) => void = () => {};
+    stubApi({
+      "/api/staples?window=7d&section=main": [
+        (): Promise<Response> =>
+          new Promise<Response>((resolve) => (answer = resolve)),
+      ],
+    });
+    renderAt("/staples?window=30d");
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Lightning Bolt" }),
+    );
+    expect(expanded("Lightning Bolt")).toBe("true");
+
+    fireEvent.click(screen.getByRole("button", { name: "7d" }));
+
+    expect(expanded("Lightning Bolt")).toBe("false");
+    fireEvent.click(screen.getByRole("button", { name: "Counterspell" }));
+
+    answer(Response.json(WEEK));
+
+    expect(await screen.findByText("14 Oct to 20 Oct 2026")).toBeTruthy();
+    expect(expanded("Counterspell")).toBe("true");
+    expect(expanded("Lightning Bolt")).toBe("false");
+  });
+
+  it("closes the open cards after a switch to the other list and back", async () => {
+    stubApi({
+      "/api/staples?window=30d&section=side": [json(SIDE)],
+    });
+    renderAt("/staples?window=30d");
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Lightning Bolt" }),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Sideboard" }));
+    await screen.findByText("Lightning Bolt (side)");
+    fireEvent.click(screen.getByRole("button", { name: "Main deck" }));
+
+    expect(await screen.findByText("Lightning Bolt")).toBeTruthy();
+    expect(expanded("Lightning Bolt")).toBe("false");
   });
 
   it("keeps the sideboard in the address when the window changes", async () => {

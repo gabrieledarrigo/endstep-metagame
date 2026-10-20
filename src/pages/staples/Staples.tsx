@@ -53,7 +53,7 @@ export function Staples({
     : "";
   const [listKey, setListKey] = useState(shown);
   const [more, setMore] = useState(false);
-  const firstMore = useRef<HTMLLIElement>(null);
+  const firstMore = useRef<HTMLButtonElement>(null);
 
   if (listKey !== shown) {
     setListKey(shown);
@@ -114,7 +114,7 @@ export function Staples({
                 <ol className="staples__list">
                   {cards.map((card, index) => (
                     <Staple
-                      key={card.name}
+                      key={`${timeWindow}:${section}:${card.name}`}
                       card={card}
                       place={index + 1}
                       top={data.cards[0].share}

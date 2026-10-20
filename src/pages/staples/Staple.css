@@ -45,8 +45,32 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    padding: 0;
+    border: 0;
+    background: none;
     font: 600 16px/1.3 var(--sans);
     color: var(--text-900);
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .staple__name:hover .staple__label {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  .staple__chevron {
+    flex: none;
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: var(--text-600);
+    stroke-width: 2;
+    transition: transform 0.15s;
+  }
+
+  .staple__name[aria-expanded="true"] .staple__chevron {
+    transform: rotate(180deg);
   }
 
   .staple__core {
