@@ -270,7 +270,7 @@ async function build(
   const endsAt = Date.now() + DEADLINE_MS;
   const deadline = setTimeout(() => {
     controller.abort();
-  }, endsAt - Date.now());
+  }, DEADLINE_MS);
   let top: DecksBody;
   let tables: Table[];
 
