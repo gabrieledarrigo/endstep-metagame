@@ -196,9 +196,9 @@ On 2026-09-20, the project tested public CORS proxies and rejected them. All six
 3. `api/matchups.ts` is the matchup function. It builds the top-24 matrix on the server and returns it in one response. See §4.4. It is a separate function, so that the proxy keeps to one upstream call per request.
 4. `server/` holds the code that the functions and the build share. Vercel deploys only the files in `api/` as functions, so no file here is a function. A function bundles the files it imports. Each file covers one subject:
    - `endstep.ts`: the upstream address, its timeout and the fetch of an Endstep endpoint. It also holds the windows, the slug rule and the address of a deck detail.
-   - `scryfall.ts`: the art lookup on Scryfall, §3.4, with its memory and its pause.
+   - `scryfall.ts`: the art lookup on Scryfall, §3.4, with its memory and its pause. It also holds the Scryfall addresses, the request headers and the length of the pause. The sample cards function uses them too.
    - `cards.ts`: the rules for card names, the six basic lands and their snow-covered versions.
-   - `http.ts`: the CORS headers, the method rules, the error responses and the cache rules.
+   - `http.ts`: the CORS headers, the method rules, the error responses, the cache rules and the check of a JSON object.
    - `head.ts`: the code that writes a title, a description, a canonical link and `og:url` into the HTML, and the list of page previews. The deck page's function and the build plugin both use it, FR-15.
 5. `api/deck-page.ts` is the deck page's HTML function. It writes the title, the description and the image of the deck into the built `index.html` for link previews, FR-15. `vercel.json` sends `/decks/:slug` to this function in place of the static rewrite.
 6. `api/staples.ts` is the staples function. It builds the 50 most played cards of the top 24 decks on the server, with their art. It returns them in one response. See §4.9.
