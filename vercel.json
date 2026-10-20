@@ -6,6 +6,9 @@
     },
     "api/sample-cards.ts": {
       "maxDuration": 30
+    },
+    "api/staples.ts": {
+      "maxDuration": 60
     }
   },
   "rewrites": [
