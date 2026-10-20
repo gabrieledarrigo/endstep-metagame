@@ -297,6 +297,7 @@ export default defineConfig({
           environment: "node",
           include: [
             "api/**/*.spec.ts",
+            "server/**/*.spec.ts",
             "vercel.spec.ts",
             "vite.config.spec.ts",
           ],

@@ -1,8 +1,12 @@
 import {
   BASE_HEADERS,
+  BASICS,
   EDGE_CACHE,
+  SCRYFALL_API,
   SCRYFALL_CDN,
+  SCRYFALL_COLLECTION,
   SCRYFALL_HEADERS,
+  SCRYFALL_PAUSE_MS,
   SEGMENT,
   TIMEOUT_MS,
   WINDOWS,
@@ -12,22 +16,19 @@ import {
   frontOf,
   isRecord,
   methodResponse,
-} from "./_shared.js";
+  nameKey,
+} from "../server/index.js";
 
 const RATE_LIMIT_SECONDS = 60;
 const SUCCESS_CACHE = "public, s-maxage=3600, stale-while-revalidate=86400";
 const MEMORY_MS = 3_600_000;
-const SCRYFALL = "https://api.scryfall.com/";
-const COLLECTION = `${SCRYFALL}cards/collection`;
-const SEARCH = `${SCRYFALL}cards/search`;
+const SEARCH = `${SCRYFALL_API}cards/search`;
 const COLLECTION_LIMIT = 75;
 const QUERY_LIMIT = 1000;
 const PRICED = "(usd>0 or eur>0 or tix>0)";
 const MAX_REQUESTS = 5;
 const SPACING_MS = 500;
 const BOUND_MS = 6000;
-const PAUSE_MS = 30_000;
-const BASICS = ["plains", "island", "swamp", "mountain", "forest", "wastes"];
 const NO_PRICES: Prices = { tix: null, eur: null, usd: null };
 const FREE: Prices = { tix: 0, eur: 0, usd: 0 };
 
@@ -73,10 +74,6 @@ function targetOf(search: string): Target | null {
   }
 
   return { slug: match[1], window: match[2] };
-}
-
-function keyOf(name: string): string {
-  return name.toLowerCase();
 }
 
 function isBasic(key: string): boolean {
@@ -189,7 +186,7 @@ async function ask(
     });
 
     if (response.status === 429) {
-      pausedUntil = Date.now() + PAUSE_MS;
+      pausedUntil = Date.now() + SCRYFALL_PAUSE_MS;
     }
 
     if (!response.ok) {
@@ -250,14 +247,14 @@ function imageOf(card: ScryfallCard): string | null {
 
 async function lookUpImages(budget: Budget, names: string[]): Promise<void> {
   const missing = names
-    .filter((name) => !recall(images, keyOf(name)))
+    .filter((name) => !recall(images, nameKey(name)))
     .slice(0, COLLECTION_LIMIT);
 
   if (missing.length === 0) {
     return;
   }
 
-  const answer = await ask(budget, COLLECTION, {
+  const answer = await ask(budget, SCRYFALL_COLLECTION, {
     method: "POST",
     body: JSON.stringify({
       identifiers: missing.map((name) => ({ name: frontOf(name) })),
@@ -280,8 +277,8 @@ async function lookUpImages(budget: Budget, names: string[]): Promise<void> {
     const image = imageOf(card);
 
     for (const name of cardNames(card)) {
-      if (!found.get(keyOf(name))) {
-        found.set(keyOf(name), image);
+      if (!found.get(nameKey(name))) {
+        found.set(nameKey(name), image);
       }
     }
   }
@@ -289,7 +286,7 @@ async function lookUpImages(budget: Budget, names: string[]): Promise<void> {
   const at = Date.now();
 
   for (const name of missing) {
-    images.set(keyOf(name), { value: found.get(keyOf(name)) ?? null, at });
+    images.set(nameKey(name), { value: found.get(nameKey(name)) ?? null, at });
   }
 }
 
@@ -312,7 +309,7 @@ function chunksOf(names: string[]): Chunk[] {
     }
 
     terms = [...terms, term];
-    keys = [...keys, keyOf(name)];
+    keys = [...keys, nameKey(name)];
   }
 
   if (terms.length > 0) {
@@ -329,7 +326,7 @@ function nextPageOf(body: unknown): string | null | undefined {
 
   if (
     typeof body.next_page !== "string" ||
-    !body.next_page.startsWith(SCRYFALL)
+    !body.next_page.startsWith(SCRYFALL_API)
   ) {
     return undefined;
   }
@@ -376,7 +373,7 @@ function withPrinting(current: Prices, card: ScryfallCard): Prices {
 function matchedKey(card: ScryfallCard, keys: string[]): string | null {
   return (
     cardNames(card)
-      .map(keyOf)
+      .map(nameKey)
       .find((key) => keys.includes(key)) ?? null
   );
 }
@@ -436,11 +433,11 @@ async function searchChunk(
 
 async function lookUpPrices(budget: Budget, names: string[]): Promise<void> {
   const missing = names.filter(
-    (name) => !isBasic(keyOf(name)) && !recall(prices, keyOf(name)),
+    (name) => !isBasic(nameKey(name)) && !recall(prices, nameKey(name)),
   );
 
   for (const name of missing.filter((name) => name.includes('"'))) {
-    prices.set(keyOf(name), { value: NO_PRICES, at: Date.now() });
+    prices.set(nameKey(name), { value: NO_PRICES, at: Date.now() });
   }
 
   const chunks = chunksOf(missing.filter((name) => !name.includes('"')));
@@ -523,13 +520,13 @@ export default {
     await lookUpPrices(budget, names);
 
     const complete = names.every(
-      (name) => recall(images, keyOf(name)) && pricesOf(keyOf(name)),
+      (name) => recall(images, nameKey(name)) && pricesOf(nameKey(name)),
     );
     const cards = names.map((name) => [
       name,
       {
-        imageUrl: recall(images, keyOf(name))?.value ?? null,
-        ...(pricesOf(keyOf(name)) ?? NO_PRICES),
+        imageUrl: recall(images, nameKey(name))?.value ?? null,
+        ...(pricesOf(nameKey(name)) ?? NO_PRICES),
       },
     ]);
 

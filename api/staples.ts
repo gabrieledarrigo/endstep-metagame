@@ -1,6 +1,8 @@
 import {
   BASE_HEADERS,
+  BASICS,
   EDGE_CACHE,
+  SNOW_COVERED_BASICS,
   WINDOWS,
   cacheControl,
   errorResponse,
@@ -9,8 +11,9 @@ import {
   isRateLimit,
   isRecord,
   methodResponse,
+  nameKey,
   upstream,
-} from "./_shared.js";
+} from "../server/index.js";
 
 const RATE_LIMIT_SECONDS = 60;
 const ART_BOUND_MS = 3000;
@@ -23,20 +26,7 @@ const TABLE_TIMEOUT_MS = 20_000;
 const DEADLINE_MS = 50_000;
 const FLOOR = 0.05;
 const KEPT = 50;
-const BASICS = [
-  "plains",
-  "island",
-  "swamp",
-  "mountain",
-  "forest",
-  "wastes",
-  "snow-covered plains",
-  "snow-covered island",
-  "snow-covered swamp",
-  "snow-covered mountain",
-  "snow-covered forest",
-  "snow-covered wastes",
-];
+const ALL_BASICS = [...BASICS, ...SNOW_COVERED_BASICS];
 
 type Target = { window: string; section: string };
 
@@ -193,7 +183,7 @@ function staplesOf(tables: Table[]): Staple[] {
 
   for (const { deck, cards } of counted) {
     for (const card of cards) {
-      if (BASICS.includes(card.name.toLowerCase())) {
+      if (ALL_BASICS.includes(nameKey(card.name))) {
         continue;
       }
 

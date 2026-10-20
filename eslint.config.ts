@@ -58,6 +58,7 @@ export default defineConfig([
   {
     files: [
       "api/**",
+      "server/**",
       "*.config.{js,ts}",
       "vercel.spec.ts",
       "vite.config.spec.ts",

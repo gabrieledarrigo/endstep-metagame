@@ -6,7 +6,7 @@ import {
   isRateLimit,
   methodResponse,
   upstream,
-} from "./_shared.js";
+} from "../server/index.js";
 
 const RATE_LIMIT_SECONDS = 60;
 const TOP_DECKS = 24;

@@ -10,7 +10,7 @@ import {
   hasNoBody,
   isRecord,
   methodResponse,
-} from "./_shared.js";
+} from "../server/index.js";
 
 const RATE_LIMIT_SECONDS = 10;
 const ART_BOUND_MS = 1000;
