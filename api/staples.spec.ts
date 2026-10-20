@@ -958,6 +958,56 @@ describe("the staples function's second request", () => {
     ]);
   });
 
+  it("answers 502 when the second request fails with a network error too", async () => {
+    const fetchMock = endstep({
+      decks: [deck("a", 0.2)],
+      pages: { a: counterspell },
+      offline: (url) => onPage(url, "a", 1),
+    });
+
+    const response = await settled(staples.fetch(request(MAIN_30D)));
+
+    expect(response.status).toBe(502);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    expect(pagesOf(fetchMock, "a")).toEqual([1, 1]);
+  });
+
+  it("sends no second request for a network error with less than 20 seconds left before the deadline", async () => {
+    const page: Page = { total: 150, rows: [["Counterspell", 1, 4]] };
+    const fetchMock = endstep({
+      decks: [deck("a", 0.2)],
+      pages: { a: [page, page, page] },
+      delay: (url) => {
+        if (onPage(url, "a", 1)) {
+          return 15_000;
+        }
+
+        return onPage(url, "a", 2) ? 15_001 : 0;
+      },
+      offline: (url, call) => onPage(url, "a", 3) && call === 1,
+    });
+
+    const response = await settled(staples.fetch(request(MAIN_30D)));
+
+    expect(response.status).toBe(502);
+    expect(pagesOf(fetchMock, "a")).toEqual([1, 2, 3]);
+  });
+
+  it("sends no second request for a network error after another table has failed for good", async () => {
+    const fetchMock = endstep({
+      decks: [deck("a", 0.2), deck("b", 0.1)],
+      pages: { b: counterspell },
+      delay: (url) => (onPage(url, "b", 1) ? 5_000 : 0),
+      status: (url) => (onPage(url, "a", 1) ? 500 : undefined),
+      offline: (url, call) => onPage(url, "b", 1) && call === 1,
+    });
+
+    const response = await settled(staples.fetch(request(MAIN_30D)));
+
+    expect(response.status).toBe(502);
+    expect(pagesOf(fetchMock, "b")).toEqual([1]);
+  });
+
   it("answers 502 when the second request times out too", async () => {
     const fetchMock = endstep({
       decks: [deck("a", 0.2)],
@@ -972,27 +1022,39 @@ describe("the staples function's second request", () => {
     expect(pagesOf(fetchMock, "a")).toEqual([1, 1]);
   });
 
-  it("sends no second request for page 2 after page 1 had one, even with time left", async () => {
-    const answer = endstep({ decks: [deck("a", 0.2)], pages: { a: twoPages } });
-    const fetchMock = vi.fn<typeof fetch>(async (input, init) => {
-      const url = new URL(String(input));
+  it.each([
+    [
+      "a timeout",
+      (): Error => new DOMException("The operation timed out", "TimeoutError"),
+    ],
+    ["a network error", (): Error => new TypeError("fetch failed")],
+  ])(
+    "sends no second request for page 2 after page 1 had one, even with time left, for %s",
+    async (_, failure) => {
+      const answer = endstep({
+        decks: [deck("a", 0.2)],
+        pages: { a: twoPages },
+      });
+      const fetchMock = vi.fn<typeof fetch>(async (input, init) => {
+        const url = new URL(String(input));
 
-      if (
-        onPage(url, "a", 2) ||
-        (onPage(url, "a", 1) && pagesOf(fetchMock, "a").length === 1)
-      ) {
-        throw new DOMException("The operation timed out", "TimeoutError");
-      }
+        if (
+          onPage(url, "a", 2) ||
+          (onPage(url, "a", 1) && pagesOf(fetchMock, "a").length === 1)
+        ) {
+          throw failure();
+        }
 
-      return answer(input, init);
-    });
-    vi.stubGlobal("fetch", fetchMock);
+        return answer(input, init);
+      });
+      vi.stubGlobal("fetch", fetchMock);
 
-    const response = await settled(staples.fetch(request(MAIN_30D)));
+      const response = await settled(staples.fetch(request(MAIN_30D)));
 
-    expect(response.status).toBe(502);
-    expect(pagesOf(fetchMock, "a")).toEqual([1, 1, 2]);
-  });
+      expect(response.status).toBe(502);
+      expect(pagesOf(fetchMock, "a")).toEqual([1, 1, 2]);
+    },
+  );
 
   it("asks once more for page 2 when its timeout leaves exactly 20 seconds before the deadline", async () => {
     const fetchMock = endstep({
