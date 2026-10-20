@@ -138,4 +138,21 @@ describe("App", () => {
         .getAttribute("aria-pressed"),
     ).toBe("true");
   });
+
+  it("opens Staples from the header with the same window", async () => {
+    history.replaceState(null, "", "/matchups?window=14d");
+    render(<App />);
+
+    fireEvent.click(
+      within(screen.getByRole("navigation", { name: "Pages" })).getByRole(
+        "link",
+        { name: "Staples" },
+      ),
+    );
+
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Staples" }),
+    ).toBeTruthy();
+    expect(location.pathname + location.search).toBe("/staples?window=14d");
+  });
 });
