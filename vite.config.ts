@@ -11,12 +11,14 @@ import deckPage from "./api/deck-page.ts";
 import matchups from "./api/matchups.ts";
 import metagame from "./api/metagame.ts";
 import sampleCards from "./api/sample-cards.ts";
+import staples from "./api/staples.ts";
 import vercel from "./vercel.json" with { type: "json" };
 
 const METAGAME = "/api/metagame";
 const METAGAME_PREFIX = `${METAGAME}/`;
 const MATCHUPS = "/api/matchups";
 const SAMPLE_CARDS = "/api/sample-cards";
+const STAPLES = "/api/staples";
 const DECK_PAGE = /^\/decks\/([^/?]+)(\?.*)?$/;
 const LOOPBACK = new Map([
   ["::", "::1"],
@@ -144,7 +146,7 @@ type Cached = {
  * @param url - The request's URL, as the dev server received it.
  * @param method - The request's method.
  * @param origin - The server's own address, or `null` before it listens.
- * @returns The function and its request, or `null` when the URL is not a function's, or is the sample cards function's before the server has an address. The matchup and sample cards functions get the raw query string unchanged, because they match it byte for byte, §4.4 and §4.10. The sample cards function gets the server's own address, so its fetch of the deck detail comes back to this server.
+ * @returns The function and its request, or `null` when the URL is not a function's, or is the sample cards function's before the server has an address. The matchup, staples and sample cards functions get the raw query string unchanged, because they match it byte for byte, §4.4, §4.9 and §4.10. The sample cards function gets the server's own address, so its fetch of the deck detail comes back to this server.
  */
 function functionRequest(
   url: string,
@@ -169,6 +171,13 @@ function functionRequest(
   if (parsed.pathname === MATCHUPS) {
     return {
       handler: matchups,
+      request: new Request(parsed, { method }),
+    };
+  }
+
+  if (parsed.pathname === STAPLES) {
+    return {
+      handler: staples,
       request: new Request(parsed, { method }),
     };
   }
@@ -198,7 +207,7 @@ function functionRequest(
 /**
  * Serves the Vercel functions during development, with the rewrite from `vercel.json` and the cache lifetime each response declares.
  *
- * @returns A Vite plugin that answers `/api/metagame/*`, `/api/matchups` and `/api/sample-cards` for both `vite` and `vite preview`.
+ * @returns A Vite plugin that answers `/api/metagame/*`, `/api/matchups`, `/api/staples` and `/api/sample-cards` for both `vite` and `vite preview`.
  */
 function api(): Plugin {
   const cache = new Map<string, Cached>();
