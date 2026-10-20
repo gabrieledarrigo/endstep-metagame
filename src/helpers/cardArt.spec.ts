@@ -22,4 +22,12 @@ describe("artSource", () => {
       "https://endstep.cc/api/cards/image?name=Reckoner%27s+Bargain&version=art_crop",
     );
   });
+
+  it("falls back to Endstep's art crop for a card with two faces under its full name", () => {
+    expect(
+      artSource({ cardName: "Tithing Blade // Consuming Sepulcher" }),
+    ).toBe(
+      "https://endstep.cc/api/cards/image?name=Tithing+Blade+%2F%2F+Consuming+Sepulcher&version=art_crop",
+    );
+  });
 });

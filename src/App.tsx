@@ -7,6 +7,7 @@ import { DeckPage } from "./pages/deck/DeckPage";
 import { MatchupsPage } from "./pages/matchups/MatchupsPage";
 import { NotFoundPage } from "./pages/not-found/NotFoundPage";
 import { OverviewPage } from "./pages/overview/OverviewPage";
+import { StaplesPage } from "./pages/staples/StaplesPage";
 import { WhatToPlayPage } from "./pages/what-to-play/WhatToPlayPage";
 
 export function App() {
@@ -21,6 +22,7 @@ export function App() {
             <Route path="decks/:slug" element={<DeckPage />} />
             <Route path="matchups" element={<MatchupsPage />} />
             <Route path="what-to-play" element={<WhatToPlayPage />} />
+            <Route path="staples" element={<StaplesPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>

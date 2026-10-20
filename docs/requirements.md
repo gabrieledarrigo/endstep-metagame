@@ -828,6 +828,8 @@ A panel named "Most played cards" holds the list.
 - A switch with two options, "Main deck" and "Sideboard", chooses the list. Main deck is the default. The page keeps the choice in `section`, as `side` for the sideboard. The default leaves it out, §4.5.
 - One sentence under the title reads "The percentage is the share of the top 24's decks that play the card."
 - The cards come in the order that `/api/staples` returns them, by share. The list shows 30. Then a button, "Show 20 more", shows the rest, up to 50. The button goes away once the list shows all the cards. A window change, or a switch to the other list, shows 30 again.
+  - If fewer than 20 cards remain, the button reads "Show {n} more".
+  - After a press of the button, focus moves to the first new card. So a reader with a keyboard keeps their place.
 - Each line holds these parts:
   - The place.
   - The art of the card.
@@ -864,6 +866,8 @@ The states follow the matchup table, FR-12:
 - While the next window loads, the page dims the previous window, §4.8.
 - A switch to the other list shows the skeleton until that list arrives. The cards on the screen belong to the other list, and they must not stand under its name.
 - If Endstep withholds the card table of a deck, §3.6, the page leaves that deck out. A line under the list then reads "1 deck is left out because Endstep withholds its cards.", or "{n} decks are left out because Endstep withholds their cards."
+- If Endstep withholds the card table of every deck, the list has no cards. The page then shows the empty state "No cards in this window", with that line as its detail.
+- While a list loads, the status line names it and the window: "Loading the main deck for the 7d window." or "Loading the sideboard for the 7d window."
 
 The page shares the site card, FR-15.
 

@@ -1,0 +1,296 @@
+{
+  "window": {
+    "from": "2026-09-21",
+    "to": "2026-10-21"
+  },
+  "section": "main",
+  "withheld": 1,
+  "cards": [
+    {
+      "name": "Lightning Bolt",
+      "share": 0.23709720439785809,
+      "copies": 3.886160711675737,
+      "art": {
+        "imageUrl": "https://cards.scryfall.io/art_crop/front/7/6/7673784e-db4b-43a1-8d55-1bb9fc1e284f.jpg?1783903008"
+      },
+      "decks": [
+        {
+          "slug": "red-madness-d9f640c0",
+          "name": "Red Madness",
+          "playRate": 0.9969072164948454,
+          "copies": 3.9975270896092803
+        },
+        {
+          "slug": "mono-red-rally-1968ddae",
+          "name": "Mono Red Rally",
+          "playRate": 0.9924163427813063,
+          "copies": 3.99961791957207
+        },
+        {
+          "slug": "boros-synth-synthless-3fccc516",
+          "name": "Boros Synth/Synthless",
+          "playRate": 0.8734750784245382,
+          "copies": 3.6723862729449324
+        },
+        {
+          "slug": "naya-gates-af060ab8",
+          "name": "Naya Gates",
+          "playRate": 0.5256114443931703,
+          "copies": 3.118525021949078
+        },
+        {
+          "slug": "izzet-control-55e8bd26",
+          "name": "Izzet Control",
+          "playRate": 0.45111414279217826,
+          "copies": 3.036290322580645
+        },
+        {
+          "slug": "white-weenie-ad539791",
+          "name": "White Weenie",
+          "playRate": 0.1846950517836594,
+          "copies": 3.8333333333333335
+        },
+        {
+          "slug": "esper-ephemerate-51d20386",
+          "name": "Esper Ephemerate",
+          "playRate": 0.08332042744308503,
+          "copies": 3.0278810408921935
+        }
+      ]
+    },
+    {
+      "name": "Counterspell",
+      "share": 0.22118568501452926,
+      "copies": 3.9811407799233427,
+      "art": {
+        "imageUrl": "https://cards.scryfall.io/art_crop/front/4/f/4f616706-ec97-4923-bb1e-11a69fbaa1f8.jpg?1783909630"
+      },
+      "decks": [
+        {
+          "slug": "mono-blue-faeries-13c7c14c",
+          "name": "Mono Blue Faeries",
+          "playRate": 0.9995975855130784,
+          "copies": 3.985305958132045
+        },
+        {
+          "slug": "dimir-control-6306a72e",
+          "name": "Dimir Control",
+          "playRate": 0.9994987468671679,
+          "copies": 3.999068634474853
+        },
+        {
+          "slug": "esper-ephemerate-51d20386",
+          "name": "Esper Ephemerate",
+          "playRate": 0.9976769397553044,
+          "copies": 3.9733002173238123
+        },
+        {
+          "slug": "blue-terror-9eb65470",
+          "name": "Blue Terror",
+          "playRate": 0.9965971926839643,
+          "copies": 3.999253094323517
+        },
+        {
+          "slug": "izzet-control-55e8bd26",
+          "name": "Izzet Control",
+          "playRate": 0.9818099135970896,
+          "copies": 3.999073645206114
+        },
+        {
+          "slug": "naya-gates-af060ab8",
+          "name": "Naya Gates",
+          "playRate": 0.29949238578680204,
+          "copies": 3.989214175654854
+        },
+        {
+          "slug": "turbo-fog-1a1b6f26",
+          "name": "Turbo Fog",
+          "playRate": 0.053978853644963826,
+          "copies": 1.8865979381443299
+        }
+      ]
+    },
+    {
+      "name": "Lórien Revealed",
+      "share": 0.20850439906641013,
+      "copies": 3.9264891530489177,
+      "art": {
+        "imageUrl": "https://cards.scryfall.io/art_crop/front/2/0/209204c7-aae5-4768-91b8-89c8c4d4a97f.jpg?1785497454"
+      },
+      "decks": [
+        {
+          "slug": "dimir-control-6306a72e",
+          "name": "Dimir Control",
+          "playRate": 0.9978517722878625,
+          "copies": 3.9889486903480447
+        },
+        {
+          "slug": "blue-terror-9eb65470",
+          "name": "Blue Terror",
+          "playRate": 0.9974478945129732,
+          "copies": 3.9939232409381664
+        },
+        {
+          "slug": "izzet-control-55e8bd26",
+          "name": "Izzet Control",
+          "playRate": 0.9968167348794906,
+          "copies": 3.989051094890511
+        },
+        {
+          "slug": "turbo-fog-1a1b6f26",
+          "name": "Turbo Fog",
+          "playRate": 0.9938786867000556,
+          "copies": 3.889137737961926
+        },
+        {
+          "slug": "esper-ephemerate-51d20386",
+          "name": "Esper Ephemerate",
+          "playRate": 0.9831190955552114,
+          "copies": 3.924858223062382
+        },
+        {
+          "slug": "familiars-7f485000",
+          "name": "Familiars",
+          "playRate": 0.9539965497412306,
+          "copies": 3.787823990355636
+        },
+        {
+          "slug": "naya-gates-af060ab8",
+          "name": "Naya Gates",
+          "playRate": 0.29856945085371484,
+          "copies": 2.6012364760432765
+        }
+      ]
+    },
+    {
+      "name": "Bojuka Bog",
+      "share": 0.20707170070477066,
+      "copies": 1.2994276004799226,
+      "art": {
+        "imageUrl": "https://cards.scryfall.io/art_crop/front/5/5/55b5b094-9d2d-4d96-b90c-78fecdae725a.jpg?1783903734"
+      },
+      "decks": [
+        {
+          "slug": "dimir-control-6306a72e",
+          "name": "Dimir Control",
+          "playRate": 0.9787325456498389,
+          "copies": 1.2280509218612818
+        },
+        {
+          "slug": "gardens-4ad158da",
+          "name": "Gardens",
+          "playRate": 0.9717734447539461,
+          "copies": 1.8616472386776228
+        },
+        {
+          "slug": "turbo-fog-1a1b6f26",
+          "name": "Turbo Fog",
+          "playRate": 0.9526989426822482,
+          "copies": 2.196261682242991
+        },
+        {
+          "slug": "flicker-tron-203ea213",
+          "name": "Flicker Tron",
+          "playRate": 0.9319242121298676,
+          "copies": 1.0127707396812424
+        },
+        {
+          "slug": "orzhov-blade-295537f7",
+          "name": "Orzhov Blade",
+          "playRate": 0.9140061791967045,
+          "copies": 1.4743661971830986
+        },
+        {
+          "slug": "boros-synth-synthless-3fccc516",
+          "name": "Boros Synth/Synthless",
+          "playRate": 0.37103520390379924,
+          "copies": 1.0037576326914044
+        },
+        {
+          "slug": "jund-wildfire-b1e6f661",
+          "name": "Jund Wildfire",
+          "playRate": 0.15142337976983647,
+          "copies": 1
+        }
+      ]
+    },
+    {
+      "name": "Refurbished Familiar",
+      "share": 0.19242100255895644,
+      "copies": 3.8986666277527777,
+      "art": {
+        "imageUrl": "https://cards.scryfall.io/art_crop/front/b/3/b338e078-629c-4cac-bd1d-e1f0a132728d.jpg?1783911277"
+      },
+      "decks": [
+        {
+          "slug": "orzhov-blade-295537f7",
+          "name": "Orzhov Blade",
+          "playRate": 1,
+          "copies": 3.999485066941298
+        },
+        {
+          "slug": "jund-wildfire-b1e6f661",
+          "name": "Jund Wildfire",
+          "playRate": 0.9809206541490006,
+          "copies": 3.993825254708243
+        },
+        {
+          "slug": "affinity-e93f5f74",
+          "name": "Affinity",
+          "playRate": 0.9614039319744301,
+          "copies": 3.997030903692552
+        },
+        {
+          "slug": "esper-ephemerate-51d20386",
+          "name": "Esper Ephemerate",
+          "playRate": 0.4581074802539879,
+          "copies": 2.9070317782285326
+        },
+        {
+          "slug": "boros-synth-synthless-3fccc516",
+          "name": "Boros Synth/Synthless",
+          "playRate": 0.2342279539909376,
+          "copies": 3.9895833333333335
+        }
+      ]
+    },
+    {
+      "name": "Vault of Whispers",
+      "share": 0.18349051421050094,
+      "copies": 2.765514492975623,
+      "art": null,
+      "decks": [
+        {
+          "slug": "orzhov-blade-295537f7",
+          "name": "Orzhov Blade",
+          "playRate": 0.9881565396498455,
+          "copies": 3.60656591974987
+        },
+        {
+          "slug": "affinity-e93f5f74",
+          "name": "Affinity",
+          "playRate": 0.9188678486712499,
+          "copies": 2.933187486326843
+        },
+        {
+          "slug": "jund-wildfire-b1e6f661",
+          "name": "Jund Wildfire",
+          "playRate": 0.8631132646880678,
+          "copies": 1.9915789473684211
+        },
+        {
+          "slug": "esper-ephemerate-51d20386",
+          "name": "Esper Ephemerate",
+          "playRate": 0.47932476382220846,
+          "copies": 2.2032310177705976
+        },
+        {
+          "slug": "boros-synth-synthless-3fccc516",
+          "name": "Boros Synth/Synthless",
+          "playRate": 0.1500522830254444,
+          "copies": 1.0406504065040652
+        }
+      ]
+    }
+  ]
+}

@@ -5,6 +5,7 @@ import {
   fetchMatchups,
   fetchSampleCards,
   fetchSeries,
+  fetchStaples,
   searchDecks,
 } from "./endpoints";
 
@@ -81,6 +82,20 @@ describe("endpoints", () => {
 
     expect(String(fetchMock.mock.calls[0][0])).toBe(
       "/api/sample-cards?deck=affinity-e93f5f74&window=30d",
+    );
+  });
+
+  it("fetches the staples of a window and a section with the exact query string the function accepts", async () => {
+    const fetchMock = stubFetch();
+
+    await fetchStaples("30d", "main", new AbortController().signal);
+    await fetchStaples("7d", "side", new AbortController().signal);
+
+    expect(String(fetchMock.mock.calls[0][0])).toBe(
+      "/api/staples?window=30d&section=main",
+    );
+    expect(String(fetchMock.mock.calls[1][0])).toBe(
+      "/api/staples?window=7d&section=side",
     );
   });
 

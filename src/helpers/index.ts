@@ -8,4 +8,5 @@ export * from "./placeCardPreview";
 export * from "./placeTooltip";
 export * from "./search";
 export * from "./slug";
+export * from "./staples";
 export * from "./winRate";

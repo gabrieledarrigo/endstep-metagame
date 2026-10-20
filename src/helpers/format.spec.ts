@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   axisShare,
+  formatCopies,
   formatCount,
   formatDay,
   formatPopulation,
@@ -30,6 +31,14 @@ describe("percent", () => {
   it("turns a rate into a percentage with one decimal", () => {
     expect(percent(0.5224711653188386)).toBe("52.2%");
     expect(percent(1)).toBe("100.0%");
+  });
+});
+
+describe("formatCopies", () => {
+  it("formats a card's average copies with one decimal", () => {
+    expect(formatCopies(3.94)).toBe("3.9 copies");
+    expect(formatCopies(4)).toBe("4.0 copies");
+    expect(formatCopies(1)).toBe("1.0 copies");
   });
 });
 

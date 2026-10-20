@@ -7,6 +7,7 @@ function renderAt(path: string): {
   overview: HTMLElement;
   matchups: HTMLElement;
   whatToPlay: HTMLElement;
+  staples: HTMLElement;
 } {
   render(
     <MemoryRouter initialEntries={[path]}>
@@ -18,18 +19,37 @@ function renderAt(path: string): {
     overview: screen.getByRole("link", { name: "Overview" }),
     matchups: screen.getByRole("link", { name: "Matchups" }),
     whatToPlay: screen.getByRole("link", { name: "What to play?" }),
+    staples: screen.getByRole("link", { name: "Staples" }),
   };
 }
 
 describe("SiteNav", () => {
-  it("links to the overview, the matchup table and What to play? with the current window", () => {
-    const { overview, matchups, whatToPlay } = renderAt(
+  it("links to the overview, the matchup table, What to play? and Staples with the current window, in that order", () => {
+    const { overview, matchups, whatToPlay, staples } = renderAt(
       "/decks/affinity-e93f5f74?window=7d",
     );
 
     expect(overview.getAttribute("href")).toBe("/?window=7d");
     expect(matchups.getAttribute("href")).toBe("/matchups?window=7d");
     expect(whatToPlay.getAttribute("href")).toBe("/what-to-play?window=7d");
+    expect(staples.getAttribute("href")).toBe("/staples?window=7d");
+    expect(screen.getAllByRole("link").map((link) => link.textContent)).toEqual(
+      ["Overview", "Matchups", "What to play?", "Staples"],
+    );
+  });
+
+  it("links to Staples with the window alone, so the link opens the main deck", () => {
+    const { staples } = renderAt("/staples?window=14d&section=side");
+
+    expect(staples.getAttribute("href")).toBe("/staples?window=14d");
+  });
+
+  it("marks Staples as the current page", () => {
+    const { overview, whatToPlay, staples } = renderAt("/staples?window=30d");
+
+    expect(overview.getAttribute("aria-current")).toBeNull();
+    expect(whatToPlay.getAttribute("aria-current")).toBeNull();
+    expect(staples.getAttribute("aria-current")).toBe("page");
   });
 
   it("links to What to play? with the window alone, whatever else the address holds", () => {
@@ -72,13 +92,14 @@ describe("SiteNav", () => {
   });
 
   it("marks no page on a deck page", () => {
-    const { overview, matchups, whatToPlay } = renderAt(
+    const { overview, matchups, whatToPlay, staples } = renderAt(
       "/decks/affinity-e93f5f74?window=30d",
     );
 
     expect(overview.getAttribute("aria-current")).toBeNull();
     expect(matchups.getAttribute("aria-current")).toBeNull();
     expect(whatToPlay.getAttribute("aria-current")).toBeNull();
+    expect(staples.getAttribute("aria-current")).toBeNull();
   });
 
   it("takes an extra class from the header", () => {

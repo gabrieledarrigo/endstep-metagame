@@ -6,6 +6,7 @@ const PAGES = [
   { path: "/", label: "Overview" },
   { path: "/matchups", label: "Matchups" },
   { path: "/what-to-play", label: "What to play?" },
+  { path: "/staples", label: "Staples" },
 ];
 
 export function SiteNav({ className }: { className?: string }) {

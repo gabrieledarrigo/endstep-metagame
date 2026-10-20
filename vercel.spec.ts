@@ -51,13 +51,17 @@ describe("vercel.json", () => {
     });
   });
 
-  it("serves the matchup table and What to play? from the built page", () => {
+  it("serves the matchup table, What to play? and Staples from the built page", () => {
     expect(vercel.rewrites).toContainEqual({
       source: "/matchups",
       destination: "/index.html",
     });
     expect(vercel.rewrites).toContainEqual({
       source: "/what-to-play",
+      destination: "/index.html",
+    });
+    expect(vercel.rewrites).toContainEqual({
+      source: "/staples",
       destination: "/index.html",
     });
   });

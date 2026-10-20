@@ -255,3 +255,27 @@ export type SampleCardsResponse = {
 };
 
 export type Currency = "tix" | "eur" | "usd";
+
+export type StaplesSection = "main" | "side";
+
+export type StapleDeck = {
+  slug: string;
+  name: string;
+  playRate: number;
+  copies: number;
+};
+
+export type StapleCard = {
+  name: string;
+  share: number;
+  copies: number;
+  art: { imageUrl: string } | null;
+  decks: StapleDeck[];
+};
+
+export type StaplesResponse = {
+  window: { from: string; to: string };
+  section: StaplesSection;
+  withheld: number;
+  cards: StapleCard[];
+};
