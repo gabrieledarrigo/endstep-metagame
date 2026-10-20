@@ -18,12 +18,19 @@ Write simple, readable code. Prefer the clean solution over the clever one.
 
 ## Prose
 
-This applies to documents, PR descriptions, commit messages and UI copy.
+These rules apply to documents, PR descriptions, commit messages and UI copy. They follow the document rules of the SimpleEnglish skill in `.claude/skills/simple-english/`, Plain mode, with the project changes below.
 
-- No em dashes.
-- Short sentences. One idea each.
-- Few adjectives. Cut any that carries no measurement.
-- Neutral and technical.
+- Write one idea in each sentence. Use at most 20 words in an instruction and 25 words in a description.
+- Use active voice and simple tenses. Name the actor.
+- Put the condition before the command: "If the build fails, read the log."
+- Use "can", "will" and "must". Do not use "should", "would", "could" or "might". Use "may" only for a real possibility, not for permission.
+- Use one word for one meaning in the whole document. For example, write "window" every time, not "window", "period" and "time span".
+- Do not use em dashes or semicolons. Write two sentences.
+- State the fact, not its importance. Delete words that carry no fact. `references/word-swaps.md` in the skill lists them.
+- Use a vertical list for three or more steps or parallel items. Put one instruction in each item.
+- Do not use bold lead-ins or bold for emphasis. The backlog keeps its bold labels, "Tasks", "Done when" and "Blocked by", because the issues copy them.
+- Keep British spelling, as the documents use it.
+- Do not change code, identifiers, file paths, quoted text, numbers or facts when you rewrite.
 
 ## Commits
 
