@@ -6,6 +6,8 @@ import type {
   MatchupMatrix,
   SampleCardsResponse,
   ShareSeriesResponse,
+  StaplesResponse,
+  StaplesSection,
   TimeWindow,
 } from "./types";
 
@@ -144,6 +146,27 @@ export function fetchSampleCards(
   return getJson<SampleCardsResponse>(
     "/api/sample-cards",
     { deck: slug, window: timeWindow },
+    signal,
+  );
+}
+
+/**
+ * Fetches the 50 cards the top 24 decks play most in a window, for the main deck or the sideboard, built by the staples function, §4.9.
+ *
+ * @param timeWindow - The window to read.
+ * @param section - The part of the deck: `main` or `side`.
+ * @param signal - Aborts the request.
+ * @returns A Promise resolving to the window's dates, the section, the number of withheld decks, and the cards by share, each with its art and the decks that play it.
+ * @throws The errors `getJson` throws.
+ */
+export function fetchStaples(
+  timeWindow: TimeWindow,
+  section: StaplesSection,
+  signal: AbortSignal,
+): Promise<StaplesResponse> {
+  return getJson<StaplesResponse>(
+    "/api/staples",
+    { window: timeWindow, section },
     signal,
   );
 }
