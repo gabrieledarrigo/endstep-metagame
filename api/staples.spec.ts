@@ -108,7 +108,7 @@ function endstep({
   delay = (): number => 0,
   scryfall = collection(),
 }: Upstream): Mock<typeof fetch> {
-  const fetchMock = vi.fn<typeof fetch>(async (input) => {
+  const fetchMock = vi.fn<typeof fetch>(async (input, init) => {
     const url = new URL(String(input));
     const wait = delay(url);
 
@@ -116,6 +116,7 @@ function endstep({
       await new Promise((resolve) => {
         setTimeout(resolve, wait);
       });
+      init?.signal?.throwIfAborted();
     }
 
     if (String(input) === SCRYFALL) {
@@ -737,7 +738,7 @@ describe("the staples function's responses", () => {
     });
   });
 
-  it("stops the other decks' pages after the first failure, and still answers its 429", async () => {
+  it("stops the other decks' later pages after a 429, and answers 429", async () => {
     const fetchMock = endstep({
       decks: [deck("a", 0.2), deck("b", 0.1)],
       pages: {
@@ -755,6 +756,29 @@ describe("the staples function's responses", () => {
     expect(response.status).toBe(429);
     expect(pagesOf(fetchMock, "a")).toEqual([1]);
     expect(pagesOf(fetchMock, "b")).toEqual([1]);
+  });
+
+  it("lets the other card tables finish after a 500, so an in-flight 429 still answers 429 for 60 seconds", async () => {
+    endstep({
+      decks: [deck("a", 0.2), deck("b", 0.1)],
+      status: (url) => {
+        if (url.pathname.includes("/decks/a/")) {
+          return 500;
+        }
+
+        if (url.pathname.includes("/decks/b/")) {
+          return 429;
+        }
+
+        return undefined;
+      },
+      delay: (url) => (url.pathname.includes("/decks/b/") ? 20 : 0),
+    });
+
+    const response = await staples.fetch(request(MAIN_30D));
+
+    expect(response.status).toBe(429);
+    expect(response.headers.get("cache-control")).toBe("public, s-maxage=60");
   });
 
   it("aborts the open card tables and answers 502 after 50 seconds", async () => {

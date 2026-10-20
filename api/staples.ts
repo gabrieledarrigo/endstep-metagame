@@ -202,7 +202,10 @@ async function tablesOf(
   const results = await Promise.allSettled(
     decks.map((deck) =>
       tableOf(deck, target, controller.signal).catch((error: unknown) => {
-        controller.abort();
+        if (isRateLimit(error)) {
+          controller.abort();
+        }
+
         throw error;
       }),
     ),
@@ -277,7 +280,7 @@ export default {
   /**
    * Builds the 50 cards the top 24 decks play most, weighted by each deck's share, for the main deck or the sideboard, §4.9.
    *
-   * The query string must be exactly `?window=` and one of the five windows, then `&section=` and `main` or `side`. The function reads the top 24 decks, then each deck's card table in pages of 50, all decks in parallel. It reads a deck's next page while that page's last card is in at least 5% of the deck's lists, up to 4 pages. The deck list has an 8 second timeout and each card table 20 seconds. The first failed card table, or 50 seconds without an answer, aborts the calls still open. It leaves out withheld decks and the basic lands, and adds each card's art from Scryfall. GET and HEAD build the response. OPTIONS answers the CORS preflight with 204.
+   * The query string must be exactly `?window=` and one of the five windows, then `&section=` and `main` or `side`. The function reads the top 24 decks, then each deck's card table in pages of 50, all decks in parallel. It reads a deck's next page while that page's last card is in at least 5% of the deck's lists, up to 4 pages. The deck list has an 8 second timeout and each card table 20 seconds. A 429 on a card table, or 50 seconds without an answer, aborts the calls still open. It leaves out withheld decks and the basic lands, and adds each card's art from Scryfall. GET and HEAD build the response. OPTIONS answers the CORS preflight with 204.
    *
    * @param req - The incoming request.
    * @returns A Promise resolving to `{ window, section, withheld, cards }`, cached for 30 minutes with 30 more of stale-while-revalidate, or for five minutes when the art lookup failed. Otherwise a JSON error: 400 for any other query string, 405 for any other method, 429 when Endstep rate limits a call, cached for 60 seconds, and 502 when any other call fails.
