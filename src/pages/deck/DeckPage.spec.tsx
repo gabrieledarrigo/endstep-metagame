@@ -591,3 +591,88 @@ describe("DeckPage", () => {
     });
   });
 });
+
+describe("DeckPage card previews", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  function sampleCardRequests(fetchMock: Mock<typeof fetch>): string[] {
+    return fetchMock.mock.calls
+      .map(([input]) => String(input))
+      .filter((url) => url.startsWith("/api/sample-cards"));
+  }
+
+  it("turns the sample list's names into buttons once the deck's cards arrive", async () => {
+    const fetchMock = renderAt("/decks/affinity-e93f5f74?window=30d", () =>
+      Response.json(detail),
+    );
+
+    expect(
+      await screen.findByRole("button", { name: "Galvanic Blast" }),
+    ).toBeTruthy();
+    expect(sampleCardRequests(fetchMock)).toEqual([
+      "/api/sample-cards?deck=affinity-e93f5f74&window=30d",
+    ]);
+  });
+
+  it("keeps the names plain when the cards fail", async () => {
+    const fetchMock = vi.fn<typeof fetch>(async (input) => {
+      if (String(input).startsWith("/api/matchups")) {
+        return Response.json(matrix);
+      }
+
+      if (String(input).startsWith("/api/sample-cards")) {
+        return Response.json({ error: "x" }, { status: 502 });
+      }
+
+      return Response.json(detail);
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    renderWithQueries(
+      <MemoryRouter initialEntries={["/decks/affinity-e93f5f74?window=30d"]}>
+        <Routes>
+          <Route path="/decks/:slug" element={<DeckPage />} />
+        </Routes>
+      </MemoryRouter>,
+    );
+
+    await screen.findByRole("heading", { level: 1, name: "Affinity" });
+    await waitFor(() => {
+      expect(sampleCardRequests(fetchMock)).toHaveLength(1);
+    });
+    const request = fetchMock.mock.calls.findIndex(([input]) =>
+      String(input).startsWith("/api/sample-cards"),
+    );
+    await act(async () => {
+      await fetchMock.mock.results[request].value;
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(screen.getByText("Galvanic Blast")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Galvanic Blast" })).toBeNull();
+  });
+
+  it("asks for no cards when the list is withheld", async () => {
+    const withheld = {
+      ...detail,
+      sampleList: {
+        ...detail.sampleList,
+        state: "withheld",
+        reason: "no_registrations",
+        main: [],
+        side: [],
+      },
+    };
+    const fetchMock = renderAt("/decks/affinity-e93f5f74?window=30d", () =>
+      Response.json(withheld),
+    );
+
+    expect(
+      await screen.findByText(
+        "No list to show. No list was registered for this deck in this window.",
+      ),
+    ).toBeTruthy();
+    expect(sampleCardRequests(fetchMock)).toEqual([]);
+  });
+});

@@ -88,4 +88,23 @@
     font-weight: 600;
     font-variant-numeric: tabular-nums;
   }
+
+  .sample-list__name--preview {
+    justify-self: start;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    color: var(--text-900);
+    text-align: left;
+    cursor: pointer;
+    text-decoration: underline dotted var(--baseline);
+    text-underline-offset: 4px;
+  }
+
+  .sample-list__name--preview:hover,
+  .sample-list__name--preview:focus-visible,
+  .sample-list__name--active {
+    text-decoration: underline solid var(--text-900);
+  }
 }

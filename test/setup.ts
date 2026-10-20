@@ -8,6 +8,25 @@ globalThis.ResizeObserver = class {
   disconnect(): void {}
 };
 
+HTMLDialogElement.prototype.showModal = function (
+  this: HTMLDialogElement,
+): void {
+  this.open = true;
+};
+
+HTMLDialogElement.prototype.close = function (this: HTMLDialogElement): void {
+  if (!this.open) {
+    return;
+  }
+
+  this.open = false;
+  this.dispatchEvent(new Event("close"));
+};
+
+HTMLElement.prototype.showPopover = function (): void {};
+
+HTMLElement.prototype.hidePopover = function (): void {};
+
 Object.defineProperty(globalThis, "navigator", {
   value: {
     language: "en-GB",
