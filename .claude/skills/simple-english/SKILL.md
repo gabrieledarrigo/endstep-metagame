@@ -12,7 +12,7 @@ description: |
   says "STE", "Simplified Technical English", "ASD-STE100", "plain English",
   "layman's terms", "explain it simply", "no jargon", "de-slop", "make this
   readable", "write for non-native readers", or asks for docs that translate
-  well. The same rules govern the reply: answer first, prose only.
+  well.
 license: MIT
 compatibility: claude-code cursor codex gemini-cli opencode
 metadata:
@@ -21,6 +21,8 @@ metadata:
 ---
 
 # Simple English
+
+In this repository, the Prose section of `AGENTS.md` changes these rules, and it wins where the two disagree. Keep British spelling. Keep "may" for a real possibility. Write commit messages as one sentence with no body. The rules under "The Reply" do not apply here: chat replies keep their lists and headings.
 
 Write plain English that a smart reader outside your field understands on one read. The rules come from ASD-STE100, the controlled language that aerospace uses for maintenance manuals. Two registers exist: the document you write or rewrite, and the reply you type in chat. Each has its own short rule set below.
 
