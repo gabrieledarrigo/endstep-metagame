@@ -106,6 +106,7 @@ The proxy adds `art.imageUrl` to every deck in the deck list and in the deck det
 - The proxy sends one `POST https://api.scryfall.com/cards/collection` for each response. The request has one `{ "name": … }` identifier for each distinct key card name.
   - The request has at most 50 identifiers, the largest page of the deck list. This is under Scryfall's limit of 75.
   - A deck with a blank name gets no identifier.
+- The staples function uses the same lookup, `findArt` in `api/_shared.ts`, for its 50 cards, §4.9.
 - The proxy matches each card that Scryfall returns to a deck by name, and ignores case. The name can be the card's full name or the name of any of its faces. A double-faced card comes back as "Front // Back", but Endstep names its front face.
 - The lookup sends a name with two halves, "Front // Back", as its first half. It matches the answer by the full name. The collection does not find a split card by its full name, §4.10. Endstep's card tables name a card with two faces in full, §3.8.
 - A face's name gets that face's `image_uris.art_crop`. If the face has no image of its own, as on an adventure, the face's name gets the card's art crop. The full name gets the card's `image_uris.art_crop`, or the first face's art crop. The first match with an address on `cards.scryfall.io` wins.
@@ -116,6 +117,7 @@ The proxy adds `art.imageUrl` to every deck in the deck list and in the deck det
 - If the proxy cannot read the body of a 200, the lookup counts as failed, §4.3. For example, `data` is not a list, or a card has no string name. The proxy stores nothing.
 - Scryfall allows 2 requests per second on that endpoint. It requires a `User-Agent` that names the application, and an `Accept` header. A 429 limits access for 30 seconds.
 - The proxy keeps two things in memory for as long as its instance lives: each card's address, and each name that Scryfall did not find. So a warm instance asks Scryfall only for names that are new to it.
+- Each caller sets the bound of the lookup. The proxy passes one second, and the staples function passes three seconds, §4.9.
 - The functions keep no rate-limit state that instances or regions share. After a 429, an instance sends nothing to Scryfall for 30 seconds. This span is Scryfall's own lockout. During that time, the responses of that instance use the fallback.
 
 ### 3.5 Measured values
@@ -170,7 +172,11 @@ We measured the card tables on 2026-10-18. `/{format}/decks/{slug}/cards` lists 
   - `playRate {count, of, rate}`: the share of the deck's lists that hold the card.
   - `averageCopies`: the average copies of the card in those lists.
   - `contrast`: the win rate with the card against the win rate without it, with `withMatches`, `withoutMatches` and `required`.
-- `withheld` was null for all 48 tables of the top 24 at 30d. If it is not null, we expect it to take the shape of the deck detail's `cardTableWithheld`, `{reason, minPlayers}`, §3.6, with no items. The staples function leaves such a deck out, §4.9. E15 tests the shape on a short window.
+- `withheld` was null for all 48 tables of the top 24 at 30d. A withheld table is a 200 with no items. Its `withheld` has the shape of the deck detail's `cardTableWithheld`, §3.6.
+  - We measured a withheld table on 2026-10-20 at 7d, for a deck with one player. The response had `"withheld": {"reason": "below_player_floor", "minPlayers": 3}` and `"cards": {"items": [], "total": 0, "page": 1, "pageSize": 50}`.
+  - The smallest top-24 deck at 7d had 94 players. So Endstep rarely withholds a top-24 table above 1d.
+  - The staples function leaves out such a deck, §4.9.
+- A card with two faces has its full name, "Front // Back". An example at 7d is "Tithing Blade // Consuming Sepulcher". A key card has only the name of its front face, §3.4.
 - At 30d, a main table held 76 to 398 cards, and a sideboard table held 57 to 250 cards.
 
 ---
@@ -349,18 +355,20 @@ The matchups row of the deck page loads on its own, FR-11. It dims itself and ma
 `GET /api/staples?window=30d&section=main`. The staples page reads it, FR-18. `window` is one of the five values in §3.3, and `section` is `main` or `side`. As with the matchup function, §4.4, the raw query string must be exactly `?window=` and a value, then `&section=` and a value, byte for byte. Anything else returns 400, so every variant shares one cache entry. The format is always Pauper, and the population is always `rated`.
 
 1. Fetch the top 24 decks: `/Pauper/decks?window=…&population=rated&sort=share&dir=desc&pageSize=24`.
-2. Fetch `/Pauper/decks/{slug}/cards?window=…&population=rated&section=…&pageSize=50` for each of the 24 decks, in parallel, §3.8.
-   - If the table goes on, and the last card of a page is in at least 2% of the deck's lists, fetch the next page.
-   - Fetch up to 4 pages for each deck.
-   - On 2026-10-18 at 30d, 10 decks needed a second page for the main deck, and no deck needed one for the sideboard. Then the last fetched card of every deck was under 1%.
-   - A card that a deck's pages cut off is under 2% of that deck's lists. So the decks behind a card, at 5% and up, are always complete.
-   - The share of a staple is short by under 2% of the part of the share that comes from each deck that cuts the card.
-3. If the card table of a deck is withheld, leave out the deck. A withheld table is a 200 whose `withheld` is not null, §3.8. Also leave out the basic lands: Plains, Island, Swamp, Mountain, Forest, Wastes and their snow-covered versions.
+2. Fetch `/Pauper/decks/{slug}/cards?window=…&population=rated&section=…&pageSize=50&page=1` for each of the 24 decks, in parallel, §3.8.
+   - If the table goes on, and the last card of a page is in at least 5% of the deck's lists, fetch the next page.
+   - Fetch up to 4 pages for each deck. Fetch the pages of one deck one after another.
+   - On 2026-10-20, 4 decks needed a second page for the main deck at 30d and at 7d. No deck needed one for the sideboard.
+   - A card that a deck's pages cut off is under 5% of that deck's lists. This holds unless the deck reaches the 4-page cap. Then the decks behind a card, at 5% and up, are complete.
+   - The share of a staple is short by under 5% of the part of the share that comes from each deck that cuts the card.
+   - If a card is on two pages of one deck, count it once, with its first row. Endstep's data can change between two requests.
+3. If the card table of a deck is withheld, leave out the deck. A withheld table is a 200 whose `withheld` is a plain object, not null and not an array, §3.8. A missing or null `withheld` counts the deck. If a table has no list of cards, the build fails with 502. Also leave out the basic lands: Plains, Island, Swamp, Mountain, Forest, Wastes and their snow-covered versions.
 4. Across the counted decks, calculate two numbers for each card:
    - For the share, multiply the share of each deck by the card's `playRate.rate` in that deck. The share of the card is the sum of these products, divided by the total share of the counted decks.
    - The copies of the card are the weighted average of `averageCopies`. The weight of each deck is its share times the play rate of the card in that deck.
+   - Leave out a card whose total weight is zero. Its share and copies have no value.
 5. Keep the 50 cards with the largest share. Break ties by name.
-6. Add the art of each card, as the proxy does for the key card of a deck, §3.4 and §4.3. Use one Scryfall collection request for the 50 names, with the same matching, memory, one-second bound and fallback.
+6. Add the art of each card with `findArt`, the lookup that the proxy uses for the key card of a deck, §3.4 and §4.3. Use one Scryfall collection request for the 50 names, with the same matching, memory and fallback. The bound is 3 seconds, and the proxy's bound is one second. If Scryfall does not find a card, its `art` is null.
 
 #### Response
 
@@ -377,16 +385,27 @@ The matchups row of the deck page loads on its own, FR-11. It dims itself and ma
 - `window` holds `from` and `to` of `provenance.window` from step 1, unchanged. §6.7 applies when the page displays it.
 - `withheld` counts the decks that step 3 leaves out.
 - `decks` lists the decks that play the card in at least 5% of their lists. They are in order of play rate, highest first. `playRate` is the deck's `playRate.rate`, and `copies` is its `averageCopies`.
-- The response is about 25 KB uncompressed. This size comes from the 30d data.
+- We measured the response on 2026-10-20. For the main deck at 30d, it is about 29 KB uncompressed and 7 KB compressed. For the sideboard at 7d, it is 42 KB.
 
 #### Behaviour
 
-- One cold build costs one Endstep call for the deck list and one for each page. On 2026-10-18 at 30d, this came to 35 calls for the main deck and 25 for the sideboard. The build also sends one Scryfall request.
+- One cold build costs one Endstep call for the deck list and one for each page. This is at most 97 calls: the deck list, and 4 pages for each of the 24 decks. The build also sends one Scryfall request.
+- On 2026-10-20 at 30d and 7d, a build cost 29 calls for the main deck and 25 for the sideboard. At 1d, the deck list ran past its 8 second timeout on every try that day. So 1d has no count.
+- The deck list has the 8 second timeout of the proxy. Each card table request, one page, has 20 seconds. Endstep is slow on a table that it has not built yet.
+- We measured cold builds on 2026-10-20, with an 8 second timeout on each table:
+  - At 30d, 12 of the 24 main deck tables timed out. At 7d, 22 of 24 timed out. These first builds returned 502.
+  - Builds a few minutes later found the tables in Endstep's cache. They took 1.9 to 2.8 seconds.
+- A deadline of 50 seconds covers the deck list and the card tables. When it passes, the function aborts the open calls and returns 502 with `no-store`.
+- After the Endstep calls, the art lookup has up to 3 seconds. So the worst case is about 53 seconds. This is under the function's `maxDuration` of 60 seconds.
+- A 429 on a card table aborts the other open requests. So no further page goes to Endstep, NFR-4.
+- After a 500 or a timeout, the other tables finish, so a 429 among them still shows. The function returns 429 if any call returned 429.
+- We measured the collection request for 50 names at 2 seconds. With a one-second bound, it ran out of time in 3 of 4 builds. That is why the bound is 3 seconds.
+- With the 3 second bound, a 30d main deck build took 1.8 seconds on 2026-10-20. Its collection request took 1 second and found art for all 50 cards.
 - Card usage changes slowly. So the function holds a success for 30 minutes, with 30 more of stale-while-revalidate.
-- If the art lookup fell back, the function holds the success for one minute, as the proxy does, §4.3.
+- If the art lookup fell back, the function holds the success for five minutes, with `public, s-maxage=300, stale-while-revalidate=600`. A rebuild costs up to 97 Endstep calls.
 - The function holds a 429 for 60 seconds. Any other error gets `no-store`. These two rules are the same as in the matchup function.
 - If any Endstep call fails, the whole request fails. It returns 429 for an upstream 429, and 502 for any other failure. A failed art lookup never fails the request.
-- Each upstream call has the 8 second timeout of the proxy. The function uses the same method rules and CORS headers as the proxy, §4.3.
+- The function uses the same method rules and CORS headers as the proxy, §4.3.
 
 ### 4.10 Sample cards function
 
@@ -841,7 +860,7 @@ The states follow the matchup table, FR-12:
 
 - While the page loads, it shows a skeleton.
 - If loading fails, the page shows the error panel with its retry.
-- The page does not retry on its own, because one cold build costs up to 35 upstream calls.
+- The page does not retry on its own, because one cold build costs up to 97 upstream calls.
 - While the next window loads, the page dims the previous window, §4.8.
 - A switch to the other list shows the skeleton until that list arrives. The cards on the screen belong to the other list, and they must not stand under its name.
 - If Endstep withholds the card table of a deck, §3.6, the page leaves that deck out. A line under the list then reads "1 deck is left out because Endstep withholds its cards.", or "{n} decks are left out because Endstep withholds their cards."
@@ -966,7 +985,7 @@ The front end is a Vite application in TypeScript with React 19. `npm run build`
   |---|---|
   | `api/tsconfig.json` | `api/`. It is the config nearest to the function, so the function build on Vercel reads it |
   | `tsconfig.app.json` | `src/` and `test/`, with the client types of Vite |
-  | `tsconfig.node.json` | `vite.config.ts` and `eslint.config.ts`, with the types of Node. The Vite config imports the functions. So this config also checks `api/metagame.ts`, `api/matchups.ts`, `api/deck-page.ts` and `api/sample-cards.ts` without the DOM lib, as the dev server runs them |
+  | `tsconfig.node.json` | `vite.config.ts` and `eslint.config.ts`, with the types of Node. The Vite config imports the functions. So this config also checks `api/metagame.ts`, `api/matchups.ts`, `api/deck-page.ts`, `api/sample-cards.ts` and `api/staples.ts` without the DOM lib, as the dev server runs them |
 
 - The root `tsconfig.json` lists the three configs as references. It covers no file itself. When an editor opens a file, it finds the root config. Then it follows the references to the config that covers the file. Without the references, an editor checks `src/` with default options and reports false errors.
 - Vite's client types stay out of `api/tsconfig.json`, because they break the function build there. The config moved from the root to `api/`. An offline `vercel build` on 2026-10-09 showed that the compiled function stayed the same, byte for byte.
@@ -1095,7 +1114,7 @@ The goal is that total upstream traffic stays well below the limit of 300 per 60
 
 A search costs one upstream call for each distinct normalised query, window and page. The search runs 300ms after the reader stops typing, from 2 characters. The edge caches each query like any other deck list. If several regions warm every window inside one minute, they will pass the limit. At the traffic of this site, that is unlikely. If it happens, §4.4 holds a 429 at the edge for the full minute.
 
-The staples function costs up to 35 calls for each cold window and section, §4.9. To warm all ten costs about 300 calls. A reader can open every window and both sections on a cold region in one minute, and then open the matchup table. That walk may pass the limit. After it, the 30-minute cache of the staples function makes the same walk free. A 429 from the staples function is held for the minute, as it is for the matchup function.
+The staples function costs at most 97 calls for each cold window and section, §4.9. On 2026-10-20 we measured 29 calls for the main deck and 25 for the sideboard, at 30d and 7d. If the other windows follow the same pattern, to warm all ten costs about 270 calls. This figure is an estimate. A reader can open every window and both sections on a cold region in one minute, and then open the matchup table. That walk may pass the limit. After it, the 30-minute cache of the staples function makes the same walk free. A 429 from the staples function is held for the minute, as it is for the matchup function.
 
 The same care applies to Scryfall, §3.4. Each function sends fewer requests after an instance sees the cards:
 
