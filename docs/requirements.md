@@ -307,7 +307,7 @@ The front end uses React Router 8 in declarative mode, with `BrowserRouter`, `Ro
 
 The plugin serves each response from memory for its `s-maxage`, the same lifetime that the edge uses. It does not serve stale responses and does not evict expired entries, so it is simpler than the edge. Without this memory, every reload of the matchup page in development costs 25 upstream calls. Then a dozen reloads in a minute reach the rate limit.
 
-The plugin replaces `dev-server.js`, which the project deletes. For the page routes, the Vite dev server already falls back to `index.html`. `vite preview` also serves `/decks/:slug` through the deck page's HTML function, with the rewrite from `vercel.json`. Vite's own fallback serves `staples.html` for `/staples`, as Vercel does with `cleanUrls`. The same holds for the other two copies. So a developer can check a link preview on a local build. The dev server does not do this, because its `index.html` is the source file.
+The plugin replaces `dev-server.js`, which the project deletes. For the page routes, the Vite dev server already falls back to `index.html`. `vite preview` also serves `/decks/:slug` through the deck page's HTML function, with the rewrite from `vercel.json`. Vite's own fallback serves `staples.html` for `/staples`, as Vercel does with `cleanUrls`. The same holds for the other two copies. Only Vercel redirects `/staples.html` to `/staples`. `vite preview` serves the file at that path, and the app shows Not found. So a developer can check a link preview on a local build. The dev server does not do this, because its `index.html` is the source file.
 
 ### 4.7 What deploys
 
@@ -325,7 +325,7 @@ Vercel runs `npm run build` and serves `dist/`. Vercel builds the functions in `
   - Connections to the site only.
   - Inline style attributes, which the charts set.
 - Vercel serves only `dist/`. Nobody can reach the source files, `docs/` or the development files from the public site any more.
-- Vercel deploys every file in `api/` as a function. So `.vercelignore` excludes `api/**/*.spec.ts`, and Vercel never deploys the specs beside the functions. It excludes `server/**/*.spec.ts` too.
+- Vercel deploys every file in `api/` as a function. So `.vercelignore` excludes `api/**/*.spec.ts`, and Vercel never deploys the specs beside the functions.
 
 #### Production waits for CI
 
@@ -706,7 +706,10 @@ Every page carries the data that browsers, search engines and chat apps read wit
 - The app keeps the canonical link and `og:url` in step with the page on the screen:
   - The HTML sets them for the first page only. Without this rule, they still name that page after the reader moves on. Chrome on Android then shares the wrong page.
   - So on each route change, the app sets both to the full address of the new path, with no query string, §4.5. If the HTML has none, the app adds them.
+  - The full address starts with the production origin, `SITE_ORIGIN` in `src/config.ts`. A spec checks that it equals the origin in `server/head.ts`.
+  - On a Not found page, the app removes both. A path that does not exist must not name itself as a page.
   - This covers the deck pages and the overview too.
+  - The app does not change the description or the `og:` words. Chat apps and search engines read them from the HTML, not from the running app.
 - A deck page shares its own preview:
   - Its title reads "{deck} · Pauper Endstep metagame".
   - Its description reads "{share} of the Pauper field {period}, {win rate} match win rate, {players} players." Here, {period} follows the window of the link: "over the last day", "over the last 7 days", "over the last 14 days", "over the last 30 days" or "this season". The default is 30 days.
@@ -1071,15 +1074,16 @@ The front end is a Vite application in TypeScript with React 19. `npm run build`
 
 - TypeScript stays on 6.0, the last release with the JavaScript compiler API. TypeScript 7.0 has no such API. So typescript-eslint refuses it, and the install on Vercel fails on the peer conflict. A measurement on this repository on 2026-10-06 showed this. typescript-eslint tracks support for 7.1 in issue #10940. When that support is released, move to 7. Move directly, or use the side-by-side setup that TypeScript documents. 6.0 already warns about everything that 7 removes.
 - TypeScript runs in strict mode, and a type error fails the build.
-- Three configs cover the repository. The type check runs `tsc` on each config.
+- Four configs cover the repository. The type check runs `tsc` on each config.
 
   | Config | Covers |
   |---|---|
-  | `api/tsconfig.json` | `api/` and `server/`. It is the config nearest to the function, so the function build on Vercel reads it |
+  | `api/tsconfig.json` | `api/`. It is the config nearest to the function, so the function build on Vercel reads it |
+  | `server/tsconfig.json` | `server/`. It extends `api/tsconfig.json`, so the shared files build with the options of the functions |
   | `tsconfig.app.json` | `src/` and `test/`, with the client types of Vite |
-  | `tsconfig.node.json` | `vite.config.ts` and `eslint.config.ts`, with the types of Node. The Vite config imports the functions. So this config also checks `api/metagame.ts`, `api/matchups.ts`, `api/deck-page.ts`, `api/sample-cards.ts` and `api/staples.ts` without the DOM lib, as the dev server runs them |
+  | `tsconfig.node.json` | `vite.config.ts` and `eslint.config.ts`, with the types of Node. The Vite config imports the functions. So this config also checks the five functions and the `server/` files they import, without the DOM lib, as the dev server runs them. Code in `server/` must therefore pass both configs |
 
-- The root `tsconfig.json` lists the three configs as references. It covers no file itself. When an editor opens a file, it finds the root config. Then it follows the references to the config that covers the file. Without the references, an editor checks `src/` with default options and reports false errors.
+- The root `tsconfig.json` lists the four configs as references. It covers no file itself. When an editor opens a file, it finds the root config. Then it follows the references to the config that covers the file. Without the references, an editor checks `src/` with default options and reports false errors.
 - Vite's client types stay out of `api/tsconfig.json`, because they break the function build there. The config moved from the root to `api/`. An offline `vercel build` on 2026-10-09 showed that the compiled function stayed the same, byte for byte.
 - The response types live in `src/api/types.ts`, one type for each endpoint in §3.1. Their source is measured responses, not a published schema.
 
@@ -1088,7 +1092,7 @@ The front end is a Vite application in TypeScript with React 19. `npm run build`
 | Script | What it does |
 |---|---|
 | `npm run dev` | Vite with the API plugin, §4.6 |
-| `npm run typecheck` | `tsc` on each of the three configs |
+| `npm run typecheck` | `tsc` on each of the four configs |
 | `npm run build` | The type check, then `vite build` |
 | `npm run lint` | ESLint over the repository |
 | `npm run format` | Prettier rewrites every covered file |
