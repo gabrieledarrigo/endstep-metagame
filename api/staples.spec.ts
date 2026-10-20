@@ -43,7 +43,7 @@ type Upstream = {
   status?: (url: URL, call: number) => number | undefined;
   delay?: (url: URL) => number;
   timesOut?: (url: URL, call: number) => boolean;
-  offline?: (url: URL) => boolean;
+  offline?: (url: URL, call: number) => boolean;
   scryfall?: () => Promise<Response>;
 };
 
@@ -145,7 +145,7 @@ function endstep({
       throw new DOMException("The operation timed out", "TimeoutError");
     }
 
-    if (offline(url)) {
+    if (offline(url, call)) {
       throw new TypeError("fetch failed");
     }
 
@@ -935,6 +935,23 @@ describe("the staples function's second request", () => {
     ]);
   });
 
+  it("asks once more for a page that fails with a network error, and answers 200", async () => {
+    const fetchMock = endstep({
+      decks: [deck("a", 0.2)],
+      pages: { a: counterspell },
+      offline: (url, call) => onPage(url, "a", 1) && call === 1,
+      scryfall: collection("Counterspell"),
+    });
+
+    const response = await settled(staples.fetch(request(MAIN_30D)));
+
+    expect(response.status).toBe(200);
+    expect(pagesOf(fetchMock, "a")).toEqual([1, 1]);
+    expect((await bodyOf(response)).cards.map(({ name }) => name)).toEqual([
+      "Counterspell",
+    ]);
+  });
+
   it("answers 502 when the second request times out too", async () => {
     const fetchMock = endstep({
       decks: [deck("a", 0.2)],
@@ -1030,11 +1047,6 @@ describe("the staples function's second request", () => {
       },
       502,
     ],
-    [
-      "a network error",
-      { offline: (url: URL): boolean => onPage(url, "a", 1) },
-      502,
-    ],
   ])("sends no second request after %s", async (_, failure, expected) => {
     const fetchMock = endstep({
       decks: [deck("a", 0.2)],
@@ -1047,6 +1059,35 @@ describe("the staples function's second request", () => {
     expect(response.status).toBe(expected);
     expect(pagesOf(fetchMock, "a")).toEqual([1]);
   });
+
+  it.each([
+    [
+      "a body that breaks off",
+      (): Response =>
+        new Response(
+          new ReadableStream({
+            start(controller): void {
+              controller.error(new TypeError("terminated"));
+            },
+          }),
+        ),
+    ],
+    ["a table with no list of cards", (): Response => Response.json({})],
+  ])(
+    "sends no second request for a TypeError after the answer arrives, from %s",
+    async (_, answer) => {
+      const tables = endstep({ decks: [deck("a", 0.2)] });
+      const fetchMock = vi.fn<typeof fetch>(async (input, init) =>
+        onPage(new URL(String(input)), "a", 1) ? answer() : tables(input, init),
+      );
+      vi.stubGlobal("fetch", fetchMock);
+
+      const response = await settled(staples.fetch(request(MAIN_30D)));
+
+      expect(response.status).toBe(502);
+      expect(pagesOf(fetchMock, "a")).toEqual([1]);
+    },
+  );
 
   it("answers 429 and aborts the other tables when the second request is rate limited", async () => {
     const fetchMock = endstep({
