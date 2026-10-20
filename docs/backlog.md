@@ -1738,7 +1738,8 @@ This item covers the behaviour of §4.9. On 2026-10-20 the first build of a cold
 
 - With a fake Endstep that answers a table only on the second request, the function returns 200.
 - The specs pass, and every other case of §4.9 behaves as before.
-- The PR reports the time and the result of one cold build at 7d in a preview deployment.
+- The PR reports one build against live Endstep, from a local dev server. It gives the window, the calls, any timeouts and the result. If no table was cold, it says so.
+- After the merge, a check in production records the first request on a cold window: its cache status, its result and its time.
 
 **Blocked by** nothing. **Blocks** nothing.
 
