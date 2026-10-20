@@ -830,7 +830,7 @@ A panel named "Most played cards" holds the list.
 - The cards come in the order that `/api/staples` returns them, by share. The list shows 30. Then a button, "Show 20 more", shows the rest, up to 50. The button goes away once the list shows all the cards. A window change, or a switch to the other list, shows 30 again.
   - If fewer than 20 cards remain, the button reads "Show {n} more".
   - After a press of the button, focus moves to the first new card. So a reader with a keyboard keeps their place.
-  - While the next window loads, the page hides the button on the dimmed list. The button comes back with the new cards.
+  - While the next window loads, the page hides the button on the dimmed list. If more cards remain, the button comes back with the new cards.
 - Each line holds these parts:
   - The place.
   - The art of the card.
