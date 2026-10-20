@@ -1,11 +1,11 @@
 import {
   BASE_HEADERS,
-  TIMEOUT_MS,
-  UPSTREAM,
   WINDOWS,
   cacheControl,
   errorResponse,
+  isRateLimit,
   methodResponse,
+  upstream,
 } from "./_shared.js";
 
 const RATE_LIMIT_SECONDS = 60;
@@ -55,16 +55,6 @@ type MatchupsBody = {
   matchups: { items: (Cell & { opponent: { id: string } })[] };
 };
 
-class UpstreamError extends Error {
-  readonly status: number;
-
-  constructor(status: number) {
-    super(`Endstep answered ${status}`);
-    this.name = "UpstreamError";
-    this.status = status;
-  }
-}
-
 /**
  * Reads the time window from a query string that matches §4.4 byte for byte.
  *
@@ -73,46 +63,6 @@ class UpstreamError extends Error {
  */
 function windowOf(search: string): string | undefined {
   return WINDOWS.find((timeWindow) => search === `?window=${timeWindow}`);
-}
-
-/**
- * Fetches one Endstep endpoint and parses its JSON body.
- *
- * @param path - The endpoint path after the API version, such as `Pauper/decks`.
- * @param params - The query parameters, in the order they are sent.
- * @returns A Promise resolving to the parsed body.
- * @throws An `UpstreamError` with the status when Endstep answers anything other than a success.
- * @throws The fetch or parse error when Endstep is unreachable, too slow, or answers with a body that is not JSON.
- */
-async function upstream<Body>(
-  path: string,
-  params: Record<string, string>,
-): Promise<Body> {
-  const response = await fetch(
-    `${UPSTREAM}/${path}?${new URLSearchParams(params)}`,
-    {
-      headers: {
-        accept: "application/json",
-      },
-      signal: AbortSignal.timeout(TIMEOUT_MS),
-    },
-  );
-
-  if (!response.ok) {
-    throw new UpstreamError(response.status);
-  }
-
-  return (await response.json()) as Body;
-}
-
-/**
- * Checks whether an error is Endstep's rate limit.
- *
- * @param error - The error a build failed with.
- * @returns `true` for an upstream 429.
- */
-function isRateLimit(error: unknown): boolean {
-  return error instanceof UpstreamError && error.status === 429;
 }
 
 /**

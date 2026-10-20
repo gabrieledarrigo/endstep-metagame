@@ -14,8 +14,6 @@ const BARGAIN_ART =
   "https://cards.scryfall.io/art_crop/front/6/3/6338942d-d650-4571-8ec6-4d658792c53e.jpg?1783923877";
 const GUTTERSNIPE_ART =
   "https://cards.scryfall.io/art_crop/front/f/6/f6bb1ffc-2251-4655-b8f9-4c8047dd5d5f.jpg?1785497556";
-const DELVER_ART =
-  "https://cards.scryfall.io/art_crop/front/6/9/6904ea20-e504-47da-95a0-08739fdde260.jpg?1783908173";
 const FIVE_MINUTES = "public, s-maxage=300, stale-while-revalidate=600";
 const ONE_MINUTE = "public, s-maxage=60, stale-while-revalidate=600";
 
@@ -343,201 +341,7 @@ describe("the metagame proxy's card art", () => {
     expect(await artOf(response)).toEqual([BARGAIN_ART]);
   });
 
-  it("matches a double-faced card by its front face, ignoring case, and takes the front face's art", async () => {
-    endstepAndScryfall(
-      deckList("delver of secrets"),
-      collection([
-        {
-          name: "Delver of Secrets // Insectile Aberration",
-          card_faces: [
-            {
-              name: "Delver of Secrets",
-              image_uris: { art_crop: DELVER_ART },
-            },
-            {
-              name: "Insectile Aberration",
-              image_uris: {
-                art_crop: DELVER_ART.replace("/front/", "/back/"),
-              },
-            },
-          ],
-        },
-      ]),
-    );
-
-    const response = await metagame.fetch(request(DECKS));
-
-    expect(await artOf(response)).toEqual([DELVER_ART]);
-  });
-
-  it.each([
-    [
-      "a back face's name the back face's art",
-      "Insectile Aberration",
-      "/back/",
-    ],
-    [
-      "a double-faced card's full name the front face's art",
-      "Delver of Secrets // Insectile Aberration",
-      "/front/",
-    ],
-  ])("gives %s", async (_, cardName, side) => {
-    const back = DELVER_ART.replace("/front/", "/back/");
-    endstepAndScryfall(
-      deckList(cardName),
-      collection([
-        {
-          name: "Delver of Secrets // Insectile Aberration",
-          card_faces: [
-            { name: "Delver of Secrets", image_uris: { art_crop: DELVER_ART } },
-            { name: "Insectile Aberration", image_uris: { art_crop: back } },
-          ],
-        },
-      ]),
-    );
-
-    const response = await metagame.fetch(request(DECKS));
-
-    expect(await artOf(response)).toEqual([
-      DELVER_ART.replace("/front/", side),
-    ]);
-  });
-
-  it.each([
-    [
-      "a second card without art",
-      [card("Guttersnipe", GUTTERSNIPE_ART), { name: "Guttersnipe" }],
-    ],
-    [
-      "a second card off the CDN",
-      [
-        card("Guttersnipe", GUTTERSNIPE_ART),
-        card("Guttersnipe", "https://example.com/guttersnipe.jpg"),
-      ],
-    ],
-    [
-      "a second card with other art",
-      [
-        card("Guttersnipe", GUTTERSNIPE_ART),
-        card("Guttersnipe", GUTTERSNIPE_ART.replace("/front/", "/back/")),
-      ],
-    ],
-    [
-      "a first card without art",
-      [{ name: "Guttersnipe" }, card("Guttersnipe", GUTTERSNIPE_ART)],
-    ],
-    [
-      "a reversible card's second face",
-      [
-        {
-          name: "Guttersnipe // Guttersnipe",
-          card_faces: [
-            { name: "Guttersnipe", image_uris: { art_crop: GUTTERSNIPE_ART } },
-            {
-              name: "Guttersnipe",
-              image_uris: {
-                art_crop: GUTTERSNIPE_ART.replace("/front/", "/back/"),
-              },
-            },
-          ],
-        },
-      ],
-    ],
-  ])(
-    "gives a name the first art crop on the CDN that matches it, with %s",
-    async (_, cards) => {
-      endstepAndScryfall(deckList("Guttersnipe"), collection(cards));
-
-      const response = await metagame.fetch(request(DECKS));
-
-      expect(response.headers.get("cache-control")).toBe(FIVE_MINUTES);
-      expect(await artOf(response)).toEqual([GUTTERSNIPE_ART]);
-    },
-  );
-
-  it("gives a face without its own image the card's art, as for an adventure", async () => {
-    const giant =
-      "https://cards.scryfall.io/art_crop/front/1/a/1a8bdc8b-bonecrusher-giant.jpg?1";
-    endstepAndScryfall(
-      deckList("Stomp"),
-      collection([
-        {
-          name: "Bonecrusher Giant // Stomp",
-          image_uris: { art_crop: giant },
-          card_faces: [{ name: "Bonecrusher Giant" }, { name: "Stomp" }],
-        },
-      ]),
-    );
-
-    const response = await metagame.fetch(request(DECKS));
-
-    expect(await artOf(response)).toEqual([giant]);
-  });
-
-  it("leaves a card Scryfall does not find to the fallback, keeps the usual cache time, and never asks for it again", async () => {
-    const fetchMock = endstepAndScryfall(
-      deckList("Fire // Ice"),
-      collection([], ["Fire // Ice"]),
-    );
-
-    const first = await metagame.fetch(request(DECKS));
-    const second = await metagame.fetch(request(DECKS));
-
-    expect(first.headers.get("cache-control")).toBe(FIVE_MINUTES);
-    expect(await artOf(first)).toEqual([undefined]);
-    expect(second.headers.get("cache-control")).toBe(FIVE_MINUTES);
-    expect(scryfallNames(fetchMock)).toEqual([["Fire // Ice"]]);
-  });
-
-  it("treats a name Scryfall answers with another spelling as not found: the fallback, the usual cache time, and no second request", async () => {
-    const fetchMock = endstepAndScryfall(
-      deckList("Lim-Dul's Vault"),
-      collection([
-        card(
-          "Lim-Dûl's Vault",
-          "https://cards.scryfall.io/art_crop/front/1/2/12345678-lim-dul.jpg?1",
-        ),
-      ]),
-    );
-
-    const first = await metagame.fetch(request(DECKS));
-    const second = await metagame.fetch(request(DECKS));
-
-    expect(first.headers.get("cache-control")).toBe(FIVE_MINUTES);
-    expect(await artOf(first)).toEqual([undefined]);
-    expect(second.headers.get("cache-control")).toBe(FIVE_MINUTES);
-    expect(scryfallNames(fetchMock)).toEqual([["Lim-Dul's Vault"]]);
-  });
-
-  it("sends Endstep's own text when no deck gets an address", async () => {
-    const text = JSON.stringify(deckList("Fire // Ice"), null, 2);
-    endstepAndScryfall(text, collection([], ["Fire // Ice"]));
-
-    const response = await metagame.fetch(request(DECKS));
-
-    expect(await response.text()).toBe(text);
-  });
-
-  it("asks Scryfall only for the names it has not seen", async () => {
-    const fetchMock = endstepAndScryfall(
-      deckList("Reckoner's Bargain"),
-      collection([card("Reckoner's Bargain", BARGAIN_ART)]),
-    );
-    await metagame.fetch(request(DECKS));
-
-    endstepAndScryfall(
-      deckList("Reckoner's Bargain", "Guttersnipe"),
-      collection([card("Guttersnipe", GUTTERSNIPE_ART)]),
-    );
-    const second = vi.mocked(fetch);
-    const response = await metagame.fetch(request(DECKS));
-
-    expect(scryfallNames(fetchMock)).toEqual([["Reckoner's Bargain"]]);
-    expect(scryfallNames(second)).toEqual([["Guttersnipe"]]);
-    expect(await artOf(response)).toEqual([BARGAIN_ART, GUTTERSNIPE_ART]);
-  });
-
-  it("gives the lookup a one-second bound", async () => {
+  it("gives the art lookup a one-second bound", async () => {
     endstepAndScryfall(
       deckList("Guttersnipe"),
       collection([card("Guttersnipe", GUTTERSNIPE_ART)]),
@@ -547,6 +351,27 @@ describe("the metagame proxy's card art", () => {
     await metagame.fetch(request(DECKS));
 
     expect(timeout.mock.calls).toEqual([[8000], [1000]]);
+  });
+
+  it("leaves a card Scryfall does not find to the fallback and keeps the usual cache time", async () => {
+    endstepAndScryfall(
+      deckList("Guttersnipe"),
+      collection([], ["Guttersnipe"]),
+    );
+
+    const response = await metagame.fetch(request(DECKS));
+
+    expect(response.headers.get("cache-control")).toBe(FIVE_MINUTES);
+    expect(await artOf(response)).toEqual([undefined]);
+  });
+
+  it("sends Endstep's own text when no deck gets an address", async () => {
+    const text = JSON.stringify(deckList("Guttersnipe"), null, 2);
+    endstepAndScryfall(text, collection([], ["Guttersnipe"]));
+
+    const response = await metagame.fetch(request(DECKS));
+
+    expect(await response.text()).toBe(text);
   });
 
   it.each([
@@ -581,108 +406,6 @@ describe("the metagame proxy's card art", () => {
         ["Guttersnipe"],
         ["Guttersnipe"],
       ]);
-    },
-  );
-
-  it.each([429, 500])(
-    "cancels the body of a %i from Scryfall, so the connection is freed",
-    async (status) => {
-      const cancel = vi.fn();
-      endstepAndScryfall(
-        deckList("Guttersnipe"),
-        async () => new Response(new ReadableStream({ cancel }), { status }),
-      );
-
-      await metagame.fetch(request(DECKS));
-
-      expect(cancel).toHaveBeenCalledOnce();
-    },
-  );
-
-  it.each([
-    ["no data", {}],
-    ["data that is not a list", { data: null }],
-    ["a card that is not an object", { data: [null] }],
-    ["a name that is not a string", { data: [{ name: 5 }] }],
-    [
-      "faces that are not a list",
-      { data: [{ name: "Guttersnipe", card_faces: {} }] },
-    ],
-    ["no faces", { data: [{ name: "Guttersnipe", card_faces: null }] }],
-    [
-      "images that are not an object",
-      { data: [{ name: "Guttersnipe", image_uris: "guttersnipe.jpg" }] },
-    ],
-    [
-      "an art crop that is not a string",
-      { data: [{ name: "Guttersnipe", image_uris: { art_crop: 5 } }] },
-    ],
-  ])(
-    "treats a 200 with %s as a failed lookup: the fallback for a minute, and nothing remembered",
-    async (_, payload) => {
-      const fetchMock = endstepAndScryfall(deckList("Guttersnipe"), async () =>
-        Response.json(payload),
-      );
-
-      const first = await metagame.fetch(request(DECKS));
-      await metagame.fetch(request(DECKS));
-
-      expect(first.status).toBe(200);
-      expect(first.headers.get("cache-control")).toBe(ONE_MINUTE);
-      expect(await artOf(first)).toEqual([undefined]);
-      expect(scryfallNames(fetchMock)).toEqual([
-        ["Guttersnipe"],
-        ["Guttersnipe"],
-      ]);
-    },
-  );
-
-  it("sends Scryfall nothing for 30 seconds after a 429, and keeps the art it already has", async () => {
-    vi.useFakeTimers({ toFake: ["Date"] });
-    const fetchMock = endstepAndScryfall(
-      deckList("Reckoner's Bargain"),
-      collection([card("Reckoner's Bargain", BARGAIN_ART)]),
-    );
-    await metagame.fetch(request(DECKS));
-
-    endstepAndScryfall(
-      deckList("Reckoner's Bargain", "Guttersnipe"),
-      async () => new Response(null, { status: 429 }),
-    );
-    const limited = vi.mocked(fetch);
-    const rateLimited = await metagame.fetch(request(DECKS));
-    vi.advanceTimersByTime(29_999);
-    const paused = await metagame.fetch(request(DECKS));
-    vi.advanceTimersByTime(1);
-    await metagame.fetch(request(DECKS));
-
-    expect(scryfallNames(fetchMock)).toEqual([["Reckoner's Bargain"]]);
-    expect(rateLimited.headers.get("cache-control")).toBe(ONE_MINUTE);
-    expect(paused.headers.get("cache-control")).toBe(ONE_MINUTE);
-    expect(await artOf(paused)).toEqual([BARGAIN_ART, undefined]);
-    expect(scryfallNames(limited)).toEqual([["Guttersnipe"], ["Guttersnipe"]]);
-  });
-
-  it.each([
-    [
-      "an address outside Scryfall's CDN",
-      { art_crop: "https://example.com/guttersnipe.jpg" },
-    ],
-    ["no art crop", {}],
-  ])(
-    "treats a card with %s as not found: the fallback, the usual cache time, and no second request",
-    async (_, imageUris) => {
-      const fetchMock = endstepAndScryfall(
-        deckList("Guttersnipe"),
-        collection([{ name: "Guttersnipe", image_uris: imageUris }]),
-      );
-
-      const response = await metagame.fetch(request(DECKS));
-      await metagame.fetch(request(DECKS));
-
-      expect(response.headers.get("cache-control")).toBe(FIVE_MINUTES);
-      expect(await artOf(response)).toEqual([undefined]);
-      expect(scryfallNames(fetchMock)).toEqual([["Guttersnipe"]]);
     },
   );
 

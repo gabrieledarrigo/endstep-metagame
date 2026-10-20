@@ -45,6 +45,12 @@ describe("vercel.json", () => {
     });
   });
 
+  it("gives the staples function 60 seconds, above its 8 second deck list, four 8 second pages in a row and one second for Scryfall", () => {
+    expect(vercel.functions["api/staples.ts"]).toEqual({
+      maxDuration: 60,
+    });
+  });
+
   it("serves the matchup table and What to play? from the built page", () => {
     expect(vercel.rewrites).toContainEqual({
       source: "/matchups",
