@@ -1,12 +1,10 @@
+import { WINDOWS, isRateLimit, upstream } from "../server/endstep.js";
 import {
   BASE_HEADERS,
-  WINDOWS,
   cacheControl,
   errorResponse,
-  isRateLimit,
   methodResponse,
-  upstream,
-} from "./_shared.js";
+} from "../server/http.js";
 
 const RATE_LIMIT_SECONDS = 60;
 const TOP_DECKS = 24;

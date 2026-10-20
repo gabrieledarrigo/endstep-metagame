@@ -11,7 +11,7 @@ import {
   vi,
 } from "vitest";
 import vercel from "../vercel.json" with { type: "json" };
-import { WINDOWS } from "./_shared.js";
+import { WINDOWS } from "../server/endstep.js";
 
 const source = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 const readFile = vi.hoisted(() => vi.fn());
