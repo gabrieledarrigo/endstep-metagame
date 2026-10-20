@@ -106,10 +106,11 @@ function isTimeout(error: unknown): boolean {
   return error instanceof DOMException && error.name === "TimeoutError";
 }
 
-function canAskAgain(error: unknown, run: Run): boolean {
+function canAskAgain(error: unknown, retried: boolean, run: Run): boolean {
   return (
-    (isTimeout(error) || isNetworkError(error)) &&
+    !retried &&
     !run.failed &&
+    (isTimeout(error) || isNetworkError(error)) &&
     run.endsAt - Date.now() >= TABLE_TIMEOUT_MS
   );
 }
@@ -147,7 +148,7 @@ async function tableOf(
     try {
       body = await pageOf(deck, target, page, run.signal);
     } catch (error) {
-      if (retried || !canAskAgain(error, run)) {
+      if (!canAskAgain(error, retried, run)) {
         throw error;
       }
 
