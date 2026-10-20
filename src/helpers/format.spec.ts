@@ -11,7 +11,6 @@ import {
   formatWindow,
   longDay,
   percent,
-  shortDay,
   tooltipShare,
   wholePercent,
   winRateText,
@@ -101,12 +100,6 @@ describe("tooltipShare", () => {
 describe("winRateText", () => {
   it("formats a win rate in percent with one decimal", () => {
     expect(winRateText(46.93565780014378)).toBe("46.9%");
-  });
-});
-
-describe("shortDay", () => {
-  it("keeps the month and the day", () => {
-    expect(shortDay("2026-10-07")).toBe("10-07");
   });
 });
 

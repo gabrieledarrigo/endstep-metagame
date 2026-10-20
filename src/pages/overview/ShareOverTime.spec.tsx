@@ -3,6 +3,7 @@ import { MemoryRouter, useLocation, useNavigationType } from "react-router";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import series from "../../../test/fixtures/share-series.json";
 import { sizeCharts } from "../../../test/sizeCharts";
+import { xAxisTicks } from "../../../test/xAxisTicks";
 import type { ShareSeries } from "../../api/types";
 import { ShareOverTime, ShareOverTimeSkeleton } from "./ShareOverTime";
 
@@ -305,6 +306,17 @@ describe("ShareOverTime", () => {
     strokes.forEach((stroke) => {
       expect(stroke).toMatch(/^var\(--s[1-8]\)$/);
     });
+  });
+
+  it("labels the axis with the day and the short month, with no leading zero", () => {
+    sizeCharts();
+    const shown = (series.series as ShareSeries[]).map((item) => ({
+      ...item,
+      points: item.points.slice(0, 3),
+    }));
+    const container = renderAt("/?window=30d", shown);
+
+    expect(xAxisTicks(container)).toEqual(["8 Sept"]);
   });
 
   it("shows the day and each series' share in the tooltip, highest first", () => {

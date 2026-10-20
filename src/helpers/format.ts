@@ -136,16 +136,6 @@ export function winRateText(value: number): string {
 }
 
 /**
- * Shortens a date to its month and day, for an axis tick.
- *
- * @param day - A date in `YYYY-MM-DD` form.
- * @returns The month and day, such as `10-07`.
- */
-export function shortDay(day: string): string {
-  return day.slice(5);
-}
-
-/**
  * Formats a date in full, for a tooltip.
  *
  * @param day - A date in `YYYY-MM-DD` form.

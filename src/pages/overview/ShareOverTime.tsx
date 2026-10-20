@@ -18,7 +18,7 @@ import { ChartFrame } from "../../charts/ChartFrame";
 import { ChartLegend, ChartLegendSkeleton } from "../../charts/ChartLegend";
 import { ChartTooltip } from "../../charts/ChartTooltip";
 import { seriesColours } from "../../charts/seriesColours";
-import { axisShare, longDay, shortDay, tooltipShare } from "../../helpers";
+import { axisShare, formatDay, longDay, tooltipShare } from "../../helpers";
 import {
   CHART_AXIS,
   CHART_BASELINE,
@@ -272,7 +272,7 @@ export function ShareOverTime({ series }: { series: ShareSeries[] }) {
               <CartesianGrid {...CHART_CARTESIAN_GRID} />
               <XAxis
                 dataKey="day"
-                tickFormatter={shortDay}
+                tickFormatter={formatDay}
                 minTickGap={24}
                 {...CHART_AXIS}
               />
