@@ -13,6 +13,7 @@ import {
   percent,
   shortDay,
   tooltipShare,
+  wholePercent,
   winRateText,
 } from "./format";
 
@@ -31,6 +32,23 @@ describe("percent", () => {
   it("turns a rate into a percentage with one decimal", () => {
     expect(percent(0.5224711653188386)).toBe("52.2%");
     expect(percent(1)).toBe("100.0%");
+  });
+});
+
+describe("wholePercent", () => {
+  it("rounds a rate to a whole percentage", () => {
+    expect(wholePercent(0.969)).toBe("97%");
+    expect(wholePercent(0.0847)).toBe("8%");
+    expect(wholePercent(0.05)).toBe("5%");
+    expect(wholePercent(1)).toBe("100%");
+  });
+
+  it("rounds half up", () => {
+    expect(wholePercent(0.125)).toBe("13%");
+  });
+
+  it("reads 100% just under all of the lists", () => {
+    expect(wholePercent(0.999)).toBe("100%");
   });
 });
 
