@@ -1239,6 +1239,25 @@ The project has no CSS linter for now. Prettier formats the CSS, and review enfo
     - A card that opens the top-24 decks behind it, not the deck search. The deck search matched 80 decks for Counterspell.
     - 30 cards, with more up to 50.
     - The main deck or the sideboard, kept in the address.
+14. A title and description for each page. The owner raised it on 2026-10-18 and parked it.
+
+    Chat apps and search engines read the HTML without running the app. So every page except the deck pages shows the general title and description of the site, FR-15. That description names neither What to play? nor Staples. Two ways can fix it:
+
+    - One HTML file for each page, written at build time. This is the recommendation. A small Vite plugin copies the built `index.html` to `matchups/index.html`, `what-to-play/index.html` and `staples/index.html`. Each copy gets its own title, description, canonical link and `og:url`. Vercel serves a real file at a path before it applies rewrites, so those three rewrites go. Nothing runs for each request. The inline theme script stays the same, so its hash in the security policy stays the same too.
+    - The deck page's HTML function for every page. The function already rewrites these tags for `/decks/:slug`. The edge caches its answers, so most views do not run it. But it adds a function to the path of every page, for text that never changes.
+
+    In both ways, `index.html` keeps no canonical link and no `og:url`. FR-15 says so. The deck page's HTML function uses `index.html` as its template and adds its own. The plugin therefore gives the Overview only its title and description. The first way also changes the rewrites in §4.5, the text of §4.6 and §4.7 on what is served and deployed, and the spec that checks `vercel.json`.
+
+    The proposed words are below. Each page keeps the site card as its image, and the canonical links carry no query:
+
+    | Page | Title | Description |
+    |---|---|---|
+    | Overview | Overview · Pauper Endstep metagame | Which Pauper decks are played, how they perform, and how they do against each other. |
+    | Matchups | Matchups · Pauper Endstep metagame | How the top 24 Pauper decks do against each other. |
+    | What to play? | What to play? · Pauper Endstep metagame | The Pauper deck that wins most against the decks you expect to meet. |
+    | Staples | Staples · Pauper Endstep metagame | The cards the top 24 Pauper decks play most. |
+
+    The titles follow the document titles of FR-10. The description of Staples is the line under its heading, FR-18. The description of What to play? can become the line under its heading. FR-17 does not give that line today.
 15. ~~Card previews and the cost of a list.~~ Settled on 2026-10-18: FR-19. The owner chose previews on hover and focus, with a tap on touch screens. The owner also chose prices at the cheapest printing of each card, and accepted the extra Scryfall requests for accuracy. The cost is a block after the lists. It shows no price for each card. It has these parts:
     - A switch for MTGO, € and $.
     - The split between the main deck and the sideboard.
