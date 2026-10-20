@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-26. Derived from [`requirements.md`](./requirements.md) and [`design-system.html`](./design-system.html).
 
-Milestone 1 has sixteen items: four enablers, nine user stories and three hardening items. Milestones 2 to 6 follow at the end of this file. Each item gets a separate branch and a separate review. No item assumes one large implementation pass.
+Milestone 1 has sixteen items: four enablers, nine user stories and three hardening items. Milestones 2 to 7 follow at the end of this file. Each item gets a separate branch and a separate review. No item assumes one large implementation pass.
 
 Every item lists what blocks it, what it blocks, and how to know that it is done.
 
@@ -1854,3 +1854,127 @@ This story covers the card previews in FR-19.
 E16 starts at once. It is only server code, so it runs beside milestones 4 and 5.
 
 S30 and S31 run in parallel. Both stories change the sample list. S30 adds a block after the lists, and S31 changes how the page renders a name. Both stories use the same request. The first story to merge adds the request, and the second story uses it.
+
+---
+
+# Milestone 7: languages
+
+**Date:** 2026-10-20. This milestone comes from Draft v14 of the requirements.
+
+This milestone has one hardening item, one enabler and two user stories, for FR-20. On 2026-10-20 the owner chose the switch from a working draft. The Page header section of the design system shows the switch, so this milestone has no design item.
+
+| Wave | Items | Runs in parallel |
+|---|---|---|
+| 30 | H6, E17 | Yes, two ways |
+| 31 | S32 | No |
+| 32 | S33 | No |
+
+```
+H6 a plain day number
+E17 the strings in one file ──► S32 choose the language ──► S33 Italian, Spanish and Portuguese
+```
+
+---
+
+## H6. Show dates with a plain day number
+
+This item covers the formats of FR-20. Today the site writes "05 Sept", and the design system writes "5 Sept".
+
+**Tasks**
+
+1. In the date helpers of `src/helpers/format.ts`, write the day as `"numeric"`, not `"2-digit"`.
+2. Change the specs that expect a day with a leading zero, such as "05 Sept" and "06 Sept to 05 Oct 2026".
+3. Make sure that the axis ticks, the window dates and the daily share list all show the plain day.
+
+**Done when**
+
+- The deck page at 30d shows its window dates as "5 Sept to 4 Oct 2026", without a leading zero, in en-GB.
+- Every spec passes.
+
+**Blocked by** nothing. **Blocks** nothing.
+
+---
+
+## E17. Move every string into one file
+
+This item covers the strings of FR-20.
+
+**Tasks**
+
+1. Add i18next and react-i18next. Set them up with `src/locales/locales.json`, which holds English only, and with English as the fallback.
+2. Move every UI string of `src/` into the file, under a key that names its place. Include these strings:
+   - The text on the pages and in the panels.
+   - The accessibility labels and the visually hidden text.
+   - The document titles, the status lines and the error messages.
+3. For each string that counts, use the `_one` and `_other` endings.
+4. Keep these strings out of the file: the names of decks and cards, the Fan Content notice and the name of the site.
+5. Type the keys from the English strings, so that an unknown key fails the build. Make sure that the build also fails when a language in the file lacks a key of English.
+6. Leave the formats and the specs as they are. The specs render in English and keep their queries by the English text.
+7. Add a spec for the setup and for the type check.
+
+**Done when**
+
+- Every page reads as before, and every spec passes without a change to its English text.
+- A search of `src/` finds no UI string outside `locales.json`, apart from the strings that task 4 keeps out.
+- A key that is missing from the file fails `npm run build`.
+
+**Blocked by** nothing. **Blocks** S32.
+
+---
+
+## S32. Choose the language
+
+As a Pauper player, I want to read the site in my own language. Then I understand the figures and the advice without a translator.
+
+This story covers the first visit, the switch and the formats of FR-20.
+
+**Tasks**
+
+1. On the first visit, read `navigator.languages` in order. Use the first language whose primary code is in the file. If none matches, use English.
+2. Add the switch before the theme toggle, as the design system shows. It is a pill with the code and a chevron, over a native select named "Language". Each option names the language in its own words.
+3. Show the switch only when the file holds two or more languages.
+4. When the reader chooses a language, change every text at once, with no reload. Keep the choice in local storage under `language`, inside a try and catch, as the theme does.
+5. Set the `lang` attribute of the `html` element to the current language.
+6. Make the formatting helpers follow the current language. If the language of the browser matches, take the region from the browser. Otherwise use `en-GB`, `it-IT`, `es-ES` or `pt-BR`.
+7. Add a spec beside each component that changes. Use a second language in a test fixture, so that the switch shows.
+
+**Done when**
+
+- With a test language in the file, the switch shows on every page, at 360px, 640px and 1,280px, in both themes.
+- A choice changes the text, the `lang` attribute and the formats at once. The choice is still there after a reload.
+- A browser that prefers `pt-PT` opens the site in `pt` when the file holds `pt`. A browser that prefers `fr` opens it in English.
+
+**Blocked by** E17. **Blocks** S33.
+
+---
+
+## S33. Read the site in Italian, Spanish or Portuguese
+
+As an Italian, Spanish or Portuguese player, I want the site in my language.
+
+This story covers the languages of FR-20.
+
+**Tasks**
+
+1. Add the translations that the owner writes to `locales.json`: `it`, `es` and `pt`. Add each language only when it holds every key.
+2. Check each language on every page, at 360px, 640px and 1,280px, in both themes. Look for text that is too long, in the header links, the switches, the pick title and the table headers. Report each place that breaks, before you shorten any text.
+3. Make sure that the plurals and the formats are right in each language.
+4. Add a spec that renders one page in each language and finds one translated string.
+
+**Done when**
+
+- The switch lists English, Italiano, Español and Português.
+- Every page reads in each language with no text cut off and no sideways scroll at 360px.
+- The owner accepts each language on the production site.
+
+**Blocked by** S32, and the translations from the owner. **Blocks** nothing.
+
+---
+
+## Notes on sequencing, milestone 7
+
+H6 and E17 run in parallel. Both touch `src/helpers/format.ts`. H6 changes only the day option, so the second to merge rebases in a few lines.
+
+E17 touches about 70 components, but each change is mechanical. It can go out as a stack of pull requests, one group of pages in each.
+
+S33 waits for the owner. The owner writes the translations in `locales.json`, once E17 has made that file.
