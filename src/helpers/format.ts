@@ -1,4 +1,9 @@
-import type { Population, Proportion, Provenance } from "../api/types";
+import type {
+  Currency,
+  Population,
+  Proportion,
+  Provenance,
+} from "../api/types";
 
 const DEFAULT_LOCALE = "en-GB";
 
@@ -190,4 +195,28 @@ export function formatPopulation(population: Population): string {
  */
 export function formatProportion(proportion: Proportion): string {
   return proportion.of === 0 ? "Not available" : percent(proportion.rate);
+}
+
+/**
+ * Formats a price with two decimals in the user's locales, FR-19.
+ *
+ * @param amount - The price, in tickets, euros or dollars.
+ * @param currency - The currency the price is in.
+ * @returns The price, such as `238.41` in tickets, with no unit, or `€194.00` and `$173.64` in euros and dollars.
+ */
+export function formatPrice(amount: number, currency: Currency): string {
+  const locales = userLocales();
+
+  if (currency === "tix") {
+    return new Intl.NumberFormat(locales, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  }
+
+  return new Intl.NumberFormat(locales, {
+    style: "currency",
+    currency: currency.toUpperCase(),
+    currencyDisplay: "narrowSymbol",
+  }).format(amount);
 }

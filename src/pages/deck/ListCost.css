@@ -1,0 +1,54 @@
+@layer components {
+  .list-cost {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 14px;
+    border-radius: 8px;
+    background: var(--background);
+  }
+
+  .list-cost__head {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .list-cost__label {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-400);
+  }
+
+  .list-cost__total {
+    margin: 0;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .list-cost__unit {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-600);
+  }
+
+  .list-cost__split {
+    margin: 0;
+    font-size: 13px;
+    color: var(--text-900);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .list-cost__source,
+  .list-cost__missing {
+    margin: 0;
+    font-size: 12px;
+    color: var(--text-600);
+  }
+}

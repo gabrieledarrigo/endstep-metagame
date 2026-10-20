@@ -64,4 +64,30 @@ describe("SegmentedControl", () => {
         .getAttribute("data-busy"),
     ).toBe("true");
   });
+
+  it("takes the small modifier only when asked", () => {
+    const { rerender } = render(
+      <SegmentedControl
+        label="Currency"
+        options={OPTIONS}
+        value="30d"
+        onChange={() => {}}
+      />,
+    );
+    const group = screen.getByRole("group", { name: "Currency" });
+
+    expect(group.className).toBe("segmented");
+
+    rerender(
+      <SegmentedControl
+        label="Currency"
+        options={OPTIONS}
+        value="30d"
+        onChange={() => {}}
+        small
+      />,
+    );
+
+    expect(group.className).toBe("segmented segmented--small");
+  });
 });

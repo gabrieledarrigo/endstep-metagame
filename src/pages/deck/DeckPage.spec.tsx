@@ -1,4 +1,10 @@
-import { act, fireEvent, screen, waitFor } from "@testing-library/react";
+import {
+  act,
+  fireEvent,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import {
   MemoryRouter,
   Route,
@@ -17,6 +23,7 @@ import {
 } from "vitest";
 import detail from "../../../test/fixtures/deck.json";
 import matrix from "../../../test/fixtures/matchups.json";
+import sampleCards from "../../../test/fixtures/sample-cards.json";
 import { renderWithQueries } from "../../../test/renderWithQueries";
 import { sizeCharts } from "../../../test/sizeCharts";
 import { DeckPage } from "./DeckPage";
@@ -34,11 +41,17 @@ function Address() {
 function stubApi(
   answer: () => Response | Promise<Response>,
 ): Mock<typeof fetch> {
-  const fetchMock = vi.fn<typeof fetch>(async (input) =>
-    String(input).startsWith("/api/matchups")
-      ? Response.json(matrix)
-      : answer(),
-  );
+  const fetchMock = vi.fn<typeof fetch>(async (input) => {
+    if (String(input).startsWith("/api/matchups")) {
+      return Response.json(matrix);
+    }
+
+    if (String(input).startsWith("/api/sample-cards")) {
+      return Response.json(sampleCards);
+    }
+
+    return answer();
+  });
   vi.stubGlobal("fetch", fetchMock);
 
   return fetchMock;
@@ -48,6 +61,12 @@ function deckRequests(fetchMock: Mock<typeof fetch>): string[] {
   return fetchMock.mock.calls
     .map(([input]) => String(input))
     .filter((url) => url.includes("/decks/"));
+}
+
+function cardRequests(fetchMock: Mock<typeof fetch>): string[] {
+  return fetchMock.mock.calls
+    .map(([input]) => String(input))
+    .filter((url) => url.startsWith("/api/sample-cards"));
 }
 
 function renderAt(path: string, answer: () => Response): Mock<typeof fetch> {
@@ -310,11 +329,17 @@ describe("DeckPage", () => {
   it("keeps the numbers and the sample list when the matchups fail", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn<typeof fetch>(async (input) =>
-        String(input).startsWith("/api/matchups")
-          ? Response.json({ error: "x" }, { status: 502 })
-          : Response.json(detail),
-      ),
+      vi.fn<typeof fetch>(async (input) => {
+        if (String(input).startsWith("/api/matchups")) {
+          return Response.json({ error: "x" }, { status: 502 });
+        }
+
+        if (String(input).startsWith("/api/sample-cards")) {
+          return Response.json(sampleCards);
+        }
+
+        return Response.json(detail);
+      }),
     );
     renderWithQueries(
       <MemoryRouter initialEntries={["/decks/affinity-e93f5f74?window=30d"]}>
@@ -402,5 +427,167 @@ describe("DeckPage", () => {
     ).toBeTruthy();
     expect(screen.getByRole("button", { name: "Switch to 7d" })).toBeTruthy();
     expect(screen.queryByRole("region", { name: "Games" })).toBeNull();
+  });
+
+  describe("cost to build", () => {
+    it("asks for the list's cards after the deck, under the deck's own slug, and shows the cost", async () => {
+      const fetchMock = renderAt("/decks/renamed-e93f5f74?window=30d", () =>
+        Response.json(detail),
+      );
+
+      const cost = await screen.findByRole("region", { name: "Cost to build" });
+
+      expect(within(cost).getByText("231.73").textContent).toBe("231.73 tix");
+      expect(cardRequests(fetchMock)).toEqual([
+        "/api/sample-cards?deck=affinity-e93f5f74&window=30d",
+      ]);
+      expect(
+        fetchMock.mock.calls.findIndex(([input]) =>
+          String(input).includes("/decks/"),
+        ),
+      ).toBeLessThan(
+        fetchMock.mock.calls.findIndex(([input]) =>
+          String(input).startsWith("/api/sample-cards"),
+        ),
+      );
+    });
+
+    it("does not ask for the cards of a withheld list", async () => {
+      const withheld = {
+        ...detail,
+        sampleList: {
+          ...detail.sampleList,
+          state: "withheld",
+          reason: "no_registrations",
+          main: [],
+          side: [],
+        },
+      };
+      const fetchMock = renderAt("/decks/affinity-e93f5f74?window=30d", () =>
+        Response.json(withheld),
+      );
+
+      await screen.findByText(/No list to show/);
+      await screen.findByRole("grid");
+
+      expect(cardRequests(fetchMock)).toEqual([]);
+    });
+
+    it("reads as before, with no block and no retry, when the cards fail", async () => {
+      const fetchMock = vi.fn<typeof fetch>(async (input) => {
+        if (String(input).startsWith("/api/matchups")) {
+          return Response.json(matrix);
+        }
+
+        if (String(input).startsWith("/api/sample-cards")) {
+          return Response.json({ error: "x" }, { status: 502 });
+        }
+
+        return Response.json(detail);
+      });
+      vi.stubGlobal("fetch", fetchMock);
+      renderWithQueries(
+        <MemoryRouter initialEntries={["/decks/affinity-e93f5f74?window=30d"]}>
+          <Routes>
+            <Route path="/decks/:slug" element={<DeckPage />} />
+          </Routes>
+        </MemoryRouter>,
+      );
+
+      await screen.findByRole("heading", { level: 1, name: "Affinity" });
+      await waitFor(() => {
+        expect(cardRequests(fetchMock)).toHaveLength(1);
+      });
+      await screen.findByRole("grid");
+
+      expect(
+        screen.queryByRole("region", { name: "Cost to build" }),
+      ).toBeNull();
+      expect(screen.getByRole("button", { name: "Copy list" })).toBeTruthy();
+      expect(cardRequests(fetchMock)).toHaveLength(1);
+    });
+
+    it("keeps the old cost while another window loads, and never prices the new list with the old cards", async () => {
+      const sevenDays = {
+        ...detail,
+        provenance: {
+          ...detail.provenance,
+          window: {
+            ...detail.provenance.window,
+            preset: "7d",
+            from: "2026-10-04",
+          },
+        },
+      };
+      const cheaper = {
+        cards: {
+          ...sampleCards.cards,
+          "Utrom Monitor": { ...sampleCards.cards["Utrom Monitor"], tix: 0.56 },
+        },
+      };
+      let answerDeck: (response: Response) => void = () => {};
+      let answerCards: (response: Response) => void = () => {};
+      const fetchMock = vi.fn<typeof fetch>((input) => {
+        const url = String(input);
+
+        if (url.startsWith("/api/matchups")) {
+          return Promise.resolve(Response.json(matrix));
+        }
+
+        if (url.endsWith("window=30d")) {
+          return Promise.resolve(Response.json(sampleCards));
+        }
+
+        if (url.startsWith("/api/sample-cards")) {
+          return new Promise<Response>((resolve) => (answerCards = resolve));
+        }
+
+        if (url.includes("window=30d")) {
+          return Promise.resolve(Response.json(detail));
+        }
+
+        return new Promise<Response>((resolve) => (answerDeck = resolve));
+      });
+      vi.stubGlobal("fetch", fetchMock);
+      renderWithQueries(
+        <MemoryRouter initialEntries={["/decks/affinity-e93f5f74?window=30d"]}>
+          <Routes>
+            <Route path="/decks/:slug" element={<DeckPage />} />
+          </Routes>
+        </MemoryRouter>,
+      );
+      await screen.findByRole("region", { name: "Cost to build" });
+
+      fireEvent.click(screen.getByRole("button", { name: "7d" }));
+
+      expect(await screen.findByText("Loading the 7d window.")).toBeTruthy();
+      expect(
+        within(screen.getByRole("region", { name: "Cost to build" })).getByText(
+          "231.73",
+        ).textContent,
+      ).toBe("231.73 tix");
+      expect(cardRequests(fetchMock)).toHaveLength(1);
+
+      await act(async () => {
+        answerDeck(Response.json(sevenDays));
+      });
+
+      await waitFor(() => {
+        expect(cardRequests(fetchMock).at(-1)).toBe(
+          "/api/sample-cards?deck=affinity-e93f5f74&window=7d",
+        );
+      });
+      expect(screen.queryByText("Loading the 7d window.")).toBeNull();
+      expect(
+        screen.queryByRole("region", { name: "Cost to build" }),
+      ).toBeNull();
+
+      await act(async () => {
+        answerCards(Response.json(cheaper));
+      });
+
+      const cost = await screen.findByRole("region", { name: "Cost to build" });
+      expect(within(cost).getByText("171.73").textContent).toBe("171.73 tix");
+    });
   });
 });

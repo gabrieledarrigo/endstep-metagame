@@ -6,6 +6,7 @@ type SegmentedControlProps<Option extends string> = {
   value: Option;
   onChange: (option: Option) => void;
   busy?: boolean;
+  small?: boolean;
 };
 
 export function SegmentedControl<Option extends string>({
@@ -14,10 +15,11 @@ export function SegmentedControl<Option extends string>({
   value,
   onChange,
   busy,
+  small,
 }: SegmentedControlProps<Option>) {
   return (
     <div
-      className="segmented"
+      className={small ? "segmented segmented--small" : "segmented"}
       role="group"
       aria-label={label}
       data-busy={busy || undefined}

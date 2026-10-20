@@ -1,6 +1,7 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import detail from "../../../test/fixtures/deck.json";
+import sampleCards from "../../../test/fixtures/sample-cards.json";
 import type { DeckDetail, SampleList as SampleListData } from "../../api/types";
 import { SampleList } from "./SampleList";
 
@@ -195,4 +196,66 @@ describe("SampleList", () => {
       expect(screen.queryByRole("button")).toBeNull();
     },
   );
+
+  describe("cost to build", () => {
+    it("follows the lists once the cards arrive", () => {
+      render(<SampleList list={LIST} cards={sampleCards.cards} />);
+
+      const cost = screen.getByRole("region", { name: "Cost to build" });
+      expect(
+        screen
+          .getAllByRole("heading")
+          .map((heading) => heading.textContent)
+          .at(-1),
+      ).toBe("Cost to build");
+      expect(
+        within(cost).getByText("Main deck 76.87 tix · Sideboard 154.86 tix"),
+      ).toBeTruthy();
+    });
+
+    it("is absent while the cards have not arrived or have failed", () => {
+      render(<SampleList list={LIST} />);
+
+      expect(
+        screen.queryByRole("region", { name: "Cost to build" }),
+      ).toBeNull();
+    });
+
+    it("is hidden while the cards belong to a list no longer on screen", () => {
+      render(<SampleList list={LIST} cards={sampleCards.cards} cardsPending />);
+
+      expect(
+        screen.queryByRole("region", { name: "Cost to build" }),
+      ).toBeNull();
+    });
+
+    it("prices a main deck shown alone as the main deck", () => {
+      const mainOnly: SampleListData = {
+        ...LIST,
+        state: "mainOnly",
+        reason: "sideboard_below_player_floor",
+      };
+
+      render(<SampleList list={mainOnly} cards={sampleCards.cards} />);
+
+      expect(screen.getByText("Main deck 76.87 tix")).toBeTruthy();
+      expect(screen.getByText("No price for 1 card.")).toBeTruthy();
+    });
+
+    it("is absent for a withheld list", () => {
+      const withheld: SampleListData = {
+        ...LIST,
+        state: "withheld",
+        reason: "no_registrations",
+        main: [],
+        side: [],
+      };
+
+      render(<SampleList list={withheld} cards={{}} />);
+
+      expect(
+        screen.queryByRole("region", { name: "Cost to build" }),
+      ).toBeNull();
+    });
+  });
 });

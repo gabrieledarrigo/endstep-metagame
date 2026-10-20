@@ -242,3 +242,16 @@ export type MatchupMatrix = {
   decks: MatrixDeck[];
   cells: Record<string, Record<string, MatchupCell>>;
 };
+
+export type SampleCardData = {
+  imageUrl: string | null;
+  tix: number | null;
+  eur: number | null;
+  usd: number | null;
+};
+
+export type SampleCardsResponse = {
+  cards: Record<string, SampleCardData>;
+};
+
+export type Currency = "tix" | "eur" | "usd";

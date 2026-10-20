@@ -1,8 +1,13 @@
 import { useRef, useState } from "react";
-import type { SampleCard, SampleList as SampleListData } from "../../api/types";
+import type {
+  SampleCard,
+  SampleCardData,
+  SampleList as SampleListData,
+} from "../../api/types";
 import { Button } from "../../components/Button";
 import { Panel } from "../../components/Panel";
 import { formatCount } from "../../helpers";
+import { ListCost } from "./ListCost";
 import "./SampleList.css";
 
 function sorted(cards: SampleCard[]): SampleCard[] {
@@ -65,7 +70,13 @@ function CardList({ title, cards }: { title: string; cards: SampleCard[] }) {
   );
 }
 
-export function SampleList({ list }: { list: SampleListData }) {
+type SampleListProps = {
+  list: SampleListData;
+  cards?: Record<string, SampleCardData>;
+  cardsPending?: boolean;
+};
+
+export function SampleList({ list, cards, cardsPending }: SampleListProps) {
   const [status, setStatus] = useState("");
   const [fallback, setFallback] = useState(false);
   const text = useRef<HTMLTextAreaElement>(null);
@@ -137,6 +148,9 @@ export function SampleList({ list }: { list: SampleListData }) {
         </>
       )}
       {side.length > 0 && <CardList title="Sideboard" cards={side} />}
+      {cards && !cardsPending && (
+        <ListCost main={main} side={side} cards={cards} />
+      )}
     </Panel>
   );
 }

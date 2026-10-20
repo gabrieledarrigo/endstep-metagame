@@ -699,11 +699,11 @@ a.button { display:inline-block; text-decoration:none; }
 .card-sheet__box { display:flex; flex-direction:column; align-items:center; gap:12px; width:min(300px, 100%); }
 .card-sheet__img { display:block; width:100%; height:auto; border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.4); }
 .list-cost { display:flex; flex-direction:column; gap:6px; padding:14px; border-radius:8px; background:var(--background); }
-.list-cost__head { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:10px; }
+.list-cost__head { display:flex; flex-direction:column; align-items:flex-start; gap:6px; }
 .list-cost__label { font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.07em; color:var(--text-400); }
-.list-cost__switch .segmented__option { padding:5px 10px; font-size:12px; }
+.segmented--small .segmented__option { padding:5px 10px; font-size:12px; }
 .list-cost__total { font-size:24px; font-weight:700; letter-spacing:-.01em; font-variant-numeric:tabular-nums; }
-.list-cost__unit { margin-left:4px; font-size:15px; font-weight:600; color:var(--text-600); }
+.list-cost__unit { font-size:15px; font-weight:600; color:var(--text-600); }
 .list-cost__split { font-size:13px; color:var(--text-900); font-variant-numeric:tabular-nums; max-width:none; }
 .list-cost__source, .list-cost__missing { font-size:12px; color:var(--text-600); max-width:none; }
 .preview-demo { display:flex; flex-wrap:wrap; align-items:center; gap:20px; }
@@ -2099,12 +2099,12 @@ a.button { display:inline-block; text-decoration:none; }
   leaves the window. Here it stands beside the panel for the specimen. It never takes the pointer.</p>
   <h4 class="sub">Cost to build, after the lists</h4>
   <div class="theme-demos">
-    <div class="theme-demo theme-demo--page scope-light" inert style="flex:1 1 300px"><section class="list-cost" aria-label="Cost to build"><div class="list-cost__head"><h5 class="list-cost__label">Cost to build</h5><div class="segmented list-cost__switch" role="group" aria-label="Currency"><button type="button" class="segmented__option" aria-pressed="true">MTGO</button><button type="button" class="segmented__option" aria-pressed="false">&euro;</button><button type="button" class="segmented__option" aria-pressed="false">$</button></div></div><p class="list-cost__total">238.41<span class="list-cost__unit">tix</span></p><p class="list-cost__split">Main deck 83.55 tix &middot; Sideboard 154.86 tix</p><p class="list-cost__source">Prices from Scryfall, at each card&rsquo;s cheapest printing.</p></section></div>
-    <div class="theme-demo theme-demo--page scope-dark" inert style="flex:1 1 300px"><section class="list-cost" aria-label="Cost to build"><div class="list-cost__head"><h5 class="list-cost__label">Cost to build</h5><div class="segmented list-cost__switch" role="group" aria-label="Currency"><button type="button" class="segmented__option" aria-pressed="false">MTGO</button><button type="button" class="segmented__option" aria-pressed="true">&euro;</button><button type="button" class="segmented__option" aria-pressed="false">$</button></div></div><p class="list-cost__total">&euro;194.00</p><p class="list-cost__split">Main deck &euro;109.41 &middot; Sideboard &euro;84.59</p><p class="list-cost__source">Prices from Scryfall, at each card&rsquo;s cheapest printing.</p></section></div>
+    <div class="theme-demo theme-demo--page scope-light" inert style="flex:1 1 300px"><section class="list-cost" aria-labelledby="cost-a"><div class="list-cost__head"><h3 class="list-cost__label" id="cost-a">Cost to build</h3><div class="segmented segmented--small" role="group" aria-label="Currency"><button type="button" class="segmented__option" aria-pressed="true">MTGO</button><button type="button" class="segmented__option" aria-pressed="false">&euro;</button><button type="button" class="segmented__option" aria-pressed="false">$</button></div></div><p class="list-cost__total">238.41 <span class="list-cost__unit">tix</span></p><p class="list-cost__split">Main deck 83.55 tix &middot; Sideboard 154.86 tix</p><p class="list-cost__source">Prices from Scryfall, at each card&rsquo;s cheapest printing.</p></section></div>
+    <div class="theme-demo theme-demo--page scope-dark" inert style="flex:1 1 300px"><section class="list-cost" aria-labelledby="cost-b"><div class="list-cost__head"><h3 class="list-cost__label" id="cost-b">Cost to build</h3><div class="segmented segmented--small" role="group" aria-label="Currency"><button type="button" class="segmented__option" aria-pressed="false">MTGO</button><button type="button" class="segmented__option" aria-pressed="true">&euro;</button><button type="button" class="segmented__option" aria-pressed="false">$</button></div></div><p class="list-cost__total">&euro;194.00</p><p class="list-cost__split">Main deck &euro;109.41 &middot; Sideboard &euro;84.59</p><p class="list-cost__source">Prices from Scryfall, at each card&rsquo;s cheapest printing.</p></section></div>
   </div>
   <p class="spec"><b>Block</b> On <span class="mono">--background</span>, 14px in, with an 8px radius, after the sideboard.
-  The label is uppercase 12px 600 <span class="mono">--text-400</span>, beside a small segmented control: MTGO, &euro; and $.
-  The total is 24px 700, with &ldquo;tix&rdquo; in 15px 600 <span class="mono">--text-600</span> for tickets. The split is 13px
+  The label, then the switch under it, left-aligned, 6px apart. The label is uppercase 12px 600 <span class="mono">--text-400</span>, and the switch a small segmented control, <span class="mono">.segmented--small</span>: MTGO, &euro; and $.
+  The label is an <span class="mono">h3</span> that names the block. The total is 24px 700, with &ldquo;tix&rdquo; after a space in 15px 600 <span class="mono">--text-600</span> for tickets, so it reads as two words. The split is 13px
   <span class="mono">--text-900</span>, and the source sentence 12px <span class="mono">--text-600</span>. When cards lack a
   price, &ldquo;No price for {n} cards.&rdquo; follows in the source&rsquo;s style. The page adds up the list it shows from
   the response&rsquo;s prices per card.</p>

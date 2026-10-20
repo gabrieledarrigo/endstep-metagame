@@ -28,7 +28,7 @@ describe("SiteFooter", () => {
     render(<SiteFooter />);
 
     expect(screen.getByRole("contentinfo").textContent).toContain(
-      "Data from endstep.cc. This site is not affiliated with Endstep. Card images from Scryfall.",
+      "Data from endstep.cc. This site is not affiliated with Endstep. Card images and prices from Scryfall.",
     );
   });
 

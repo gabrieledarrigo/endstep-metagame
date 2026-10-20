@@ -3,6 +3,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import detail from "../test/fixtures/deck.json";
 import decks from "../test/fixtures/decks.json";
 import matrix from "../test/fixtures/matchups.json";
+import sampleCards from "../test/fixtures/sample-cards.json";
 import series from "../test/fixtures/share-series.json";
 import { App } from "./App";
 
@@ -15,6 +16,10 @@ describe("App", () => {
 
         if (url.startsWith("/api/matchups")) {
           return Promise.resolve(Response.json(matrix));
+        }
+
+        if (url.startsWith("/api/sample-cards")) {
+          return Promise.resolve(Response.json(sampleCards));
         }
 
         const deck = decks.decks.items.find((item) =>
@@ -68,7 +73,7 @@ describe("App", () => {
     expect(
       screen.getByRole("button", { name: "7d", pressed: true }),
     ).toBeTruthy();
-    expect(vi.mocked(fetch).mock.calls.length).toBe(requestsOnOverview + 2);
+    expect(vi.mocked(fetch).mock.calls.length).toBe(requestsOnOverview + 3);
 
     fireEvent.click(screen.getByRole("button", { name: "Table" }));
     expect(location.pathname + location.search).toBe("/?window=7d&view=table");

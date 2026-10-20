@@ -3,6 +3,7 @@ import {
   fetchDeck,
   fetchDecks,
   fetchMatchups,
+  fetchSampleCards,
   fetchSeries,
   searchDecks,
 } from "./endpoints";
@@ -67,6 +68,20 @@ describe("endpoints", () => {
     await fetchMatchups("30d", new AbortController().signal);
 
     expect(String(fetchMock.mock.calls[0][0])).toBe("/api/matchups?window=30d");
+  });
+
+  it("fetches a sample list's cards with the exact query string the function accepts", async () => {
+    const fetchMock = stubFetch();
+
+    await fetchSampleCards(
+      "affinity-e93f5f74",
+      "30d",
+      new AbortController().signal,
+    );
+
+    expect(String(fetchMock.mock.calls[0][0])).toBe(
+      "/api/sample-cards?deck=affinity-e93f5f74&window=30d",
+    );
   });
 
   it("encodes the slug, so a character from the address cannot change the request", async () => {
