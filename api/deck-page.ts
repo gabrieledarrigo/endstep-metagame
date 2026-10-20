@@ -1,16 +1,9 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import {
-  EDGE_CACHE,
-  PARTIAL_ART_CACHE,
-  SEGMENT,
-  WINDOWS,
-  deckDetailUrl,
-  isRecord,
-} from "./_shared.js";
+import { SEGMENT, WINDOWS, deckDetailUrl } from "../server/endstep.js";
+import { SITE_NAME, SITE_ORIGIN, withMeta, writeHead } from "../server/head.js";
+import { EDGE_CACHE, PARTIAL_ART_CACHE, isRecord } from "../server/http.js";
 
-const SITE_ORIGIN = "https://pauper-endstep-metagame.vercel.app";
-const SITE_NAME = "Pauper Endstep metagame";
 const DEFAULT_WINDOW = "30d";
 const BOUND_MS = 2000;
 const NO_STORE = "no-store";
@@ -24,14 +17,6 @@ const PERIODS: Readonly<Record<string, string>> = {
   "14d": "over the last 14 days",
   "30d": "over the last 30 days",
   season: "this season",
-};
-
-const ENTITIES: Readonly<Record<string, string>> = {
-  "&": "&amp;",
-  "<": "&lt;",
-  ">": "&gt;",
-  '"': "&quot;",
-  "'": "&#39;",
 };
 
 const PERCENT = new Intl.NumberFormat(LOCALE, {
@@ -150,10 +135,6 @@ async function deckDetail(
   }
 }
 
-function escapeHtml(text: string): string {
-  return text.replace(/[&<>"']/g, (character) => ENTITIES[character]);
-}
-
 function shareText(rate: number): string {
   if (rate > 0 && rate < 0.0005) {
     return `<${PERCENT.format(0.001)}`;
@@ -193,39 +174,14 @@ function imageOf(art: PreviewDeck["art"]): string {
   })}`;
 }
 
-function withMeta(
-  html: string,
-  attribute: string,
-  value: string,
-  content: string,
-): string {
-  const tag = new RegExp(`<meta\\b[^>]*\\b${attribute}="${value}"[^>]*>`);
-
-  return html.replace(
-    tag,
-    () => `<meta ${attribute}="${value}" content="${escapeHtml(content)}" />`,
-  );
-}
-
 function preview(html: string, deck: PreviewDeck, timeWindow: string): string {
-  const title = `${deck.name} · ${SITE_NAME}`;
-  const text = description(deck, timeWindow);
-  const address = escapeHtml(`${SITE_ORIGIN}/decks/${deck.slug}`);
-  let page = html.replace(
-    /<title>[^<]*<\/title>/,
-    () => `<title>${escapeHtml(title)}</title>`,
-  );
+  const page = writeHead(html, {
+    title: `${deck.name} · ${SITE_NAME}`,
+    description: description(deck, timeWindow),
+    address: `${SITE_ORIGIN}/decks/${deck.slug}`,
+  });
 
-  page = withMeta(page, "name", "description", text);
-  page = withMeta(page, "property", "og:title", title);
-  page = withMeta(page, "property", "og:description", text);
-  page = withMeta(page, "property", "og:image", imageOf(deck.art));
-
-  return page.replace(
-    "</head>",
-    () =>
-      `<link rel="canonical" href="${address}" />\n<meta property="og:url" content="${address}" />\n</head>`,
-  );
+  return withMeta(page, "property", "og:image", imageOf(deck.art));
 }
 
 function pageResponse(method: string, html: string, cache: string): Response {
