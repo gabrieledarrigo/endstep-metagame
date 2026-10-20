@@ -27,6 +27,10 @@
     {
       "source": "/what-to-play",
       "destination": "/index.html"
+    },
+    {
+      "source": "/staples",
+      "destination": "/index.html"
     }
   ],
   "headers": [

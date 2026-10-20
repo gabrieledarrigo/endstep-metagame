@@ -5,6 +5,7 @@ import decks from "../test/fixtures/decks.json";
 import matrix from "../test/fixtures/matchups.json";
 import sampleCards from "../test/fixtures/sample-cards.json";
 import series from "../test/fixtures/share-series.json";
+import staples from "../test/fixtures/staples.json";
 import { App } from "./App";
 
 describe("App", () => {
@@ -16,6 +17,10 @@ describe("App", () => {
 
         if (url.startsWith("/api/matchups")) {
           return Promise.resolve(Response.json(matrix));
+        }
+
+        if (url.startsWith("/api/staples")) {
+          return Promise.resolve(Response.json(staples));
         }
 
         if (url.startsWith("/api/sample-cards")) {
@@ -116,5 +121,21 @@ describe("App", () => {
     expect(
       await screen.findByText(/^Based on the last 14 days\./),
     ).toBeTruthy();
+  });
+
+  it("serves Staples at its own address, with its title", async () => {
+    history.replaceState(null, "", "/staples?window=30d&section=side");
+    render(<App />);
+
+    expect(
+      await screen.findByRole("heading", { level: 1, name: "Staples" }),
+    ).toBeTruthy();
+    expect(document.title).toBe("Staples · Pauper Endstep metagame");
+    expect(await screen.findByText("Lightning Bolt")).toBeTruthy();
+    expect(
+      screen
+        .getByRole("button", { name: "Sideboard" })
+        .getAttribute("aria-pressed"),
+    ).toBe("true");
   });
 });
