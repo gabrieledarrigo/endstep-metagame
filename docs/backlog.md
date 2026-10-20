@@ -1591,17 +1591,19 @@ S26 and S27 run in parallel. Both stories add a panel to the page that S25 build
 
 **Date:** 2026-10-18. This milestone comes from Draft v11 of the requirements.
 
-This milestone has one enabler and two user stories, for FR-18 and §4.9. On 2026-10-18 the owner chose the design from a working draft. The Staples section of the design system shows that design, so this milestone has no design item.
+This milestone has one enabler, two user stories and one hardening item, for FR-18 and §4.9. H7 was added on 2026-10-20, from Draft v15. On 2026-10-18 the owner chose the design from a working draft. The Staples section of the design system shows that design, so this milestone has no design item.
 
 | Wave | Items | Runs in parallel |
 |---|---|---|
 | 25 | E15 | Yes, beside milestone 4 |
 | 26 | S28 | No |
 | 27 | S29 | No |
+| 33 | H7 | Yes, beside any other item |
 
 ```
 E15 the staples function ──┐
 S25 which deck to play ────┴─► S28 the staples page ──► S29 the decks behind a card
+H7 ask once more for a slow table
 ```
 
 ---
@@ -1714,6 +1716,34 @@ This story covers the decks behind a card in FR-18.
 
 ---
 
+## H7. Ask once more for a card table that times out
+
+This item covers the behaviour of §4.9. On 2026-10-20 the first build of a cold window at 7d or 14d still returned 502, after 20 to 22 seconds. The next build found every table ready.
+
+**Tasks**
+
+1. In `api/staples.ts`, if a card table request times out and the deadline leaves at least 20 seconds, send that page request once more.
+2. Give each deck's table at most one second request, for the page that timed out. A second timeout on that page fails the build, as today.
+3. Send no second request after a 429, a 5xx or a network error. Send none for a call that the deadline or a 429 aborts.
+4. Update the JSDoc of the handler for the second request.
+5. Add a spec beside the function for these cases:
+   - A table that times out once and then answers.
+   - A table that times out twice.
+   - A table whose page 1 times out and answers, and then whose page 2 times out. Page 2 gets no second request.
+   - A timeout with less than 20 seconds left before the deadline.
+   - A 429, a 5xx and a network error on a table, each with no second request.
+   - A call that the deadline aborts, and a call that a 429 on another table aborts, each with no second request.
+
+**Done when**
+
+- With a fake Endstep that answers a table only on the second request, the function returns 200.
+- The specs pass, and every other case of §4.9 behaves as before.
+- The PR reports the time and the result of one cold build at 7d in a preview deployment.
+
+**Blocked by** nothing. **Blocks** nothing.
+
+---
+
 ## Notes on sequencing, milestone 5
 
 E15 starts at once. It is only server code and changes no page, so it runs beside milestone 4.
@@ -1721,6 +1751,8 @@ E15 starts at once. It is only server code and changes no page, so it runs besid
 S28 waits for E15 and S25. It reads the response of E15. Its fourth link goes into the header that S25 changes.
 
 S29 is the last step. It opens a panel inside the lines of S28.
+
+H7 changes only the staples function, so it runs beside any other item.
 
 ---
 # Milestone 6: card previews and cost
