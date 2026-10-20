@@ -1,8 +1,17 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { SEGMENT, WINDOWS, deckDetailUrl } from "../server/endstep.js";
-import { SITE_NAME, SITE_ORIGIN, withMeta, writeHead } from "../server/head.js";
-import { EDGE_CACHE, PARTIAL_ART_CACHE, isRecord } from "../server/http.js";
+import {
+  EDGE_CACHE,
+  PARTIAL_ART_CACHE,
+  SEGMENT,
+  SITE_NAME,
+  SITE_ORIGIN,
+  WINDOWS,
+  deckDetailUrl,
+  isRecord,
+  withMeta,
+  writeHead,
+} from "../server/index.js";
 
 const DEFAULT_WINDOW = "30d";
 const BOUND_MS = 2000;

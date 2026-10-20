@@ -1,25 +1,23 @@
-import { BASICS, frontOf, nameKey } from "../server/cards.js";
-import {
-  SEGMENT,
-  TIMEOUT_MS,
-  WINDOWS,
-  deckDetailUrl,
-} from "../server/endstep.js";
 import {
   BASE_HEADERS,
+  BASICS,
   EDGE_CACHE,
-  cacheControl,
-  errorResponse,
-  isRecord,
-  methodResponse,
-} from "../server/http.js";
-import {
   SCRYFALL_API,
   SCRYFALL_CDN,
   SCRYFALL_COLLECTION,
   SCRYFALL_HEADERS,
   SCRYFALL_PAUSE_MS,
-} from "../server/scryfall.js";
+  SEGMENT,
+  TIMEOUT_MS,
+  WINDOWS,
+  cacheControl,
+  deckDetailUrl,
+  errorResponse,
+  frontOf,
+  isRecord,
+  methodResponse,
+  nameKey,
+} from "../server/index.js";
 
 const RATE_LIMIT_SECONDS = 60;
 const SUCCESS_CACHE = "public, s-maxage=3600, stale-while-revalidate=86400";
