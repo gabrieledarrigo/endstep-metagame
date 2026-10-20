@@ -835,6 +835,7 @@ A panel named "Most played cards" holds the list.
 - The cards come in the order that `/api/staples` returns them, by share. The list shows 30. Then a button, "Show 20 more", shows the rest, up to 50. The button goes away once the list shows all the cards. A window change, or a switch to the other list, shows 30 again.
   - If fewer than 20 cards remain, the button reads "Show {n} more".
   - After a press of the button, focus moves to the first new card. So a reader with a keyboard keeps their place.
+  - While the next window loads, the page hides the button on the dimmed list. If more cards remain, the button comes back with the new cards.
 - Each line holds these parts:
   - The place.
   - The art of the card.
@@ -859,6 +860,7 @@ The name of the card is a button. It opens the decks that play the card, under t
   - The share, as a whole percentage.
   - The average copies of the deck.
 - One sentence closes the panel: "The share of each deck's lists that play it."
+- If no deck plays the card in at least 5% of its lists, the panel holds only one sentence: "No deck plays it in 5% of its lists or more."
 - The panel leaves out the decks below 5%. Those are a few unusual lists, not the choice of the deck itself.
 
 #### States

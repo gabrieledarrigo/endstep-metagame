@@ -7,6 +7,7 @@ import {
   within,
 } from "@testing-library/react";
 import type { ReactElement } from "react";
+import { MemoryRouter } from "react-router";
 import { type Mock, afterEach, describe, expect, it, vi } from "vitest";
 import staples from "../../../test/fixtures/staples.json";
 import { renderWithQueries } from "../../../test/renderWithQueries";
@@ -37,13 +38,11 @@ function withCards(count: number, withheld = 0): StaplesResponse {
 function Harness({
   timeWindow = "30d",
   section = "main",
-  busy = false,
   onSection = (): void => {},
   onWindow = (): void => {},
 }: {
   timeWindow?: TimeWindow;
   section?: StaplesSection;
-  busy?: boolean;
   onSection?: (next: StaplesSection) => void;
   onWindow?: (next: TimeWindow) => void;
 }) {
@@ -51,17 +50,22 @@ function Harness({
     queryKey: ["staples", timeWindow, section],
     queryFn: ({ signal }) => fetchStaples(timeWindow, section, signal),
     retry: false,
+    placeholderData: (previous, previousQuery) =>
+      previousQuery?.queryKey[2] === section && previous?.cards.length
+        ? previous
+        : undefined,
   });
 
   return (
-    <Staples
-      query={query}
-      timeWindow={timeWindow}
-      section={section}
-      onSection={onSection}
-      onWindow={onWindow}
-      busy={busy}
-    />
+    <MemoryRouter>
+      <Staples
+        query={query}
+        timeWindow={timeWindow}
+        section={section}
+        onSection={onSection}
+        onWindow={onWindow}
+      />
+    </MemoryRouter>
   );
 }
 
@@ -88,7 +92,15 @@ function renderSwitchable(ui: ReactElement): (next: ReactElement) => void {
 }
 
 function lines(): HTMLElement[] {
-  return within(screen.getByRole("list")).getAllByRole("listitem");
+  const list = screen.getAllByRole("list")[0];
+
+  return within(list)
+    .getAllByRole("listitem")
+    .filter((item) => item.parentElement === list);
+}
+
+function expanded(name: string): string | null {
+  return screen.getByRole("button", { name }).getAttribute("aria-expanded");
 }
 
 afterEach(() => {
@@ -153,7 +165,7 @@ describe("Staples", () => {
     expect(screen.queryByRole("list")).toBeNull();
   });
 
-  it("shows the first 30 cards in order, then 20 more, and moves focus to the first new card", async () => {
+  it("shows the first 30 cards in order, then 20 more, and moves focus to the name of the first new card", async () => {
     stubApi(withCards(50));
     renderWithQueries(<Harness />);
 
@@ -167,8 +179,37 @@ describe("Staples", () => {
     expect(lines()).toHaveLength(50);
     expect(lines()[49].textContent).toMatch(/^50Card 50/);
     expect(screen.queryByRole("button", { name: /more/ })).toBeNull();
-    expect(document.activeElement).toBe(lines()[30]);
+    expect(document.activeElement).toBe(
+      within(lines()[30]).getByRole("button", { name: "Card 31" }),
+    );
     expect(lines()[30].textContent).toMatch(/^31Card 31/);
+  });
+
+  it("opens several cards at once", async () => {
+    stubApi(withCards(6));
+    renderWithQueries(<Harness />);
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Lightning Bolt" }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Counterspell" }));
+
+    expect(expanded("Lightning Bolt")).toBe("true");
+    expect(expanded("Counterspell")).toBe("true");
+    expect(expanded("Bojuka Bog")).toBe("false");
+  });
+
+  it("keeps the open cards open when the reader shows more", async () => {
+    stubApi(withCards(50));
+    renderWithQueries(<Harness />);
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Lightning Bolt" }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Show 20 more" }));
+
+    expect(expanded("Lightning Bolt")).toBe("true");
+    expect(expanded("Card 31")).toBe("false");
   });
 
   it("offers only the cards that remain when fewer than 20 do", async () => {
@@ -191,7 +232,7 @@ describe("Staples", () => {
     expect(screen.queryByRole("button", { name: /more/ })).toBeNull();
   });
 
-  it("shows 30 again for another window", async () => {
+  it("shows 30 again for another window, even one with the same dates", async () => {
     stubApi(withCards(50));
     const rerender = renderSwitchable(<Harness />);
 
@@ -296,18 +337,117 @@ describe("Staples", () => {
     ).toBeTruthy();
   });
 
-  it("dims and marks busy the list, not the switch, while another window loads", async () => {
-    stubApi(withCards(6));
-    renderWithQueries(<Harness busy />);
+  it("marks the switch busy while a list loads", () => {
+    stubApi(() => new Promise<Response>(() => {}));
+    renderWithQueries(<Harness />);
 
-    const list = await screen.findByRole("list");
-    expect(list.closest('[aria-busy="true"]')?.className).toBe(
-      "staples__body busy",
-    );
     expect(
       screen
         .getByRole("group", { name: "Part of the deck" })
-        .closest("[aria-busy]"),
+        .getAttribute("data-busy"),
+    ).toBe("true");
+  });
+
+  it("leaves the switch idle once the list is on screen", async () => {
+    stubApi(withCards(6));
+    renderWithQueries(<Harness />);
+
+    await screen.findByText("Lightning Bolt");
+    expect(
+      screen
+        .getByRole("group", { name: "Part of the deck" })
+        .getAttribute("data-busy"),
     ).toBeNull();
+  });
+
+  it("dims the list and marks it and the switch busy while another window loads", async () => {
+    let calls = 0;
+    stubApi(() => {
+      calls += 1;
+
+      return calls === 1
+        ? Response.json(withCards(6))
+        : new Promise<Response>(() => {});
+    });
+    const rerender = renderSwitchable(<Harness />);
+    await screen.findByText("Lightning Bolt");
+
+    rerender(<Harness timeWindow="7d" />);
+
+    const list = screen.getAllByRole("list")[0];
+    expect(screen.getByText("Lightning Bolt")).toBeTruthy();
+    expect(list.closest('[aria-busy="true"]')?.className).toBe(
+      "staples__body busy",
+    );
+    const parts = screen.getByRole("group", { name: "Part of the deck" });
+    expect(parts.getAttribute("data-busy")).toBe("true");
+    expect(parts.closest("[aria-busy]")).toBeNull();
+  });
+
+  it("hides Show more while the list is dimmed, and shows it again with the next window's cards", async () => {
+    let calls = 0;
+    let answer: (response: Response) => void = () => {};
+    stubApi(() => {
+      calls += 1;
+
+      return calls === 1
+        ? Response.json(withCards(50))
+        : new Promise<Response>((resolve) => (answer = resolve));
+    });
+    const rerender = renderSwitchable(<Harness />);
+    expect(
+      await screen.findByRole("button", { name: "Show 20 more" }),
+    ).toBeTruthy();
+
+    rerender(<Harness timeWindow="7d" />);
+
+    expect(lines()).toHaveLength(30);
+    expect(screen.queryByRole("button", { name: /more/ })).toBeNull();
+
+    answer(
+      Response.json({
+        ...withCards(50),
+        window: { from: "2026-10-14", to: "2026-10-21" },
+      }),
+    );
+
+    expect(
+      await screen.findByRole("button", { name: "Show 20 more" }),
+    ).toBeTruthy();
+    expect(lines()).toHaveLength(30);
+  });
+
+  it("keeps the cards shown on the dimmed list, and shows 30 once the next window arrives", async () => {
+    let calls = 0;
+    let answer: (response: Response) => void = () => {};
+    stubApi(() => {
+      calls += 1;
+
+      return calls === 1
+        ? Response.json(withCards(50))
+        : new Promise<Response>((resolve) => (answer = resolve));
+    });
+    const rerender = renderSwitchable(<Harness />);
+
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Show 20 more" }),
+    );
+    rerender(<Harness timeWindow="7d" />);
+
+    expect(lines()).toHaveLength(50);
+
+    answer(Response.json(withCards(50)));
+
+    await waitFor(() => {
+      expect(lines()).toHaveLength(30);
+    });
+  });
+
+  it("neither dims the list nor marks it busy once it is on screen", async () => {
+    stubApi(withCards(6));
+    renderWithQueries(<Harness />);
+
+    await screen.findByText("Lightning Bolt");
+    expect(screen.getAllByRole("list")[0].closest("[aria-busy]")).toBeNull();
   });
 });

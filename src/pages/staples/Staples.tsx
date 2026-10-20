@@ -26,7 +26,6 @@ type StaplesProps = {
   section: StaplesSection;
   onSection: (next: StaplesSection) => void;
   onWindow: (next: TimeWindow) => void;
-  busy: boolean;
 };
 
 function withheldText(withheld: number): string {
@@ -43,16 +42,18 @@ export function Staples({
   section,
   onSection,
   onWindow,
-  busy,
 }: StaplesProps) {
   const id = useId();
-  const key = `${timeWindow}:${section}`;
-  const [listKey, setListKey] = useState(key);
+  const dimmed = query.isPlaceholderData;
+  const loading = query.isPending || dimmed;
+  const [listKey, setListKey] = useState("");
+  const current = query.data ? `${timeWindow}:${section}` : "";
+  const shown = dimmed ? listKey : current;
   const [more, setMore] = useState(false);
-  const firstMore = useRef<HTMLLIElement>(null);
+  const firstMore = useRef<HTMLButtonElement>(null);
 
-  if (listKey !== key) {
-    setListKey(key);
+  if (listKey !== shown) {
+    setListKey(shown);
     setMore(false);
   }
 
@@ -72,14 +73,15 @@ export function Staples({
           options={LISTS}
           value={section === "side" ? "Sideboard" : "Main deck"}
           onChange={(next) => onSection(next === "Sideboard" ? "side" : "main")}
+          busy={loading}
         />
       </div>
       <p className="staples__note">
         The percentage is the share of the top 24's decks that play the card.
       </p>
       <div
-        className={busy ? "staples__body busy" : "staples__body"}
-        aria-busy={busy || undefined}
+        className={dimmed ? "staples__body busy" : "staples__body"}
+        aria-busy={dimmed || undefined}
       >
         <Section
           query={query}
@@ -109,7 +111,7 @@ export function Staples({
                 <ol className="staples__list">
                   {cards.map((card, index) => (
                     <Staple
-                      key={card.name}
+                      key={`${timeWindow}:${section}:${card.name}`}
                       card={card}
                       place={index + 1}
                       top={data.cards[0].share}
@@ -117,7 +119,7 @@ export function Staples({
                     />
                   ))}
                 </ol>
-                {rest > 0 && (
+                {rest > 0 && !dimmed && (
                   <Button
                     variant="secondary"
                     className="staples__more"

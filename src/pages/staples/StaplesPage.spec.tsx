@@ -18,6 +18,16 @@ const WEEK: StaplesResponse = {
   window: { from: "2026-10-14", to: "2026-10-21" },
 };
 
+function fifty(body: StaplesResponse): StaplesResponse {
+  const cards = Array.from({ length: 50 }, (_, index) => ({
+    ...body.cards[index % body.cards.length],
+    name: `Card ${index + 1}`,
+    share: 0.2 - index / 1000,
+  }));
+
+  return { ...body, cards };
+}
+
 type Answer = () => Response | Promise<Response>;
 
 function stubApi(answers: Record<string, Answer[]>): Mock<typeof fetch> {
@@ -65,6 +75,10 @@ function renderAt(path: string): void {
 
 function status(): string {
   return screen.getByRole("status").textContent ?? "";
+}
+
+function expanded(name: string): string | null {
+  return screen.getByRole("button", { name }).getAttribute("aria-expanded");
 }
 
 function pressed(name: string): string | null {
@@ -173,6 +187,31 @@ describe("StaplesPage", () => {
     );
   });
 
+  it("marks the switch busy while the other list loads, and idle once it arrives", async () => {
+    let answer: (response: Response) => void = () => {};
+    stubApi({
+      "/api/staples?window=30d&section=side": [
+        (): Promise<Response> =>
+          new Promise<Response>((resolve) => (answer = resolve)),
+      ],
+    });
+    renderAt("/staples?window=30d");
+    await screen.findByText("Lightning Bolt");
+    const parts = (): string | null =>
+      screen
+        .getByRole("group", { name: "Part of the deck" })
+        .getAttribute("data-busy");
+    expect(parts()).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "Sideboard" }));
+    expect(parts()).toBe("true");
+
+    answer(Response.json(SIDE));
+
+    expect(await screen.findByText("Lightning Bolt (side)")).toBeTruthy();
+    expect(parts()).toBeNull();
+  });
+
   it("keeps the list on screen, dimmed and busy, while another window loads, and holds back its dates", async () => {
     let answer: (response: Response) => void = () => {};
     stubApi({
@@ -193,6 +232,11 @@ describe("StaplesPage", () => {
         .getAttribute("data-busy"),
     ).toBe("true");
     expect(
+      screen
+        .getByRole("group", { name: "Part of the deck" })
+        .getAttribute("data-busy"),
+    ).toBe("true");
+    expect(
       screen.getByText("Lightning Bolt").closest('[aria-busy="true"]'),
     ).toBeTruthy();
     expect(screen.queryByText("21 Sept to 20 Oct 2026")).toBeNull();
@@ -204,6 +248,78 @@ describe("StaplesPage", () => {
       screen.getByText("Lightning Bolt").closest("[aria-busy]"),
     ).toBeNull();
     expect(status()).toBe("");
+  });
+
+  it("hides Show more on the dimmed list while the next window loads, and offers it again with 30 cards when the window arrives", async () => {
+    let answer: (response: Response) => void = () => {};
+    stubApi({
+      "/api/staples?window=30d&section=main": [json(fifty(MAIN))],
+      "/api/staples?window=7d&section=main": [
+        (): Promise<Response> =>
+          new Promise<Response>((resolve) => (answer = resolve)),
+      ],
+    });
+    renderAt("/staples?window=30d");
+    expect(
+      await screen.findByRole("button", { name: "Show 20 more" }),
+    ).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: "7d" }));
+
+    expect(
+      screen.getByText("Card 30").closest('[aria-busy="true"]'),
+    ).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /more/ })).toBeNull();
+
+    answer(Response.json(fifty(WEEK)));
+
+    expect(await screen.findByText("14 Oct to 20 Oct 2026")).toBeTruthy();
+    expect(screen.getByText("Card 30")).toBeTruthy();
+    expect(screen.queryByText("Card 31")).toBeNull();
+    expect(screen.getByRole("button", { name: "Show 20 more" })).toBeTruthy();
+  });
+
+  it("closes the open cards when the reader picks another window, and keeps a card opened during the load open", async () => {
+    let answer: (response: Response) => void = () => {};
+    stubApi({
+      "/api/staples?window=7d&section=main": [
+        (): Promise<Response> =>
+          new Promise<Response>((resolve) => (answer = resolve)),
+      ],
+    });
+    renderAt("/staples?window=30d");
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Lightning Bolt" }),
+    );
+    expect(expanded("Lightning Bolt")).toBe("true");
+
+    fireEvent.click(screen.getByRole("button", { name: "7d" }));
+
+    expect(expanded("Lightning Bolt")).toBe("false");
+    fireEvent.click(screen.getByRole("button", { name: "Counterspell" }));
+
+    answer(Response.json(WEEK));
+
+    expect(await screen.findByText("14 Oct to 20 Oct 2026")).toBeTruthy();
+    expect(expanded("Counterspell")).toBe("true");
+    expect(expanded("Lightning Bolt")).toBe("false");
+  });
+
+  it("closes the open cards after a switch to the other list and back", async () => {
+    stubApi({
+      "/api/staples?window=30d&section=side": [json(SIDE)],
+    });
+    renderAt("/staples?window=30d");
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Lightning Bolt" }),
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Sideboard" }));
+    await screen.findByText("Lightning Bolt (side)");
+    fireEvent.click(screen.getByRole("button", { name: "Main deck" }));
+
+    expect(await screen.findByText("Lightning Bolt")).toBeTruthy();
+    expect(expanded("Lightning Bolt")).toBe("false");
   });
 
   it("keeps the sideboard in the address when the window changes", async () => {

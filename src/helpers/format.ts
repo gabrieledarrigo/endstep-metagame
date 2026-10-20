@@ -44,6 +44,21 @@ export function percent(rate: number): string {
 }
 
 /**
+ * Formats a rate as a whole percentage in the user's locales, FR-18.
+ *
+ * @param rate - A rate between 0 and 1.
+ * @returns The percentage, rounded to the nearest whole number, such as `97%`.
+ */
+export function wholePercent(rate: number): string {
+  const locales = userLocales();
+
+  return new Intl.NumberFormat(locales, {
+    style: "percent",
+    maximumFractionDigits: 0,
+  }).format(rate);
+}
+
+/**
  * Formats a card's average copies with one decimal in the user's locales, FR-18.
  *
  * @param copies - The average copies of the card in the lists that play it.

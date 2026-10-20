@@ -2,13 +2,12 @@ import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router";
 import { fetchStaples } from "../../api/endpoints";
 import type { StaplesSection } from "../../api/types";
-import { PageTitle } from "../../components/PageTitle";
 import { SegmentedControl } from "../../components/SegmentedControl";
 import { WINDOWS } from "../../config";
 import { formatWindow } from "../../helpers";
 import { useTimeWindow } from "../../hooks/useTimeWindow";
 import { Staples } from "./Staples";
-import "./StaplesPage.css";
+import { StaplesHead } from "./StaplesHead";
 
 const LIST_NAMES: Record<StaplesSection, string> = {
   main: "main deck",
@@ -53,12 +52,7 @@ export function StaplesPage() {
 
   return (
     <>
-      <div className="staples-page__head">
-        <PageTitle title="Staples" />
-        <p className="staples-page__intro">
-          The cards the top 24 decks play most.
-        </p>
-      </div>
+      <StaplesHead />
 
       <div className="page__controls">
         <SegmentedControl
@@ -88,7 +82,6 @@ export function StaplesPage() {
           section={section}
           onSection={selectSection}
           onWindow={selectTimeWindow}
-          busy={loadingWindow}
         />
       </div>
     </>
