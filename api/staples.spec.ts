@@ -106,12 +106,18 @@ function collection(...names: string[]): () => Promise<Response> {
 
 function pause(ms: number, signal?: AbortSignal | null): Promise<void> {
   return new Promise((resolve, reject) => {
-    const timer = setTimeout(resolve, ms);
+    signal?.throwIfAborted();
 
-    signal?.addEventListener("abort", () => {
+    const abort = (): void => {
       clearTimeout(timer);
-      reject(signal.reason);
-    });
+      reject(signal?.reason);
+    };
+    const timer = setTimeout(() => {
+      signal?.removeEventListener("abort", abort);
+      resolve();
+    }, ms);
+
+    signal?.addEventListener("abort", abort, { once: true });
   });
 }
 
@@ -966,21 +972,7 @@ describe("the staples function's second request", () => {
     expect(pagesOf(fetchMock, "a")).toEqual([1, 1]);
   });
 
-  it("sends no second request for page 2 after page 1 had one", async () => {
-    const fetchMock = endstep({
-      decks: [deck("a", 0.2)],
-      pages: { a: twoPages },
-      timesOut: (url, call) =>
-        (onPage(url, "a", 1) && call === 1) || onPage(url, "a", 2),
-    });
-
-    const response = await settled(staples.fetch(request(MAIN_30D)));
-
-    expect(response.status).toBe(502);
-    expect(pagesOf(fetchMock, "a")).toEqual([1, 1, 2]);
-  });
-
-  it("gives a deck's table at most one second request, even with time left", async () => {
+  it("sends no second request for page 2 after page 1 had one, even with time left", async () => {
     const answer = endstep({ decks: [deck("a", 0.2)], pages: { a: twoPages } });
     const fetchMock = vi.fn<typeof fetch>(async (input, init) => {
       const url = new URL(String(input));
@@ -1123,7 +1115,7 @@ describe("the staples function's second request", () => {
   });
 
   it("aborts a second request still open when another table answers 429", async () => {
-    endstep({
+    const fetchMock = endstep({
       decks: [deck("a", 0.2), deck("b", 0.1)],
       delay: (url) => (onPage(url, "b", 1) ? 25_000 : 0),
       timesOut: (url) => onPage(url, "a", 1),
@@ -1139,6 +1131,7 @@ describe("the staples function's second request", () => {
 
     expect(done).toBe(true);
     expect((await pending).status).toBe(429);
+    expect(pagesOf(fetchMock, "a")).toEqual([1, 1]);
   });
 
   it("answers 502 when the second request fails with 500", async () => {
