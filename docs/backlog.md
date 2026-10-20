@@ -1467,9 +1467,9 @@ Covers FR-18's decks behind a card.
 
 # Milestone 6: card previews and cost
 
-**Date:** 2026-10-18. Derived from Draft v12 of the requirements.
+**Date:** 2026-10-18. This milestone comes from Draft v12 of the requirements.
 
-One enabler and two user stories, for FR-19 and §4.10. The owner chose the design on 2026-10-18, from a working draft, and the design system's Card previews and cost section already shows it, so there is no design item.
+This milestone has one enabler and two user stories, for FR-19 and §4.10. On 2026-10-18 the owner chose the design from a working draft. The Card previews and cost section of the design system shows that design, so this milestone has no design item.
 
 | Wave | Items | Runs in parallel |
 |---|---|---|
@@ -1485,24 +1485,45 @@ E16 the sample cards function ──┬─► S30 the cost to build
 
 ## E16. Fetch a sample list's images and prices
 
-Covers §4.10.
+This item covers §4.10.
 
 **Tasks**
 
-1. `api/sample-cards.ts`: the query checked byte for byte, then the deck detail through our own proxy, at the deck page's exact address.
-2. The images: one Scryfall collection request for the list's distinct names, taking each card's normal image or its front face's.
-3. The prices: Scryfall searches for every printing of the names, split under 1,000 characters a query and paged, and the lowest price per card in tix, euros and dollars. A search's 404 means no price for its names. The six basic lands are free, and snow-covered basics are priced.
-4. Matching by full name or any face name, ignoring case, as §3.4 does, in both lookups.
-5. The response as prices per card, not totals, and each card remembered for an hour per instance.
-6. The requests one after another, 500ms apart, at most five, under a shared 6-second bound that keeps what arrived.
-7. The cache rules: an hour, with a day of stale-while-revalidate, for a success, five minutes when a lookup failed or ran out of time, 60 seconds for a 429, and `no-store` for a 404 and anything else.
-8. The route in `vercel.json` and in the development plugin, §4.6, and `.vercelignore` keeping its spec out of the deploy.
-9. A spec beside the function: the query check, a withheld list, a card with two faces, the cheapest printing chosen per currency, a missing price, a search's 404, snow-covered basics, the query split and the paging, the memory, the spacing and the cap, the bound, and each failure.
+1. In `api/sample-cards.ts`, check the query byte for byte. Then fetch the deck detail through our own proxy, at the exact address that the deck page uses.
+2. Get the images with one Scryfall collection request for the distinct names in the list. For each card, use its normal image. If the card has no image of its own, use the image of its front face.
+3. Get the prices from Scryfall searches for every printing of the names:
+   - Split the names so that each query has fewer than 1,000 characters.
+   - Follow each page of results.
+   - For each card, keep the lowest price in tix, in euros and in dollars.
+   - If a search returns 404, its names have no price.
+   - Do not search prices for the six basic lands. Give them a price of zero in the response. Search snow-covered basics like other cards.
+4. In both lookups, match a card by its full name or by the name of any face. Ignore case, as §3.4 does.
+5. Return a price for each card, not totals. Keep each card in memory for one hour in each instance.
+6. Send the requests one after another, 500ms apart, and send at most five. All the requests share a bound of 6 seconds. Keep the answers that arrived before the bound.
+7. Set the cache rules:
+   - A success: one hour, with one day of stale-while-revalidate.
+   - A lookup that failed or ran out of time: five minutes.
+   - A 429: 60 seconds.
+   - A 404, and any other failure: `no-store`.
+8. Add the route to `vercel.json` and to the development plugin, §4.6. Make sure that `.vercelignore` keeps the spec out of the deploy.
+9. Add a spec next to the function. The spec covers these cases:
+   - The query check.
+   - A withheld list.
+   - A card with two faces.
+   - The cheapest printing for each currency.
+   - A missing price.
+   - A 404 from a search.
+   - Snow-covered basics.
+   - The split of the query, and the pages.
+   - The memory.
+   - The spacing, and the limit of five requests.
+   - The bound.
+   - Each failure.
 
 **Done when**
 
-- `/api/sample-cards` for Affinity at 30d in production returns an image for every card, and prices that match a hand check of Scryfall's printings that day.
-- A repeat request within the hour is a cache hit.
+- In production, `/api/sample-cards` for Affinity at 30d returns an image for each card. Its prices agree with a check by hand of the printings on Scryfall that day.
+- A second request within the hour is a cache hit.
 - Any other query string returns 400.
 
 **Blocked by** nothing. **Blocks** S30, S31.
@@ -1511,25 +1532,32 @@ Covers §4.10.
 
 ## S30. See what a list costs to build
 
-As a Pauper player, I want to see what the sample list costs on MTGO or in paper, so I know whether I can afford the deck.
+As a Pauper player, I want to see the cost of the sample list on MTGO or in paper. Then I know if I can pay for the deck.
 
-Covers FR-19's cost to build, and NFR-5's Scryfall credit.
+This story covers the cost to build in FR-19 and the Scryfall credit in NFR-5.
 
 **Tasks**
 
-1. The request to `/api/sample-cards` once the deck detail has a list to show, keyed by the deck and the window, with no retry.
-2. The block after the lists: "Cost to build", the Currency switch with MTGO, € and $, the total and the main deck and sideboard split, added up from the response's prices per card for the list on screen, and the source sentence.
-3. The reader's currency kept in local storage, as the theme is, and MTGO when there is none.
-4. The line for cards with no price, a `mainOnly` list's split, and no block when the request fails.
-5. The window change, under §4.8.
-6. The footer's credit: "Card images and prices from Scryfall."
-7. A spec beside each component it changes.
+1. When the deck detail has a list to show, request `/api/sample-cards`. Use the deck and the window as the key. Do not retry the request.
+2. After the lists, show a block with these parts:
+   - The label "Cost to build".
+   - A Currency switch with three options: MTGO, € and $.
+   - The total cost, and the cost of the main deck and of the sideboard.
+   - The sentence that names the source of the prices.
+3. Calculate each cost from the price of each card in the response. Count only the cards in the list on the screen.
+4. Keep the currency of the reader in local storage, as the page keeps the theme. If no currency is stored, use MTGO.
+5. If a card has no price in the selected currency, show the line that counts the cards without a price.
+6. If the list is `mainOnly`, show only the cost of the main deck.
+7. If the request fails, do not show the block.
+8. When the reader changes the window, follow §4.8.
+9. Change the credit in the footer to "Card images and prices from Scryfall."
+10. Add a spec next to each component that changes.
 
 **Done when**
 
-- Affinity's deck page at 30d shows a total and split that match the list on screen and the response's prices, in each currency, in both themes, at 360px and 1,280px.
-- The currency chosen on one deck page is the one shown on the next.
-- With `/api/sample-cards` failing, the sample list reads as before, with no block.
+- On the Affinity deck page at 30d, the total cost and the two parts agree with the list on the screen. They also agree with the prices in the response. This is true for each currency, in the two themes, at 360px and at 1,280px.
+- The currency that the reader selects on one deck page is selected on the next deck page.
+- If `/api/sample-cards` fails, the page shows the sample list as before, without the block.
 
 **Blocked by** E16. **Blocks** nothing.
 
@@ -1537,23 +1565,27 @@ Covers FR-19's cost to build, and NFR-5's Scryfall credit.
 
 ## S31. Preview a card in the sample list
 
-As a Pauper player, I want to see a card's image when I point at its name, so I know the card without leaving the page.
+As a Pauper player, I want to point at the name of a card and see its image. Then I know the card, and I stay on the page.
 
-Covers FR-19's card previews.
+This story covers the card previews in FR-19.
 
 **Tasks**
 
-1. Card names as buttons when their image came back, with the dotted underline.
-2. On a device that can hover: the preview beside the panel on hover and on keyboard focus, placed on the side with room, level with the name and inside the window, following its name on scroll, hidden when the name leaves the window, on leave, blur and Escape, and `aria-hidden`.
-3. On every device: activating a name, by a tap, a click, Enter or Space, opens the dialog with the image, its `alt` and a Close button. Close, Escape or a tap outside close it, and focus returns to the name.
-4. Plain names when the request fails or a card has no image.
-5. A spec beside each component it changes.
+1. If the image of a card came back, show its name as a button with the dotted underline.
+2. On a device that can hover, show the preview next to the panel in two cases: the pointer is on the name, or the name has keyboard focus.
+   - Put the preview on the side of the panel that has room, level with the name and inside the screen.
+   - When the page scrolls, move the preview with its name.
+   - Hide the preview in these cases: the name leaves the screen, the pointer leaves, the name loses focus, or the reader presses Escape.
+   - Set `aria-hidden` on the preview.
+3. On every device, if the reader activates a name with a tap, a click, Enter or Space, open the dialog. The dialog has the image, its `alt` and a Close button. Close, Escape or a tap outside the image closes the dialog. Then focus goes back to the name.
+4. If the request fails or a card has no image, show the plain name.
+5. Add a spec next to each component that changes.
 
 **Done when**
 
-- Pointing at or tabbing to each name in Affinity's list shows its card, and the card stays inside the window at 1,280px and 1,024px.
-- On a phone, a tap opens the card, and with a keyboard Enter does, and Close returns focus to its name.
-- With `/api/sample-cards` failing, the names are plain text.
+- When the pointer is on a name in the Affinity list, or the name has keyboard focus, the page shows its card. The card stays inside the screen at 1,280px and at 1,024px.
+- On a phone, a tap opens the card. With a keyboard, Enter opens the card. Close moves focus back to the name.
+- If `/api/sample-cards` fails, the names are plain text.
 
 **Blocked by** E16. **Blocks** nothing.
 
@@ -1561,6 +1593,6 @@ Covers FR-19's card previews.
 
 ## Notes on sequencing, milestone 6
 
-**E16 starts at once.** It is server code only, beside milestones 4 and 5.
+E16 starts at once. It is only server code, so it runs beside milestones 4 and 5.
 
-**S30 and S31 run in parallel.** Both change the sample list: S30 adds a block after the lists, and S31 changes how a name renders. They share the request, so the first to land adds it and the second reuses it.
+S30 and S31 run in parallel. Both stories change the sample list. S30 adds a block after the lists, and S31 changes how the page renders a name. Both stories use the same request. The first story to merge adds the request, and the second story uses it.
