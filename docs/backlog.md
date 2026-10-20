@@ -1702,7 +1702,7 @@ This story covers the decks behind a card in FR-18.
    - "Played in {n} of the top 24".
    - One line for each deck in the response. Each line holds the deck as a link to its deck page, with the window. Each line also shows the bar from 640px, the share of the deck's lists and its copies.
    - The closing sentence.
-3. Use two columns from 640px, and one column below that width.
+3. Show the decks in one column below 1,100px, and in two columns from 1,100px. From 640px to 1,099px, the one column keeps the bar.
 4. Add a spec beside each component that changes. Include a case where focus stays on the button that opened the panel.
 
 **Done when**
