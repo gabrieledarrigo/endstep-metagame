@@ -217,7 +217,7 @@ export function OverviewPage() {
   };
 
   const selectView = (next: View): void => {
-    const written = next === "table" ? "table" : null;
+    const written = next === "cards" ? null : next;
 
     if (searchParams.get("view") === written) {
       return;
