@@ -604,6 +604,19 @@ describe("OverviewPage search", () => {
     ).toBeTruthy();
   });
 
+  it("speaks of one match in the singular", async () => {
+    stubApi(
+      () => Response.json(decks),
+      (url) => matches(url, search.decks.items.slice(0, 1)),
+    );
+    renderAt("/?window=30d");
+    await screen.findByRole("region", { name: "Decks by meta share" });
+
+    type("altar");
+
+    await statusReads("1 deck matches \u201caltar\u201d.");
+  });
+
   it("restores a search from the address on load, with the term in the field", async () => {
     const fetchMock = stubApi(() => Response.json(decks));
     renderAt("/?window=30d&q=altar");
