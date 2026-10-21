@@ -245,6 +245,155 @@
             "click": "Click to open the deck."
           }
         }
+      },
+      "deck": {
+        "page": {
+          "loading": "Loading the deck",
+          "error": "Deck",
+          "failed": "The deck could not be loaded",
+          "loadingWindow": "Loading the {{window}} window.",
+          "noMatches": {
+            "title": "No matches in this window",
+            "detail": "{{deck}} has no matches in the {{window}} window."
+          },
+          "sections": {
+            "share": {
+              "title": "Share over time"
+            },
+            "games": {
+              "title": "Games",
+              "note": "Game win rate, by game in the match and by who played first."
+            },
+            "toss": {
+              "title": "Toss",
+              "note": "Game 1 win rate after the toss."
+            },
+            "texture": {
+              "title": "Texture",
+              "note": "How a game with this deck tends to run."
+            },
+            "sampleList": {
+              "title": "Sample list"
+            }
+          }
+        },
+        "notFound": {
+          "title": "No deck at this address",
+          "detail": "Endstep has no {{format}} deck called \"{{slug}}\".",
+          "back": "Back to the overview"
+        },
+        "cardSheet": {
+          "error": "The card's image could not be loaded.",
+          "close": "Close"
+        },
+        "hero": {
+          "endstep": "View on endstep.cc<hidden>, opens in a new tab</hidden>"
+        },
+        "matchups": {
+          "title": "Matchups against the top {{top}}",
+          "dates": "These matchups cover {{dates}}.",
+          "failed": "The matchups could not be loaded",
+          "grid": "Match win rate of {{deck}} against the other {{others}} decks in the top {{top}}, rated.",
+          "gridWindow": "Match win rate of {{deck}} against the other {{others}} decks in the top {{top}}, {{window}} window, rated.",
+          "more": "See {{deck}} in the full table",
+          "outside": "{{deck}} is not in the top {{top}} for this window, so it has no row in the matchup table. <matchups>See the matchup table</matchups>",
+          "none": "No matchups are recorded for this window yet."
+        },
+        "share": {
+          "metaShare": "Meta share",
+          "label": "Daily meta share of {{deck}}",
+          "labelDates": "Daily meta share of {{deck}}, {{dates}}",
+          "summary": "Daily share, day by day",
+          "days": "Meta share by day",
+          "noData": "no data"
+        },
+        "stats": {
+          "winRate": "Match win rate",
+          "tooFew": "Too few to call",
+          "metaShare": "Meta share",
+          "players": "Players",
+          "matches": "Matches",
+          "shareChange": "Share change"
+        },
+        "texture": {
+          "turns": "Average turns",
+          "openingHand": "Opening hand",
+          "cards": "{{cards}} cards",
+          "mulligan": "Mulligan rate",
+          "mulliganGames": "{{mulligans}} of {{games}} games"
+        },
+        "toss": {
+          "won": "Won the toss",
+          "lost": "Lost the toss",
+          "draw": "Chose to draw",
+          "tooFew": "Too few to call",
+          "games": "{{games}} games",
+          "drawTosses": "{{draws}} of {{tosses}} tosses won"
+        },
+        "games": {
+          "columns": {
+            "onPlay": "On the play",
+            "onDraw": "On the draw",
+            "total": "Total"
+          },
+          "cell": {
+            "onPlay": "{{row}}, on the play",
+            "onDraw": "{{row}}, on the draw",
+            "total": "{{row}}, total"
+          },
+          "game": "Game {{number}}",
+          "all": "All games",
+          "gatedLabel": "{{title}}: too few to call, {{needed}}",
+          "label": "{{title}}: game win rate {{rate}}, range {{low}} to {{high}}, {{wins}} wins, {{losses}} losses",
+          "wins": "Wins",
+          "losses": "Losses",
+          "gated": "Too few to call: {{needed}}.",
+          "rate": "Game win rate",
+          "range": "Range",
+          "allKnown": "Every game has a play or draw record.",
+          "unknown_one": "{{games}} game has no play or draw record and count only in the totals.",
+          "unknown_other": "{{games}} games have no play or draw record and count only in the totals.",
+          "unavailable": "Game results are not available for this window.",
+          "hatched": "A hatched cell has fewer than 20 decided games, too few to call."
+        },
+        "listCost": {
+          "heading": "Cost to build",
+          "currency": "Currency",
+          "main": "Main deck {{main}}",
+          "split": "Main deck {{main}} · Sideboard {{side}}",
+          "source": "Prices from Scryfall, at each card’s cheapest printing.",
+          "missing_one": "No price for {{count}} card.",
+          "missing_other": "No price for {{count}} cards."
+        },
+        "sampleList": {
+          "mainOnly_one": "{{players}} player brought this exact main deck.",
+          "mainOnly_other": "{{players}} players brought this exact main deck.",
+          "shown_one": "{{players}} player brought this exact list. It is the most common of {{lists}} distinct lists.",
+          "shown_other": "{{players}} players brought this exact list. It is the most common of {{lists}} distinct lists.",
+          "shownLike_one": "{{players}} player brought this exact list. It is {{similarity}}% like the deck's average list, and the most common of {{lists}} distinct lists.",
+          "shownLike_other": "{{players}} players brought this exact list. It is {{similarity}}% like the deck's average list, and the most common of {{lists}} distinct lists.",
+          "noRegistrations": "No list to show. No list was registered for this deck in this window.",
+          "withheld": "No list to show. No main deck was brought by {{min}} or more players in this window.",
+          "copy": {
+            "list": "Copy list",
+            "mainDeck": "Copy main deck"
+          },
+          "copied": {
+            "list": "Copied the list.",
+            "mainDeck": "Copied the main deck."
+          },
+          "fallback": {
+            "list": "The clipboard is not available. The list is selected below, ready to copy.",
+            "mainDeck": "The clipboard is not available. The main deck is selected below, ready to copy."
+          },
+          "text": {
+            "list": "Sample list as text",
+            "mainDeck": "Main deck as text"
+          },
+          "main": "Main deck",
+          "side": "Sideboard",
+          "sideHidden": "Not shown. Fewer than {{min}} players brought this exact 75."
+        }
       }
     }
   }

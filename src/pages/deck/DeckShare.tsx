@@ -8,6 +8,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
+import { useTranslation } from "react-i18next";
 import type { SharePoint } from "../../api/types";
 import { ChartFrame } from "../../charts/ChartFrame";
 import { ChartTooltip } from "../../charts/ChartTooltip";
@@ -30,6 +31,7 @@ type ShareRow = {
 };
 
 function ShareTooltip({ active, payload, label }: TooltipContentProps) {
+  const { t } = useTranslation();
   const share = payload[0]?.value;
 
   if (!active || typeof share !== "number") {
@@ -39,7 +41,13 @@ function ShareTooltip({ active, payload, label }: TooltipContentProps) {
   return (
     <ChartTooltip
       day={longDay(String(label))}
-      rows={[{ key: "share", name: "Meta share", value: tooltipShare(share) }]}
+      rows={[
+        {
+          key: "share",
+          name: t("deck.share.metaShare"),
+          value: tooltipShare(share),
+        },
+      ]}
     />
   );
 }
@@ -51,6 +59,7 @@ type DeckShareProps = {
 };
 
 export function DeckShare({ name, dates, points }: DeckShareProps) {
+  const { t } = useTranslation();
   const rows: ShareRow[] = points.map((point) => ({
     day: point.day,
     share: point.rate === null ? null : point.rate * 100,
@@ -63,7 +72,11 @@ export function DeckShare({ name, dates, points }: DeckShareProps) {
         className="deck-share__scroll"
         tabIndex={0}
         role="region"
-        aria-label={`Daily meta share of ${name}${dates ? `, ${dates}` : ""}`}
+        aria-label={
+          dates
+            ? t("deck.share.labelDates", { deck: name, dates })
+            : t("deck.share.label", { deck: name })
+        }
       >
         <ChartFrame className="deck-share__frame">
           <LineChart
@@ -81,7 +94,7 @@ export function DeckShare({ name, dates, points }: DeckShareProps) {
             <Line
               type="linear"
               dataKey="share"
-              name="Meta share"
+              name={t("deck.share.metaShare")}
               stroke={SHARE_LINE}
               strokeWidth={2}
               dot={false}
@@ -109,16 +122,16 @@ export function DeckShare({ name, dates, points }: DeckShareProps) {
 
       <details className="deck-share__details">
         <summary className="deck-share__summary">
-          Daily share, day by day
+          {t("deck.share.summary")}
         </summary>
-        <div role="group" aria-label="Meta share by day">
+        <div role="group" aria-label={t("deck.share.days")}>
           <dl className="deck-share__days">
             {rows.map((row) => (
               <div key={row.day} className="deck-share__day">
                 <dt className="deck-share__date">{formatDay(row.day)}</dt>
                 {row.share === null ? (
                   <dd className="deck-share__share deck-share__share--none">
-                    no data
+                    {t("deck.share.noData")}
                   </dd>
                 ) : (
                   <dd className="deck-share__share">

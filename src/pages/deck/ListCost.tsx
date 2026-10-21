@@ -1,4 +1,5 @@
 import { useId, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { Currency, SampleCard, SampleCardData } from "../../api/types";
 import { SegmentedControl } from "../../components/SegmentedControl";
 import { formatPrice } from "../../helpers";
@@ -83,6 +84,7 @@ function priceText(cents: number, currency: Currency): string {
 }
 
 export function ListCost({ main, side, cards }: ListCostProps) {
+  const { t } = useTranslation();
   const id = useId();
   const [currency, setCurrency] = useState(storedCurrency);
 
@@ -92,8 +94,11 @@ export function ListCost({ main, side, cards }: ListCostProps) {
   const missing = unpriced([main, side], cards, currency);
   const split =
     side.length > 0
-      ? `Main deck ${priceText(mainCents, currency)} · Sideboard ${priceText(sideCents, currency)}`
-      : `Main deck ${priceText(mainCents, currency)}`;
+      ? t("deck.listCost.split", {
+          main: priceText(mainCents, currency),
+          side: priceText(sideCents, currency),
+        })
+      : t("deck.listCost.main", { main: priceText(mainCents, currency) });
 
   const choose = (option: Option): void => {
     const next = CURRENCIES[option];
@@ -110,10 +115,10 @@ export function ListCost({ main, side, cards }: ListCostProps) {
     <section className="list-cost" aria-labelledby={id}>
       <div className="list-cost__head">
         <h3 className="list-cost__label" id={id}>
-          Cost to build
+          {t("deck.listCost.heading")}
         </h3>
         <SegmentedControl
-          label="Currency"
+          label={t("deck.listCost.currency")}
           options={OPTIONS}
           value={optionOf(currency)}
           onChange={choose}
@@ -135,12 +140,10 @@ export function ListCost({ main, side, cards }: ListCostProps) {
           <p className="list-cost__split">{split}</p>
         </>
       )}
-      <p className="list-cost__source">
-        Prices from Scryfall, at each card’s cheapest printing.
-      </p>
+      <p className="list-cost__source">{t("deck.listCost.source")}</p>
       {missing > 0 && (
         <p className="list-cost__missing">
-          No price for {missing} {missing === 1 ? "card" : "cards"}.
+          {t("deck.listCost.missing", { count: missing })}
         </p>
       )}
     </section>

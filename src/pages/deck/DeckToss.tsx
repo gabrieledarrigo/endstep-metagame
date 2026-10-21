@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { DeckDetail, WinLoss } from "../../api/types";
 import { Panel } from "../../components/Panel";
 import { StatList } from "../../components/StatList";
@@ -11,6 +12,7 @@ import {
 } from "../../helpers";
 
 function GameRateTile({ label, block }: { label: string; block: WinLoss }) {
+  const { t } = useTranslation();
   const read = readRate(block);
 
   if (read.gated) {
@@ -18,7 +20,7 @@ function GameRateTile({ label, block }: { label: string; block: WinLoss }) {
       <StatTile
         gated
         label={label}
-        value="Too few to call"
+        value={t("deck.toss.tooFew")}
         detail={neededText(read.decided, "games")}
       />
     );
@@ -28,24 +30,28 @@ function GameRateTile({ label, block }: { label: string; block: WinLoss }) {
     <StatTile
       label={label}
       value={percent(read.rate)}
-      detail={`${formatCount(read.decided)} games`}
+      detail={t("deck.toss.games", { games: formatCount(read.decided) })}
     />
   );
 }
 
 export function DeckToss({ playDraw }: { playDraw: DeckDetail["playDraw"] }) {
+  const { t } = useTranslation();
   const { choseToDraw } = playDraw;
 
   return (
     <Panel>
       <StatList compact>
-        <GameRateTile label="Won the toss" block={playDraw.tossWon} />
-        <GameRateTile label="Lost the toss" block={playDraw.tossLost} />
+        <GameRateTile label={t("deck.toss.won")} block={playDraw.tossWon} />
+        <GameRateTile label={t("deck.toss.lost")} block={playDraw.tossLost} />
         <StatTile
-          label="Chose to draw"
+          label={t("deck.toss.draw")}
           value={formatProportion(choseToDraw)}
           gated={choseToDraw.of === 0}
-          detail={`${formatCount(choseToDraw.count)} of ${formatCount(choseToDraw.of)} tosses won`}
+          detail={t("deck.toss.drawTosses", {
+            draws: formatCount(choseToDraw.count),
+            tosses: formatCount(choseToDraw.of),
+          })}
         />
       </StatList>
     </Panel>

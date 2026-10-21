@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { Deck } from "../../api/types";
 import { Panel } from "../../components/Panel";
 import { ShareChange } from "../../components/ShareChange";
@@ -12,6 +13,7 @@ import {
 } from "../../helpers";
 
 export function DeckStats({ deck }: { deck: Deck }) {
+  const { t } = useTranslation();
   const winRate = readRate(deck.matchWinRate);
 
   return (
@@ -21,26 +23,35 @@ export function DeckStats({ deck }: { deck: Deck }) {
           <StatTile
             hero
             gated
-            label="Match win rate"
-            value="Too few to call"
+            label={t("deck.stats.winRate")}
+            value={t("deck.stats.tooFew")}
             detail={neededText(winRate.decided, "matches")}
           />
         ) : (
           <StatTile
             hero
-            label="Match win rate"
+            label={t("deck.stats.winRate")}
             value={percent(winRate.rate)}
-            detail={`${percent(winRate.low)} to ${percent(winRate.high)}`}
+            detail={t("common.range", {
+              from: percent(winRate.low),
+              to: percent(winRate.high),
+            })}
           />
         )}
         <StatTile
-          label="Meta share"
+          label={t("deck.stats.metaShare")}
           value={tooltipShare(deck.share.rate * 100)}
         />
-        <StatTile label="Players" value={formatCount(deck.players)} />
-        <StatTile label="Matches" value={formatCount(winRate.decided)} />
         <StatTile
-          label="Share change"
+          label={t("deck.stats.players")}
+          value={formatCount(deck.players)}
+        />
+        <StatTile
+          label={t("deck.stats.matches")}
+          value={formatCount(winRate.decided)}
+        />
+        <StatTile
+          label={t("deck.stats.shareChange")}
           value={<ShareChange change={deck.shareChange} />}
         />
       </StatList>
