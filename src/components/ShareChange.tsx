@@ -9,11 +9,9 @@ export function ShareChange({ change }: { change: Deck["shareChange"] }) {
   if (typeof points !== "number") {
     return (
       <span className="delta delta--unavailable">
-        {reason
-          ? t(`components.shareChange.${reason}`, {
-              defaultValue: t("components.shareChange.notAvailable"),
-            })
-          : t("components.shareChange.notAvailable")}
+        {t(`components.shareChange.reason.${reason ?? "none"}`, {
+          defaultValue: t("components.shareChange.reason.none"),
+        })}
       </span>
     );
   }

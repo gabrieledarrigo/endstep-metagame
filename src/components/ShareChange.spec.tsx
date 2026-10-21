@@ -47,11 +47,14 @@ describe("ShareChange", () => {
     expect(screen.getByText(text)).toBeTruthy();
   });
 
-  it("says not available for a reason it does not know", () => {
-    const reason = "deck_retired" as Deck["shareChange"]["reason"];
+  it.each(["deck_retired", "up", "points"])(
+    "says not available for the reason %s, which it does not know",
+    (unknown) => {
+      const reason = unknown as Deck["shareChange"]["reason"];
 
-    render(<ShareChange change={change(null, reason)} />);
+      render(<ShareChange change={change(null, reason)} />);
 
-    expect(screen.getByText("not available")).toBeTruthy();
-  });
+      expect(screen.getByText("not available")).toBeTruthy();
+    },
+  );
 });

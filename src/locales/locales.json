@@ -115,9 +115,11 @@
           "mirror": "Mirror"
         },
         "shareChange": {
-          "previous_window_empty": "no earlier data",
-          "no_previous_window": "no earlier window",
-          "notAvailable": "not available",
+          "reason": {
+            "previous_window_empty": "no earlier data",
+            "no_previous_window": "no earlier window",
+            "none": "not available"
+          },
           "noChange": "no change",
           "down": "down",
           "up": "up",
