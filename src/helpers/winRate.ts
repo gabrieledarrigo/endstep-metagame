@@ -1,3 +1,4 @@
+import i18next from "i18next";
 import { percent } from "./format";
 
 export const DECIDED_NEEDED = 20;
@@ -48,7 +49,10 @@ export function readRate(block: WinLossBlock): ReadRate {
  * @returns A phrase such as `12 of the 20 matches needed`.
  */
 export function neededText(decided: number, unit: "matches" | "games"): string {
-  return `${decided} of the ${DECIDED_NEEDED} ${unit} needed`;
+  return i18next.t(`helpers.winRate.needed.${unit}`, {
+    decided,
+    needed: DECIDED_NEEDED,
+  });
 }
 
 /**
@@ -61,6 +65,9 @@ export function rateText(block: WinLossBlock): string {
   const read = readRate(block);
 
   return read.gated
-    ? `Too few to call, ${read.decided} of ${DECIDED_NEEDED}`
+    ? i18next.t("helpers.winRate.tooFew", {
+        decided: read.decided,
+        needed: DECIDED_NEEDED,
+      })
     : percent(read.rate);
 }

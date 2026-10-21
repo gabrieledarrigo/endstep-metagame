@@ -1,3 +1,4 @@
+import i18next from "i18next";
 import type { StapleDeck } from "../api/types";
 
 const CORE = 0.5;
@@ -15,16 +16,23 @@ export function coreText(decks: StapleDeck[]): string {
     .map((deck) => deck.name);
 
   if (names.length === 0) {
-    return "Not core in any deck";
+    return i18next.t("helpers.staples.none");
   }
 
   if (names.length === 1) {
-    return `Core in ${names[0]}`;
+    return i18next.t("helpers.staples.one", { deck: names[0] });
   }
 
   if (names.length > 3) {
-    return `Core in ${names[0]}, ${names[1]} and ${names.length - 2} more`;
+    return i18next.t("helpers.staples.more", {
+      first: names[0],
+      second: names[1],
+      count: names.length - 2,
+    });
   }
 
-  return `Core in ${names.slice(0, -1).join(", ")} and ${names.at(-1)}`;
+  return i18next.t("helpers.staples.list", {
+    decks: names.slice(0, -1).join(", "),
+    last: names.at(-1),
+  });
 }

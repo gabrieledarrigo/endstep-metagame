@@ -1,3 +1,4 @@
+import i18next from "i18next";
 import type {
   Currency,
   Population,
@@ -71,7 +72,7 @@ export function formatCopies(copies: number): string {
     maximumFractionDigits: 1,
   }).format(copies);
 
-  return `${count} copies`;
+  return i18next.t("helpers.format.copies", { copies: count });
 }
 
 /**
@@ -190,7 +191,10 @@ export function formatWindow({
   const last = lastCoveredDay(to);
   const sameYear = from.slice(0, 4) === last.slice(0, 4);
 
-  return `${formatDate(from, "short", !sameYear)} to ${formatDate(last, "short", true)}`;
+  return i18next.t("common.range", {
+    from: formatDate(from, "short", !sameYear),
+    to: formatDate(last, "short", true),
+  });
 }
 
 /**
@@ -200,7 +204,7 @@ export function formatWindow({
  * @returns The population with a capital letter, such as `Rated`.
  */
 export function formatPopulation(population: Population): string {
-  return population.charAt(0).toUpperCase() + population.slice(1);
+  return i18next.t(`helpers.format.population.${population}`);
 }
 
 /**
@@ -210,7 +214,9 @@ export function formatPopulation(population: Population): string {
  * @returns The percentage with one decimal, such as `33.8%`, or `Not available` when the total is 0.
  */
 export function formatProportion(proportion: Proportion): string {
-  return proportion.of === 0 ? "Not available" : percent(proportion.rate);
+  return proportion.of === 0
+    ? i18next.t("helpers.format.notAvailable")
+    : percent(proportion.rate);
 }
 
 /**

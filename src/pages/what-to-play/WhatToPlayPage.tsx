@@ -1,3 +1,4 @@
+import i18next from "i18next";
 import { type ReactNode, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
 import type { MatrixDeck } from "../../api/types";
@@ -5,7 +6,7 @@ import { EmptyWindow } from "../../components/EmptyWindow";
 import { PageTitle } from "../../components/PageTitle";
 import { Section } from "../../components/Section";
 import { SegmentedControl } from "../../components/SegmentedControl";
-import { PERIODS, WINDOWS } from "../../config";
+import { WINDOWS } from "../../config";
 import {
   formatWindow,
   metagameShares,
@@ -49,7 +50,9 @@ export function WhatToPlayPage() {
   const matchups = useMatchups(timeWindow);
   const loadingWindow = matchups.isPlaceholderData;
   const loading = matchups.isPending || loadingWindow;
-  const period = loadingWindow ? undefined : PERIODS[timeWindow];
+  const period = loadingWindow
+    ? undefined
+    : i18next.t(`common.period.${timeWindow}`);
   const meta = searchParams.get("meta");
 
   const writeChanges = (

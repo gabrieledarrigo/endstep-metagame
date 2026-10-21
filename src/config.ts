@@ -12,10 +12,3 @@ export const WINDOWS: readonly TimeWindow[] = [
 ];
 export const DEFAULT_WINDOW: TimeWindow = "30d";
 export const PAGE_SIZE = 24;
-export const PERIODS: Readonly<Record<TimeWindow, string>> = {
-  "1d": "the last day",
-  "7d": "the last 7 days",
-  "14d": "the last 14 days",
-  "30d": "the last 30 days",
-  season: "this season",
-};

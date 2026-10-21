@@ -1,3 +1,4 @@
+import i18next from "i18next";
 import type { MatchupCell, MatchupMatrix, MatrixDeck } from "../api/types";
 import { neededText } from "./winRate";
 
@@ -13,15 +14,6 @@ export type BeatingDeck = {
   rate: number;
   low: number;
   high: number;
-};
-
-const VERDICT: Record<CellState, string> = {
-  mirror: "mirror match",
-  none: "no data",
-  gated: "too few to call",
-  win: "clear result",
-  loss: "clear result",
-  neutral: "within the range of chance",
 };
 
 /**
@@ -108,17 +100,27 @@ export function cellSummary(
   state: CellState,
   cell: MatchupCell | undefined,
 ): string {
-  const rate =
-    cell === undefined || cell.rate === null
-      ? ""
-      : ` ${Math.round(cell.rate * 100)}%,`;
-
-  const count =
+  const verdict =
     state === "gated" && cell !== undefined
-      ? `, ${neededText(cell.wins + cell.losses, "matches")}`
-      : "";
+      ? i18next.t("helpers.cellState.gatedVerdict", {
+          needed: neededText(cell.wins + cell.losses, "matches"),
+        })
+      : i18next.t(`helpers.cellState.verdict.${state}`);
 
-  return `${rowName} against ${columnName}:${rate} ${VERDICT[state]}${count}`;
+  if (cell === undefined || cell.rate === null) {
+    return i18next.t("helpers.cellState.summary", {
+      row: rowName,
+      column: columnName,
+      verdict,
+    });
+  }
+
+  return i18next.t("helpers.cellState.summaryWithRate", {
+    row: rowName,
+    column: columnName,
+    rate: Math.round(cell.rate * 100),
+    verdict,
+  });
 }
 
 /**
