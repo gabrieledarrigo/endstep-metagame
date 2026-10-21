@@ -1,3 +1,4 @@
+import type { TFunction } from "i18next";
 import { useId, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { Currency, SampleCard, SampleCardData } from "../../api/types";
@@ -77,10 +78,10 @@ function unpriced(
   return new Set(names).size;
 }
 
-function priceText(cents: number, currency: Currency): string {
+function priceText(t: TFunction, cents: number, currency: Currency): string {
   const price = formatPrice(cents / 100, currency);
 
-  return currency === "tix" ? `${price} tix` : price;
+  return currency === "tix" ? t("deck.listCost.tix", { price }) : price;
 }
 
 export function ListCost({ main, side, cards }: ListCostProps) {
@@ -95,10 +96,10 @@ export function ListCost({ main, side, cards }: ListCostProps) {
   const split =
     side.length > 0
       ? t("deck.listCost.split", {
-          main: priceText(mainCents, currency),
-          side: priceText(sideCents, currency),
+          main: priceText(t, mainCents, currency),
+          side: priceText(t, sideCents, currency),
         })
-      : t("deck.listCost.main", { main: priceText(mainCents, currency) });
+      : t("deck.listCost.main", { main: priceText(t, mainCents, currency) });
 
   const choose = (option: Option): void => {
     const next = CURRENCIES[option];
@@ -120,6 +121,7 @@ export function ListCost({ main, side, cards }: ListCostProps) {
         <SegmentedControl
           label={t("deck.listCost.currency")}
           options={OPTIONS}
+          labels={{ MTGO: t("deck.listCost.mtgo"), "€": "€", $: "$" }}
           value={optionOf(currency)}
           onChange={choose}
           small
@@ -131,7 +133,9 @@ export function ListCost({ main, side, cards }: ListCostProps) {
             {currency === "tix" ? (
               <>
                 {formatPrice(total / 100, currency)}{" "}
-                <span className="list-cost__unit">tix</span>
+                <span className="list-cost__unit">
+                  {t("deck.listCost.unit")}
+                </span>
               </>
             ) : (
               formatPrice(total / 100, currency)
