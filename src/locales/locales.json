@@ -554,6 +554,9 @@
           "ofLists": " of its lists, ",
           "note": "The share of each deck's lists that play it."
         }
+      },
+      "notFound": {
+        "title": "Not found"
       }
     }
   }
