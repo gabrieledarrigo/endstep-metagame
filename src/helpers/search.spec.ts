@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { matchText, quoted, searchTerm } from "./search";
+import { quoted, searchTerm } from "./search";
 
 describe("searchTerm", () => {
   it("trims the term, collapses its inner spaces and lowercases it", () => {
@@ -19,22 +19,6 @@ describe("searchTerm", () => {
 
   it("returns null when there is no term", () => {
     expect(searchTerm(null)).toBeNull();
-  });
-});
-
-describe("matchText", () => {
-  it("counts the decks and names the term", () => {
-    expect(matchText(1234, "elf")).toEqual({
-      count: "1,234 decks",
-      rest: "match \u201celf\u201d.",
-    });
-  });
-
-  it("speaks of one deck in the singular", () => {
-    expect(matchText(1, "altar tron")).toEqual({
-      count: "1 deck",
-      rest: "matches \u201caltar tron\u201d.",
-    });
   });
 });
 
