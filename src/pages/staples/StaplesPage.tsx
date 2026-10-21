@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router";
 import { fetchStaples } from "../../api/endpoints";
 import type { StaplesSection } from "../../api/types";
@@ -9,12 +10,8 @@ import { useTimeWindow } from "../../hooks/useTimeWindow";
 import { Staples } from "./Staples";
 import { StaplesHead } from "./StaplesHead";
 
-const LIST_NAMES: Record<StaplesSection, string> = {
-  main: "main deck",
-  side: "sideboard",
-};
-
 export function StaplesPage() {
+  const { t } = useTranslation();
   const [timeWindow, selectTimeWindow] = useTimeWindow();
   const [searchParams, setSearchParams] = useSearchParams();
   const section: StaplesSection =
@@ -56,8 +53,9 @@ export function StaplesPage() {
 
       <div className="page__controls">
         <SegmentedControl
-          label="Time window"
+          label={t("common.timeWindow")}
           options={WINDOWS}
+          labels={t("common.window", { returnObjects: true })}
           value={timeWindow}
           onChange={(next) => selectTimeWindow(next, loading)}
           busy={loading}
@@ -71,7 +69,9 @@ export function StaplesPage() {
 
       <p className="visually-hidden" role="status">
         {loading
-          ? `Loading the ${LIST_NAMES[section]} for the ${timeWindow} window.`
+          ? t(`staples.staplesPage.loading.${section}`, {
+              window: t(`common.window.${timeWindow}`),
+            })
           : ""}
       </p>
 

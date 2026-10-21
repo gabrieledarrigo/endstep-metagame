@@ -522,6 +522,38 @@
             }
           }
         }
+      },
+      "staples": {
+        "title": "Staples",
+        "staplesHead": {
+          "intro": "The cards the top 24 decks play most."
+        },
+        "staplesPage": {
+          "loading": {
+            "main": "Loading the main deck for the {{window}} window.",
+            "side": "Loading the sideboard for the {{window}} window."
+          }
+        },
+        "staples": {
+          "heading": "Most played cards",
+          "part": "Part of the deck",
+          "lists": {
+            "main": "Main deck",
+            "side": "Sideboard"
+          },
+          "note": "The percentage is the share of the top 24's decks that play the card.",
+          "error": "The staples could not be loaded",
+          "emptyTitle": "No cards in this window",
+          "withheld_one": "{{count}} deck is left out because Endstep withholds its cards.",
+          "withheld_other": "{{count}} decks are left out because Endstep withholds their cards.",
+          "more": "Show {{more}} more"
+        },
+        "playedBy": {
+          "empty": "No deck plays it in 5% of its lists or more.",
+          "title": "Played in {{decks}} of the top 24",
+          "ofLists": " of its lists, ",
+          "note": "The share of each deck's lists that play it."
+        }
       }
     }
   }
