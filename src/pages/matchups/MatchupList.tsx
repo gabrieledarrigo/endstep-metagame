@@ -1,4 +1,4 @@
-import i18next from "i18next";
+import type { TFunction } from "i18next";
 import { useTranslation } from "react-i18next";
 import type {
   MatchupCell,
@@ -18,7 +18,10 @@ import {
 } from "../../helpers";
 import "./MatchupList.css";
 
-function matchesText(cell: MatchupCell | undefined): string | null {
+function matchesText(
+  t: TFunction,
+  cell: MatchupCell | undefined,
+): string | null {
   if (cell === undefined) {
     return null;
   }
@@ -27,7 +30,7 @@ function matchesText(cell: MatchupCell | undefined): string | null {
     return neededText(cell.wins + cell.losses, "matches");
   }
 
-  return i18next.t("matchups.matchupList.matches", {
+  return t("matchups.matchupList.matches", {
     count: cell.matches,
     matches: formatCount(cell.matches),
   });
@@ -69,7 +72,7 @@ export function MatchupList({
         {others.map((opponent) => {
           const state = cellState(cells, deck.slug, opponent.slug);
           const cell = cellOf(cells, deck.slug, opponent.slug);
-          const matches = matchesText(cell);
+          const matches = matchesText(t, cell);
 
           return (
             <li key={opponent.slug} className="matchup-list__item">
