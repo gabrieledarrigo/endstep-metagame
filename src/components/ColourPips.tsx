@@ -13,7 +13,7 @@ const PIP_FILL: Record<Colour, string> = {
 };
 
 function isColour(letter: string): letter is Colour {
-  return letter in PIP_FILL;
+  return Object.hasOwn(PIP_FILL, letter);
 }
 
 export function ColourPips({ colours }: { colours: string[] }) {
