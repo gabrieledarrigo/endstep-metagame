@@ -1,6 +1,9 @@
+import { useTranslation } from "react-i18next";
 import "./ColourPips.css";
 
-const PIP_FILL: Record<string, string> = {
+type Colour = "W" | "U" | "B" | "R" | "G" | "C";
+
+const PIP_FILL: Record<Colour, string> = {
   W: "#fffbd5",
   U: "#aae0fa",
   B: "#cbc2bf",
@@ -9,23 +12,23 @@ const PIP_FILL: Record<string, string> = {
   C: "#cac5c0",
 };
 
-const PIP_NAME: Record<string, string> = {
-  W: "white",
-  U: "blue",
-  B: "black",
-  R: "red",
-  G: "green",
-  C: "colourless",
-};
+function isColour(letter: string): letter is Colour {
+  return letter in PIP_FILL;
+}
 
 export function ColourPips({ colours }: { colours: string[] }) {
-  const known = colours.filter((letter) => letter in PIP_FILL);
-  const letters = known.length > 0 ? known : ["C"];
+  const { t } = useTranslation();
+  const known = colours.filter(isColour);
+  const letters: Colour[] = known.length > 0 ? known : ["C"];
 
   return (
     <span className="colour-pips">
       <span className="visually-hidden">
-        Colours: {letters.map((letter) => PIP_NAME[letter]).join(", ")}
+        {t("components.colourPips.label", {
+          colours: letters
+            .map((letter) => t(`components.colourPips.${letter}`))
+            .join(", "),
+        })}
       </span>
       {letters.map((letter, index) => (
         <svg

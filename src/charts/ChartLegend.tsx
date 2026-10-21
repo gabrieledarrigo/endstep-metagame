@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Skeleton } from "../components/Skeleton";
 import "./ChartLegend.css";
 
@@ -12,8 +13,14 @@ type ChartLegendProps = {
 };
 
 export function ChartLegend({ items, pressed, onToggle }: ChartLegendProps) {
+  const { t } = useTranslation();
+
   return (
-    <div className="chart-legend" role="group" aria-label="Highlight a deck">
+    <div
+      className="chart-legend"
+      role="group"
+      aria-label={t("charts.chartLegend.label")}
+    >
       {items.map((item) => (
         <button
           key={item.key}

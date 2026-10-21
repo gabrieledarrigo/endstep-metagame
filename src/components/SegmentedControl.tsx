@@ -3,6 +3,7 @@ import "./SegmentedControl.css";
 type SegmentedControlProps<Option extends string> = {
   label: string;
   options: readonly Option[];
+  labels?: Readonly<Record<Option, string>>;
   value: Option;
   onChange: (option: Option) => void;
   busy?: boolean;
@@ -12,6 +13,7 @@ type SegmentedControlProps<Option extends string> = {
 export function SegmentedControl<Option extends string>({
   label,
   options,
+  labels,
   value,
   onChange,
   busy,
@@ -32,7 +34,7 @@ export function SegmentedControl<Option extends string>({
           aria-pressed={option === value}
           onClick={() => onChange(option)}
         >
-          {option}
+          {labels?.[option] ?? option}
         </button>
       ))}
     </div>

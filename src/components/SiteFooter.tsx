@@ -1,3 +1,4 @@
+import { Trans } from "react-i18next";
 import { SITE_NAME } from "../config";
 import { SiteMark } from "./SiteMark";
 import "./SiteFooter.css";
@@ -11,19 +12,26 @@ export function SiteFooter() {
           {SITE_NAME}
         </span>
         <span>
-          Made by{" "}
-          <a href="https://github.com/gabrieledarrigo">Gabriele D'Arrigo</a>
-          {" · "}
-          <a href="https://github.com/gabrieledarrigo/pauper-endstep-metagame">
-            Source code
-          </a>
+          <Trans
+            i18nKey="components.siteFooter.credit"
+            components={{
+              author: <a href="https://github.com/gabrieledarrigo" />,
+              repo: (
+                <a href="https://github.com/gabrieledarrigo/pauper-endstep-metagame" />
+              ),
+            }}
+          />
         </span>
       </div>
       <div className="site-footer__notes">
         <p className="site-footer__data">
-          Data from <a href="https://endstep.cc/metagame">endstep.cc</a>. This
-          site is not affiliated with Endstep. Card images and prices from{" "}
-          <a href="https://scryfall.com">Scryfall</a>.
+          <Trans
+            i18nKey="components.siteFooter.data"
+            components={{
+              endstep: <a href="https://endstep.cc/metagame" />,
+              scryfall: <a href="https://scryfall.com" />,
+            }}
+          />
         </p>
         <p className="site-footer__legal">
           {SITE_NAME} is unofficial Fan Content permitted under the{" "}
