@@ -22,7 +22,7 @@ import { ShareOverTime, ShareOverTimeSkeleton } from "./ShareOverTime";
 import { Summary, SummarySkeleton } from "./Summary";
 import { WinRateScatter, WinRateScatterSkeleton } from "./WinRateScatter";
 
-const VIEWS = ["Cards", "Table"] as const;
+const VIEWS = ["cards", "table"] as const;
 
 type View = (typeof VIEWS)[number];
 
@@ -49,7 +49,7 @@ export function OverviewPage() {
   const { t } = useTranslation();
   const [timeWindow, selectTimeWindow] = useTimeWindow();
   const [searchParams, setSearchParams] = useSearchParams();
-  const view: View = searchParams.get("view") === "table" ? "Table" : "Cards";
+  const view: View = searchParams.get("view") === "table" ? "table" : "cards";
   const decks = useQuery({
     queryKey: ["decks", timeWindow],
     queryFn: ({ signal }) => fetchDecks(timeWindow, signal),
@@ -145,13 +145,13 @@ export function OverviewPage() {
   };
 
   const deckView = (items: Deck[], caption?: string): ReactNode =>
-    view === "Table" ? (
+    view === "table" ? (
       <DeckTable decks={items} caption={caption} />
     ) : (
       <DeckGrid decks={items} />
     );
   const viewSkeleton =
-    view === "Table" ? <DeckTableSkeleton /> : <DeckGridSkeleton />;
+    view === "table" ? <DeckTableSkeleton /> : <DeckGridSkeleton />;
 
   const moreError =
     searching && search.isFetchNextPageError && !search.isFetchingNextPage
@@ -166,6 +166,7 @@ export function OverviewPage() {
     results.length > 0 &&
     results.length < total
       ? t("overview.overviewPage.shortfall", {
+          count: total,
           returned: formatCount(results.length),
           total: formatCount(total),
         })
@@ -216,7 +217,7 @@ export function OverviewPage() {
   };
 
   const selectView = (next: View): void => {
-    const written = next === "Table" ? "table" : null;
+    const written = next === "table" ? "table" : null;
 
     if (searchParams.get("view") === written) {
       return;
@@ -252,8 +253,8 @@ export function OverviewPage() {
           label={t("overview.overviewPage.view.label")}
           options={VIEWS}
           labels={{
-            Cards: t("overview.overviewPage.view.cards"),
-            Table: t("overview.overviewPage.view.table"),
+            cards: t("overview.overviewPage.view.cards"),
+            table: t("overview.overviewPage.view.table"),
           }}
           value={view}
           onChange={selectView}
@@ -337,7 +338,7 @@ export function OverviewPage() {
               query={decks}
               skeleton={viewSkeleton}
               title={
-                view === "Table"
+                view === "table"
                   ? t("overview.overviewPage.errors.table")
                   : t("overview.overviewPage.errors.grid")
               }
