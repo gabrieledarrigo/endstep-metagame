@@ -139,6 +139,17 @@ describe("DeckMatchups", () => {
     ).toBeNull();
   });
 
+  it("prints a deck name that looks like markup as it is", async () => {
+    renderRow({ ...DECK, id: "elsewhere", name: "<matchups>Elves</matchups>" });
+
+    expect(
+      await screen.findByText(
+        /^<matchups>Elves<\/matchups> is not in the top 4 for this window/,
+      ),
+    ).toBeTruthy();
+    expect(screen.getAllByRole("link")).toHaveLength(1);
+  });
+
   it("prints the row's own dates when they differ from the deck's", async () => {
     renderRow(DECK, undefined, { from: "2026-09-10", to: "2026-10-10" });
 
