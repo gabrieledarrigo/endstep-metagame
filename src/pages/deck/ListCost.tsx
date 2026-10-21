@@ -7,15 +7,7 @@ import { formatPrice } from "../../helpers";
 import "./ListCost.css";
 
 const CURRENCY_KEY = "currency";
-const OPTIONS = ["MTGO", "€", "$"] as const;
-
-type Option = (typeof OPTIONS)[number];
-
-const CURRENCIES: Record<Option, Currency> = {
-  MTGO: "tix",
-  "€": "eur",
-  $: "usd",
-};
+const CURRENCIES: readonly Currency[] = ["tix", "eur", "usd"];
 
 let chosen: Currency | null = null;
 
@@ -43,10 +35,6 @@ function storedCurrency(): Currency {
   }
 
   return "tix";
-}
-
-function optionOf(currency: Currency): Option {
-  return OPTIONS.find((option) => CURRENCIES[option] === currency) ?? "MTGO";
 }
 
 function centsOf(
@@ -101,8 +89,7 @@ export function ListCost({ main, side, cards }: ListCostProps) {
         })
       : t("deck.listCost.main", { main: priceText(t, mainCents, currency) });
 
-  const choose = (option: Option): void => {
-    const next = CURRENCIES[option];
+  const choose = (next: Currency): void => {
     setCurrency(next);
     try {
       localStorage.setItem(CURRENCY_KEY, next);
@@ -120,9 +107,9 @@ export function ListCost({ main, side, cards }: ListCostProps) {
         </h3>
         <SegmentedControl
           label={t("deck.listCost.currency")}
-          options={OPTIONS}
-          labels={{ MTGO: t("deck.listCost.mtgo"), "€": "€", $: "$" }}
-          value={optionOf(currency)}
+          options={CURRENCIES}
+          labels={{ tix: t("deck.listCost.mtgo"), eur: "€", usd: "$" }}
+          value={currency}
           onChange={choose}
           small
         />
