@@ -1,7 +1,7 @@
 import i18next from "i18next";
 import { describe, expect, it } from "vitest";
 import locales from "./locales.json";
-import type { Translation } from "./i18n";
+import type { Locales, Translation } from "./i18n";
 
 type Lacking = Omit<Translation, "common"> & {
   common: Omit<Translation["common"], "retry">;
@@ -39,6 +39,12 @@ describe("i18n", () => {
 });
 
 describe("the type check of the strings", () => {
+  it("holds every key of English in every language of the file", () => {
+    const check: Locales = locales;
+
+    expect(check).toBe(locales);
+  });
+
   it("refuses a language that lacks a key of English", () => {
     const lacking: Lacking = locales.en.translation;
 
