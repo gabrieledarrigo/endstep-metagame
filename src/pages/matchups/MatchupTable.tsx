@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { MatchupMatrix, TimeWindow } from "../../api/types";
 import { MatchupGrid } from "../../components/MatchupGrid";
 import { MatchupLegend } from "../../components/MatchupLegend";
@@ -21,8 +22,14 @@ export function MatchupTable({
   onReveal,
   notice,
 }: MatchupTableProps) {
+  const { t } = useTranslation();
   const { decks, cells } = matrix;
-  const scope = timeWindow ? `, ${timeWindow} window` : "";
+  const label = timeWindow
+    ? t("matchups.matchupTable.labelWindow", {
+        top: decks.length,
+        window: t(`common.window.${timeWindow}`),
+      })
+    : t("matchups.matchupTable.label", { top: decks.length });
 
   return (
     <div className="bleed matchup-table">
@@ -35,7 +42,7 @@ export function MatchupTable({
           rows={decks}
           columns={decks}
           cells={cells}
-          label={`Match win rate of the row deck against the column deck. Top ${decks.length} decks by share${scope}, rated.`}
+          label={label}
           spotlight={spotlight}
           reveal={reveal}
           onReveal={onReveal}

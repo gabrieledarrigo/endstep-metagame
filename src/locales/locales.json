@@ -409,6 +409,34 @@
           "sideHidden_one": "Not shown. Fewer than {{count}} player brought this exact 75.",
           "sideHidden_other": "Not shown. Fewer than {{count}} players brought this exact 75."
         }
+      },
+      "matchups": {
+        "title": "Matchups",
+        "matchupsPage": {
+          "thisDeck": "This deck",
+          "outside": "{{deck}} isn't in the top {{top}} for the selected time window.",
+          "tableDefault": "{{outside}} The table shows {{deck}} by default.",
+          "loading": "Loading the {{window}} window.",
+          "error": "The matchup table could not be loaded"
+        },
+        "matchupList": {
+          "label": "Match win rate of {{deck}} against the other {{others}} decks in the top {{top}}, rated.",
+          "labelWindow": "Match win rate of {{deck}} against the other {{others}} decks in the top {{top}}, {{window}} window, rated.",
+          "matches_one": "{{matches}} match",
+          "matches_other": "{{matches}} matches",
+          "verdict": {
+            "win": "Favoured",
+            "loss": "Unfavoured",
+            "neutral": "Within chance",
+            "gated": "Too few to call",
+            "none": "No data",
+            "mirror": "Mirror"
+          }
+        },
+        "matchupTable": {
+          "label": "Match win rate of the row deck against the column deck. Top {{top}} decks by share, rated.",
+          "labelWindow": "Match win rate of the row deck against the column deck. Top {{top}} decks by share, {{window}} window, rated."
+        }
       }
     }
   }
