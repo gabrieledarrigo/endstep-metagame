@@ -24,7 +24,9 @@ export function PlayedBy({ id, hidden, decks }: PlayedByProps) {
   return (
     <div className="played-by" id={id} hidden={hidden}>
       <p className="played-by__title">
-        {t("staples.playedBy.title", { decks: decks.length })}
+        {t("staples.playedBy.title", {
+          count: decks.length,
+        })}
       </p>
       <ul className="played-by__list">
         {decks.map((deck) => (

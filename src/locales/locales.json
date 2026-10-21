@@ -420,8 +420,10 @@
           "error": "The matchup table could not be loaded"
         },
         "matchupList": {
-          "label": "Match win rate of {{deck}} against the other {{others}} decks in the top {{top}}, rated.",
-          "labelWindow": "Match win rate of {{deck}} against the other {{others}} decks in the top {{top}}, {{window}} window, rated.",
+          "label_one": "Match win rate of {{deck}} against the other {{count}} deck in the top {{top}}, rated.",
+          "label_other": "Match win rate of {{deck}} against the other {{count}} decks in the top {{top}}, rated.",
+          "labelWindow_one": "Match win rate of {{deck}} against the other {{count}} deck in the top {{top}}, {{window}} window, rated.",
+          "labelWindow_other": "Match win rate of {{deck}} against the other {{count}} decks in the top {{top}}, {{window}} window, rated.",
           "matches_one": "{{matches}} match",
           "matches_other": "{{matches}} matches",
           "verdict": {
@@ -434,8 +436,10 @@
           }
         },
         "matchupTable": {
-          "label": "Match win rate of the row deck against the column deck. Top {{top}} decks by share, rated.",
-          "labelWindow": "Match win rate of the row deck against the column deck. Top {{top}} decks by share, {{window}} window, rated."
+          "label_one": "Match win rate of the row deck against the column deck. Top {{count}} deck by share, rated.",
+          "label_other": "Match win rate of the row deck against the column deck. Top {{count}} decks by share, rated.",
+          "labelWindow_one": "Match win rate of the row deck against the column deck. Top {{count}} deck by share, {{window}} window, rated.",
+          "labelWindow_other": "Match win rate of the row deck against the column deck. Top {{count}} decks by share, {{window}} window, rated."
         }
       },
       "whatToPlay": {
@@ -470,8 +474,10 @@
           },
           "likely": ", likely between {{low}} and {{high}}",
           "movement": {
-            "up": ", up {{count}}",
-            "down": ", down {{count}}"
+            "up_one": ", up {{count}}",
+            "up_other": ", up {{count}}",
+            "down_one": ", down {{count}}",
+            "down_other": ", down {{count}}"
           }
         },
         "metagame": {
@@ -481,7 +487,8 @@
           "note": "How often you expect to meet each deck. Each step is one point.",
           "reset": "Reset",
           "was": "was {{share}}",
-          "rest": "The top {{top}} hold {{held}} of registrations. The other {{rest}} are left out of the sum."
+          "rest_one": "The top {{count}} holds {{held}} of registrations. The other {{rest}} are left out of the sum.",
+          "rest_other": "The top {{count}} hold {{held}} of registrations. The other {{rest}} are left out of the sum."
         },
         "stepper": {
           "lower": "Less {{name}}",
@@ -546,11 +553,13 @@
           "emptyTitle": "No cards in this window",
           "withheld_one": "{{count}} deck is left out because Endstep withholds its cards.",
           "withheld_other": "{{count}} decks are left out because Endstep withholds their cards.",
-          "more": "Show {{more}} more"
+          "more_one": "Show {{count}} more",
+          "more_other": "Show {{count}} more"
         },
         "playedBy": {
           "empty": "No deck plays it in 5% of its lists or more.",
-          "title": "Played in {{decks}} of the top 24",
+          "title_one": "Played in {{count}} of the top 24",
+          "title_other": "Played in {{count}} of the top 24",
           "ofLists": " of its lists, ",
           "note": "The share of each deck's lists that play it."
         }

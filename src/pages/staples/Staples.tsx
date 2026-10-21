@@ -118,7 +118,9 @@ export function Staples({
                     className="staples__more"
                     onClick={showMore}
                   >
-                    {t("staples.staples.more", { more: Math.min(MORE, rest) })}
+                    {t("staples.staples.more", {
+                      count: Math.min(MORE, rest),
+                    })}
                   </Button>
                 )}
                 {data.withheld > 0 && (

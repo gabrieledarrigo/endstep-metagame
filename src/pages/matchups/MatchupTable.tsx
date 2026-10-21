@@ -26,10 +26,12 @@ export function MatchupTable({
   const { decks, cells } = matrix;
   const label = timeWindow
     ? t("matchups.matchupTable.labelWindow", {
-        top: decks.length,
+        count: decks.length,
         window: t(`common.window.${timeWindow}`),
       })
-    : t("matchups.matchupTable.label", { top: decks.length });
+    : t("matchups.matchupTable.label", {
+        count: decks.length,
+      });
 
   return (
     <div className="bleed matchup-table">

@@ -55,13 +55,13 @@ export function MatchupList({
   const label = timeWindow
     ? t("matchups.matchupList.labelWindow", {
         deck: deck.name,
-        others: others.length,
+        count: others.length,
         top: decks.length,
         window: t(`common.window.${timeWindow}`),
       })
     : t("matchups.matchupList.label", {
         deck: deck.name,
-        others: others.length,
+        count: others.length,
         top: decks.length,
       });
 

@@ -14,7 +14,7 @@ function restLine(t: TFunction, decks: MatrixDeck[]): string {
     Math.round(decks.reduce((sum, deck) => sum + deck.share, 0) * 1000) / 1000;
 
   return t("whatToPlay.metagame.rest", {
-    top: decks.length,
+    count: decks.length,
     held: percent(top),
     rest: percent(1 - top),
   });
