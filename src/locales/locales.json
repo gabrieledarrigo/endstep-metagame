@@ -49,7 +49,8 @@
         "staples": {
           "none": "Not core in any deck",
           "one": "Core in {{deck}}",
-          "more": "Core in {{first}}, {{second}} and {{count}} more",
+          "more_one": "Core in {{first}}, {{second}} and {{count}} more",
+          "more_other": "Core in {{first}}, {{second}} and {{count}} more",
           "list": "Core in {{decks}} and {{last}}"
         },
         "cellState": {
