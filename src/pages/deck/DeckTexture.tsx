@@ -27,6 +27,7 @@ export function DeckTexture({ texture }: { texture: DeckDetail["texture"] }) {
           value={formatProportion(mulliganRate)}
           gated={mulliganRate.of === 0}
           detail={t("deck.texture.mulliganGames", {
+            count: mulliganRate.of,
             mulligans: formatCount(mulliganRate.count),
             games: formatCount(mulliganRate.of),
           })}

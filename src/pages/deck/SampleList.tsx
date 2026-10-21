@@ -253,7 +253,10 @@ export function SampleList({ list, cards, cardsPending }: SampleListProps) {
         <>
           <h3 className="sample-list__heading">{t("deck.sampleList.side")}</h3>
           <p className="sample-list__note">
-            {t("deck.sampleList.sideHidden", { min: list.minPlayers })}
+            {t("deck.sampleList.sideHidden", {
+              count: list.minPlayers,
+              min: list.minPlayers,
+            })}
           </p>
         </>
       )}

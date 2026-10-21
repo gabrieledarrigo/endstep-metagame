@@ -30,7 +30,10 @@ function GameRateTile({ label, block }: { label: string; block: WinLoss }) {
     <StatTile
       label={label}
       value={percent(read.rate)}
-      detail={t("deck.toss.games", { games: formatCount(read.decided) })}
+      detail={t("deck.toss.games", {
+        count: read.decided,
+        games: formatCount(read.decided),
+      })}
     />
   );
 }
@@ -49,6 +52,7 @@ export function DeckToss({ playDraw }: { playDraw: DeckDetail["playDraw"] }) {
           value={formatProportion(choseToDraw)}
           gated={choseToDraw.of === 0}
           detail={t("deck.toss.drawTosses", {
+            count: choseToDraw.of,
             draws: formatCount(choseToDraw.count),
             tosses: formatCount(choseToDraw.of),
           })}

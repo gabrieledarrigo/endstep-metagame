@@ -157,7 +157,8 @@
             "found_other": "{{decks}} decks match {{term}}."
           },
           "moreError": "The next decks could not be loaded. {{error}}",
-          "shortfall": "Endstep returned {{returned}} of the {{total}} decks it counted.",
+          "shortfall_one": "Endstep returned {{returned}} of the {{total}} deck it counted.",
+          "shortfall_other": "Endstep returned {{returned}} of the {{total}} decks it counted.",
           "errors": {
             "summary": "The summary could not be loaded",
             "search": "The search could not be loaded",
@@ -210,9 +211,10 @@
           "note": "Other covers every archetype outside the top {{top}}."
         },
         "searchResults": {
-          "line_one": "<total>{{decks}} deck</total> matches {{term}}. Search covers deck names and every card in their lists.",
-          "line_other": "<total>{{decks}} decks</total> match {{term}}. Search covers deck names and every card in their lists.",
-          "more": "Show {{shown}} more"
+          "line_one": "<total>{{decks}} deck</total> matches <term></term>. Search covers deck names and every card in their lists.",
+          "line_other": "<total>{{decks}} decks</total> match <term></term>. Search covers deck names and every card in their lists.",
+          "more_one": "Show {{count}} more",
+          "more_other": "Show {{count}} more"
         },
         "shareOverTime": {
           "heading": "Share over time",
@@ -293,10 +295,12 @@
           "title": "Matchups against the top {{top}}",
           "dates": "These matchups cover {{dates}}.",
           "failed": "The matchups could not be loaded",
-          "grid": "Match win rate of {{deck}} against the other {{others}} decks in the top {{top}}, rated.",
-          "gridWindow": "Match win rate of {{deck}} against the other {{others}} decks in the top {{top}}, {{window}} window, rated.",
+          "grid_one": "Match win rate of {{deck}} against the other {{others}} deck in the top {{top}}, rated.",
+          "grid_other": "Match win rate of {{deck}} against the other {{others}} decks in the top {{top}}, rated.",
+          "gridWindow_one": "Match win rate of {{deck}} against the other {{others}} deck in the top {{top}}, {{window}} window, rated.",
+          "gridWindow_other": "Match win rate of {{deck}} against the other {{others}} decks in the top {{top}}, {{window}} window, rated.",
           "more": "See {{deck}} in the full table",
-          "outside": "{{deck}} is not in the top {{top}} for this window, so it has no row in the matchup table. <matchups>See the matchup table</matchups>",
+          "outside": "<deck></deck> is not in the top {{top}} for this window, so it has no row in the matchup table. <matchups>See the matchup table</matchups>",
           "none": "No matchups are recorded for this window yet."
         },
         "share": {
@@ -320,15 +324,18 @@
           "openingHand": "Opening hand",
           "cards": "{{cards}} cards",
           "mulligan": "Mulligan rate",
-          "mulliganGames": "{{mulligans}} of {{games}} games"
+          "mulliganGames_one": "{{mulligans}} of {{games}} game",
+          "mulliganGames_other": "{{mulligans}} of {{games}} games"
         },
         "toss": {
           "won": "Won the toss",
           "lost": "Lost the toss",
           "draw": "Chose to draw",
           "tooFew": "Too few to call",
-          "games": "{{games}} games",
-          "drawTosses": "{{draws}} of {{tosses}} tosses won"
+          "games_one": "{{games}} game",
+          "games_other": "{{games}} games",
+          "drawTosses_one": "{{draws}} of {{tosses}} toss won",
+          "drawTosses_other": "{{draws}} of {{tosses}} tosses won"
         },
         "games": {
           "columns": {
@@ -344,14 +351,14 @@
           "game": "Game {{number}}",
           "all": "All games",
           "gatedLabel": "{{title}}: too few to call, {{needed}}",
-          "label": "{{title}}: game win rate {{rate}}, range {{low}} to {{high}}, {{wins}} wins, {{losses}} losses",
+          "label": "{{title}}: game win rate {{rate}}, range {{range}}, {{wins}} wins, {{losses}} losses",
           "wins": "Wins",
           "losses": "Losses",
           "gated": "Too few to call: {{needed}}.",
           "rate": "Game win rate",
           "range": "Range",
           "allKnown": "Every game has a play or draw record.",
-          "unknown_one": "{{games}} game has no play or draw record and count only in the totals.",
+          "unknown_one": "{{games}} game has no play or draw record and counts only in the totals.",
           "unknown_other": "{{games}} games have no play or draw record and count only in the totals.",
           "unavailable": "Game results are not available for this window.",
           "hatched": "A hatched cell has fewer than 20 decided games, too few to call."
@@ -359,6 +366,9 @@
         "listCost": {
           "heading": "Cost to build",
           "currency": "Currency",
+          "mtgo": "MTGO",
+          "unit": "tix",
+          "tix": "{{price}} tix",
           "main": "Main deck {{main}}",
           "split": "Main deck {{main}} · Sideboard {{side}}",
           "source": "Prices from Scryfall, at each card’s cheapest printing.",
@@ -392,7 +402,8 @@
           },
           "main": "Main deck",
           "side": "Sideboard",
-          "sideHidden": "Not shown. Fewer than {{min}} players brought this exact 75."
+          "sideHidden_one": "Not shown. Fewer than {{min}} player brought this exact 75.",
+          "sideHidden_other": "Not shown. Fewer than {{min}} players brought this exact 75."
         }
       }
     }
