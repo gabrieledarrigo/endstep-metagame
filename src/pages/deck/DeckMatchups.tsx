@@ -34,7 +34,6 @@ function MatchupRow({ deck, matrix, loading, timeWindow }: MatchupRowProps) {
     const label = {
       deck: row.name,
       count: others.length,
-      others: others.length,
       top: matrix.decks.length,
     };
 

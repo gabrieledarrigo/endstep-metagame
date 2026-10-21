@@ -295,10 +295,10 @@
           "title": "Matchups against the top {{top}}",
           "dates": "These matchups cover {{dates}}.",
           "failed": "The matchups could not be loaded",
-          "grid_one": "Match win rate of {{deck}} against the other {{others}} deck in the top {{top}}, rated.",
-          "grid_other": "Match win rate of {{deck}} against the other {{others}} decks in the top {{top}}, rated.",
-          "gridWindow_one": "Match win rate of {{deck}} against the other {{others}} deck in the top {{top}}, {{window}} window, rated.",
-          "gridWindow_other": "Match win rate of {{deck}} against the other {{others}} decks in the top {{top}}, {{window}} window, rated.",
+          "grid_one": "Match win rate of {{deck}} against the other {{count}} deck in the top {{top}}, rated.",
+          "grid_other": "Match win rate of {{deck}} against the other {{count}} decks in the top {{top}}, rated.",
+          "gridWindow_one": "Match win rate of {{deck}} against the other {{count}} deck in the top {{top}}, {{window}} window, rated.",
+          "gridWindow_other": "Match win rate of {{deck}} against the other {{count}} decks in the top {{top}}, {{window}} window, rated.",
           "more": "See {{deck}} in the full table",
           "outside": "<deck></deck> is not in the top {{top}} for this window, so it has no row in the matchup table. <matchups>See the matchup table</matchups>",
           "none": "No matchups are recorded for this window yet."
@@ -406,8 +406,8 @@
           },
           "main": "Main deck",
           "side": "Sideboard",
-          "sideHidden_one": "Not shown. Fewer than {{min}} player brought this exact 75.",
-          "sideHidden_other": "Not shown. Fewer than {{min}} players brought this exact 75."
+          "sideHidden_one": "Not shown. Fewer than {{count}} player brought this exact 75.",
+          "sideHidden_other": "Not shown. Fewer than {{count}} players brought this exact 75."
         }
       }
     }
