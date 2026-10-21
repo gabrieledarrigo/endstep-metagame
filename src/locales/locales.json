@@ -1,0 +1,142 @@
+{
+  "en": {
+    "translation": {
+      "common": {
+        "window": {
+          "1d": "1d",
+          "7d": "7d",
+          "14d": "14d",
+          "30d": "30d",
+          "season": "season"
+        },
+        "period": {
+          "1d": "the last day",
+          "7d": "the last 7 days",
+          "14d": "the last 14 days",
+          "30d": "the last 30 days",
+          "season": "this season"
+        },
+        "timeWindow": "Time window",
+        "deck": "Deck",
+        "retry": "Retry",
+        "range": "{{from}} to {{to}}"
+      },
+      "api": {
+        "client": {
+          "network": "The server could not be reached.",
+          "rateLimit": "Endstep's rate limit was reached. It resets within a minute, so a retry after that usually works.",
+          "upstream": "Endstep did not respond.",
+          "http": "The request failed with status {{status}}.",
+          "malformed": "The server returned a malformed response."
+        }
+      },
+      "helpers": {
+        "format": {
+          "copies": "{{copies}} copies",
+          "population": {
+            "rated": "Rated",
+            "casual": "Casual"
+          },
+          "notAvailable": "Not available"
+        },
+        "winRate": {
+          "needed": {
+            "matches": "{{decided}} of the {{needed}} matches needed",
+            "games": "{{decided}} of the {{needed}} games needed"
+          },
+          "tooFew": "Too few to call, {{decided}} of {{needed}}"
+        },
+        "staples": {
+          "none": "Not core in any deck",
+          "one": "Core in {{deck}}",
+          "more": "Core in {{first}}, {{second}} and {{count}} more",
+          "list": "Core in {{decks}} and {{last}}"
+        },
+        "cellState": {
+          "summary": "{{row}} against {{column}}: {{verdict}}",
+          "summaryWithRate": "{{row}} against {{column}}: {{rate}}%, {{verdict}}",
+          "gatedVerdict": "too few to call, {{needed}}",
+          "verdict": {
+            "mirror": "mirror match",
+            "none": "no data",
+            "gated": "too few to call",
+            "win": "clear result",
+            "loss": "clear result",
+            "neutral": "within the range of chance"
+          }
+        }
+      },
+      "charts": {
+        "chartLegend": {
+          "label": "Highlight a deck"
+        }
+      },
+      "components": {
+        "colourPips": {
+          "label": "Colours: {{colours}}",
+          "W": "white",
+          "U": "blue",
+          "B": "black",
+          "R": "red",
+          "G": "green",
+          "C": "colourless"
+        },
+        "deckPicker": {
+          "missing": "{{deck}} (not in the top {{top}})",
+          "allDecks": "All decks"
+        },
+        "emptyWindow": {
+          "title": "No decks in this window",
+          "detail": "The {{window}} window has no registrations yet.",
+          "longer": "{{detail}} Try a longer window.",
+          "switch": "Switch to {{window}}"
+        },
+        "matchupGrid": {
+          "pair": "{{row}} against {{column}}",
+          "mirror": "Mirror match. Endstep does not list it.",
+          "noData": "No data for this pair in the window.",
+          "wins": "Wins",
+          "losses": "Losses",
+          "gated": "Too few to call: {{needed}}.",
+          "rate": "Match win rate",
+          "range": "Range",
+          "matches": "Matches",
+          "neutral": "Within the range of chance.",
+          "clear": "Clear result. The range excludes 50%."
+        },
+        "matchupLegend": {
+          "label": "Legend",
+          "win": "Favoured, clear result",
+          "loss": "Unfavoured, clear result",
+          "neutral": "Within the range of chance",
+          "gated": "Too few matches",
+          "none": "No data",
+          "mirror": "Mirror"
+        },
+        "shareChange": {
+          "previous_window_empty": "no earlier data",
+          "no_previous_window": "no earlier window",
+          "notAvailable": "not available",
+          "noChange": "no change",
+          "down": "down",
+          "up": "up",
+          "points": "{{points}} pts"
+        },
+        "siteFooter": {
+          "credit": "Made by <author>Gabriele D'Arrigo</author> · <repo>Source code</repo>",
+          "data": "Data from <endstep>endstep.cc</endstep>. This site is not affiliated with Endstep. Card images and prices from <scryfall>Scryfall</scryfall>."
+        },
+        "siteNav": {
+          "label": "Pages",
+          "overview": "Overview",
+          "matchups": "Matchups",
+          "whatToPlay": "What to play?",
+          "staples": "Staples"
+        },
+        "themeToggle": {
+          "label": "Dark theme"
+        }
+      }
+    }
+  }
+}

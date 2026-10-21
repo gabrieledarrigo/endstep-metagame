@@ -1,4 +1,5 @@
 import { cleanup } from "@testing-library/react";
+import "../src/locales/i18n";
 import { afterEach, beforeEach } from "vitest";
 import { stubWidth } from "./stubWidth";
 

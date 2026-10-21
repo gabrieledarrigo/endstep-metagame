@@ -1,4 +1,5 @@
 import "./styles/index.css";
+import "./locales/i18n";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
 
