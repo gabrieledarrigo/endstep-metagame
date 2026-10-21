@@ -139,6 +139,112 @@
         "themeToggle": {
           "label": "Dark theme"
         }
+      },
+      "overview": {
+        "title": "Overview",
+        "overviewPage": {
+          "view": {
+            "label": "View",
+            "cards": "Cards",
+            "table": "Table"
+          },
+          "status": {
+            "loading": "Loading the {{window}} window.",
+            "searching": "Searching for {{term}}.",
+            "searchError": "The search could not be loaded.",
+            "noMatch": "No deck or card matches {{term}}.",
+            "found_one": "{{decks}} deck matches {{term}}.",
+            "found_other": "{{decks}} decks match {{term}}."
+          },
+          "moreError": "The next decks could not be loaded. {{error}}",
+          "shortfall": "Endstep returned {{returned}} of the {{total}} decks it counted.",
+          "errors": {
+            "summary": "The summary could not be loaded",
+            "search": "The search could not be loaded",
+            "table": "The deck table could not be loaded",
+            "grid": "The deck grid could not be loaded",
+            "shareOverTime": "Share over time could not be loaded",
+            "rankedBars": "Meta share by deck could not be loaded",
+            "winRateScatter": "Win rate against share could not be loaded"
+          },
+          "noMatch": {
+            "title": "No deck or card matches {{term}}",
+            "detail": "Search covers deck names and every card in their lists, in the selected window.",
+            "clear": "Clear the search"
+          },
+          "caption": "Decks that match {{term}}, sortable by column"
+        },
+        "deckCard": {
+          "share": "Share",
+          "players": "Players",
+          "winRate": "Match win rate",
+          "shareChange": "Share change"
+        },
+        "deckGrid": {
+          "heading": "Decks by meta share"
+        },
+        "deckSearch": {
+          "label": "Search decks or cards",
+          "placeholder": "Search decks or cards",
+          "clear": "Clear the search"
+        },
+        "deckTable": {
+          "heading": "Deck table",
+          "caption_one": "The top {{count}} deck, sortable by column",
+          "caption_other": "The top {{count}} decks, sortable by column",
+          "rank": "Rank by share",
+          "columns": {
+            "colours": "Colours",
+            "share": "Share",
+            "players": "Players",
+            "matches": "Matches",
+            "winRate": "Match win rate",
+            "change": "Change"
+          }
+        },
+        "rankedBars": {
+          "heading": "Meta share by deck",
+          "region": "Meta share by deck, chart",
+          "other_one": "Other ({{count}} archetype and unclassified)",
+          "other_other": "Other ({{count}} archetypes and unclassified)",
+          "note": "Other covers every archetype outside the top {{top}}."
+        },
+        "searchResults": {
+          "line_one": "<total>{{decks}} deck</total> matches {{term}}. Search covers deck names and every card in their lists.",
+          "line_other": "<total>{{decks}} decks</total> match {{term}}. Search covers deck names and every card in their lists.",
+          "more": "Show {{shown}} more"
+        },
+        "shareOverTime": {
+          "heading": "Share over time",
+          "region": "Daily meta share, top eight decks"
+        },
+        "summary": {
+          "registrations": "Registrations",
+          "players": "Players",
+          "archetypes": "Archetypes",
+          "window": "Window",
+          "population": "Population"
+        },
+        "winRateScatter": {
+          "heading": "Win rate against share",
+          "note": "The bubble area represents player count. Decks above the line win more than half their matches.",
+          "noteWithLeftOut": "{{note}} {{leftOut}}",
+          "leftOut_one": "{{count}} deck with fewer than {{needed}} decided matches is left out, too few to place.",
+          "leftOut_other": "{{count}} decks with fewer than {{needed}} decided matches are left out, too few to place.",
+          "chart": "Match win rate against meta share",
+          "xAxis": "meta share",
+          "yAxis": "match win rate",
+          "players": "Players",
+          "reference": "50% win rate",
+          "tooltip": {
+            "share": "Meta share",
+            "players": "Players",
+            "winRate": "Match win rate",
+            "bounds": "Confidence bounds",
+            "tap": "Tap again to open the deck.",
+            "click": "Click to open the deck."
+          }
+        }
       }
     }
   }

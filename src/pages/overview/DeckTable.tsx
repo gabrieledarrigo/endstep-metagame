@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router";
 import type { Deck } from "../../api/types";
 import { ColourPips } from "../../components/ColourPips";
@@ -128,6 +129,7 @@ type DeckTableProps = {
 };
 
 export function DeckTable({ decks, caption }: DeckTableProps) {
+  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const sort = readSort(searchParams);
 
@@ -159,50 +161,52 @@ export function DeckTable({ decks, caption }: DeckTableProps) {
       aria-labelledby="deck-table-heading"
     >
       <h2 className="visually-hidden" id="deck-table-heading">
-        Deck table
+        {t("overview.deckTable.heading")}
       </h2>
       <table className="deck-table">
         <caption className="visually-hidden">
-          {caption ?? `The top ${decks.length} decks, sortable by column`}
+          {caption ?? t("overview.deckTable.caption", { count: decks.length })}
         </caption>
         <thead>
           <tr>
             <th scope="col" className="deck-table__header">
-              <span className="visually-hidden">Rank by share</span>
+              <span className="visually-hidden">
+                {t("overview.deckTable.rank")}
+              </span>
             </th>
             <SortHeader
               column="name"
-              label="Deck"
+              label={t("common.deck")}
               sort={sort}
               onSort={onSort}
             />
             <th scope="col" className="deck-table__header">
-              Colours
+              {t("overview.deckTable.columns.colours")}
             </th>
             <SortHeader
               column="share"
-              label="Share"
+              label={t("overview.deckTable.columns.share")}
               numeric
               sort={sort}
               onSort={onSort}
             />
             <SortHeader
               column="players"
-              label="Players"
+              label={t("overview.deckTable.columns.players")}
               numeric
               sort={sort}
               onSort={onSort}
             />
             <SortHeader
               column="matches"
-              label="Matches"
+              label={t("overview.deckTable.columns.matches")}
               numeric
               sort={sort}
               onSort={onSort}
             />
             <SortHeader
               column="winRate"
-              label="Match win rate"
+              label={t("overview.deckTable.columns.winRate")}
               numeric
               sort={sort}
               onSort={onSort}
@@ -211,7 +215,7 @@ export function DeckTable({ decks, caption }: DeckTableProps) {
               scope="col"
               className="deck-table__header deck-table__header--numeric"
             >
-              Change
+              {t("overview.deckTable.columns.change")}
             </th>
           </tr>
         </thead>
@@ -259,17 +263,49 @@ export function DeckTable({ decks, caption }: DeckTableProps) {
 }
 
 const DECK_TABLE_COLUMNS = [
-  { label: "", width: 18 },
-  { label: "Deck", width: 150 },
-  { label: "Colours", width: 57 },
-  { label: "Share", width: 44, numeric: true },
-  { label: "Players", width: 40, numeric: true },
-  { label: "Matches", width: 48, numeric: true },
-  { label: "Match win rate", width: 44, numeric: true },
-  { label: "Change", width: 52, numeric: true },
-];
+  { name: "rank", width: 18, numeric: false },
+  { name: "deck", label: "common.deck", width: 150, numeric: false },
+  {
+    name: "colours",
+    label: "overview.deckTable.columns.colours",
+    width: 57,
+    numeric: false,
+  },
+  {
+    name: "share",
+    label: "overview.deckTable.columns.share",
+    width: 44,
+    numeric: true,
+  },
+  {
+    name: "players",
+    label: "overview.deckTable.columns.players",
+    width: 40,
+    numeric: true,
+  },
+  {
+    name: "matches",
+    label: "overview.deckTable.columns.matches",
+    width: 48,
+    numeric: true,
+  },
+  {
+    name: "winRate",
+    label: "overview.deckTable.columns.winRate",
+    width: 44,
+    numeric: true,
+  },
+  {
+    name: "change",
+    label: "overview.deckTable.columns.change",
+    width: 52,
+    numeric: true,
+  },
+] as const;
 
 export function DeckTableSkeleton() {
+  const { t } = useTranslation();
+
   return (
     <Panel className="deck-table__scroll" aria-busy="true">
       <table className="deck-table">
@@ -277,7 +313,7 @@ export function DeckTableSkeleton() {
           <tr>
             {DECK_TABLE_COLUMNS.map((column) => (
               <th
-                key={column.label}
+                key={column.name}
                 scope="col"
                 className={
                   column.numeric
@@ -285,7 +321,7 @@ export function DeckTableSkeleton() {
                     : "deck-table__header"
                 }
               >
-                {column.label}
+                {"label" in column && t(column.label)}
               </th>
             ))}
           </tr>
@@ -295,7 +331,7 @@ export function DeckTableSkeleton() {
             <tr key={row}>
               {DECK_TABLE_COLUMNS.map((column) => (
                 <td
-                  key={column.label}
+                  key={column.name}
                   className={
                     column.numeric
                       ? "deck-table__cell deck-table__cell--numeric"

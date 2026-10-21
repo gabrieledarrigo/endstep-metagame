@@ -7,6 +7,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useTranslation } from "react-i18next";
 import { searchTerm } from "../../helpers";
 import "./DeckSearch.css";
 
@@ -23,6 +24,7 @@ type DeckSearchProps = {
 };
 
 export function DeckSearch({ term, onSearch, ref }: DeckSearchProps) {
+  const { t } = useTranslation();
   const id = useId();
   const input = useRef<HTMLInputElement>(null);
   const [text, setText] = useState(term ?? "");
@@ -74,7 +76,7 @@ export function DeckSearch({ term, onSearch, ref }: DeckSearchProps) {
   return (
     <div className="deck-search" role="search">
       <label className="visually-hidden" htmlFor={id}>
-        Search decks or cards
+        {t("overview.deckSearch.label")}
       </label>
       <svg className="deck-search__icon" viewBox="0 0 24 24" aria-hidden="true">
         <circle cx="10.5" cy="10.5" r="6.5" />
@@ -86,7 +88,7 @@ export function DeckSearch({ term, onSearch, ref }: DeckSearchProps) {
         id={id}
         type="search"
         value={text}
-        placeholder="Search decks or cards"
+        placeholder={t("overview.deckSearch.placeholder")}
         autoComplete="off"
         onChange={(event) => setText(event.target.value)}
         onKeyDown={(event) => {
@@ -102,7 +104,7 @@ export function DeckSearch({ term, onSearch, ref }: DeckSearchProps) {
         <button
           type="button"
           className="deck-search__clear"
-          aria-label="Clear the search"
+          aria-label={t("overview.deckSearch.clear")}
           onClick={clear}
         >
           {"×"}
