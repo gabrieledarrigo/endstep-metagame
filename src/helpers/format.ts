@@ -198,13 +198,15 @@ export function formatWindow({
 }
 
 /**
- * Capitalises a population for display.
+ * Names a population for display.
  *
  * @param population - The population from a response's provenance.
- * @returns The population with a capital letter, such as `Rated`.
+ * @returns The population's name, such as `Rated`, or the population with a capital letter when the file has no name for it.
  */
 export function formatPopulation(population: Population): string {
-  return i18next.t(`helpers.format.population.${population}`);
+  return i18next.t(`helpers.format.population.${population}`, {
+    defaultValue: population.charAt(0).toUpperCase() + population.slice(1),
+  });
 }
 
 /**
