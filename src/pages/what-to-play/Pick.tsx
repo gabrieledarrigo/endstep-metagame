@@ -1,4 +1,6 @@
+import type { TFunction } from "i18next";
 import { Fragment, type ReactNode } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import { Panel } from "../../components/Panel";
 import { Skeleton } from "../../components/Skeleton";
 import { WindowLink } from "../../components/WindowLink";
@@ -22,44 +24,41 @@ function joined(items: ReactNode[], last: string): ReactNode[] {
   });
 }
 
-function moreText(more: number): string {
-  if (more === 0) {
-    return "";
-  }
-
-  if (more === 1) {
-    return ", and 1 more deck is just as close";
-  }
-
-  return `, and ${more} more decks are just as close`;
-}
-
-function why(decks: RankedDeck[], more: number): ReactNode {
+function why(t: TFunction, decks: RankedDeck[], more: number): string {
   if (decks.length === 1) {
-    return `${decks[0].deck.name} wins ${percent(decks[0].rate)} of its matches against the metagame you expect.`;
+    return t("whatToPlay.pick.why.one", {
+      deck: decks[0].deck.name,
+      rate: percent(decks[0].rate),
+    });
   }
 
   const rates = decks.map((entry) => percent(entry.rate));
+  const list = {
+    rates: rates.slice(0, -1).join(", "),
+    last: rates[rates.length - 1],
+  };
 
-  return (
-    <>
-      They win the most matches against the metagame you expect:{" "}
-      {joined(rates, "and")}. The gap between them is too small to call
-      {moreText(more)}.
-    </>
-  );
+  if (more === 0) {
+    return t("whatToPlay.pick.why.many", list);
+  }
+
+  return t("whatToPlay.pick.why.more", { ...list, count: more });
 }
 
-function basisOf(changed: boolean, period?: string): string | undefined {
+function basisOf(
+  t: TFunction,
+  changed: boolean,
+  period?: string,
+): string | undefined {
   if (changed) {
-    return "Based on the metagame you set.";
+    return t("whatToPlay.pick.basis.changed");
   }
 
   if (period === undefined) {
     return undefined;
   }
 
-  return `Based on ${period}. Change the metagame to match what you expect.`;
+  return t("whatToPlay.pick.basis.period", { period });
 }
 
 type PickProps = {
@@ -70,7 +69,8 @@ type PickProps = {
 };
 
 export function Pick({ decks, more, changed = false, period }: PickProps) {
-  const basis = basisOf(changed, period);
+  const { t } = useTranslation();
+  const basis = basisOf(t, changed, period);
   const links = decks.map((entry) => (
     <WindowLink className="pick__deck" to={`/decks/${entry.deck.slug}`}>
       {entry.deck.name}
@@ -79,20 +79,25 @@ export function Pick({ decks, more, changed = false, period }: PickProps) {
 
   return (
     <Panel className="pick">
-      <span className="pick__label">Our pick</span>
+      <span className="pick__label">{t("whatToPlay.pick.label")}</span>
       <h2 className="pick__title" aria-live="polite" aria-atomic="true">
-        Play {joined(links, "or")}!
+        <Trans
+          i18nKey="whatToPlay.pick.title"
+          components={{ decks: <>{joined(links, t("whatToPlay.pick.or"))}</> }}
+        />
       </h2>
-      <p className="pick__why">{why(decks, more)}</p>
+      <p className="pick__why">{why(t, decks, more)}</p>
       {basis !== undefined && <p className="pick__basis">{basis}</p>}
     </Panel>
   );
 }
 
 export function PickSkeleton() {
+  const { t } = useTranslation();
+
   return (
     <Panel className="pick" aria-busy="true">
-      <span className="pick__label">Our pick</span>
+      <span className="pick__label">{t("whatToPlay.pick.label")}</span>
       <Skeleton className="pick__skeleton-title" />
       <Skeleton className="pick__skeleton-line" />
     </Panel>

@@ -437,6 +437,91 @@
           "label": "Match win rate of the row deck against the column deck. Top {{top}} decks by share, rated.",
           "labelWindow": "Match win rate of the row deck against the column deck. Top {{top}} decks by share, {{window}} window, rated."
         }
+      },
+      "whatToPlay": {
+        "title": "What to play?",
+        "loading": "Loading the {{window}} window.",
+        "error": "The ranking could not be loaded",
+        "pick": {
+          "label": "Our pick",
+          "title": "Play <decks></decks>!",
+          "or": "or",
+          "why": {
+            "one": "{{deck}} wins {{rate}} of its matches against the metagame you expect.",
+            "many": "They win the most matches against the metagame you expect: {{rates}} and {{last}}. The gap between them is too small to call.",
+            "more_one": "They win the most matches against the metagame you expect: {{rates}} and {{last}}. The gap between them is too small to call, and {{count}} more deck is just as close.",
+            "more_other": "They win the most matches against the metagame you expect: {{rates}} and {{last}}. The gap between them is too small to call, and {{count}} more decks are just as close."
+          },
+          "basis": {
+            "changed": "Based on the metagame you set.",
+            "period": "Based on {{period}}. Change the metagame to match what you expect."
+          }
+        },
+        "expectedRates": {
+          "title": "Expected match win rate",
+          "note": {
+            "changed": "The metagame you set",
+            "period": "Metagame of {{period}}"
+          },
+          "legend": {
+            "win": "Clearly above 50%",
+            "neutral": "Too close to call",
+            "loss": "Clearly below 50%"
+          },
+          "likely": ", likely between {{low}} and {{high}}",
+          "movement": {
+            "up": ", up {{count}}",
+            "down": ", down {{count}}"
+          }
+        },
+        "metagame": {
+          "title": "The metagame you expect",
+          "open": "Change",
+          "close": "Close",
+          "note": "How often you expect to meet each deck. Each step is one point.",
+          "reset": "Reset",
+          "was": "was {{share}}",
+          "rest": "The top {{top}} hold {{held}} of registrations. The other {{rest}} are left out of the sum."
+        },
+        "stepper": {
+          "lower": "Less {{name}}",
+          "raise": "More {{name}}"
+        },
+        "beat": {
+          "title": "Beat a deck",
+          "note": {
+            "none": "No deck in the top {{top}} clearly beats {{name}} in this window.",
+            "some_one": "This deck clearly beats {{name}}.",
+            "some_other": "These decks clearly beat {{name}}."
+          },
+          "table": {
+            "against": "Against {{name}}",
+            "range": "Range",
+            "metagame": "Against the metagame",
+            "likely": ", likely between {{low}} and {{high}}"
+          }
+        },
+        "howItWorks": {
+          "title": "How the numbers are made",
+          "items": {
+            "count": {
+              "subject": "How we count.",
+              "text": "For each deck, we take its win rate against each of the top 24 decks. We weight each one by how often you expect to meet that deck. A mirror match counts as 50%. So does a matchup with fewer than 20 matches, and it widens the bar."
+            },
+            "bars": {
+              "subject": "The bars.",
+              "text": "Each bar shows where the true rate most likely is. Blue is clearly above 50%, red is clearly below, grey is too close to call."
+            },
+            "pick": {
+              "subject": "Our pick.",
+              "text": "The deck with the best rate. When other decks are too close to tell apart, we name them too, up to three."
+            },
+            "outside": {
+              "subject": "Decks outside the top 24.",
+              "text": "About a quarter of the decks played are outside the top 24. We have no matchup data for them, so we leave them out. That is why these rates are a little lower than each deck’s overall win rate."
+            }
+          }
+        }
       }
     }
   }

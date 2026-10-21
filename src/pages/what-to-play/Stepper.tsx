@@ -1,4 +1,5 @@
 import { useId } from "react";
+import { useTranslation } from "react-i18next";
 import "./Stepper.css";
 
 type StepperProps = {
@@ -18,6 +19,7 @@ export function Stepper({
   onLower,
   onRaise,
 }: StepperProps) {
+  const { t } = useTranslation();
   const valueId = useId();
 
   return (
@@ -25,7 +27,7 @@ export function Stepper({
       <button
         type="button"
         className="stepper__button"
-        aria-label={`Less ${name}`}
+        aria-label={t("whatToPlay.stepper.lower", { name })}
         aria-describedby={valueId}
         aria-disabled={canLower ? undefined : true}
         onClick={() => {
@@ -42,7 +44,7 @@ export function Stepper({
       <button
         type="button"
         className="stepper__button"
-        aria-label={`More ${name}`}
+        aria-label={t("whatToPlay.stepper.raise", { name })}
         aria-describedby={valueId}
         aria-disabled={canRaise ? undefined : true}
         onClick={() => {

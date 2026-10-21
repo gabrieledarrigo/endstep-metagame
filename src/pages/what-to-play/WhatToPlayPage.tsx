@@ -1,5 +1,5 @@
-import i18next from "i18next";
 import { type ReactNode, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
 import type { MatrixDeck } from "../../api/types";
 import { EmptyWindow } from "../../components/EmptyWindow";
@@ -41,6 +41,7 @@ function columns(
 }
 
 export function WhatToPlayPage() {
+  const { t } = useTranslation();
   const [timeWindow, selectTimeWindow] = useTimeWindow();
   const [searchParams] = useSearchParams();
   const { hash } = useLocation();
@@ -50,9 +51,7 @@ export function WhatToPlayPage() {
   const matchups = useMatchups(timeWindow);
   const loadingWindow = matchups.isPlaceholderData;
   const loading = matchups.isPending || loadingWindow;
-  const period = loadingWindow
-    ? undefined
-    : i18next.t(`common.period.${timeWindow}`);
+  const period = loadingWindow ? undefined : t(`common.period.${timeWindow}`);
   const meta = searchParams.get("meta");
 
   const writeChanges = (
@@ -73,12 +72,13 @@ export function WhatToPlayPage() {
 
   return (
     <>
-      <PageTitle title="What to play?" />
+      <PageTitle title={t("whatToPlay.title")} />
 
       <div className="page__controls">
         <SegmentedControl
-          label="Time window"
+          label={t("common.timeWindow")}
           options={WINDOWS}
+          labels={t("common.window", { returnObjects: true })}
           value={timeWindow}
           onChange={(next) => selectTimeWindow(next, loading)}
           busy={loading}
@@ -91,7 +91,11 @@ export function WhatToPlayPage() {
       </div>
 
       <p className="visually-hidden" role="status">
-        {loading ? `Loading the ${timeWindow} window.` : ""}
+        {loading
+          ? t("whatToPlay.loading", {
+              window: t(`common.window.${timeWindow}`),
+            })
+          : ""}
       </p>
 
       <div className="page__body what-to-play">
@@ -116,7 +120,7 @@ export function WhatToPlayPage() {
                 <BeatSkeleton />
               </>
             }
-            title="The ranking could not be loaded"
+            title={t("whatToPlay.error")}
           >
             {(data) => {
               if (data.decks.length === 0) {

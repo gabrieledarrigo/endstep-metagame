@@ -1,4 +1,6 @@
+import type { TFunction } from "i18next";
 import { useId, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import type { MatrixDeck } from "../../api/types";
 import { Button } from "../../components/Button";
 import { Panel } from "../../components/Panel";
@@ -7,11 +9,15 @@ import { canStep, formatShare, metagameShares, percent } from "../../helpers";
 import { Stepper } from "./Stepper";
 import "./Metagame.css";
 
-function restLine(decks: MatrixDeck[]): string {
+function restLine(t: TFunction, decks: MatrixDeck[]): string {
   const top =
     Math.round(decks.reduce((sum, deck) => sum + deck.share, 0) * 1000) / 1000;
 
-  return `The top ${decks.length} hold ${percent(top)} of registrations. The other ${percent(1 - top)} are left out of the sum.`;
+  return t("whatToPlay.metagame.rest", {
+    top: decks.length,
+    held: percent(top),
+    rest: percent(1 - top),
+  });
 }
 
 type MetagameProps = {
@@ -33,6 +39,7 @@ export function Metagame({
   onStep,
   onReset,
 }: MetagameProps) {
+  const { t } = useTranslation();
   const bodyId = useId();
   const title = useRef<HTMLHeadingElement>(null);
   const shares = metagameShares(decks, changes);
@@ -47,7 +54,7 @@ export function Metagame({
     <Panel className="metagame">
       <div className="metagame__summary">
         <h2 ref={title} className="metagame__title" tabIndex={-1}>
-          The metagame you expect
+          {t("whatToPlay.metagame.title")}
         </h2>
         {foldable && (
           <button
@@ -57,18 +64,18 @@ export function Metagame({
             aria-controls={bodyId}
             onClick={onToggle}
           >
-            {open ? "Close" : "Change"}
+            {open
+              ? t("whatToPlay.metagame.close")
+              : t("whatToPlay.metagame.open")}
           </button>
         )}
       </div>
       <div id={bodyId} className="metagame__body" hidden={foldable && !open}>
         <div className="metagame__intro">
-          <p className="metagame__note">
-            How often you expect to meet each deck. Each step is one point.
-          </p>
+          <p className="metagame__note">{t("whatToPlay.metagame.note")}</p>
           {changed && (
             <Button variant="ghost" className="metagame__reset" onClick={reset}>
-              Reset
+              {t("whatToPlay.metagame.reset")}
             </Button>
           )}
         </div>
@@ -91,7 +98,9 @@ export function Metagame({
                     <>
                       {" "}
                       <span className="metagame__was">
-                        was {formatShare(deck.share)}
+                        {t("whatToPlay.metagame.was", {
+                          share: formatShare(deck.share),
+                        })}
                       </span>
                     </>
                   )}
@@ -108,17 +117,19 @@ export function Metagame({
             );
           })}
         </ul>
-        <p className="metagame__rest">{restLine(decks)}</p>
+        <p className="metagame__rest">{restLine(t, decks)}</p>
       </div>
     </Panel>
   );
 }
 
 export function MetagameSkeleton({ foldable }: { foldable: boolean }) {
+  const { t } = useTranslation();
+
   return (
     <Panel className="metagame" aria-busy="true">
       <div className="metagame__summary">
-        <h2 className="metagame__title">The metagame you expect</h2>
+        <h2 className="metagame__title">{t("whatToPlay.metagame.title")}</h2>
         {foldable && <Skeleton className="metagame__skeleton-toggle" />}
       </div>
       {!foldable && <Skeleton className="metagame__skeleton" />}

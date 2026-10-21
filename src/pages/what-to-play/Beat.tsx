@@ -1,3 +1,5 @@
+import type { TFunction } from "i18next";
+import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
 import type { MatchupMatrix } from "../../api/types";
 import { DeckPicker } from "../../components/DeckPicker";
@@ -16,16 +18,17 @@ import {
 import { RangeBar } from "./RangeBar";
 import "./Beat.css";
 
-function sentence(count: number, top: number, name: string): string {
+function sentence(
+  t: TFunction,
+  count: number,
+  top: number,
+  name: string,
+): string {
   if (count === 0) {
-    return `No deck in the top ${top} clearly beats ${name} in this window.`;
+    return t("whatToPlay.beat.note.none", { top, name });
   }
 
-  if (count === 1) {
-    return `This deck clearly beats ${name}.`;
-  }
-
-  return `These decks clearly beat ${name}.`;
+  return t("whatToPlay.beat.note.some", { count, name });
 }
 
 type BeatTableProps = {
@@ -35,6 +38,7 @@ type BeatTableProps = {
 };
 
 function BeatTable({ name, beating, ranking }: BeatTableProps) {
+  const { t } = useTranslation();
   const { min, max } = rangeScale(beating);
   const expected = Object.fromEntries(
     ranking.map((entry) => [entry.deck.slug, entry.rate]),
@@ -46,16 +50,18 @@ function BeatTable({ name, beating, ranking }: BeatTableProps) {
         <thead>
           <tr>
             <th scope="col" className="beat__col">
-              Deck
+              {t("common.deck")}
             </th>
             <th scope="col" className="beat__col beat__col--num">
-              Against {name}
+              {t("whatToPlay.beat.table.against", { name })}
             </th>
             <th scope="col" className="beat__col beat__col--bar">
-              <span className="visually-hidden">Range</span>
+              <span className="visually-hidden">
+                {t("whatToPlay.beat.table.range")}
+              </span>
             </th>
             <th scope="col" className="beat__col beat__col--num">
-              Against the metagame
+              {t("whatToPlay.beat.table.metagame")}
             </th>
           </tr>
         </thead>
@@ -73,8 +79,10 @@ function BeatTable({ name, beating, ranking }: BeatTableProps) {
               <td className="beat__cell beat__cell--num">
                 {percent(entry.rate)}
                 <span className="visually-hidden">
-                  , likely between {percent(entry.low)} and{" "}
-                  {percent(entry.high)}
+                  {t("whatToPlay.beat.table.likely", {
+                    low: percent(entry.low),
+                    high: percent(entry.high),
+                  })}
                 </span>
               </td>
               <td className="beat__cell beat__cell--bar">
@@ -105,6 +113,7 @@ type BeatProps = {
 };
 
 export function Beat({ matrix, ranking, loadingWindow }: BeatProps) {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const { hash } = useLocation();
   const navigate = useNavigate();
@@ -127,13 +136,13 @@ export function Beat({ matrix, ranking, loadingWindow }: BeatProps) {
 
   return (
     <Panel className="beat">
-      <h2 className="beat__title">Beat a deck</h2>
+      <h2 className="beat__title">{t("whatToPlay.beat.title")}</h2>
       <DeckPicker decks={matrix.decks} value={chosen.slug} onChange={choose} />
       {loadingWindow && beating.length === 0 ? (
         <Skeleton className="beat__skeleton-line" />
       ) : (
         <p className="beat__note">
-          {sentence(beating.length, matrix.decks.length, chosen.name)}
+          {sentence(t, beating.length, matrix.decks.length, chosen.name)}
         </p>
       )}
       {beating.length > 0 && (
@@ -144,9 +153,11 @@ export function Beat({ matrix, ranking, loadingWindow }: BeatProps) {
 }
 
 export function BeatSkeleton() {
+  const { t } = useTranslation();
+
   return (
     <Panel className="beat" aria-busy="true">
-      <h2 className="beat__title">Beat a deck</h2>
+      <h2 className="beat__title">{t("whatToPlay.beat.title")}</h2>
       <Skeleton className="beat__skeleton" />
     </Panel>
   );
