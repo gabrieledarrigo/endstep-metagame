@@ -67,6 +67,25 @@ describe("SearchResults", () => {
     ).toBeTruthy();
   });
 
+  it("prints a term that looks like markup or a placeholder as typed", () => {
+    render(
+      <SearchResults
+        field={null}
+        found={{ term: "<i>x</i> {{decks}}", total: 2 }}
+      >
+        {decks()}
+      </SearchResults>,
+    );
+
+    expect(
+      screen.getByText(
+        fullText(
+          "2 decks match “<i>x</i> {{decks}}”. Search covers deck names and every card in their lists.",
+        ),
+      ),
+    ).toBeTruthy();
+  });
+
   it("offers the next 24 results, or what is left when fewer remain", () => {
     const onMore = vi.fn();
     const { rerender } = render(

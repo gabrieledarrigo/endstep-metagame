@@ -16,6 +16,10 @@ type SearchResultsProps = {
   children: ReactNode;
 };
 
+function Term({ term }: { term: string }) {
+  return quoted(term);
+}
+
 export function SearchResults({
   field,
   found,
@@ -66,11 +70,11 @@ export function SearchResults({
             <Trans
               i18nKey="overview.searchResults.line"
               count={found.total}
-              values={{
-                decks: formatCount(found.total),
-                term: quoted(found.term),
+              values={{ decks: formatCount(found.total) }}
+              components={{
+                total: <b className="search-results__count" />,
+                term: <Term term={found.term} />,
               }}
-              components={{ total: <b className="search-results__count" /> }}
             />
           </p>
         )}
@@ -91,7 +95,7 @@ export function SearchResults({
             }}
           >
             {t("overview.searchResults.more", {
-              shown: Math.min(PAGE_SIZE, more.remaining),
+              count: Math.min(PAGE_SIZE, more.remaining),
             })}
           </Button>
         )}

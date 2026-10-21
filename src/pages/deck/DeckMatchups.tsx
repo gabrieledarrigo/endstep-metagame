@@ -21,6 +21,10 @@ type MatchupRowProps = {
   timeWindow: TimeWindow;
 };
 
+function DeckName({ name }: { name: string }) {
+  return name;
+}
+
 function MatchupRow({ deck, matrix, loading, timeWindow }: MatchupRowProps) {
   const { t } = useTranslation();
   const row = matrix.decks.find((item) => item.id === deck.id);
@@ -29,6 +33,7 @@ function MatchupRow({ deck, matrix, loading, timeWindow }: MatchupRowProps) {
     const others = matrix.decks.filter((item) => item.id !== deck.id);
     const label = {
       deck: row.name,
+      count: others.length,
       others: others.length,
       top: matrix.decks.length,
     };
@@ -76,8 +81,11 @@ function MatchupRow({ deck, matrix, loading, timeWindow }: MatchupRowProps) {
         <p className="deck-matchups__outside">
           <Trans
             i18nKey="deck.matchups.outside"
-            values={{ deck: deck.name, top: matrix.decks.length }}
-            components={{ matchups: <WindowLink to="/matchups" /> }}
+            values={{ top: matrix.decks.length }}
+            components={{
+              deck: <DeckName name={deck.name} />,
+              matchups: <WindowLink to="/matchups" />,
+            }}
           />
         </p>
       </Panel>
