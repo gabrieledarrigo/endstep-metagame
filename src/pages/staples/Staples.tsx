@@ -15,11 +15,9 @@ import { Skeleton } from "../../components/Skeleton";
 import { Staple } from "./Staple";
 import "./Staples.css";
 
-const LISTS = ["Main deck", "Sideboard"] as const;
+const SECTIONS = ["main", "side"] as const;
 const FIRST = 30;
 const MORE = 20;
-
-type List = (typeof LISTS)[number];
 
 type StaplesProps = {
   query: UseQueryResult<StaplesResponse>;
@@ -51,11 +49,6 @@ export function Staples({
     setMore(false);
   }
 
-  const labels: Record<List, string> = {
-    "Main deck": t("staples.staples.lists.main"),
-    Sideboard: t("staples.staples.lists.side"),
-  };
-
   const showMore = (): void => {
     flushSync(() => setMore(true));
     firstMore.current?.focus();
@@ -67,12 +60,12 @@ export function Staples({
         <h2 className="staples__title" id={id}>
           {t("staples.staples.heading")}
         </h2>
-        <SegmentedControl<List>
+        <SegmentedControl
           label={t("staples.staples.part")}
-          options={LISTS}
-          labels={labels}
-          value={section === "side" ? "Sideboard" : "Main deck"}
-          onChange={(next) => onSection(next === "Sideboard" ? "side" : "main")}
+          options={SECTIONS}
+          labels={t("staples.staples.lists", { returnObjects: true })}
+          value={section}
+          onChange={onSection}
           busy={loading}
         />
       </div>
