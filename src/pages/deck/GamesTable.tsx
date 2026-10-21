@@ -38,8 +38,14 @@ function cellLabel(t: TFunction, { title, block, read }: GameCell): string {
       from: percent(read.low),
       to: percent(read.high),
     }),
-    wins: formatCount(block.wins),
-    losses: formatCount(block.losses),
+    wins: t("deck.games.winCount", {
+      count: block.wins,
+      wins: formatCount(block.wins),
+    }),
+    losses: t("deck.games.lossCount", {
+      count: block.losses,
+      losses: formatCount(block.losses),
+    }),
   });
 }
 
