@@ -1,7 +1,28 @@
-import type { Plugin, PreviewServer } from "vite";
-import { type Mock, afterEach, describe, expect, it, vi } from "vitest";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+import react from "@vitejs/plugin-react";
+import { type Plugin, type PreviewServer, build } from "vite";
+import {
+  type Mock,
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
+import { PAGE_PREVIEWS, SITE_NAME, SITE_ORIGIN } from "./server/index.ts";
+import {
+  SITE_NAME as APP_NAME,
+  SITE_ORIGIN as APP_ORIGIN,
+} from "./src/config.ts";
+import locales from "./src/locales/locales.json" with { type: "json" };
 import config, {
   CATCH_ALL_SOURCE,
+  pagePreviews,
   previewDeckPage,
   previewSecurityHeaders,
   vercelHeaders,
@@ -253,5 +274,134 @@ describe("previewDeckPage", () => {
     expect(names.indexOf("preview-security-headers")).toBeLessThan(
       names.indexOf("preview-deck-page"),
     );
+  });
+});
+
+describe("pagePreviews", () => {
+  const root = fileURLToPath(new URL(".", import.meta.url));
+  const files: Record<string, string> = {};
+  let plainIndex = "";
+  let outDirs: string[] = [];
+
+  function head(file: string, pattern: RegExp): string[] {
+    return [...files[file].matchAll(pattern)].map((match) => match[0]);
+  }
+
+  function inlineScripts(page: string): string[] {
+    return [...page.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)]
+      .filter(([, attributes]) => !attributes.includes("src="))
+      .map(([, , body]) => body);
+  }
+
+  beforeAll(async () => {
+    const [withPlugin, withoutPlugin] = await Promise.all([
+      mkdtemp(join(tmpdir(), "page-previews-")),
+      mkdtemp(join(tmpdir(), "page-previews-plain-")),
+    ]);
+    outDirs = [withPlugin, withoutPlugin];
+
+    await build({
+      root,
+      configFile: join(root, "vite.config.ts"),
+      logLevel: "silent",
+      build: { outDir: withPlugin, emptyOutDir: true },
+    });
+    await build({
+      root,
+      configFile: false,
+      plugins: [react()],
+      logLevel: "silent",
+      build: { outDir: withoutPlugin, emptyOutDir: true, target: "es2025" },
+    });
+
+    for (const file of [
+      "index.html",
+      "matchups.html",
+      "what-to-play.html",
+      "staples.html",
+    ]) {
+      files[file] = await readFile(join(withPlugin, file), "utf8");
+    }
+    plainIndex = await readFile(join(withoutPlugin, "index.html"), "utf8");
+  }, 60_000);
+
+  afterAll(async () => {
+    await Promise.all(
+      outDirs.map((dir) => rm(dir, { recursive: true, force: true })),
+    );
+  });
+
+  it.each(PAGE_PREVIEWS)(
+    "writes $path with its title, description, og:title, og:description, canonical link and og:url",
+    ({ path, title, description }) => {
+      const file = `${path.slice(1)}.html`;
+      const fullTitle = `${title} · Pauper Endstep metagame`;
+      const address = `https://pauper-endstep-metagame.vercel.app${path}`;
+
+      expect(head(file, /<title>[^<]*<\/title>/g)).toEqual([
+        `<title>${fullTitle}</title>`,
+      ]);
+      expect(files[file]).toContain(
+        `<meta name="description" content="${description}" />`,
+      );
+      expect(files[file]).toContain(
+        `<meta property="og:title" content="${fullTitle}" />`,
+      );
+      expect(files[file]).toContain(
+        `<meta property="og:description" content="${description}" />`,
+      );
+      expect(head(file, /<link rel="canonical"[^>]*>/g)).toEqual([
+        `<link rel="canonical" href="${address}" />`,
+      ]);
+      expect(head(file, /<meta property="og:url"[^>]*>/g)).toEqual([
+        `<meta property="og:url" content="${address}" />`,
+      ]);
+    },
+  );
+
+  it.each(PAGE_PREVIEWS)(
+    "keeps the image of the site card in $path",
+    ({ path }) => {
+      const image = /<meta\s+property="og:image"\s+content="([^"]*)"/;
+
+      expect(image.exec(files[`${path.slice(1)}.html`])?.[1]).toBe(
+        "https://pauper-endstep-metagame.vercel.app/site-card.png",
+      );
+    },
+  );
+
+  it("leaves index.html as a build without the plugin writes it", () => {
+    expect(files["index.html"]).toBe(plainIndex);
+    expect(files["index.html"]).not.toContain('rel="canonical"');
+  });
+
+  it("keeps the inline theme script the same in all four files, so its hash in the security policy holds", () => {
+    const [theme] = inlineScripts(files["index.html"]);
+
+    expect(theme).toContain('localStorage.getItem("theme")');
+    for (const page of Object.values(files)) {
+      expect(inlineScripts(page)).toEqual([theme]);
+    }
+  });
+
+  it("titles each page with the English heading the page shows", () => {
+    const headings: Record<string, string> = {
+      "/matchups": locales.en.translation.matchups.title,
+      "/what-to-play": locales.en.translation.whatToPlay.title,
+      "/staples": locales.en.translation.staples.title,
+    };
+
+    expect(
+      Object.fromEntries(PAGE_PREVIEWS.map(({ path, title }) => [path, title])),
+    ).toEqual(headings);
+  });
+
+  it("uses the origin and the site name of the app", () => {
+    expect(SITE_ORIGIN).toBe(APP_ORIGIN);
+    expect(SITE_NAME).toBe(APP_NAME);
+  });
+
+  it("runs only at build time", () => {
+    expect(pagePreviews().apply).toBe("build");
   });
 });
