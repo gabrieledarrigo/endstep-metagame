@@ -6,10 +6,11 @@ function select(name = "Language"): HTMLSelectElement {
   return screen.getByRole<HTMLSelectElement>("combobox", { name });
 }
 
-afterEach(() => {
+afterEach(async () => {
   vi.restoreAllMocks();
   vi.doUnmock("../locales/locales.json");
   vi.resetModules();
+  await import("../locales/i18n");
 });
 
 describe("LanguageSwitch", () => {
