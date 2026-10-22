@@ -3,6 +3,7 @@ export * from "./cardArt";
 export * from "./cellState";
 export * from "./expectedRate";
 export * from "./format";
+export * from "./language";
 export * from "./metagame";
 export * from "./placeCardPreview";
 export * from "./placeTooltip";
