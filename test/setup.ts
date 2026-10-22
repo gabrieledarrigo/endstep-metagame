@@ -44,5 +44,8 @@ beforeEach(() => {
 afterEach(async () => {
   cleanup();
   localStorage.removeItem(LANGUAGE_KEY);
-  await i18next.changeLanguage("en");
+
+  if (i18next.language !== "en") {
+    await i18next.changeLanguage("en");
+  }
 });
