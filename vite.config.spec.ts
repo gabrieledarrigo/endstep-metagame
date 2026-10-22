@@ -2,7 +2,6 @@ import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
-import react from "@vitejs/plugin-react";
 import { type Plugin, type PreviewServer, build } from "vite";
 import {
   type Mock,
@@ -307,15 +306,22 @@ describe("pagePreviews", () => {
       build: { outDir: withPlugin, emptyOutDir: true },
     });
     await build({
+      ...config,
       root,
       configFile: false,
-      plugins: [react()],
       logLevel: "silent",
-      build: {
-        outDir: withoutPlugin,
-        emptyOutDir: true,
-        target: config.build?.target,
-      },
+      plugins: (config.plugins ?? [])
+        .flat()
+        .filter(
+          (plugin) =>
+            !(
+              typeof plugin === "object" &&
+              plugin !== null &&
+              "name" in plugin &&
+              plugin.name === "page-previews"
+            ),
+        ),
+      build: { ...config.build, outDir: withoutPlugin, emptyOutDir: true },
     });
 
     for (const file of [
