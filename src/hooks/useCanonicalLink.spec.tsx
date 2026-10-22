@@ -84,8 +84,8 @@ describe("useCanonicalLink", () => {
     expect(canonical()).toEqual(["https://example.com/untouched"]);
   });
 
-  it("leaves out a trailing slash", () => {
-    renderAt("/staples/?window=7d");
+  it("leaves out the trailing slashes", () => {
+    renderAt("/staples//?window=7d");
 
     expect(canonical()).toEqual([
       "https://pauper-endstep-metagame.vercel.app/staples",
