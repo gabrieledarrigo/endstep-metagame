@@ -707,7 +707,7 @@ Every page carries the data that browsers, search engines and chat apps read wit
   - The HTML sets them for the first page only. Without this rule, they still name that page after the reader moves on. Chrome on Android then shares the wrong page.
   - So on each route change, the app sets both to the full address of the new path, with no query string, §4.5. If the HTML has none, the app adds them.
   - The full address starts with the production origin, `SITE_ORIGIN` in `src/config.ts`. A spec checks that it equals the origin in `server/head.ts`.
-  - On a Not found page, the app removes both. A path that does not exist must not name itself as a page.
+  - On a Not found page, the app removes both. So does a deck page whose slug Endstep does not know. A path that does not exist must not name itself as a page.
   - This covers the deck pages and the overview too.
   - The app does not change the description or the `og:` words. Chat apps and search engines read them from the HTML, not from the running app.
 - A deck page shares its own preview:
