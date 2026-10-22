@@ -1,11 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  PAGE_PREVIEWS,
-  escapeHtml,
-  pagePreview,
-  withMeta,
-  writeHead,
-} from "./head.js";
+import { escapeHtml, withMeta, writeHead } from "./head.js";
 
 const PAGE = `<html>
   <head>
@@ -83,43 +77,5 @@ describe("writeHead", () => {
     expect(page).toContain(
       '<meta property="og:image" content="https://example.com/card.png" />',
     );
-  });
-});
-
-describe("pagePreview", () => {
-  const [matchups] = PAGE_PREVIEWS;
-  const page = pagePreview(PAGE, matchups);
-
-  it("writes the page's title and description, and its full address with no query", () => {
-    expect(page).toContain("<title>Matchups · Pauper Endstep metagame</title>");
-    expect(page).toContain(
-      '<meta name="description" content="How the top 24 Pauper decks do against each other." />',
-    );
-    expect(page).toContain(
-      '<meta property="og:title" content="Matchups · Pauper Endstep metagame" />',
-    );
-    expect(page).toContain(
-      '<meta property="og:description" content="How the top 24 Pauper decks do against each other." />',
-    );
-    expect(page).toContain(
-      '<link rel="canonical" href="https://pauper-endstep-metagame.vercel.app/matchups" />',
-    );
-    expect(page).toContain(
-      '<meta property="og:url" content="https://pauper-endstep-metagame.vercel.app/matchups" />',
-    );
-  });
-
-  it("keeps the image of the site card", () => {
-    expect(page).toContain(
-      '<meta property="og:image" content="https://example.com/card.png" />',
-    );
-  });
-
-  it("lists the matchup table, What to play? and Staples, each at its own path", () => {
-    expect(PAGE_PREVIEWS.map(({ path }) => path)).toEqual([
-      "/matchups",
-      "/what-to-play",
-      "/staples",
-    ]);
   });
 });

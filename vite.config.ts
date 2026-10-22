@@ -12,7 +12,12 @@ import matchups from "./api/matchups.ts";
 import metagame from "./api/metagame.ts";
 import sampleCards from "./api/sample-cards.ts";
 import staples from "./api/staples.ts";
-import { PAGE_PREVIEWS, pagePreview } from "./server/index.ts";
+import {
+  PAGE_PREVIEWS,
+  SITE_NAME,
+  SITE_ORIGIN,
+  writeHead,
+} from "./server/index.ts";
 import vercel from "./vercel.json" with { type: "json" };
 
 const METAGAME = "/api/metagame";
@@ -150,7 +155,11 @@ export function pagePreviews(): Plugin {
         this.emitFile({
           type: "asset",
           fileName: `${page.path.slice(1)}.html`,
-          source: pagePreview(String(index.source), page),
+          source: writeHead(String(index.source), {
+            title: `${page.title} · ${SITE_NAME}`,
+            description: page.description,
+            address: `${SITE_ORIGIN}${page.path}`,
+          }),
         });
       }
     },
