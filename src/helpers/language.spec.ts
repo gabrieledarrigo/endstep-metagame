@@ -24,6 +24,28 @@ describe("preferredLanguage", () => {
     expect(preferredLanguage(AVAILABLE)).toBe("es");
   });
 
+  it("reads the single preferred language when the browser lists none", () => {
+    vi.stubGlobal("navigator", {
+      ...navigator,
+      languages: [],
+      language: "it-IT",
+    });
+
+    expect(preferredLanguage(AVAILABLE)).toBe("it");
+    expect(formatTag("it")).toBe("it-IT");
+  });
+
+  it("falls back to English when the browser names no language at all", () => {
+    vi.stubGlobal("navigator", {
+      ...navigator,
+      languages: undefined,
+      language: undefined,
+    });
+
+    expect(preferredLanguage(AVAILABLE)).toBe("en");
+    expect(formatTag("en")).toBe("en-GB");
+  });
+
   it("falls back to English when the file holds no preferred language", () => {
     prefer("fr", "de-DE");
 

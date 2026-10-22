@@ -12,7 +12,13 @@ function primaryCode(tag: string): string {
 }
 
 function preferredTags(): readonly string[] {
-  return window.navigator.languages ?? [window.navigator.language];
+  const { languages, language } = window.navigator;
+
+  if (languages !== undefined && languages.length > 0) {
+    return languages;
+  }
+
+  return language ? [language] : [];
 }
 
 /**
