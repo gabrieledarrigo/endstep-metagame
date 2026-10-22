@@ -33,6 +33,16 @@ export const PAGE_PREVIEWS: readonly PagePreview[] = [
 ];
 
 /**
+ * Names a page in its link preview, FR-15.
+ *
+ * @param name - The page's own name, such as a deck's name or "Staples".
+ * @returns The title, such as "Staples · Pauper Endstep metagame".
+ */
+export function pageTitle(name: string): string {
+  return `${name} · ${SITE_NAME}`;
+}
+
+/**
  * Escapes text for an HTML element or an attribute value.
  *
  * @param text - Any text.

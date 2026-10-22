@@ -14,8 +14,8 @@ import sampleCards from "./api/sample-cards.ts";
 import staples from "./api/staples.ts";
 import {
   PAGE_PREVIEWS,
-  SITE_NAME,
   SITE_ORIGIN,
+  pageTitle,
   writeHead,
 } from "./server/index.ts";
 import vercel from "./vercel.json" with { type: "json" };
@@ -156,7 +156,7 @@ export function pagePreviews(): Plugin {
           type: "asset",
           fileName: `${page.path.slice(1)}.html`,
           source: writeHead(String(index.source), {
-            title: `${page.title} · ${SITE_NAME}`,
+            title: pageTitle(page.title),
             description: page.description,
             address: `${SITE_ORIGIN}${page.path}`,
           }),

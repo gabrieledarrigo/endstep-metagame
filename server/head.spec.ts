@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { escapeHtml, withMeta, writeHead } from "./head.js";
+import { escapeHtml, pageTitle, withMeta, writeHead } from "./head.js";
 
 const PAGE = `<html>
   <head>
@@ -77,5 +77,11 @@ describe("writeHead", () => {
     expect(page).toContain(
       '<meta property="og:image" content="https://example.com/card.png" />',
     );
+  });
+});
+
+describe("pageTitle", () => {
+  it("follows the page's name with the site's name", () => {
+    expect(pageTitle("Staples")).toBe("Staples · Pauper Endstep metagame");
   });
 });
