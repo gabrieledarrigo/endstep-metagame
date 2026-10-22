@@ -705,7 +705,8 @@ Every page carries the data that browsers, search engines and chat apps read wit
   - These words stay in English, FR-20.
 - The app keeps the canonical link and `og:url` in step with the page on the screen:
   - The HTML sets them for the first page only. Without this rule, they still name that page after the reader moves on. Chrome on Android then shares the wrong page.
-  - So on each route change, the app sets both to the full address of the new path, with no query string, §4.5. If the HTML has none, the app adds them.
+  - So on each route change, the app sets both to the full address of the new path, with no query string and no trailing slash, §4.5. If the HTML has none, the app adds them.
+  - A deck page names the deck's own slug once the deck has loaded, as the deck page's function does. So an old slug in the address does not become the canonical link.
   - The full address starts with the production origin, `SITE_ORIGIN` in `src/config.ts`. A spec checks that it equals the origin in `server/head.ts`.
   - On a Not found page, the app removes both. So does a deck page whose slug Endstep does not know. A path that does not exist must not name itself as a page.
   - This covers the deck pages and the overview too.
