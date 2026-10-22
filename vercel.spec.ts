@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import { PAGE_PREVIEWS } from "./server/index.ts";
 import { CATCH_ALL_SOURCE, vercelHeaders } from "./vite.config.ts";
 import vercel from "./vercel.json" with { type: "json" };
 
@@ -56,7 +57,7 @@ describe("vercel.json", () => {
     expect(
       vercel.rewrites.filter(
         ({ source, destination }) =>
-          ["/matchups", "/what-to-play", "/staples"].includes(source) ||
+          PAGE_PREVIEWS.some(({ path }) => source.startsWith(path)) ||
           destination.endsWith(".html"),
       ),
     ).toEqual([]);
