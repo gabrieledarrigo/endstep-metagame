@@ -33,7 +33,7 @@ function chosenTheme(): Theme | null {
   return null;
 }
 
-export function ThemeToggle({ className }: { className?: string }) {
+export function ThemeToggle() {
   const { t } = useTranslation();
   const deviceDark = useSyncExternalStore(subscribeToDevice, deviceIsDark);
   const [chosen, setChosen] = useState(chosenTheme);
@@ -62,7 +62,7 @@ export function ThemeToggle({ className }: { className?: string }) {
   return (
     <button
       type="button"
-      className={["theme-toggle", className].filter(Boolean).join(" ")}
+      className="theme-toggle"
       aria-label={t("components.themeToggle.label")}
       aria-pressed={dark}
       onClick={toggle}

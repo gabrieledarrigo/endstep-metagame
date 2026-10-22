@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen, within } from "@testing-library/react";
+import i18next from "i18next";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import detail from "../../../test/fixtures/deck.json";
 import sampleCards from "../../../test/fixtures/sample-cards.json";
@@ -82,6 +83,21 @@ describe("SampleList", () => {
 
     expect(writeText).toHaveBeenCalledWith(`${TEXT}\n\n${SIDE}`);
     expect(screen.getByRole("status").textContent).toBe("Copied the list.");
+  });
+
+  it("says it copied the list in the language the reader picks afterwards", async () => {
+    stubClipboard(async () => {});
+    render(<SampleList list={LIST} />);
+
+    await act(async () => {
+      fireEvent.click(screen.getByRole("button", { name: "Copy list" }));
+    });
+    await act(() => i18next.changeLanguage("es"));
+
+    expect(screen.getByRole("status").textContent).toBe(
+      i18next.t("deck.sampleList.copied.list"),
+    );
+    expect(screen.getByRole("status").textContent).not.toBe("Copied the list.");
   });
 
   it("shows the same text, selected, when the clipboard is refused", async () => {

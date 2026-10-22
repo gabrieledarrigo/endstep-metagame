@@ -5,19 +5,14 @@ import type {
   Proportion,
   Provenance,
 } from "../api/types";
-
-const DEFAULT_LOCALE = "en-GB";
+import { formatTag } from "./language";
 
 function userLocales(): string {
-  return (
-    window.navigator.languages?.[0] ??
-    window.navigator.language ??
-    DEFAULT_LOCALE
-  );
+  return formatTag(i18next.language);
 }
 
 /**
- * Formats a count with British English thousands separators.
+ * Formats a count with the thousands separators of the current language's formats, FR-20.
  *
  * @param value - The count.
  * @returns The count as text, such as `2,023`.
@@ -29,7 +24,7 @@ export function formatCount(value: number): string {
 }
 
 /**
- * Formats a rate as a percentage with one decimal in the user's locales.
+ * Formats a rate as a percentage with one decimal in the formats of the current language.
  *
  * @param rate - A rate between 0 and 1.
  * @returns The percentage, such as `52.2%`.
@@ -45,7 +40,7 @@ export function percent(rate: number): string {
 }
 
 /**
- * Formats a rate as a whole percentage in the user's locales, FR-18.
+ * Formats a rate as a whole percentage in the formats of the current language, FR-18.
  *
  * @param rate - A rate between 0 and 1.
  * @returns The percentage, rounded to the nearest whole number, such as `97%`.
@@ -60,7 +55,7 @@ export function wholePercent(rate: number): string {
 }
 
 /**
- * Formats a card's average copies with one decimal in the user's locales, FR-18.
+ * Formats a card's average copies with one decimal in the formats of the current language, FR-18.
  *
  * @param copies - The average copies of the card in the lists that play it.
  * @returns The copies, such as `3.9 copies`.
@@ -76,7 +71,7 @@ export function formatCopies(copies: number): string {
 }
 
 /**
- * Formats a meta share with one decimal in the user's locales. A share above zero never reads as zero.
+ * Formats a meta share with one decimal in the formats of the current language. A share above zero never reads as zero.
  *
  * @param rate - A share between 0 and 1.
  * @returns The share, such as `9.6%`, or `<0.1%` for a share above zero that one decimal would round to zero.
@@ -100,7 +95,7 @@ export function axisShare(share: number): string {
 }
 
 /**
- * Formats a meta share with two decimals in the user's locales. A share above zero never reads as zero.
+ * Formats a meta share with two decimals in the formats of the current language. A share above zero never reads as zero.
  *
  * @param share - A share in percent.
  * @returns The share, such as `9.59%`, or `<0.01%` for a share above zero that two decimals would round to zero.
@@ -121,7 +116,7 @@ export function tooltipShare(share: number): string {
 }
 
 /**
- * Formats a win rate with one decimal in the user's locales.
+ * Formats a win rate with one decimal in the formats of the current language.
  *
  * @param value - A win rate in percent.
  * @returns The win rate, such as `52.2%`.
@@ -155,7 +150,7 @@ function formatDate(
  * Formats a date in full, for a tooltip.
  *
  * @param day - A date in `YYYY-MM-DD` form.
- * @returns The day, the month and the year in the reader's locale, such as `7 October 2026` in en-GB.
+ * @returns The day, the month and the year in the formats of the current language, such as `7 October 2026` in en-GB.
  */
 export function longDay(day: string): string {
   return formatDate(day, "long", true);
@@ -165,7 +160,7 @@ export function longDay(day: string): string {
  * Formats a date as its day and month, for a chart axis or a list of days.
  *
  * @param day - A date in `YYYY-MM-DD` form.
- * @returns The day and month in the reader's locale, such as `5 Sept` in en-GB.
+ * @returns The day and month in the formats of the current language, such as `5 Sept` in en-GB.
  */
 export function formatDay(day: string): string {
   return formatDate(day, "short", false);
@@ -222,7 +217,7 @@ export function formatProportion(proportion: Proportion): string {
 }
 
 /**
- * Formats a price with two decimals in the user's locales, FR-19.
+ * Formats a price with two decimals in the formats of the current language, FR-19.
  *
  * @param amount - The price, in tickets, euros or dollars.
  * @param currency - The currency the price is in.

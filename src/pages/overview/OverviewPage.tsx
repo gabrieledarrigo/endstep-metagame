@@ -10,7 +10,7 @@ import { Section } from "../../components/Section";
 import { SegmentedControl } from "../../components/SegmentedControl";
 import { StatePanel } from "../../components/StatePanel";
 import { WINDOWS } from "../../config";
-import { formatCount, quoted, searchTerm } from "../../helpers";
+import { errorText, formatCount, quoted, searchTerm } from "../../helpers";
 import { useTimeWindow } from "../../hooks/useTimeWindow";
 import { DeckGrid, DeckGridSkeleton } from "./DeckGrid";
 import { DeckSearch, type DeckSearchHandle } from "./DeckSearch";
@@ -155,7 +155,9 @@ export function OverviewPage() {
 
   const moreError =
     searching && search.isFetchNextPageError && !search.isFetchingNextPage
-      ? t("overview.overviewPage.moreError", { error: search.error.message })
+      ? t("overview.overviewPage.moreError", {
+          error: errorText(search.error),
+        })
       : undefined;
 
   const shortfall =

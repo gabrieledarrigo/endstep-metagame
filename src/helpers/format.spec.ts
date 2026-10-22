@@ -1,3 +1,4 @@
+import i18next from "i18next";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { Population } from "../api/types";
 import {
@@ -183,11 +184,19 @@ describe("formatPrice", () => {
     expect(formatPrice(173.64, "usd")).toBe("$173.64");
   });
 
-  it("follows the user's locales", () => {
-    vi.stubGlobal("navigator", { ...navigator, languages: ["de-DE"] });
+  it("follows the current language, in the browser's region for it", async () => {
+    vi.stubGlobal("navigator", { ...navigator, languages: ["de-DE", "pt-PT"] });
+    await i18next.changeLanguage("pt");
 
-    expect(formatPrice(1234.5, "tix")).toBe("1.234,50");
+    expect(formatPrice(1234.5, "tix")).toBe("1234,50");
     expect(formatPrice(194, "eur")).toBe("194,00\u00a0€");
     expect(formatPrice(173.64, "usd")).toBe("173,64\u00a0$");
+  });
+
+  it("keeps the formats of the current language whatever the browser prefers first", () => {
+    vi.stubGlobal("navigator", { ...navigator, languages: ["de-DE"] });
+
+    expect(formatPrice(1234.5, "tix")).toBe("1,234.50");
+    expect(formatPrice(194, "eur")).toBe("€194.00");
   });
 });

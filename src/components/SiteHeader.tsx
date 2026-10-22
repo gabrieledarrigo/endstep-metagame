@@ -1,4 +1,5 @@
 import { SITE_NAME } from "../config";
+import { LanguageSwitch } from "./LanguageSwitch";
 import { SiteMark } from "./SiteMark";
 import { SiteNav } from "./SiteNav";
 import { ThemeToggle } from "./ThemeToggle";
@@ -13,7 +14,10 @@ export function SiteHeader() {
         {SITE_NAME}
       </WindowLink>
       <SiteNav className="site-header__nav" />
-      <ThemeToggle className="site-header__toggle" />
+      <div className="site-header__tools">
+        <LanguageSwitch />
+        <ThemeToggle />
+      </div>
     </header>
   );
 }

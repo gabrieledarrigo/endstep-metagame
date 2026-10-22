@@ -26,6 +26,22 @@ describe("SiteHeader", () => {
     ).toBeTruthy();
   });
 
+  it("puts the language switch before the theme toggle", () => {
+    render(
+      <MemoryRouter>
+        <SiteHeader />
+      </MemoryRouter>,
+    );
+
+    const language = screen.getByRole("combobox", { name: "Language" });
+    const theme = screen.getByRole("button", { name: "Dark theme" });
+
+    expect(
+      language.compareDocumentPosition(theme) &
+        Node.DOCUMENT_POSITION_FOLLOWING,
+    ).toBeTruthy();
+  });
+
   it("holds the hidden site mark before the name, in the brand link", () => {
     render(
       <MemoryRouter>

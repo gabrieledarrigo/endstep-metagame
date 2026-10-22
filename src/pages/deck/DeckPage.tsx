@@ -12,7 +12,7 @@ import { SegmentedControl } from "../../components/SegmentedControl";
 import { Skeleton } from "../../components/Skeleton";
 import { StatePanel } from "../../components/StatePanel";
 import { WINDOWS } from "../../config";
-import { formatWindow } from "../../helpers";
+import { errorText, formatWindow } from "../../helpers";
 import { useHeadingFocus } from "../../hooks/useHeadingFocus";
 import { useSampleCards } from "../../hooks/useSampleCards";
 import { useTimeWindow } from "../../hooks/useTimeWindow";
@@ -121,7 +121,7 @@ export function DeckPage() {
             </div>
             <StatePanel
               title={t("deck.page.failed")}
-              detail={deck.error.message}
+              detail={errorText(deck.error)}
               action={
                 <Button onClick={() => deck.refetch()}>
                   {t("common.retry")}

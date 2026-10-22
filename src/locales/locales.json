@@ -92,6 +92,10 @@
           "longer": "{{detail}} Try a longer window.",
           "switch": "Switch to {{window}}"
         },
+        "languageSwitch": {
+          "label": "Language",
+          "name": "English"
+        },
         "matchupGrid": {
           "pair": "{{row}} against {{column}}",
           "mirror": "Mirror match. Endstep does not list it.",
@@ -662,6 +666,10 @@
           "detail": "La finestra {{window}} non ha ancora registrazioni.",
           "longer": "{{detail}} Prova una finestra più lunga.",
           "switch": "Passa a {{window}}"
+        },
+        "languageSwitch": {
+          "label": "Lingua",
+          "name": "Italiano"
         },
         "matchupGrid": {
           "pair": "{{row}} contro {{column}}",
@@ -1267,6 +1275,10 @@
           "longer": "{{detail}} Prueba una ventana más larga.",
           "switch": "Cambiar a {{window}}"
         },
+        "languageSwitch": {
+          "label": "Idioma",
+          "name": "Español"
+        },
         "matchupGrid": {
           "pair": "{{row}} contra {{column}}",
           "mirror": "Espejo. Endstep no lo lista.",
@@ -1870,6 +1882,10 @@
           "detail": "A janela {{window}} ainda não tem inscrições.",
           "longer": "{{detail}} Tente uma janela mais longa.",
           "switch": "Mudar para {{window}}"
+        },
+        "languageSwitch": {
+          "label": "Idioma",
+          "name": "Português"
         },
         "matchupGrid": {
           "pair": "{{row}} contra {{column}}",
