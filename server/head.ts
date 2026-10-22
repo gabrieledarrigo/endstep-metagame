@@ -11,6 +11,27 @@ const ENTITIES: Readonly<Record<string, string>> = {
 
 type Head = { title: string; description: string; address: string };
 
+type PagePreview = { path: string; title: string; description: string };
+
+export const PAGE_PREVIEWS: readonly PagePreview[] = [
+  {
+    path: "/matchups",
+    title: "Matchups",
+    description: "How the top 24 Pauper decks do against each other.",
+  },
+  {
+    path: "/what-to-play",
+    title: "What to play?",
+    description:
+      "The Pauper deck that wins most against the decks you expect to meet.",
+  },
+  {
+    path: "/staples",
+    title: "Staples",
+    description: "The cards the top 24 Pauper decks play most.",
+  },
+];
+
 /**
  * Escapes text for an HTML element or an attribute value.
  *
@@ -67,4 +88,19 @@ export function writeHead(html: string, head: Head): string {
     () =>
       `<link rel="canonical" href="${address}" />\n<meta property="og:url" content="${address}" />\n</head>`,
   );
+}
+
+/**
+ * Writes one page's own link preview into the built `index.html`, FR-15.
+ *
+ * @param html - The built `index.html`.
+ * @param page - The page, from `PAGE_PREVIEWS`.
+ * @returns The page with "{title} · Pauper Endstep metagame" as its title and `og:title`, the page's description, and its full address with no query as the canonical link and `og:url`. The image of the site card stays.
+ */
+export function pagePreview(html: string, page: PagePreview): string {
+  return writeHead(html, {
+    title: `${page.title} · ${SITE_NAME}`,
+    description: page.description,
+    address: `${SITE_ORIGIN}${page.path}`,
+  });
 }
