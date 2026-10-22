@@ -58,6 +58,22 @@ function DeckPageSkeleton() {
   );
 }
 
+function canonicalPath(
+  deck: UseQueryResult<DeckDetail>,
+): string | null | undefined {
+  if (isUnknownDeck(deck)) {
+    return null;
+  }
+
+  const slug = deck.data?.deck.slug;
+
+  if (slug === undefined) {
+    return undefined;
+  }
+
+  return `/decks/${slug}`;
+}
+
 export function DeckPage() {
   const { t } = useTranslation();
   const { slug = "" } = useParams();
@@ -84,7 +100,7 @@ export function DeckPage() {
   const loadingWindow = deck.isPlaceholderData;
 
   useHeadingFocus(headingState(deck));
-  useCanonicalLink(!isUnknownDeck(deck));
+  useCanonicalLink(canonicalPath(deck));
 
   useEffect(() => {
     if (canonical !== undefined && canonical !== slug) {

@@ -3,8 +3,8 @@ import { Link, MemoryRouter, Route, Routes } from "react-router";
 import { describe, expect, it } from "vitest";
 import { useCanonicalLink } from "./useCanonicalLink";
 
-function Page({ exists = true }: { exists?: boolean }) {
-  useCanonicalLink(exists);
+function Page({ path }: { path?: string | null }) {
+  useCanonicalLink(path);
 
   return (
     <>
@@ -14,11 +14,11 @@ function Page({ exists = true }: { exists?: boolean }) {
   );
 }
 
-function renderAt(path: string, exists?: boolean): void {
+function renderAt(path: string, page?: string | null): void {
   render(
     <MemoryRouter initialEntries={[path]}>
       <Routes>
-        <Route path="*" element={<Page exists={exists} />} />
+        <Route path="*" element={<Page path={page} />} />
       </Routes>
     </MemoryRouter>,
   );
@@ -71,23 +71,41 @@ describe("useCanonicalLink", () => {
     ]);
   });
 
-  it("leaves the tags alone when only the query changes", async () => {
+  it("writes nothing when only the query changes", async () => {
     renderAt("/staples?window=7d");
-    const [link] = document.head.querySelectorAll('link[rel="canonical"]');
+    document.head
+      .querySelector('link[rel="canonical"]')
+      ?.setAttribute("href", "https://example.com/untouched");
 
     await act(async () => {
       fireEvent.click(screen.getByRole("link", { name: "Another window" }));
     });
 
-    expect(document.head.querySelector('link[rel="canonical"]')).toBe(link);
+    expect(canonical()).toEqual(["https://example.com/untouched"]);
+  });
+
+  it("leaves out a trailing slash", () => {
+    renderAt("/staples/?window=7d");
+
     expect(canonical()).toEqual([
       "https://pauper-endstep-metagame.vercel.app/staples",
     ]);
   });
 
+  it("names the page's own path when it differs from the address", () => {
+    renderAt("/decks/old-alias?window=30d", "/decks/monster-tron-1bc68613");
+
+    expect(canonical()).toEqual([
+      "https://pauper-endstep-metagame.vercel.app/decks/monster-tron-1bc68613",
+    ]);
+    expect(ogUrl()).toEqual([
+      "https://pauper-endstep-metagame.vercel.app/decks/monster-tron-1bc68613",
+    ]);
+  });
+
   it("removes both tags on a page that does not exist, even the ones the HTML set", () => {
     addStatic("https://pauper-endstep-metagame.vercel.app/staples");
-    renderAt("/staples.html", false);
+    renderAt("/staples.html", null);
 
     expect(canonical()).toEqual([]);
     expect(ogUrl()).toEqual([]);

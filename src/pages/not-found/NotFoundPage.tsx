@@ -4,7 +4,7 @@ import { useCanonicalLink } from "../../hooks/useCanonicalLink";
 
 export function NotFoundPage() {
   const { t } = useTranslation();
-  useCanonicalLink(false);
+  useCanonicalLink(null);
 
   return <PageTitle title={t("notFound.title")} />;
 }
