@@ -1172,5 +1172,609 @@
         "title": "Non trovato"
       }
     }
+  },
+  "es": {
+    "translation": {
+      "common": {
+        "window": {
+          "1d": "1d",
+          "7d": "7d",
+          "14d": "14d",
+          "30d": "30d",
+          "season": "temporada"
+        },
+        "period": {
+          "1d": "el último día",
+          "7d": "los últimos 7 días",
+          "14d": "los últimos 14 días",
+          "30d": "los últimos 30 días",
+          "season": "esta temporada"
+        },
+        "timeWindow": "Ventana de tiempo",
+        "deck": "Mazo",
+        "retry": "Reintentar",
+        "range": "{{from}} a {{to}}"
+      },
+      "api": {
+        "client": {
+          "network": "No se pudo conectar con el servidor.",
+          "rateLimit": "Se alcanzó el límite de solicitudes de Endstep. Se reinicia en menos de un minuto, así que reintentar después suele funcionar.",
+          "upstream": "Endstep no respondió.",
+          "http": "La solicitud falló con el estado {{status}}.",
+          "malformed": "El servidor devolvió una respuesta malformada."
+        }
+      },
+      "helpers": {
+        "format": {
+          "copies": "{{copies}} copias",
+          "population": {
+            "rated": "Clasificatoria",
+            "casual": "Casual"
+          },
+          "notAvailable": "No disponible"
+        },
+        "winRate": {
+          "needed": {
+            "matches": "{{decided}} de las {{needed}} partidas necesarias",
+            "games": "{{decided}} de los {{needed}} juegos necesarios"
+          },
+          "tooFew": "Muy pocas para saberlo, {{decided}} de {{needed}}"
+        },
+        "staples": {
+          "none": "No es fija en ningún mazo",
+          "one": "Fija en {{deck}}",
+          "more_one": "Fija en {{first}}, {{second}} y {{count}} más",
+          "more_other": "Fija en {{first}}, {{second}} y {{count}} más",
+          "more_many": "Fija en {{first}}, {{second}} y {{count}} más",
+          "list": "Fija en {{decks}} y {{last}}"
+        },
+        "cellState": {
+          "summary": "{{row}} contra {{column}}: {{verdict}}",
+          "summaryWithRate": "{{row}} contra {{column}}: {{rate}}%, {{verdict}}",
+          "gatedVerdict": "muy pocas para saberlo, {{needed}}",
+          "verdict": {
+            "mirror": "espejo",
+            "none": "sin datos",
+            "gated": "muy pocas para saberlo",
+            "win": "resultado claro",
+            "loss": "resultado claro",
+            "neutral": "dentro del margen del azar"
+          }
+        }
+      },
+      "charts": {
+        "chartLegend": {
+          "label": "Resaltar un mazo"
+        }
+      },
+      "components": {
+        "colourPips": {
+          "label": "Colores: {{colours}}",
+          "W": "blanco",
+          "U": "azul",
+          "B": "negro",
+          "R": "rojo",
+          "G": "verde",
+          "C": "incoloro"
+        },
+        "deckPicker": {
+          "missing": "{{deck}} (fuera del top {{top}})",
+          "allDecks": "Todos los mazos"
+        },
+        "emptyWindow": {
+          "title": "No hay mazos en esta ventana",
+          "detail": "La ventana {{window}} todavía no tiene inscripciones.",
+          "longer": "{{detail}} Prueba una ventana más larga.",
+          "switch": "Cambiar a {{window}}"
+        },
+        "matchupGrid": {
+          "pair": "{{row}} contra {{column}}",
+          "mirror": "Espejo. Endstep no lo lista.",
+          "noData": "Sin datos para este par en la ventana.",
+          "wins": "Victorias",
+          "losses": "Derrotas",
+          "gated": "Muy pocas para saberlo: {{needed}}.",
+          "rate": "Porcentaje de victorias",
+          "range": "Rango",
+          "matches": "Partidas",
+          "neutral": "Dentro del margen del azar.",
+          "clear": "Resultado claro. El rango excluye el 50%."
+        },
+        "matchupLegend": {
+          "label": "Leyenda",
+          "win": "Favorable, resultado claro",
+          "loss": "Desfavorable, resultado claro",
+          "neutral": "Dentro del margen del azar",
+          "gated": "Muy pocas partidas",
+          "none": "Sin datos",
+          "mirror": "Espejo"
+        },
+        "shareChange": {
+          "reason": {
+            "previous_window_empty": "sin datos anteriores",
+            "no_previous_window": "sin ventana anterior",
+            "none": "no disponible"
+          },
+          "noChange": "sin cambio",
+          "down": "baja",
+          "up": "sube",
+          "points": "{{points}} pts"
+        },
+        "siteFooter": {
+          "credit": "Hecho por <author>Gabriele D'Arrigo</author> · <repo>Código fuente</repo>",
+          "data": "Datos de <endstep>endstep.cc</endstep>. Este sitio no está afiliado a Endstep. Imágenes y precios de las cartas de <scryfall>Scryfall</scryfall>."
+        },
+        "siteNav": {
+          "label": "Páginas",
+          "overview": "Resumen",
+          "matchups": "Enfrentamientos",
+          "whatToPlay": "¿Qué jugar?",
+          "staples": "Staples"
+        },
+        "themeToggle": {
+          "label": "Tema oscuro"
+        }
+      },
+      "overview": {
+        "title": "Resumen",
+        "overviewPage": {
+          "view": {
+            "label": "Vista",
+            "cards": "Tarjetas",
+            "table": "Tabla"
+          },
+          "status": {
+            "loading": "Cargando la ventana {{window}}.",
+            "searching": "Buscando {{term}}.",
+            "searchError": "No se pudo cargar la búsqueda.",
+            "noMatch": "Ningún mazo ni carta coincide con {{term}}.",
+            "found_one": "{{decks}} mazo coincide con {{term}}.",
+            "found_other": "{{decks}} mazos coinciden con {{term}}.",
+            "found_many": "{{decks}} mazos coinciden con {{term}}."
+          },
+          "moreError": "No se pudieron cargar los siguientes mazos. {{error}}",
+          "shortfall_one": "Endstep devolvió {{returned}} del {{total}} mazo que contó.",
+          "shortfall_other": "Endstep devolvió {{returned}} de los {{total}} mazos que contó.",
+          "shortfall_many": "Endstep devolvió {{returned}} de los {{total}} mazos que contó.",
+          "errors": {
+            "summary": "No se pudo cargar el resumen",
+            "search": "No se pudo cargar la búsqueda",
+            "table": "No se pudo cargar la tabla de mazos",
+            "grid": "No se pudo cargar la cuadrícula de mazos",
+            "shareOverTime": "No se pudo cargar la cuota en el tiempo",
+            "rankedBars": "No se pudo cargar la cuota del meta por mazo",
+            "winRateScatter": "No se pudo cargar victorias frente a cuota"
+          },
+          "noMatch": {
+            "title": "Ningún mazo ni carta coincide con {{term}}",
+            "detail": "La búsqueda cubre los nombres de los mazos y cada carta de sus listas, en la ventana seleccionada.",
+            "clear": "Borrar la búsqueda"
+          },
+          "caption": "Mazos que coinciden con {{term}}, ordenables por columna"
+        },
+        "deckCard": {
+          "share": "Cuota",
+          "players": "Jugadores",
+          "winRate": "Porcentaje de victorias",
+          "shareChange": "Cambio de cuota"
+        },
+        "deckGrid": {
+          "heading": "Mazos por cuota del meta"
+        },
+        "deckSearch": {
+          "label": "Buscar mazos o cartas",
+          "placeholder": "Buscar mazos o cartas",
+          "clear": "Borrar la búsqueda"
+        },
+        "deckTable": {
+          "heading": "Tabla de mazos",
+          "caption_one": "El primer mazo, ordenable por columna",
+          "caption_other": "Los {{count}} primeros mazos, ordenables por columna",
+          "caption_many": "Los {{count}} primeros mazos, ordenables por columna",
+          "rank": "Posición por cuota",
+          "columns": {
+            "colours": "Colores",
+            "share": "Cuota",
+            "players": "Jugadores",
+            "matches": "Partidas",
+            "winRate": "Porcentaje de victorias",
+            "change": "Cambio"
+          }
+        },
+        "rankedBars": {
+          "heading": "Cuota del meta por mazo",
+          "region": "Cuota del meta por mazo, gráfico",
+          "other_one": "Otros ({{count}} arquetipo y sin clasificar)",
+          "other_other": "Otros ({{count}} arquetipos y sin clasificar)",
+          "other_many": "Otros ({{count}} arquetipos y sin clasificar)",
+          "note": "Otros cubre todos los arquetipos fuera del top {{top}}."
+        },
+        "searchResults": {
+          "line_one": "<total>{{decks}} mazo</total> coincide con <term></term>. La búsqueda cubre los nombres de los mazos y cada carta de sus listas.",
+          "line_other": "<total>{{decks}} mazos</total> coinciden con <term></term>. La búsqueda cubre los nombres de los mazos y cada carta de sus listas.",
+          "line_many": "<total>{{decks}} mazos</total> coinciden con <term></term>. La búsqueda cubre los nombres de los mazos y cada carta de sus listas.",
+          "more_one": "Mostrar {{count}} más",
+          "more_other": "Mostrar {{count}} más",
+          "more_many": "Mostrar {{count}} más"
+        },
+        "shareOverTime": {
+          "heading": "Cuota en el tiempo",
+          "region": "Cuota del meta diaria, los ocho primeros mazos"
+        },
+        "summary": {
+          "registrations": "Inscripciones",
+          "players": "Jugadores",
+          "archetypes": "Arquetipos",
+          "window": "Ventana",
+          "population": "Población"
+        },
+        "winRateScatter": {
+          "heading": "Victorias frente a cuota",
+          "note": "El área de cada burbuja representa el número de jugadores. Los mazos por encima de la línea ganan más de la mitad de sus partidas.",
+          "noteWithLeftOut": "{{note}} {{leftOut}}",
+          "leftOut_one": "{{count}} mazo con menos de {{needed}} partidas decididas queda fuera, muy pocas para ubicarlo.",
+          "leftOut_other": "{{count}} mazos con menos de {{needed}} partidas decididas quedan fuera, muy pocas para ubicarlos.",
+          "leftOut_many": "{{count}} mazos con menos de {{needed}} partidas decididas quedan fuera, muy pocas para ubicarlos.",
+          "chart": "Porcentaje de victorias frente a cuota del meta",
+          "xAxis": "cuota del meta",
+          "yAxis": "porcentaje de victorias",
+          "players": "Jugadores",
+          "reference": "50% de victorias",
+          "tooltip": {
+            "share": "Cuota del meta",
+            "players": "Jugadores",
+            "winRate": "Porcentaje de victorias",
+            "bounds": "Límites de confianza",
+            "tap": "Toca de nuevo para abrir el mazo.",
+            "click": "Haz clic para abrir el mazo."
+          }
+        }
+      },
+      "deck": {
+        "page": {
+          "loading": "Cargando el mazo",
+          "error": "Mazo",
+          "failed": "No se pudo cargar el mazo",
+          "loadingWindow": "Cargando la ventana {{window}}.",
+          "noMatches": {
+            "title": "No hay partidas en esta ventana",
+            "detail": "{{deck}} no tiene partidas en la ventana {{window}}."
+          },
+          "sections": {
+            "share": {
+              "title": "Cuota en el tiempo"
+            },
+            "games": {
+              "title": "Juegos",
+              "note": "Porcentaje de victorias por juego, según el juego de la partida y quién jugó primero."
+            },
+            "toss": {
+              "title": "Sorteo",
+              "note": "Porcentaje de victorias en el juego 1 después del sorteo."
+            },
+            "texture": {
+              "title": "Perfil",
+              "note": "Cómo suele desarrollarse un juego con este mazo."
+            },
+            "sampleList": {
+              "title": "Lista de ejemplo"
+            }
+          }
+        },
+        "notFound": {
+          "title": "No hay ningún mazo en esta dirección",
+          "detail": "Endstep no tiene ningún mazo de {{format}} llamado \"{{slug}}\".",
+          "back": "Volver al resumen"
+        },
+        "cardSheet": {
+          "error": "No se pudo cargar la imagen de la carta.",
+          "close": "Cerrar"
+        },
+        "hero": {
+          "endstep": "Ver en endstep.cc<hidden>, se abre en una pestaña nueva</hidden>"
+        },
+        "matchups": {
+          "title": "Enfrentamientos contra el top {{top}}",
+          "dates": "Estos enfrentamientos cubren {{dates}}.",
+          "failed": "No se pudieron cargar los enfrentamientos",
+          "grid_one": "Porcentaje de victorias de {{deck}} contra el otro {{count}} mazo del top {{top}}, partidas clasificatorias.",
+          "grid_other": "Porcentaje de victorias de {{deck}} contra los otros {{count}} mazos del top {{top}}, partidas clasificatorias.",
+          "grid_many": "Porcentaje de victorias de {{deck}} contra los otros {{count}} mazos del top {{top}}, partidas clasificatorias.",
+          "gridWindow_one": "Porcentaje de victorias de {{deck}} contra el otro {{count}} mazo del top {{top}}, ventana {{window}}, partidas clasificatorias.",
+          "gridWindow_other": "Porcentaje de victorias de {{deck}} contra los otros {{count}} mazos del top {{top}}, ventana {{window}}, partidas clasificatorias.",
+          "gridWindow_many": "Porcentaje de victorias de {{deck}} contra los otros {{count}} mazos del top {{top}}, ventana {{window}}, partidas clasificatorias.",
+          "more": "Ver {{deck}} en la tabla completa",
+          "outside": "<deck></deck> no está en el top {{top}} de esta ventana, así que no tiene fila en la tabla de enfrentamientos. <matchups>Ver la tabla de enfrentamientos</matchups>",
+          "none": "Todavía no hay enfrentamientos registrados en esta ventana."
+        },
+        "share": {
+          "metaShare": "Cuota del meta",
+          "label": "Cuota del meta diaria de {{deck}}",
+          "labelDates": "Cuota del meta diaria de {{deck}}, {{dates}}",
+          "summary": "Cuota diaria, día a día",
+          "days": "Cuota del meta por día",
+          "noData": "sin datos"
+        },
+        "stats": {
+          "winRate": "Porcentaje de victorias",
+          "tooFew": "Muy pocas para saberlo",
+          "metaShare": "Cuota del meta",
+          "players": "Jugadores",
+          "matches": "Partidas",
+          "shareChange": "Cambio de cuota"
+        },
+        "texture": {
+          "turns": "Turnos promedio",
+          "openingHand": "Mano inicial",
+          "cards": "{{cards}} cartas",
+          "mulligan": "Tasa de mulligan",
+          "mulliganGames_one": "{{mulligans}} de {{games}} juego",
+          "mulliganGames_other": "{{mulligans}} de {{games}} juegos",
+          "mulliganGames_many": "{{mulligans}} de {{games}} juegos"
+        },
+        "toss": {
+          "won": "Ganó el sorteo",
+          "lost": "Perdió el sorteo",
+          "draw": "Eligió robar",
+          "tooFew": "Muy pocos para saberlo",
+          "games_one": "{{games}} juego",
+          "games_other": "{{games}} juegos",
+          "games_many": "{{games}} juegos",
+          "drawTosses_one": "{{draws}} de {{tosses}} sorteo ganado",
+          "drawTosses_other": "{{draws}} de {{tosses}} sorteos ganados",
+          "drawTosses_many": "{{draws}} de {{tosses}} sorteos ganados"
+        },
+        "games": {
+          "columns": {
+            "onPlay": "Jugando primero",
+            "onDraw": "Robando primero",
+            "total": "Total"
+          },
+          "cell": {
+            "onPlay": "{{row}}, jugando primero",
+            "onDraw": "{{row}}, robando primero",
+            "total": "{{row}}, total"
+          },
+          "game": "Juego {{number}}",
+          "all": "Todos los juegos",
+          "gatedLabel": "{{title}}: muy pocos para saberlo, {{needed}}",
+          "label": "{{title}}: porcentaje de victorias por juego {{rate}}, rango {{range}}, {{wins}}, {{losses}}",
+          "winCount_one": "{{wins}} victoria",
+          "winCount_other": "{{wins}} victorias",
+          "winCount_many": "{{wins}} victorias",
+          "lossCount_one": "{{losses}} derrota",
+          "lossCount_other": "{{losses}} derrotas",
+          "lossCount_many": "{{losses}} derrotas",
+          "wins": "Victorias",
+          "losses": "Derrotas",
+          "gated": "Muy pocos para saberlo: {{needed}}.",
+          "rate": "Porcentaje de victorias por juego",
+          "range": "Rango",
+          "allKnown": "Todos los juegos tienen registro de quién jugó primero.",
+          "unknown_one": "{{games}} juego no tiene registro de quién jugó primero y solo cuenta en los totales.",
+          "unknown_other": "{{games}} juegos no tienen registro de quién jugó primero y solo cuentan en los totales.",
+          "unknown_many": "{{games}} juegos no tienen registro de quién jugó primero y solo cuentan en los totales.",
+          "unavailable": "Los resultados de los juegos no están disponibles para esta ventana.",
+          "hatched": "Una celda rayada tiene menos de 20 juegos decididos, muy pocos para saberlo."
+        },
+        "listCost": {
+          "heading": "Costo de construcción",
+          "currency": "Moneda",
+          "mtgo": "MTGO",
+          "unit": "tix",
+          "tix": "{{price}} tix",
+          "main": "Mazo principal {{main}}",
+          "split": "Mazo principal {{main}} · Sideboard {{side}}",
+          "source": "Precios de Scryfall, en la edición más barata de cada carta.",
+          "missing_one": "Sin precio para {{count}} carta.",
+          "missing_other": "Sin precio para {{count}} cartas.",
+          "missing_many": "Sin precio para {{count}} cartas."
+        },
+        "sampleList": {
+          "mainOnly_one": "{{players}} jugador llevó exactamente este mazo principal.",
+          "mainOnly_other": "{{players}} jugadores llevaron exactamente este mazo principal.",
+          "mainOnly_many": "{{players}} jugadores llevaron exactamente este mazo principal.",
+          "shown_one": "{{players}} jugador llevó exactamente esta lista. Es la más común de {{lists}} listas distintas.",
+          "shown_other": "{{players}} jugadores llevaron exactamente esta lista. Es la más común de {{lists}} listas distintas.",
+          "shown_many": "{{players}} jugadores llevaron exactamente esta lista. Es la más común de {{lists}} listas distintas.",
+          "shownLike_one": "{{players}} jugador llevó exactamente esta lista. Se parece en un {{similarity}}% a la lista promedio del mazo, y es la más común de {{lists}} listas distintas.",
+          "shownLike_other": "{{players}} jugadores llevaron exactamente esta lista. Se parece en un {{similarity}}% a la lista promedio del mazo, y es la más común de {{lists}} listas distintas.",
+          "shownLike_many": "{{players}} jugadores llevaron exactamente esta lista. Se parece en un {{similarity}}% a la lista promedio del mazo, y es la más común de {{lists}} listas distintas.",
+          "noRegistrations": "No hay lista que mostrar. No se inscribió ninguna lista de este mazo en esta ventana.",
+          "withheld": "No hay lista que mostrar. Ningún mazo principal fue llevado por {{min}} o más jugadores en esta ventana.",
+          "copy": {
+            "list": "Copiar la lista",
+            "mainDeck": "Copiar el mazo principal"
+          },
+          "copied": {
+            "list": "Lista copiada.",
+            "mainDeck": "Mazo principal copiado."
+          },
+          "fallback": {
+            "list": "El portapapeles no está disponible. La lista está seleccionada abajo, para copiarla.",
+            "mainDeck": "El portapapeles no está disponible. El mazo principal está seleccionado abajo, para copiarlo."
+          },
+          "text": {
+            "list": "Lista de ejemplo como texto",
+            "mainDeck": "Mazo principal como texto"
+          },
+          "main": "Mazo principal",
+          "side": "Sideboard",
+          "sideHidden_one": "No se muestra. Menos de {{count}} jugador llevó exactamente estas 75 cartas.",
+          "sideHidden_other": "No se muestra. Menos de {{count}} jugadores llevaron exactamente estas 75 cartas.",
+          "sideHidden_many": "No se muestra. Menos de {{count}} jugadores llevaron exactamente estas 75 cartas."
+        }
+      },
+      "matchups": {
+        "title": "Enfrentamientos",
+        "matchupsPage": {
+          "thisDeck": "Este mazo",
+          "outside": "{{deck}} no está en el top {{top}} de la ventana de tiempo seleccionada.",
+          "tableDefault": "{{outside}} La tabla muestra {{deck}} por defecto.",
+          "loading": "Cargando la ventana {{window}}.",
+          "error": "No se pudo cargar la tabla de enfrentamientos"
+        },
+        "matchupList": {
+          "label_one": "Porcentaje de victorias de {{deck}} contra el otro {{count}} mazo del top {{top}}, partidas clasificatorias.",
+          "label_other": "Porcentaje de victorias de {{deck}} contra los otros {{count}} mazos del top {{top}}, partidas clasificatorias.",
+          "label_many": "Porcentaje de victorias de {{deck}} contra los otros {{count}} mazos del top {{top}}, partidas clasificatorias.",
+          "labelWindow_one": "Porcentaje de victorias de {{deck}} contra el otro {{count}} mazo del top {{top}}, ventana {{window}}, partidas clasificatorias.",
+          "labelWindow_other": "Porcentaje de victorias de {{deck}} contra los otros {{count}} mazos del top {{top}}, ventana {{window}}, partidas clasificatorias.",
+          "labelWindow_many": "Porcentaje de victorias de {{deck}} contra los otros {{count}} mazos del top {{top}}, ventana {{window}}, partidas clasificatorias.",
+          "matches_one": "{{matches}} partida",
+          "matches_other": "{{matches}} partidas",
+          "matches_many": "{{matches}} partidas",
+          "verdict": {
+            "win": "Favorable",
+            "loss": "Desfavorable",
+            "neutral": "Dentro del margen",
+            "gated": "Muy pocas para saberlo",
+            "none": "Sin datos",
+            "mirror": "Espejo"
+          }
+        },
+        "matchupTable": {
+          "label_one": "Porcentaje de victorias del mazo de la fila contra el mazo de la columna. El primer mazo por cuota, partidas clasificatorias.",
+          "label_other": "Porcentaje de victorias del mazo de la fila contra el mazo de la columna. Los {{count}} primeros mazos por cuota, partidas clasificatorias.",
+          "label_many": "Porcentaje de victorias del mazo de la fila contra el mazo de la columna. Los {{count}} primeros mazos por cuota, partidas clasificatorias.",
+          "labelWindow_one": "Porcentaje de victorias del mazo de la fila contra el mazo de la columna. El primer mazo por cuota, ventana {{window}}, partidas clasificatorias.",
+          "labelWindow_other": "Porcentaje de victorias del mazo de la fila contra el mazo de la columna. Los {{count}} primeros mazos por cuota, ventana {{window}}, partidas clasificatorias.",
+          "labelWindow_many": "Porcentaje de victorias del mazo de la fila contra el mazo de la columna. Los {{count}} primeros mazos por cuota, ventana {{window}}, partidas clasificatorias."
+        }
+      },
+      "whatToPlay": {
+        "title": "¿Qué jugar?",
+        "loading": "Cargando la ventana {{window}}.",
+        "error": "No se pudo cargar la clasificación",
+        "pick": {
+          "label": "Nuestra elección",
+          "title": "¡Juega <decks></decks>!",
+          "or": "o",
+          "why": {
+            "one": "{{deck}} gana el {{rate}} de sus partidas contra el metagame que esperas.",
+            "many": "Son los que más partidas ganan contra el metagame que esperas: {{rates}} y {{last}}. La diferencia entre ellos es muy pequeña para saberlo.",
+            "more_one": "Son los que más partidas ganan contra el metagame que esperas: {{rates}} y {{last}}. La diferencia entre ellos es muy pequeña para saberlo, y {{count}} mazo más está igual de cerca.",
+            "more_other": "Son los que más partidas ganan contra el metagame que esperas: {{rates}} y {{last}}. La diferencia entre ellos es muy pequeña para saberlo, y {{count}} mazos más están igual de cerca.",
+            "more_many": "Son los que más partidas ganan contra el metagame que esperas: {{rates}} y {{last}}. La diferencia entre ellos es muy pequeña para saberlo, y {{count}} mazos más están igual de cerca."
+          },
+          "basis": {
+            "changed": "Basado en el metagame que definiste.",
+            "period": "Basado en {{period}}. Cambia el metagame para que coincida con lo que esperas."
+          }
+        },
+        "expectedRates": {
+          "title": "Porcentaje de victorias esperado",
+          "note": {
+            "changed": "El metagame que definiste",
+            "period": "Metagame en {{period}}"
+          },
+          "legend": {
+            "win": "Claramente por encima del 50%",
+            "neutral": "Muy parejo para saberlo",
+            "loss": "Claramente por debajo del 50%"
+          },
+          "likely": ", probablemente entre {{low}} y {{high}}",
+          "movement": {
+            "up_one": ", sube {{count}}",
+            "up_other": ", sube {{count}}",
+            "up_many": ", sube {{count}}",
+            "down_one": ", baja {{count}}",
+            "down_other": ", baja {{count}}",
+            "down_many": ", baja {{count}}"
+          }
+        },
+        "metagame": {
+          "title": "El metagame que esperas",
+          "open": "Cambiar",
+          "close": "Cerrar",
+          "note": "Con qué frecuencia esperas enfrentarte a cada mazo. Cada paso es un punto.",
+          "reset": "Restablecer",
+          "was": "era {{share}}",
+          "rest_one": "El primer mazo reúne el {{held}} de las inscripciones. El otro {{rest}} queda fuera de la suma.",
+          "rest_other": "Los {{count}} primeros reúnen el {{held}} de las inscripciones. El otro {{rest}} queda fuera de la suma.",
+          "rest_many": "Los {{count}} primeros reúnen el {{held}} de las inscripciones. El otro {{rest}} queda fuera de la suma."
+        },
+        "stepper": {
+          "lower": "Menos {{name}}",
+          "raise": "Más {{name}}"
+        },
+        "beat": {
+          "title": "Vence a un mazo",
+          "note": {
+            "none": "Ningún mazo del top {{top}} vence claramente a {{name}} en esta ventana.",
+            "some_one": "Este mazo vence claramente a {{name}}.",
+            "some_other": "Estos mazos vencen claramente a {{name}}.",
+            "some_many": "Estos mazos vencen claramente a {{name}}."
+          },
+          "table": {
+            "against": "Contra {{name}}",
+            "range": "Rango",
+            "metagame": "Contra el metagame",
+            "likely": ", probablemente entre {{low}} y {{high}}"
+          }
+        },
+        "howItWorks": {
+          "title": "Cómo se calculan los números",
+          "items": {
+            "count": {
+              "subject": "Cómo contamos.",
+              "text": "Para cada mazo, tomamos su porcentaje de victorias contra cada uno de los 24 mejores mazos. Ponderamos cada uno por la frecuencia con la que esperas enfrentarte a ese mazo. Un espejo cuenta como 50%. Lo mismo pasa con un enfrentamiento de menos de 20 partidas, y además ensancha la barra."
+            },
+            "bars": {
+              "subject": "Las barras.",
+              "text": "Cada barra muestra dónde está con más probabilidad el porcentaje real. Azul es claramente por encima del 50%, rojo es claramente por debajo, gris es muy parejo para saberlo."
+            },
+            "pick": {
+              "subject": "Nuestra elección.",
+              "text": "El mazo con el mejor porcentaje. Cuando otros mazos están muy parejos para distinguirlos, también los nombramos, hasta tres."
+            },
+            "outside": {
+              "subject": "Mazos fuera del top 24.",
+              "text": "Cerca de un cuarto de los mazos jugados está fuera del top 24. No tenemos datos de sus enfrentamientos, así que los dejamos fuera. Por eso estos porcentajes son un poco más bajos que el porcentaje de victorias general de cada mazo."
+            }
+          }
+        }
+      },
+      "staples": {
+        "title": "Staples",
+        "staplesHead": {
+          "intro": "Las cartas que más juegan los 24 mejores mazos."
+        },
+        "staplesPage": {
+          "loading": {
+            "main": "Cargando el mazo principal de la ventana {{window}}.",
+            "side": "Cargando el sideboard de la ventana {{window}}."
+          }
+        },
+        "staples": {
+          "heading": "Cartas más jugadas",
+          "part": "Parte del mazo",
+          "lists": {
+            "main": "Mazo principal",
+            "side": "Sideboard"
+          },
+          "note": "El porcentaje es la cuota de los mazos del top 24 que juegan la carta.",
+          "error": "No se pudieron cargar las staples",
+          "emptyTitle": "No hay cartas en esta ventana",
+          "withheld_one": "{{count}} mazo queda fuera porque Endstep oculta sus cartas.",
+          "withheld_other": "{{count}} mazos quedan fuera porque Endstep oculta sus cartas.",
+          "withheld_many": "{{count}} mazos quedan fuera porque Endstep oculta sus cartas.",
+          "more_one": "Mostrar {{count}} más",
+          "more_other": "Mostrar {{count}} más",
+          "more_many": "Mostrar {{count}} más"
+        },
+        "playedBy": {
+          "empty": "Ningún mazo la juega en el 5% o más de sus listas.",
+          "title_one": "Jugada en {{count}} del top 24",
+          "title_other": "Jugada en {{count}} del top 24",
+          "title_many": "Jugada en {{count}} del top 24",
+          "ofLists": " de sus listas, ",
+          "note": "La cuota de las listas de cada mazo que la juegan."
+        }
+      },
+      "notFound": {
+        "title": "No encontrado"
+      }
+    }
   }
 }
