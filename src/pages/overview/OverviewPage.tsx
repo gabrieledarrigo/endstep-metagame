@@ -11,6 +11,7 @@ import { SegmentedControl } from "../../components/SegmentedControl";
 import { StatePanel } from "../../components/StatePanel";
 import { WINDOWS } from "../../config";
 import { errorText, formatCount, quoted, searchTerm } from "../../helpers";
+import { useCanonicalLink } from "../../hooks/useCanonicalLink";
 import { useTimeWindow } from "../../hooks/useTimeWindow";
 import { DeckGrid, DeckGridSkeleton } from "./DeckGrid";
 import { DeckSearch, type DeckSearchHandle } from "./DeckSearch";
@@ -47,6 +48,7 @@ function uniqueDecks(pages: DecksResponse[]): Deck[] {
 
 export function OverviewPage() {
   const { t } = useTranslation();
+  useCanonicalLink();
   const [timeWindow, selectTimeWindow] = useTimeWindow();
   const [searchParams, setSearchParams] = useSearchParams();
   const view: View = searchParams.get("view") === "table" ? "table" : "cards";

@@ -16,6 +16,7 @@ import { Section } from "../../components/Section";
 import { SegmentedControl } from "../../components/SegmentedControl";
 import { WINDOWS } from "../../config";
 import { findDeck, formatWindow } from "../../helpers";
+import { useCanonicalLink } from "../../hooks/useCanonicalLink";
 import { useMatchups } from "../../hooks/useMatchups";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { useTimeWindow } from "../../hooks/useTimeWindow";
@@ -26,6 +27,7 @@ const TABLE_WIDTH = "(min-width: 640px)";
 
 export function MatchupsPage() {
   const { t } = useTranslation();
+  useCanonicalLink();
   const [timeWindow, selectTimeWindow] = useTimeWindow();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigationType = useNavigationType();

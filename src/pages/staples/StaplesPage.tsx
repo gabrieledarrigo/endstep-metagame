@@ -6,12 +6,14 @@ import type { StaplesSection } from "../../api/types";
 import { SegmentedControl } from "../../components/SegmentedControl";
 import { WINDOWS } from "../../config";
 import { formatWindow } from "../../helpers";
+import { useCanonicalLink } from "../../hooks/useCanonicalLink";
 import { useTimeWindow } from "../../hooks/useTimeWindow";
 import { Staples } from "./Staples";
 import { StaplesHead } from "./StaplesHead";
 
 export function StaplesPage() {
   const { t } = useTranslation();
+  useCanonicalLink();
   const [timeWindow, selectTimeWindow] = useTimeWindow();
   const [searchParams, setSearchParams] = useSearchParams();
   const section: StaplesSection =

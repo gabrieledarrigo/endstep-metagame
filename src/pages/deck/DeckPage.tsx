@@ -13,6 +13,7 @@ import { Skeleton } from "../../components/Skeleton";
 import { StatePanel } from "../../components/StatePanel";
 import { WINDOWS } from "../../config";
 import { errorText, formatWindow } from "../../helpers";
+import { useCanonicalLink } from "../../hooks/useCanonicalLink";
 import { useHeadingFocus } from "../../hooks/useHeadingFocus";
 import { useSampleCards } from "../../hooks/useSampleCards";
 import { useTimeWindow } from "../../hooks/useTimeWindow";
@@ -83,6 +84,7 @@ export function DeckPage() {
   const loadingWindow = deck.isPlaceholderData;
 
   useHeadingFocus(headingState(deck));
+  useCanonicalLink(!isUnknownDeck(deck));
 
   useEffect(() => {
     if (canonical !== undefined && canonical !== slug) {

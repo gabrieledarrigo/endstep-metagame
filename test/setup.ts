@@ -43,6 +43,11 @@ beforeEach(() => {
 
 afterEach(async () => {
   cleanup();
+  document.head
+    .querySelectorAll('link[rel="canonical"], meta[property="og:url"]')
+    .forEach((tag) => {
+      tag.remove();
+    });
   localStorage.removeItem(LANGUAGE_KEY);
 
   if (i18next.language !== "en") {
