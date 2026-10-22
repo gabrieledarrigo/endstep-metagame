@@ -104,7 +104,7 @@ type SampleListProps = {
 
 export function SampleList({ list, cards, cardsPending }: SampleListProps) {
   const { t } = useTranslation();
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState<"copied" | "fallback" | null>(null);
   const [fallback, setFallback] = useState(false);
   const [preview, setPreview] = useState<Previewed | null>(null);
   const [sheet, setSheet] = useState<Opened | null>(null);
@@ -132,14 +132,14 @@ export function SampleList({ list, cards, cardsPending }: SampleListProps) {
     side.length > 0 ? `${lines(main)}\n\n${lines(side)}` : lines(main);
 
   const copy = async (): Promise<void> => {
-    setStatus("");
+    setStatus(null);
 
     try {
       await navigator.clipboard.writeText(copied);
       setFallback(false);
-      setStatus(t(`deck.sampleList.copied.${what}`));
+      setStatus("copied");
     } catch {
-      setStatus(t(`deck.sampleList.fallback.${what}`));
+      setStatus("fallback");
       setFallback(true);
       requestAnimationFrame(() => {
         text.current?.focus();
@@ -231,7 +231,7 @@ export function SampleList({ list, cards, cardsPending }: SampleListProps) {
           {t(`deck.sampleList.copy.${what}`)}
         </Button>
         <span className="sample-list__status" role="status">
-          {status}
+          {status && t(`deck.sampleList.${status}.${what}`)}
         </span>
       </div>
       {fallback && (
