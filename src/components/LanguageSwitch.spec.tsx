@@ -1,4 +1,5 @@
 import { fireEvent, render, screen } from "@testing-library/react";
+import i18next from "i18next";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { LanguageSwitch } from "./LanguageSwitch";
 
@@ -6,11 +7,8 @@ function select(name = "Language"): HTMLSelectElement {
   return screen.getByRole<HTMLSelectElement>("combobox", { name });
 }
 
-afterEach(async () => {
+afterEach(() => {
   vi.restoreAllMocks();
-  vi.doUnmock("../locales/locales.json");
-  vi.resetModules();
-  await import("../locales/i18n");
 });
 
 describe("LanguageSwitch", () => {
@@ -62,11 +60,21 @@ describe("LanguageSwitch", () => {
 
       return { default: { en } };
     });
-    await import("../locales/i18n");
-    const { LanguageSwitch: OneLanguage } = await import("./LanguageSwitch");
 
-    const { container } = render(<OneLanguage />);
+    try {
+      await import("../locales/i18n");
+      const { LanguageSwitch: OneLanguage } = await import("./LanguageSwitch");
 
-    expect(container.innerHTML).toBe("");
+      const { container } = render(<OneLanguage />);
+
+      expect(container.innerHTML).toBe("");
+    } finally {
+      vi.doUnmock("../locales/locales.json");
+      vi.resetModules();
+      localStorage.removeItem("language");
+      await import("../locales/i18n");
+    }
+
+    expect(i18next.hasResourceBundle("it", "translation")).toBe(true);
   });
 });
