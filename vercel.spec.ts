@@ -54,8 +54,10 @@ describe("vercel.json", () => {
   it("serves the matchup table, What to play? and Staples from their own built copies, with no page rewrite left", () => {
     expect(vercel.cleanUrls).toBe(true);
     expect(
-      vercel.rewrites.filter(({ destination }) =>
-        destination.endsWith(".html"),
+      vercel.rewrites.filter(
+        ({ source, destination }) =>
+          ["/matchups", "/what-to-play", "/staples"].includes(source) ||
+          destination.endsWith(".html"),
       ),
     ).toEqual([]);
   });
