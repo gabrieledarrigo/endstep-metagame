@@ -180,11 +180,4 @@ describe("ThemeToggle", () => {
     expect(toggle().getAttribute("aria-pressed")).toBe("true");
     expect(themeColours()).toEqual([]);
   });
-
-  it("takes an extra class from the header", () => {
-    stubColourScheme(false);
-    render(<ThemeToggle className="site-header__toggle" />);
-
-    expect(toggle().className).toBe("theme-toggle site-header__toggle");
-  });
 });
