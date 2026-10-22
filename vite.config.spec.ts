@@ -311,7 +311,11 @@ describe("pagePreviews", () => {
       configFile: false,
       plugins: [react()],
       logLevel: "silent",
-      build: { outDir: withoutPlugin, emptyOutDir: true, target: "es2025" },
+      build: {
+        outDir: withoutPlugin,
+        emptyOutDir: true,
+        target: config.build?.target,
+      },
     });
 
     for (const file of [
