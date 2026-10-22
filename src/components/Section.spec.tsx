@@ -1,7 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { fireEvent, screen } from "@testing-library/react";
+import { act, fireEvent, screen } from "@testing-library/react";
+import i18next from "i18next";
 import { describe, expect, it, vi } from "vitest";
 import { renderWithQueries } from "../../test/renderWithQueries";
+import { ApiError } from "../api/client";
 import { Section } from "./Section";
 
 function Probe({ load }: { load: () => Promise<string> }) {
@@ -50,6 +52,31 @@ describe("Section", () => {
     retried.resolve("decks");
 
     expect(await screen.findByText("Data: decks")).toBeTruthy();
+  });
+
+  it("words an API error in the language the reader picks after it failed", async () => {
+    renderWithQueries(
+      <Probe
+        load={() =>
+          Promise.reject(
+            new ApiError("The request failed with status 404.", "http", 404),
+          )
+        }
+      />,
+    );
+
+    expect(
+      await screen.findByText("The request failed with status 404."),
+    ).toBeTruthy();
+
+    await act(() => i18next.changeLanguage("it"));
+
+    expect(
+      screen.getByText(i18next.t("api.client.http", { status: 404 })),
+    ).toBeTruthy();
+    expect(
+      screen.queryByText("The request failed with status 404."),
+    ).toBeNull();
   });
 
   it("keeps the data on screen when a refresh fails", async () => {

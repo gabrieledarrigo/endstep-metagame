@@ -1,6 +1,7 @@
 export * from "./address";
 export * from "./cardArt";
 export * from "./cellState";
+export * from "./errors";
 export * from "./expectedRate";
 export * from "./format";
 export * from "./language";
