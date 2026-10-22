@@ -155,4 +155,29 @@ describe("App", () => {
     ).toBeTruthy();
     expect(location.pathname + location.search).toBe("/staples?window=14d");
   });
+
+  it("changes the text, the formats, the title and the lang attribute at once when the reader picks a language", async () => {
+    history.replaceState(null, "", "/?window=30d");
+    render(<App />);
+
+    await screen.findByRole("heading", { level: 1, name: "Overview" });
+    expect(await screen.findByText("236,728")).toBeTruthy();
+
+    fireEvent.change(screen.getByRole("combobox", { name: "Language" }), {
+      target: { value: "it" },
+    });
+
+    expect(
+      screen.getByRole("heading", { level: 1, name: "Panoramica" }),
+    ).toBeTruthy();
+    expect(screen.getByText("236.728")).toBeTruthy();
+    expect(
+      within(screen.getByRole("group", { name: "Finestra temporale" }))
+        .getAllByRole("button")
+        .map((button) => button.textContent),
+    ).toEqual(["1g", "7g", "14g", "30g", "stagione"]);
+    expect(document.documentElement.lang).toBe("it-IT");
+    expect(document.title).toBe("Panoramica · Pauper Endstep metagame");
+    expect(location.pathname + location.search).toBe("/?window=30d");
+  });
 });
