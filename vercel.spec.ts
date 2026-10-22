@@ -51,19 +51,13 @@ describe("vercel.json", () => {
     });
   });
 
-  it("serves the matchup table, What to play? and Staples from the built page", () => {
-    expect(vercel.rewrites).toContainEqual({
-      source: "/matchups",
-      destination: "/index.html",
-    });
-    expect(vercel.rewrites).toContainEqual({
-      source: "/what-to-play",
-      destination: "/index.html",
-    });
-    expect(vercel.rewrites).toContainEqual({
-      source: "/staples",
-      destination: "/index.html",
-    });
+  it("serves the matchup table, What to play? and Staples from their own built copies, with no page rewrite left", () => {
+    expect(vercel.cleanUrls).toBe(true);
+    expect(
+      vercel.rewrites.filter(({ destination }) =>
+        destination.endsWith(".html"),
+      ),
+    ).toEqual([]);
   });
 
   it("caches the hashed assets for a year", () => {
