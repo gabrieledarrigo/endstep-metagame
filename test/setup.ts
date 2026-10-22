@@ -1,5 +1,6 @@
 import { cleanup } from "@testing-library/react";
-import "../src/locales/i18n";
+import i18next from "i18next";
+import { LANGUAGE_KEY } from "../src/locales/i18n";
 import { afterEach, beforeEach } from "vitest";
 import { stubWidth } from "./stubWidth";
 
@@ -40,6 +41,8 @@ beforeEach(() => {
   stubWidth(1280);
 });
 
-afterEach(() => {
+afterEach(async () => {
   cleanup();
+  localStorage.removeItem(LANGUAGE_KEY);
+  await i18next.changeLanguage("en");
 });

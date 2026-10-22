@@ -1,5 +1,5 @@
 import i18next from "i18next";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import locales from "./locales.json";
 import type { Locales, Translation } from "./i18n";
 
@@ -57,5 +57,56 @@ describe("the type check of the strings", () => {
   it("refuses an unknown key", () => {
     // @ts-expect-error A key that is not in the file fails the build.
     expect(i18next.t("common.noSuchKey")).toBe("common.noSuchKey");
+  });
+});
+
+describe("the first language", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.resetModules();
+  });
+
+  async function start(...languages: string[]): Promise<string> {
+    vi.stubGlobal("navigator", { ...navigator, languages });
+    vi.resetModules();
+    await import("./i18n");
+
+    return (await import("i18next")).default.language;
+  }
+
+  it("opens in pt for a browser that prefers pt-PT", async () => {
+    expect(await start("pt-PT", "en-GB")).toBe("pt");
+    expect(document.documentElement.lang).toBe("pt-PT");
+  });
+
+  it("opens in English for a browser that prefers fr", async () => {
+    expect(await start("fr-FR", "fr")).toBe("en");
+    expect(document.documentElement.lang).toBe("en-GB");
+  });
+
+  it("opens in the stored choice, whatever the browser prefers", async () => {
+    localStorage.setItem("language", "es");
+
+    expect(await start("pt-BR")).toBe("es");
+    expect(document.documentElement.lang).toBe("es-ES");
+  });
+
+  it("ignores a stored language that the file does not hold", async () => {
+    localStorage.setItem("language", "fr");
+
+    expect(await start("it-IT")).toBe("it");
+  });
+
+  it("follows the browser when storage cannot be read", async () => {
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+      throw new Error("Storage is blocked");
+    });
+
+    try {
+      expect(await start("it-CH")).toBe("it");
+      expect(document.documentElement.lang).toBe("it-CH");
+    } finally {
+      vi.restoreAllMocks();
+    }
   });
 });
