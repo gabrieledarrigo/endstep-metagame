@@ -11,6 +11,37 @@ const ENTITIES: Readonly<Record<string, string>> = {
 
 type Head = { title: string; description: string; address: string };
 
+type PagePreview = { path: string; title: string; description: string };
+
+export const PAGE_PREVIEWS: readonly PagePreview[] = [
+  {
+    path: "/matchups",
+    title: "Matchups",
+    description: "How the top 24 Pauper decks do against each other.",
+  },
+  {
+    path: "/what-to-play",
+    title: "What to play?",
+    description:
+      "The Pauper deck that wins most against the decks you expect to meet.",
+  },
+  {
+    path: "/staples",
+    title: "Staples",
+    description: "The cards the top 24 Pauper decks play most.",
+  },
+];
+
+/**
+ * Names a page in its link preview, FR-15.
+ *
+ * @param name - The page's own name, such as a deck's name or "Staples".
+ * @returns The title, such as "Staples · Pauper Endstep metagame".
+ */
+export function pageTitle(name: string): string {
+  return `${name} · ${SITE_NAME}`;
+}
+
 /**
  * Escapes text for an HTML element or an attribute value.
  *

@@ -1,5 +1,6 @@
 {
   "framework": "vite",
+  "cleanUrls": true,
   "functions": {
     "api/deck-page.ts": {
       "includeFiles": "dist/index.html"
@@ -19,18 +20,6 @@
     {
       "source": "/decks/:slug",
       "destination": "/api/deck-page?slug=:slug"
-    },
-    {
-      "source": "/matchups",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/what-to-play",
-      "destination": "/index.html"
-    },
-    {
-      "source": "/staples",
-      "destination": "/index.html"
     }
   ],
   "headers": [

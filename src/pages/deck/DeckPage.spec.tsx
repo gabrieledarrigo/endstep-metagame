@@ -358,6 +358,29 @@ describe("DeckPage", () => {
     expect(screen.getByRole("region", { name: "Games" })).toBeTruthy();
   });
 
+  it("names the deck's own slug in the canonical link and og:url, not a stale one", async () => {
+    renderAt("/decks/renamed-e93f5f74?window=30d", () => Response.json(detail));
+
+    await screen.findByText(
+      "Address: /decks/affinity-e93f5f74?window=30d by REPLACE",
+    );
+
+    expect(
+      document.head
+        .querySelector('link[rel="canonical"]')
+        ?.getAttribute("href"),
+    ).toBe(
+      "https://pauper-endstep-metagame.vercel.app/decks/affinity-e93f5f74",
+    );
+    expect(
+      document.head
+        .querySelector('meta[property="og:url"]')
+        ?.getAttribute("content"),
+    ).toBe(
+      "https://pauper-endstep-metagame.vercel.app/decks/affinity-e93f5f74",
+    );
+  });
+
   it("replaces a stale slug in the address with the deck's own", async () => {
     renderAt("/decks/renamed-e93f5f74?window=30d", () => Response.json(detail));
 

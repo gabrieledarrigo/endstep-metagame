@@ -180,4 +180,70 @@ describe("App", () => {
     expect(document.title).toBe("Panoramica · Pauper Endstep metagame");
     expect(location.pathname + location.search).toBe("/?window=30d");
   });
+
+  it("names the page on the screen in the canonical link and og:url, on the overview and on a deck page", async () => {
+    history.replaceState(null, "", "/?window=7d");
+    render(<App />);
+    const address = (): (string | null)[] => [
+      document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]')
+        ?.href ?? null,
+      document.head
+        .querySelector('meta[property="og:url"]')
+        ?.getAttribute("content") ?? null,
+    ];
+
+    const [card] = await screen.findAllByRole("link", { name: "Monster Tron" });
+
+    expect(address()).toEqual([
+      "https://pauper-endstep-metagame.vercel.app/",
+      "https://pauper-endstep-metagame.vercel.app/",
+    ]);
+
+    fireEvent.click(card);
+    await screen.findByRole("heading", { level: 1, name: "Monster Tron" });
+
+    expect(address()).toEqual([
+      "https://pauper-endstep-metagame.vercel.app/decks/monster-tron-1bc68613",
+      "https://pauper-endstep-metagame.vercel.app/decks/monster-tron-1bc68613",
+    ]);
+
+    history.back();
+    await screen.findByRole("heading", { level: 1, name: "Overview" });
+
+    expect(address()).toEqual([
+      "https://pauper-endstep-metagame.vercel.app/",
+      "https://pauper-endstep-metagame.vercel.app/",
+    ]);
+  });
+
+  it("names no page on the Not found page", async () => {
+    history.replaceState(null, "", "/no-such-page?window=30d");
+    render(<App />);
+
+    await screen.findByRole("heading", { level: 1, name: "Not found" });
+
+    expect(document.head.querySelector('link[rel="canonical"]')).toBeNull();
+    expect(document.head.querySelector('meta[property="og:url"]')).toBeNull();
+  });
+
+  it("names no page for a deck that does not exist", async () => {
+    const answer = vi.mocked(fetch).getMockImplementation();
+    vi.mocked(fetch).mockImplementation((input) =>
+      String(input).includes("/decks/no-such-deck")
+        ? Promise.resolve(
+            Response.json({ error: "Not found" }, { status: 404 }),
+          )
+        : answer!(input),
+    );
+    history.replaceState(null, "", "/decks/no-such-deck?window=30d");
+    render(<App />);
+
+    await screen.findByRole("heading", {
+      level: 1,
+      name: "No deck at this address",
+    });
+
+    expect(document.head.querySelector('link[rel="canonical"]')).toBeNull();
+    expect(document.head.querySelector('meta[property="og:url"]')).toBeNull();
+  });
 });

@@ -16,6 +16,7 @@ import {
   readableSearch,
   writeMeta,
 } from "../../helpers";
+import { useCanonicalLink } from "../../hooks/useCanonicalLink";
 import { useMatchups } from "../../hooks/useMatchups";
 import { useMediaQuery } from "../../hooks/useMediaQuery";
 import { useTimeWindow } from "../../hooks/useTimeWindow";
@@ -42,6 +43,7 @@ function columns(
 
 export function WhatToPlayPage() {
   const { t } = useTranslation();
+  useCanonicalLink();
   const [timeWindow, selectTimeWindow] = useTimeWindow();
   const [searchParams] = useSearchParams();
   const { hash } = useLocation();

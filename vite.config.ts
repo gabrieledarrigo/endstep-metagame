@@ -12,6 +12,12 @@ import matchups from "./api/matchups.ts";
 import metagame from "./api/metagame.ts";
 import sampleCards from "./api/sample-cards.ts";
 import staples from "./api/staples.ts";
+import {
+  PAGE_PREVIEWS,
+  SITE_ORIGIN,
+  pageTitle,
+  writeHead,
+} from "./server/index.ts";
 import vercel from "./vercel.json" with { type: "json" };
 
 const METAGAME = "/api/metagame";
@@ -124,6 +130,38 @@ export function previewDeckPage(): Plugin {
           next(error);
         }
       });
+    },
+  };
+}
+
+/**
+ * Writes a copy of the built `index.html` for each page in `PAGE_PREVIEWS`, with that page's own link preview, FR-15 and §4.7.
+ *
+ * @returns A Vite plugin that runs after the HTML plugin and emits `matchups.html`, `what-to-play.html` and `staples.html` beside `index.html`, which it leaves unchanged. With `cleanUrls`, Vercel serves each copy at its path.
+ */
+export function pagePreviews(): Plugin {
+  return {
+    name: "page-previews",
+    apply: "build",
+    enforce: "post",
+    generateBundle(_options, bundle): void {
+      const index = bundle["index.html"];
+
+      if (index?.type !== "asset") {
+        this.error("The build wrote no index.html to copy");
+      }
+
+      for (const page of PAGE_PREVIEWS) {
+        this.emitFile({
+          type: "asset",
+          fileName: `${page.path.slice(1)}.html`,
+          source: writeHead(String(index.source), {
+            title: pageTitle(page.title),
+            description: page.description,
+            address: `${SITE_ORIGIN}${page.path}`,
+          }),
+        });
+      }
     },
   };
 }
@@ -284,7 +322,13 @@ function api(): Plugin {
 }
 
 export default defineConfig({
-  plugins: [react(), previewSecurityHeaders(), previewDeckPage(), api()],
+  plugins: [
+    react(),
+    previewSecurityHeaders(),
+    previewDeckPage(),
+    api(),
+    pagePreviews(),
+  ],
   build: {
     target: "es2025",
   },

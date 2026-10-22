@@ -4,11 +4,11 @@ import {
   EDGE_CACHE,
   PARTIAL_ART_CACHE,
   SEGMENT,
-  SITE_NAME,
   SITE_ORIGIN,
   WINDOWS,
   deckDetailUrl,
   isRecord,
+  pageTitle,
   withMeta,
   writeHead,
 } from "../server/index.js";
@@ -185,7 +185,7 @@ function imageOf(art: PreviewDeck["art"]): string {
 
 function preview(html: string, deck: PreviewDeck, timeWindow: string): string {
   const page = writeHead(html, {
-    title: `${deck.name} · ${SITE_NAME}`,
+    title: pageTitle(deck.name),
     description: description(deck, timeWindow),
     address: `${SITE_ORIGIN}/decks/${deck.slug}`,
   });
