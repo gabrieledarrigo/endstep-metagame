@@ -20,6 +20,7 @@ import {
   percent,
   placeTooltip,
 } from "../helpers";
+import { useTranslation } from "react-i18next";
 import { WindowLink } from "./WindowLink";
 import "./MatchupGrid.css";
 
@@ -76,14 +77,18 @@ function MatchupDetail({
   state,
   cell,
 }: MatchupDetailProps) {
-  const title = `${rowName} against ${columnName}`;
+  const { t } = useTranslation();
+  const title = t("components.matchupGrid.pair", {
+    row: rowName,
+    column: columnName,
+  });
 
   if (state === "mirror") {
     return (
       <ChartTooltip
         day={title}
         rows={[]}
-        verdict="Mirror match. Endstep does not list it."
+        verdict={t("components.matchupGrid.mirror")}
       />
     );
   }
@@ -93,14 +98,22 @@ function MatchupDetail({
       <ChartTooltip
         day={title}
         rows={[]}
-        verdict="No data for this pair in the window."
+        verdict={t("components.matchupGrid.noData")}
       />
     );
   }
 
   const counts = [
-    { key: "wins", name: "Wins", value: formatCount(cell.wins) },
-    { key: "losses", name: "Losses", value: formatCount(cell.losses) },
+    {
+      key: "wins",
+      name: t("components.matchupGrid.wins"),
+      value: formatCount(cell.wins),
+    },
+    {
+      key: "losses",
+      name: t("components.matchupGrid.losses"),
+      value: formatCount(cell.losses),
+    },
   ];
 
   if (cell.gate !== null) {
@@ -108,7 +121,9 @@ function MatchupDetail({
       <ChartTooltip
         day={title}
         rows={counts}
-        verdict={`Too few to call: ${neededText(cell.wins + cell.losses, "matches")}.`}
+        verdict={t("components.matchupGrid.gated", {
+          needed: neededText(cell.wins + cell.losses, "matches"),
+        })}
       />
     );
   }
@@ -117,19 +132,30 @@ function MatchupDetail({
     <ChartTooltip
       day={title}
       rows={[
-        { key: "rate", name: "Match win rate", value: percent(cell.rate) },
+        {
+          key: "rate",
+          name: t("components.matchupGrid.rate"),
+          value: percent(cell.rate),
+        },
         {
           key: "range",
-          name: "Range",
-          value: `${percent(cell.low)} to ${percent(cell.high)}`,
+          name: t("components.matchupGrid.range"),
+          value: t("common.range", {
+            from: percent(cell.low),
+            to: percent(cell.high),
+          }),
         },
         ...counts,
-        { key: "matches", name: "Matches", value: formatCount(cell.matches) },
+        {
+          key: "matches",
+          name: t("components.matchupGrid.matches"),
+          value: formatCount(cell.matches),
+        },
       ]}
       verdict={
         state === "neutral"
-          ? "Within the range of chance."
-          : "Clear result. The range excludes 50%."
+          ? t("components.matchupGrid.neutral")
+          : t("components.matchupGrid.clear")
       }
     />
   );
@@ -160,6 +186,7 @@ export function MatchupGrid({
   onReveal,
   className,
 }: MatchupGridProps) {
+  const { t } = useTranslation();
   const lastRow = rows.length - 1;
   const lastColumn = columns.length - 1;
   const firstCell = columns.findIndex(
@@ -340,7 +367,7 @@ export function MatchupGrid({
             <thead>
               <tr>
                 <th className="matchup__corner" scope="col">
-                  <span className="visually-hidden">Deck</span>
+                  <span className="visually-hidden">{t("common.deck")}</span>
                 </th>
                 {columns.map((deck, column) => (
                   <th

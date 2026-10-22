@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import type { Population } from "../api/types";
 import {
   axisShare,
   formatCopies,
@@ -145,6 +146,10 @@ describe("formatPopulation", () => {
   it("capitalises the population", () => {
     expect(formatPopulation("rated")).toBe("Rated");
     expect(formatPopulation("casual")).toBe("Casual");
+  });
+
+  it("capitalises a population the file has no name for", () => {
+    expect(formatPopulation("league" as Population)).toBe("League");
   });
 });
 

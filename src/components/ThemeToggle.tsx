@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useEffect, useState, useSyncExternalStore } from "react";
 import "./ThemeToggle.css";
 
@@ -33,6 +34,7 @@ function chosenTheme(): Theme | null {
 }
 
 export function ThemeToggle({ className }: { className?: string }) {
+  const { t } = useTranslation();
   const deviceDark = useSyncExternalStore(subscribeToDevice, deviceIsDark);
   const [chosen, setChosen] = useState(chosenTheme);
   const dark = chosen === null ? deviceDark : chosen === "dark";
@@ -61,7 +63,7 @@ export function ThemeToggle({ className }: { className?: string }) {
     <button
       type="button"
       className={["theme-toggle", className].filter(Boolean).join(" ")}
-      aria-label="Dark theme"
+      aria-label={t("components.themeToggle.label")}
       aria-pressed={dark}
       onClick={toggle}
     >

@@ -987,11 +987,13 @@ Each language needs a translation of every string before it enters the site. Unt
 #### The strings
 
 - One file, `src/locales/locales.json`, holds every string. Each language is a top-level key. Its strings sit under `translation`, the default namespace of i18next.
+- `src/locales/i18n.ts` sets up i18next and types the keys from the English strings. `main.tsx` and the setup of the specs import it.
 - A key names the place of its string, such as `pick.title`. A placeholder uses double braces, such as `{{deck}}`.
 - A plural uses the endings that i18next asks for each language, through `Intl.PluralRules`. English needs `_one` and `_other`. Italian, Spanish and Portuguese also need `_many`, which they use for large round numbers such as a million.
 - TypeScript makes sure that each language in the file holds every key of English, and every plural ending of its own language. A missing key fails the build.
 - If a string is missing when the page runs, the page shows the English string.
 - The words that the formatting helpers add, such as the "to" in a window range and "Not available", are strings in the file too.
+- The labels of the window buttons are strings too, such as "30d" and "season". The address keeps the codes, §4.5.
 - The quoted UI text in this document is the English text. Each language translates it.
 - Specs render in English, so they keep their queries by the English text.
 

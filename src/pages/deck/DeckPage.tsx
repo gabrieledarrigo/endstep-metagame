@@ -1,5 +1,6 @@
 import { type UseQueryResult, useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate, useParams } from "react-router";
 import { ApiError } from "../../api/client";
 import { fetchDeck } from "../../api/endpoints";
@@ -57,6 +58,7 @@ function DeckPageSkeleton() {
 }
 
 export function DeckPage() {
+  const { t } = useTranslation();
   const { slug = "" } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
@@ -103,23 +105,28 @@ export function DeckPage() {
     return (
       <>
         <PageTitle
-          title={deck.isError ? "Deck" : "Loading the deck"}
+          title={deck.isError ? t("deck.page.error") : t("deck.page.loading")}
           loading={deck.isPending}
         />
         {deck.isError ? (
           <>
             <div className="page__controls">
               <SegmentedControl
-                label="Time window"
+                label={t("common.timeWindow")}
                 options={WINDOWS}
+                labels={t("common.window", { returnObjects: true })}
                 value={timeWindow}
                 onChange={(next) => selectTimeWindow(next)}
               />
             </div>
             <StatePanel
-              title="The deck could not be loaded"
+              title={t("deck.page.failed")}
               detail={deck.error.message}
-              action={<Button onClick={() => deck.refetch()}>Retry</Button>}
+              action={
+                <Button onClick={() => deck.refetch()}>
+                  {t("common.retry")}
+                </Button>
+              }
             />
           </>
         ) : (
@@ -143,7 +150,11 @@ export function DeckPage() {
   );
   const loadingStatus = (
     <p className="visually-hidden" role="status">
-      {loadingWindow ? `Loading the ${timeWindow} window.` : ""}
+      {loadingWindow
+        ? t("deck.page.loadingWindow", {
+            window: t(`common.window.${timeWindow}`),
+          })
+        : ""}
     </p>
   );
 
@@ -160,8 +171,11 @@ export function DeckPage() {
           <EmptyWindow
             timeWindow={timeWindow}
             onSelect={selectTimeWindow}
-            title="No matches in this window"
-            detail={`${detail.deck.name} has no matches in the ${timeWindow} window.`}
+            title={t("deck.page.noMatches.title")}
+            detail={t("deck.page.noMatches.detail", {
+              deck: detail.deck.name,
+              window: t(`common.window.${timeWindow}`),
+            })}
           />
         )}
       </div>
@@ -179,7 +193,7 @@ export function DeckPage() {
         <DeckStats deck={detail.deck} />
         <div className="deck-page__columns">
           <div className="deck-page__main">
-            <DeckSection title="Share over time">
+            <DeckSection title={t("deck.page.sections.share.title")}>
               <DeckShare
                 name={detail.deck.name}
                 dates={loadingWindow ? undefined : dates}
@@ -187,24 +201,27 @@ export function DeckPage() {
               />
             </DeckSection>
             <DeckSection
-              title="Games"
-              note="Game win rate, by game in the match and by who played first."
+              title={t("deck.page.sections.games.title")}
+              note={t("deck.page.sections.games.note")}
             >
               <GamesTable results={detail.gameResults} />
             </DeckSection>
             <div className="deck-page__pair">
-              <DeckSection title="Toss" note="Game 1 win rate after the toss.">
+              <DeckSection
+                title={t("deck.page.sections.toss.title")}
+                note={t("deck.page.sections.toss.note")}
+              >
                 <DeckToss playDraw={detail.playDraw} />
               </DeckSection>
               <DeckSection
-                title="Texture"
-                note="How a game with this deck tends to run."
+                title={t("deck.page.sections.texture.title")}
+                note={t("deck.page.sections.texture.note")}
               >
                 <DeckTexture texture={detail.texture} />
               </DeckSection>
             </div>
           </div>
-          <DeckSection title="Sample list">
+          <DeckSection title={t("deck.page.sections.sampleList.title")}>
             <SampleList
               key={`${detail.provenance.window.from}/${detail.provenance.window.to}`}
               list={detail.sampleList}

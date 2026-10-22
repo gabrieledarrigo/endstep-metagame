@@ -90,4 +90,25 @@ describe("SegmentedControl", () => {
 
     expect(group.className).toBe("segmented segmented--small");
   });
+
+  it("shows each option's label and reports the option itself", () => {
+    const onChange = vi.fn<(option: string) => void>();
+    render(
+      <SegmentedControl
+        label="Time window"
+        options={OPTIONS}
+        labels={{ "7d": "7g", "30d": "30g", season: "stagione" }}
+        value="30d"
+        onChange={onChange}
+      />,
+    );
+
+    expect(
+      screen.getAllByRole("button").map((button) => button.textContent),
+    ).toEqual(["7g", "30g", "stagione"]);
+
+    fireEvent.click(screen.getByRole("button", { name: "stagione" }));
+
+    expect(onChange).toHaveBeenCalledWith("season");
+  });
 });

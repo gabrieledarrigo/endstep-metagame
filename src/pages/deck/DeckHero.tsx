@@ -1,3 +1,4 @@
+import { Trans, useTranslation } from "react-i18next";
 import type { Deck, TimeWindow } from "../../api/types";
 import { ButtonLink } from "../../components/Button";
 import { ColourPips } from "../../components/ColourPips";
@@ -22,6 +23,8 @@ export function DeckHero({
   onSelect,
   busy,
 }: DeckHeroProps) {
+  const { t } = useTranslation();
+
   return (
     <div className="deck-hero">
       <img
@@ -39,8 +42,9 @@ export function DeckHero({
         <p className="deck-hero__keys">{deck.keyCards.join(" · ")}</p>
         <div className="deck-hero__controls">
           <SegmentedControl
-            label="Time window"
+            label={t("common.timeWindow")}
             options={WINDOWS}
+            labels={t("common.window", { returnObjects: true })}
             value={timeWindow}
             onChange={onSelect}
             busy={busy}
@@ -53,8 +57,10 @@ export function DeckHero({
           target="_blank"
           rel="noopener"
         >
-          View on endstep.cc
-          <span className="visually-hidden">, opens in a new tab</span>
+          <Trans
+            i18nKey="deck.hero.endstep"
+            components={{ hidden: <span className="visually-hidden" /> }}
+          />
         </ButtonLink>
       </div>
     </div>

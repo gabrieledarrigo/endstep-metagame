@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { Deck } from "../../api/types";
 import { ColourPips } from "../../components/ColourPips";
 import { ShareChange } from "../../components/ShareChange";
@@ -7,6 +8,8 @@ import { artSource, formatCount, rateText, tooltipShare } from "../../helpers";
 import "./DeckCard.css";
 
 export function DeckCard({ deck }: { deck: Deck }) {
+  const { t } = useTranslation();
+
   return (
     <WindowLink
       className="deck"
@@ -28,21 +31,23 @@ export function DeckCard({ deck }: { deck: Deck }) {
         </div>
         <dl className="deck__stats">
           <div className="deck__stat">
-            <dt className="deck__label">Share</dt>
+            <dt className="deck__label">{t("overview.deckCard.share")}</dt>
             <dd className="deck__value">
               {tooltipShare(deck.share.rate * 100)}
             </dd>
           </div>
           <div className="deck__stat">
-            <dt className="deck__label">Players</dt>
+            <dt className="deck__label">{t("overview.deckCard.players")}</dt>
             <dd className="deck__value">{formatCount(deck.players)}</dd>
           </div>
           <div className="deck__stat">
-            <dt className="deck__label">Match win rate</dt>
+            <dt className="deck__label">{t("overview.deckCard.winRate")}</dt>
             <dd className="deck__value">{rateText(deck.matchWinRate)}</dd>
           </div>
           <div className="deck__stat deck__stat--change">
-            <dt className="deck__label">Share change</dt>
+            <dt className="deck__label">
+              {t("overview.deckCard.shareChange")}
+            </dt>
             <dd className="deck__value">
               <ShareChange change={deck.shareChange} />
             </dd>

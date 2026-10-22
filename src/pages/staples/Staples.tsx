@@ -1,6 +1,7 @@
 import type { UseQueryResult } from "@tanstack/react-query";
 import { useId, useRef, useState } from "react";
 import { flushSync } from "react-dom";
+import { useTranslation } from "react-i18next";
 import type {
   StaplesResponse,
   StaplesSection,
@@ -14,11 +15,9 @@ import { Skeleton } from "../../components/Skeleton";
 import { Staple } from "./Staple";
 import "./Staples.css";
 
-const LISTS = ["Main deck", "Sideboard"] as const;
+const SECTIONS = ["main", "side"] as const;
 const FIRST = 30;
 const MORE = 20;
-
-type List = (typeof LISTS)[number];
 
 type StaplesProps = {
   query: UseQueryResult<StaplesResponse>;
@@ -28,14 +27,6 @@ type StaplesProps = {
   onWindow: (next: TimeWindow) => void;
 };
 
-function withheldText(withheld: number): string {
-  if (withheld === 1) {
-    return "1 deck is left out because Endstep withholds its cards.";
-  }
-
-  return `${withheld} decks are left out because Endstep withholds their cards.`;
-}
-
 export function Staples({
   query,
   timeWindow,
@@ -43,6 +34,7 @@ export function Staples({
   onSection,
   onWindow,
 }: StaplesProps) {
+  const { t } = useTranslation();
   const id = useId();
   const dimmed = query.isPlaceholderData;
   const loading = query.isPending || dimmed;
@@ -66,19 +58,18 @@ export function Staples({
     <section className="staples" aria-labelledby={id}>
       <div className="staples__head">
         <h2 className="staples__title" id={id}>
-          Most played cards
+          {t("staples.staples.heading")}
         </h2>
-        <SegmentedControl<List>
-          label="Part of the deck"
-          options={LISTS}
-          value={section === "side" ? "Sideboard" : "Main deck"}
-          onChange={(next) => onSection(next === "Sideboard" ? "side" : "main")}
+        <SegmentedControl
+          label={t("staples.staples.part")}
+          options={SECTIONS}
+          labels={t("staples.staples.lists", { returnObjects: true })}
+          value={section}
+          onChange={onSection}
           busy={loading}
         />
       </div>
-      <p className="staples__note">
-        The percentage is the share of the top 24's decks that play the card.
-      </p>
+      <p className="staples__note">{t("staples.staples.note")}</p>
       <div
         className={dimmed ? "staples__body busy" : "staples__body"}
         aria-busy={dimmed || undefined}
@@ -86,7 +77,7 @@ export function Staples({
         <Section
           query={query}
           skeleton={<Skeleton className="staples__skeleton" />}
-          title="The staples could not be loaded"
+          title={t("staples.staples.error")}
         >
           {(data) => {
             if (data.cards.length === 0) {
@@ -94,8 +85,10 @@ export function Staples({
                 <EmptyWindow
                   timeWindow={timeWindow}
                   onSelect={onWindow}
-                  title="No cards in this window"
-                  detail={withheldText(data.withheld)}
+                  title={t("staples.staples.emptyTitle")}
+                  detail={t("staples.staples.withheld", {
+                    count: data.withheld,
+                  })}
                 />
               ) : (
                 <EmptyWindow timeWindow={timeWindow} onSelect={onWindow} />
@@ -125,11 +118,15 @@ export function Staples({
                     className="staples__more"
                     onClick={showMore}
                   >
-                    Show {Math.min(MORE, rest)} more
+                    {t("staples.staples.more", {
+                      count: Math.min(MORE, rest),
+                    })}
                   </Button>
                 )}
                 {data.withheld > 0 && (
-                  <p className="staples__note">{withheldText(data.withheld)}</p>
+                  <p className="staples__note">
+                    {t("staples.staples.withheld", { count: data.withheld })}
+                  </p>
                 )}
               </>
             );

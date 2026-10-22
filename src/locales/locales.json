@@ -1,0 +1,572 @@
+{
+  "en": {
+    "translation": {
+      "common": {
+        "window": {
+          "1d": "1d",
+          "7d": "7d",
+          "14d": "14d",
+          "30d": "30d",
+          "season": "season"
+        },
+        "period": {
+          "1d": "the last day",
+          "7d": "the last 7 days",
+          "14d": "the last 14 days",
+          "30d": "the last 30 days",
+          "season": "this season"
+        },
+        "timeWindow": "Time window",
+        "deck": "Deck",
+        "retry": "Retry",
+        "range": "{{from}} to {{to}}"
+      },
+      "api": {
+        "client": {
+          "network": "The server could not be reached.",
+          "rateLimit": "Endstep's rate limit was reached. It resets within a minute, so a retry after that usually works.",
+          "upstream": "Endstep did not respond.",
+          "http": "The request failed with status {{status}}.",
+          "malformed": "The server returned a malformed response."
+        }
+      },
+      "helpers": {
+        "format": {
+          "copies": "{{copies}} copies",
+          "population": {
+            "rated": "Rated",
+            "casual": "Casual"
+          },
+          "notAvailable": "Not available"
+        },
+        "winRate": {
+          "needed": {
+            "matches": "{{decided}} of the {{needed}} matches needed",
+            "games": "{{decided}} of the {{needed}} games needed"
+          },
+          "tooFew": "Too few to call, {{decided}} of {{needed}}"
+        },
+        "staples": {
+          "none": "Not core in any deck",
+          "one": "Core in {{deck}}",
+          "more_one": "Core in {{first}}, {{second}} and {{count}} more",
+          "more_other": "Core in {{first}}, {{second}} and {{count}} more",
+          "list": "Core in {{decks}} and {{last}}"
+        },
+        "cellState": {
+          "summary": "{{row}} against {{column}}: {{verdict}}",
+          "summaryWithRate": "{{row}} against {{column}}: {{rate}}%, {{verdict}}",
+          "gatedVerdict": "too few to call, {{needed}}",
+          "verdict": {
+            "mirror": "mirror match",
+            "none": "no data",
+            "gated": "too few to call",
+            "win": "clear result",
+            "loss": "clear result",
+            "neutral": "within the range of chance"
+          }
+        }
+      },
+      "charts": {
+        "chartLegend": {
+          "label": "Highlight a deck"
+        }
+      },
+      "components": {
+        "colourPips": {
+          "label": "Colours: {{colours}}",
+          "W": "white",
+          "U": "blue",
+          "B": "black",
+          "R": "red",
+          "G": "green",
+          "C": "colourless"
+        },
+        "deckPicker": {
+          "missing": "{{deck}} (not in the top {{top}})",
+          "allDecks": "All decks"
+        },
+        "emptyWindow": {
+          "title": "No decks in this window",
+          "detail": "The {{window}} window has no registrations yet.",
+          "longer": "{{detail}} Try a longer window.",
+          "switch": "Switch to {{window}}"
+        },
+        "matchupGrid": {
+          "pair": "{{row}} against {{column}}",
+          "mirror": "Mirror match. Endstep does not list it.",
+          "noData": "No data for this pair in the window.",
+          "wins": "Wins",
+          "losses": "Losses",
+          "gated": "Too few to call: {{needed}}.",
+          "rate": "Match win rate",
+          "range": "Range",
+          "matches": "Matches",
+          "neutral": "Within the range of chance.",
+          "clear": "Clear result. The range excludes 50%."
+        },
+        "matchupLegend": {
+          "label": "Legend",
+          "win": "Favoured, clear result",
+          "loss": "Unfavoured, clear result",
+          "neutral": "Within the range of chance",
+          "gated": "Too few matches",
+          "none": "No data",
+          "mirror": "Mirror"
+        },
+        "shareChange": {
+          "reason": {
+            "previous_window_empty": "no earlier data",
+            "no_previous_window": "no earlier window",
+            "none": "not available"
+          },
+          "noChange": "no change",
+          "down": "down",
+          "up": "up",
+          "points": "{{points}} pts"
+        },
+        "siteFooter": {
+          "credit": "Made by <author>Gabriele D'Arrigo</author> · <repo>Source code</repo>",
+          "data": "Data from <endstep>endstep.cc</endstep>. This site is not affiliated with Endstep. Card images and prices from <scryfall>Scryfall</scryfall>."
+        },
+        "siteNav": {
+          "label": "Pages",
+          "overview": "Overview",
+          "matchups": "Matchups",
+          "whatToPlay": "What to play?",
+          "staples": "Staples"
+        },
+        "themeToggle": {
+          "label": "Dark theme"
+        }
+      },
+      "overview": {
+        "title": "Overview",
+        "overviewPage": {
+          "view": {
+            "label": "View",
+            "cards": "Cards",
+            "table": "Table"
+          },
+          "status": {
+            "loading": "Loading the {{window}} window.",
+            "searching": "Searching for {{term}}.",
+            "searchError": "The search could not be loaded.",
+            "noMatch": "No deck or card matches {{term}}.",
+            "found_one": "{{decks}} deck matches {{term}}.",
+            "found_other": "{{decks}} decks match {{term}}."
+          },
+          "moreError": "The next decks could not be loaded. {{error}}",
+          "shortfall_one": "Endstep returned {{returned}} of the {{total}} deck it counted.",
+          "shortfall_other": "Endstep returned {{returned}} of the {{total}} decks it counted.",
+          "errors": {
+            "summary": "The summary could not be loaded",
+            "search": "The search could not be loaded",
+            "table": "The deck table could not be loaded",
+            "grid": "The deck grid could not be loaded",
+            "shareOverTime": "Share over time could not be loaded",
+            "rankedBars": "Meta share by deck could not be loaded",
+            "winRateScatter": "Win rate against share could not be loaded"
+          },
+          "noMatch": {
+            "title": "No deck or card matches {{term}}",
+            "detail": "Search covers deck names and every card in their lists, in the selected window.",
+            "clear": "Clear the search"
+          },
+          "caption": "Decks that match {{term}}, sortable by column"
+        },
+        "deckCard": {
+          "share": "Share",
+          "players": "Players",
+          "winRate": "Match win rate",
+          "shareChange": "Share change"
+        },
+        "deckGrid": {
+          "heading": "Decks by meta share"
+        },
+        "deckSearch": {
+          "label": "Search decks or cards",
+          "placeholder": "Search decks or cards",
+          "clear": "Clear the search"
+        },
+        "deckTable": {
+          "heading": "Deck table",
+          "caption_one": "The top {{count}} deck, sortable by column",
+          "caption_other": "The top {{count}} decks, sortable by column",
+          "rank": "Rank by share",
+          "columns": {
+            "colours": "Colours",
+            "share": "Share",
+            "players": "Players",
+            "matches": "Matches",
+            "winRate": "Match win rate",
+            "change": "Change"
+          }
+        },
+        "rankedBars": {
+          "heading": "Meta share by deck",
+          "region": "Meta share by deck, chart",
+          "other_one": "Other ({{count}} archetype and unclassified)",
+          "other_other": "Other ({{count}} archetypes and unclassified)",
+          "note": "Other covers every archetype outside the top {{top}}."
+        },
+        "searchResults": {
+          "line_one": "<total>{{decks}} deck</total> matches <term></term>. Search covers deck names and every card in their lists.",
+          "line_other": "<total>{{decks}} decks</total> match <term></term>. Search covers deck names and every card in their lists.",
+          "more_one": "Show {{count}} more",
+          "more_other": "Show {{count}} more"
+        },
+        "shareOverTime": {
+          "heading": "Share over time",
+          "region": "Daily meta share, top eight decks"
+        },
+        "summary": {
+          "registrations": "Registrations",
+          "players": "Players",
+          "archetypes": "Archetypes",
+          "window": "Window",
+          "population": "Population"
+        },
+        "winRateScatter": {
+          "heading": "Win rate against share",
+          "note": "The bubble area represents player count. Decks above the line win more than half their matches.",
+          "noteWithLeftOut": "{{note}} {{leftOut}}",
+          "leftOut_one": "{{count}} deck with fewer than {{needed}} decided matches is left out, too few to place.",
+          "leftOut_other": "{{count}} decks with fewer than {{needed}} decided matches are left out, too few to place.",
+          "chart": "Match win rate against meta share",
+          "xAxis": "meta share",
+          "yAxis": "match win rate",
+          "players": "Players",
+          "reference": "50% win rate",
+          "tooltip": {
+            "share": "Meta share",
+            "players": "Players",
+            "winRate": "Match win rate",
+            "bounds": "Confidence bounds",
+            "tap": "Tap again to open the deck.",
+            "click": "Click to open the deck."
+          }
+        }
+      },
+      "deck": {
+        "page": {
+          "loading": "Loading the deck",
+          "error": "Deck",
+          "failed": "The deck could not be loaded",
+          "loadingWindow": "Loading the {{window}} window.",
+          "noMatches": {
+            "title": "No matches in this window",
+            "detail": "{{deck}} has no matches in the {{window}} window."
+          },
+          "sections": {
+            "share": {
+              "title": "Share over time"
+            },
+            "games": {
+              "title": "Games",
+              "note": "Game win rate, by game in the match and by who played first."
+            },
+            "toss": {
+              "title": "Toss",
+              "note": "Game 1 win rate after the toss."
+            },
+            "texture": {
+              "title": "Texture",
+              "note": "How a game with this deck tends to run."
+            },
+            "sampleList": {
+              "title": "Sample list"
+            }
+          }
+        },
+        "notFound": {
+          "title": "No deck at this address",
+          "detail": "Endstep has no {{format}} deck called \"{{slug}}\".",
+          "back": "Back to the overview"
+        },
+        "cardSheet": {
+          "error": "The card's image could not be loaded.",
+          "close": "Close"
+        },
+        "hero": {
+          "endstep": "View on endstep.cc<hidden>, opens in a new tab</hidden>"
+        },
+        "matchups": {
+          "title": "Matchups against the top {{top}}",
+          "dates": "These matchups cover {{dates}}.",
+          "failed": "The matchups could not be loaded",
+          "grid_one": "Match win rate of {{deck}} against the other {{count}} deck in the top {{top}}, rated.",
+          "grid_other": "Match win rate of {{deck}} against the other {{count}} decks in the top {{top}}, rated.",
+          "gridWindow_one": "Match win rate of {{deck}} against the other {{count}} deck in the top {{top}}, {{window}} window, rated.",
+          "gridWindow_other": "Match win rate of {{deck}} against the other {{count}} decks in the top {{top}}, {{window}} window, rated.",
+          "more": "See {{deck}} in the full table",
+          "outside": "<deck></deck> is not in the top {{top}} for this window, so it has no row in the matchup table. <matchups>See the matchup table</matchups>",
+          "none": "No matchups are recorded for this window yet."
+        },
+        "share": {
+          "metaShare": "Meta share",
+          "label": "Daily meta share of {{deck}}",
+          "labelDates": "Daily meta share of {{deck}}, {{dates}}",
+          "summary": "Daily share, day by day",
+          "days": "Meta share by day",
+          "noData": "no data"
+        },
+        "stats": {
+          "winRate": "Match win rate",
+          "tooFew": "Too few to call",
+          "metaShare": "Meta share",
+          "players": "Players",
+          "matches": "Matches",
+          "shareChange": "Share change"
+        },
+        "texture": {
+          "turns": "Average turns",
+          "openingHand": "Opening hand",
+          "cards": "{{cards}} cards",
+          "mulligan": "Mulligan rate",
+          "mulliganGames_one": "{{mulligans}} of {{games}} game",
+          "mulliganGames_other": "{{mulligans}} of {{games}} games"
+        },
+        "toss": {
+          "won": "Won the toss",
+          "lost": "Lost the toss",
+          "draw": "Chose to draw",
+          "tooFew": "Too few to call",
+          "games_one": "{{games}} game",
+          "games_other": "{{games}} games",
+          "drawTosses_one": "{{draws}} of {{tosses}} toss won",
+          "drawTosses_other": "{{draws}} of {{tosses}} tosses won"
+        },
+        "games": {
+          "columns": {
+            "onPlay": "On the play",
+            "onDraw": "On the draw",
+            "total": "Total"
+          },
+          "cell": {
+            "onPlay": "{{row}}, on the play",
+            "onDraw": "{{row}}, on the draw",
+            "total": "{{row}}, total"
+          },
+          "game": "Game {{number}}",
+          "all": "All games",
+          "gatedLabel": "{{title}}: too few to call, {{needed}}",
+          "label": "{{title}}: game win rate {{rate}}, range {{range}}, {{wins}}, {{losses}}",
+          "winCount_one": "{{wins}} win",
+          "winCount_other": "{{wins}} wins",
+          "lossCount_one": "{{losses}} loss",
+          "lossCount_other": "{{losses}} losses",
+          "wins": "Wins",
+          "losses": "Losses",
+          "gated": "Too few to call: {{needed}}.",
+          "rate": "Game win rate",
+          "range": "Range",
+          "allKnown": "Every game has a play or draw record.",
+          "unknown_one": "{{games}} game has no play or draw record and counts only in the totals.",
+          "unknown_other": "{{games}} games have no play or draw record and count only in the totals.",
+          "unavailable": "Game results are not available for this window.",
+          "hatched": "A hatched cell has fewer than 20 decided games, too few to call."
+        },
+        "listCost": {
+          "heading": "Cost to build",
+          "currency": "Currency",
+          "mtgo": "MTGO",
+          "unit": "tix",
+          "tix": "{{price}} tix",
+          "main": "Main deck {{main}}",
+          "split": "Main deck {{main}} · Sideboard {{side}}",
+          "source": "Prices from Scryfall, at each card’s cheapest printing.",
+          "missing_one": "No price for {{count}} card.",
+          "missing_other": "No price for {{count}} cards."
+        },
+        "sampleList": {
+          "mainOnly_one": "{{players}} player brought this exact main deck.",
+          "mainOnly_other": "{{players}} players brought this exact main deck.",
+          "shown_one": "{{players}} player brought this exact list. It is the most common of {{lists}} distinct lists.",
+          "shown_other": "{{players}} players brought this exact list. It is the most common of {{lists}} distinct lists.",
+          "shownLike_one": "{{players}} player brought this exact list. It is {{similarity}}% like the deck's average list, and the most common of {{lists}} distinct lists.",
+          "shownLike_other": "{{players}} players brought this exact list. It is {{similarity}}% like the deck's average list, and the most common of {{lists}} distinct lists.",
+          "noRegistrations": "No list to show. No list was registered for this deck in this window.",
+          "withheld": "No list to show. No main deck was brought by {{min}} or more players in this window.",
+          "copy": {
+            "list": "Copy list",
+            "mainDeck": "Copy main deck"
+          },
+          "copied": {
+            "list": "Copied the list.",
+            "mainDeck": "Copied the main deck."
+          },
+          "fallback": {
+            "list": "The clipboard is not available. The list is selected below, ready to copy.",
+            "mainDeck": "The clipboard is not available. The main deck is selected below, ready to copy."
+          },
+          "text": {
+            "list": "Sample list as text",
+            "mainDeck": "Main deck as text"
+          },
+          "main": "Main deck",
+          "side": "Sideboard",
+          "sideHidden_one": "Not shown. Fewer than {{count}} player brought this exact 75.",
+          "sideHidden_other": "Not shown. Fewer than {{count}} players brought this exact 75."
+        }
+      },
+      "matchups": {
+        "title": "Matchups",
+        "matchupsPage": {
+          "thisDeck": "This deck",
+          "outside": "{{deck}} isn't in the top {{top}} for the selected time window.",
+          "tableDefault": "{{outside}} The table shows {{deck}} by default.",
+          "loading": "Loading the {{window}} window.",
+          "error": "The matchup table could not be loaded"
+        },
+        "matchupList": {
+          "label_one": "Match win rate of {{deck}} against the other {{count}} deck in the top {{top}}, rated.",
+          "label_other": "Match win rate of {{deck}} against the other {{count}} decks in the top {{top}}, rated.",
+          "labelWindow_one": "Match win rate of {{deck}} against the other {{count}} deck in the top {{top}}, {{window}} window, rated.",
+          "labelWindow_other": "Match win rate of {{deck}} against the other {{count}} decks in the top {{top}}, {{window}} window, rated.",
+          "matches_one": "{{matches}} match",
+          "matches_other": "{{matches}} matches",
+          "verdict": {
+            "win": "Favoured",
+            "loss": "Unfavoured",
+            "neutral": "Within chance",
+            "gated": "Too few to call",
+            "none": "No data",
+            "mirror": "Mirror"
+          }
+        },
+        "matchupTable": {
+          "label_one": "Match win rate of the row deck against the column deck. Top {{count}} deck by share, rated.",
+          "label_other": "Match win rate of the row deck against the column deck. Top {{count}} decks by share, rated.",
+          "labelWindow_one": "Match win rate of the row deck against the column deck. Top {{count}} deck by share, {{window}} window, rated.",
+          "labelWindow_other": "Match win rate of the row deck against the column deck. Top {{count}} decks by share, {{window}} window, rated."
+        }
+      },
+      "whatToPlay": {
+        "title": "What to play?",
+        "loading": "Loading the {{window}} window.",
+        "error": "The ranking could not be loaded",
+        "pick": {
+          "label": "Our pick",
+          "title": "Play <decks></decks>!",
+          "or": "or",
+          "why": {
+            "one": "{{deck}} wins {{rate}} of its matches against the metagame you expect.",
+            "many": "They win the most matches against the metagame you expect: {{rates}} and {{last}}. The gap between them is too small to call.",
+            "more_one": "They win the most matches against the metagame you expect: {{rates}} and {{last}}. The gap between them is too small to call, and {{count}} more deck is just as close.",
+            "more_other": "They win the most matches against the metagame you expect: {{rates}} and {{last}}. The gap between them is too small to call, and {{count}} more decks are just as close."
+          },
+          "basis": {
+            "changed": "Based on the metagame you set.",
+            "period": "Based on {{period}}. Change the metagame to match what you expect."
+          }
+        },
+        "expectedRates": {
+          "title": "Expected match win rate",
+          "note": {
+            "changed": "The metagame you set",
+            "period": "Metagame of {{period}}"
+          },
+          "legend": {
+            "win": "Clearly above 50%",
+            "neutral": "Too close to call",
+            "loss": "Clearly below 50%"
+          },
+          "likely": ", likely between {{low}} and {{high}}",
+          "movement": {
+            "up_one": ", up {{count}}",
+            "up_other": ", up {{count}}",
+            "down_one": ", down {{count}}",
+            "down_other": ", down {{count}}"
+          }
+        },
+        "metagame": {
+          "title": "The metagame you expect",
+          "open": "Change",
+          "close": "Close",
+          "note": "How often you expect to meet each deck. Each step is one point.",
+          "reset": "Reset",
+          "was": "was {{share}}",
+          "rest_one": "The top {{count}} holds {{held}} of registrations. The other {{rest}} are left out of the sum.",
+          "rest_other": "The top {{count}} hold {{held}} of registrations. The other {{rest}} are left out of the sum."
+        },
+        "stepper": {
+          "lower": "Less {{name}}",
+          "raise": "More {{name}}"
+        },
+        "beat": {
+          "title": "Beat a deck",
+          "note": {
+            "none": "No deck in the top {{top}} clearly beats {{name}} in this window.",
+            "some_one": "This deck clearly beats {{name}}.",
+            "some_other": "These decks clearly beat {{name}}."
+          },
+          "table": {
+            "against": "Against {{name}}",
+            "range": "Range",
+            "metagame": "Against the metagame",
+            "likely": ", likely between {{low}} and {{high}}"
+          }
+        },
+        "howItWorks": {
+          "title": "How the numbers are made",
+          "items": {
+            "count": {
+              "subject": "How we count.",
+              "text": "For each deck, we take its win rate against each of the top 24 decks. We weight each one by how often you expect to meet that deck. A mirror match counts as 50%. So does a matchup with fewer than 20 matches, and it widens the bar."
+            },
+            "bars": {
+              "subject": "The bars.",
+              "text": "Each bar shows where the true rate most likely is. Blue is clearly above 50%, red is clearly below, grey is too close to call."
+            },
+            "pick": {
+              "subject": "Our pick.",
+              "text": "The deck with the best rate. When other decks are too close to tell apart, we name them too, up to three."
+            },
+            "outside": {
+              "subject": "Decks outside the top 24.",
+              "text": "About a quarter of the decks played are outside the top 24. We have no matchup data for them, so we leave them out. That is why these rates are a little lower than each deck’s overall win rate."
+            }
+          }
+        }
+      },
+      "staples": {
+        "title": "Staples",
+        "staplesHead": {
+          "intro": "The cards the top 24 decks play most."
+        },
+        "staplesPage": {
+          "loading": {
+            "main": "Loading the main deck for the {{window}} window.",
+            "side": "Loading the sideboard for the {{window}} window."
+          }
+        },
+        "staples": {
+          "heading": "Most played cards",
+          "part": "Part of the deck",
+          "lists": {
+            "main": "Main deck",
+            "side": "Sideboard"
+          },
+          "note": "The percentage is the share of the top 24's decks that play the card.",
+          "error": "The staples could not be loaded",
+          "emptyTitle": "No cards in this window",
+          "withheld_one": "{{count}} deck is left out because Endstep withholds its cards.",
+          "withheld_other": "{{count}} decks are left out because Endstep withholds their cards.",
+          "more_one": "Show {{count}} more",
+          "more_other": "Show {{count}} more"
+        },
+        "playedBy": {
+          "empty": "No deck plays it in 5% of its lists or more.",
+          "title_one": "Played in {{count}} of the top 24",
+          "title_other": "Played in {{count}} of the top 24",
+          "ofLists": " of its lists, ",
+          "note": "The share of each deck's lists that play it."
+        }
+      },
+      "notFound": {
+        "title": "Not found"
+      }
+    }
+  }
+}

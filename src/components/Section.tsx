@@ -1,5 +1,6 @@
 import type { UseQueryResult } from "@tanstack/react-query";
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "./Button";
 import { StatePanel } from "./StatePanel";
 
@@ -16,6 +17,8 @@ export function Section<Data>({
   title,
   children,
 }: SectionProps<Data>) {
+  const { t } = useTranslation();
+
   if (query.data !== undefined) {
     return children(query.data);
   }
@@ -25,7 +28,9 @@ export function Section<Data>({
       <StatePanel
         title={title}
         detail={query.error.message}
-        action={<Button onClick={() => query.refetch()}>Retry</Button>}
+        action={
+          <Button onClick={() => query.refetch()}>{t("common.retry")}</Button>
+        }
       />
     );
   }

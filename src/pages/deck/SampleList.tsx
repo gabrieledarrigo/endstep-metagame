@@ -6,6 +6,8 @@ import {
   useRef,
   useState,
 } from "react";
+import type { TFunction } from "i18next";
+import { useTranslation } from "react-i18next";
 import type {
   SampleCard,
   SampleCardData,
@@ -34,32 +36,34 @@ function lines(cards: SampleCard[]): string {
   return cards.map((card) => `${card.count} ${card.name}`).join("\n");
 }
 
-function players(count: number): string {
-  return `${formatCount(count)} ${count === 1 ? "player" : "players"}`;
-}
-
-function source(list: SampleListData): string {
-  const brought = players(list.players ?? 0);
+function source(t: TFunction, list: SampleListData): string {
+  const count = list.players ?? 0;
+  const players = formatCount(count);
 
   if (list.state === "mainOnly") {
-    return `${brought} brought this exact main deck.`;
+    return t("deck.sampleList.mainOnly", { count, players });
   }
 
-  const lists = `the most common of ${formatCount(list.distinctLists)} distinct lists.`;
-  const likeness =
-    list.similarity === null
-      ? `It is ${lists}`
-      : `It is ${Math.round(list.similarity * 100)}% like the deck's average list, and ${lists}`;
+  const lists = formatCount(list.distinctLists);
 
-  return `${brought} brought this exact list. ${likeness}`;
+  if (list.similarity === null) {
+    return t("deck.sampleList.shown", { count, players, lists });
+  }
+
+  return t("deck.sampleList.shownLike", {
+    count,
+    players,
+    lists,
+    similarity: Math.round(list.similarity * 100),
+  });
 }
 
-function withheldNote(list: SampleListData): string {
+function withheldNote(t: TFunction, list: SampleListData): string {
   if (list.reason === "no_registrations") {
-    return "No list to show. No list was registered for this deck in this window.";
+    return t("deck.sampleList.noRegistrations");
   }
 
-  return `No list to show. No main deck was brought by ${list.minPlayers} or more players in this window.`;
+  return t("deck.sampleList.withheld", { min: list.minPlayers });
 }
 
 type Shown = { key: string; name: string; imageUrl: string };
@@ -99,6 +103,7 @@ type SampleListProps = {
 };
 
 export function SampleList({ list, cards, cardsPending }: SampleListProps) {
+  const { t } = useTranslation();
   const [status, setStatus] = useState("");
   const [fallback, setFallback] = useState(false);
   const [preview, setPreview] = useState<Previewed | null>(null);
@@ -115,14 +120,14 @@ export function SampleList({ list, cards, cardsPending }: SampleListProps) {
   if (list.state === "withheld") {
     return (
       <Panel className="sample-list">
-        <p className="sample-list__note">{withheldNote(list)}</p>
+        <p className="sample-list__note">{withheldNote(t, list)}</p>
       </Panel>
     );
   }
 
   const main = sorted(list.main);
   const side = list.state === "shown" ? sorted(list.side) : [];
-  const what = list.state === "shown" ? "list" : "main deck";
+  const what = list.state === "shown" ? "list" : "mainDeck";
   const copied =
     side.length > 0 ? `${lines(main)}\n\n${lines(side)}` : lines(main);
 
@@ -132,11 +137,9 @@ export function SampleList({ list, cards, cardsPending }: SampleListProps) {
     try {
       await navigator.clipboard.writeText(copied);
       setFallback(false);
-      setStatus(`Copied the ${what}.`);
+      setStatus(t(`deck.sampleList.copied.${what}`));
     } catch {
-      setStatus(
-        `The clipboard is not available. The ${what} is selected below, ready to copy.`,
-      );
+      setStatus(t(`deck.sampleList.fallback.${what}`));
       setFallback(true);
       requestAnimationFrame(() => {
         text.current?.focus();
@@ -222,10 +225,10 @@ export function SampleList({ list, cards, cardsPending }: SampleListProps) {
 
   return (
     <Panel ref={panel} className="sample-list">
-      <p className="sample-list__source">{source(list)}</p>
+      <p className="sample-list__source">{source(t, list)}</p>
       <div className="sample-list__actions">
         <Button variant="secondary" onClick={copy}>
-          Copy {what}
+          {t(`deck.sampleList.copy.${what}`)}
         </Button>
         <span className="sample-list__status" role="status">
           {status}
@@ -237,24 +240,31 @@ export function SampleList({ list, cards, cardsPending }: SampleListProps) {
           className="sample-list__text"
           readOnly
           rows={8}
-          aria-label={
-            list.state === "shown" ? "Sample list as text" : "Main deck as text"
-          }
+          aria-label={t(`deck.sampleList.text.${what}`)}
           value={copied}
         />
       )}
-      <CardList title="Main deck" cards={main} renderName={renderName} />
+      <CardList
+        title={t("deck.sampleList.main")}
+        cards={main}
+        renderName={renderName}
+      />
       {list.state === "mainOnly" && (
         <>
-          <h3 className="sample-list__heading">Sideboard</h3>
+          <h3 className="sample-list__heading">{t("deck.sampleList.side")}</h3>
           <p className="sample-list__note">
-            Not shown. Fewer than {list.minPlayers} players brought this exact
-            75.
+            {t("deck.sampleList.sideHidden", {
+              count: list.minPlayers,
+            })}
           </p>
         </>
       )}
       {side.length > 0 && (
-        <CardList title="Sideboard" cards={side} renderName={renderName} />
+        <CardList
+          title={t("deck.sampleList.side")}
+          cards={side}
+          renderName={renderName}
+        />
       )}
       {cards && !cardsPending && (
         <ListCost main={main} side={side} cards={cards} />

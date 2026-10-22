@@ -12,6 +12,7 @@ import {
   useYAxisScale,
   type TooltipContentProps,
 } from "recharts";
+import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router";
 import type { ShareSeries } from "../../api/types";
 import { ChartFrame } from "../../charts/ChartFrame";
@@ -193,9 +194,13 @@ function ShareTooltip({ active, payload, label, order }: ShareTooltipProps) {
 const SHARE_LEGEND_WIDTHS = [92, 144, 122, 74, 112, 106, 126, 116];
 
 export function ShareOverTimeSkeleton() {
+  const { t } = useTranslation();
+
   return (
     <section className="chart-section" aria-busy="true">
-      <h2 className="chart-section__title">Share over time</h2>
+      <h2 className="chart-section__title">
+        {t("overview.shareOverTime.heading")}
+      </h2>
 
       <Panel className="share-chart">
         <div className="share-chart__scroll">
@@ -209,6 +214,7 @@ export function ShareOverTimeSkeleton() {
 }
 
 export function ShareOverTime({ series }: { series: ShareSeries[] }) {
+  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const highlightedSlug = searchParams.get("highlight");
 
@@ -249,7 +255,7 @@ export function ShareOverTime({ series }: { series: ShareSeries[] }) {
   return (
     <section className="chart-section" aria-labelledby="share-over-time">
       <h2 className="chart-section__title" id="share-over-time">
-        Share over time
+        {t("overview.shareOverTime.heading")}
       </h2>
 
       <Panel className="share-chart">
@@ -257,7 +263,7 @@ export function ShareOverTime({ series }: { series: ShareSeries[] }) {
           className="share-chart__scroll"
           tabIndex={0}
           role="region"
-          aria-label="Daily meta share, top eight decks"
+          aria-label={t("overview.shareOverTime.region")}
         >
           <ChartFrame className="share-chart__frame">
             <LineChart

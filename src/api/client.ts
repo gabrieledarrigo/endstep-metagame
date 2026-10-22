@@ -1,3 +1,4 @@
+import i18next from "i18next";
 type FailureKind = "network" | "malformed" | "rateLimit" | "upstream" | "http";
 
 /**
@@ -19,14 +20,16 @@ function failure(status: number): { kind: FailureKind; message: string } {
   if (status === 429) {
     return {
       kind: "rateLimit",
-      message:
-        "Endstep's rate limit was reached. It resets within a minute, so a retry after that usually works.",
+      message: i18next.t("api.client.rateLimit"),
     };
   }
   if (status === 502 || status === 504) {
-    return { kind: "upstream", message: "Endstep did not respond." };
+    return { kind: "upstream", message: i18next.t("api.client.upstream") };
   }
-  return { kind: "http", message: `The request failed with status ${status}.` };
+  return {
+    kind: "http",
+    message: i18next.t("api.client.http", { status }),
+  };
 }
 
 /**
@@ -68,7 +71,7 @@ export async function getJson<Body>(
     if (signal.aborted) {
       throw error;
     }
-    throw new ApiError("The server could not be reached.", "network");
+    throw new ApiError(i18next.t("api.client.network"), "network");
   }
 
   if (!response.ok) {
@@ -82,9 +85,6 @@ export async function getJson<Body>(
     if (signal.aborted) {
       throw error;
     }
-    throw new ApiError(
-      "The server returned a malformed response.",
-      "malformed",
-    );
+    throw new ApiError(i18next.t("api.client.malformed"), "malformed");
   }
 }

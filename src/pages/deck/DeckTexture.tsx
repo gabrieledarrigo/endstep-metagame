@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { DeckDetail } from "../../api/types";
 import { Panel } from "../../components/Panel";
 import { StatList } from "../../components/StatList";
@@ -5,24 +6,31 @@ import { StatTile } from "../../components/StatTile";
 import { formatCount, formatProportion } from "../../helpers";
 
 export function DeckTexture({ texture }: { texture: DeckDetail["texture"] }) {
+  const { t } = useTranslation();
   const { mulliganRate } = texture;
 
   return (
     <Panel>
       <StatList compact>
         <StatTile
-          label="Average turns"
+          label={t("deck.texture.turns")}
           value={texture.averageTurns.toFixed(1)}
         />
         <StatTile
-          label="Opening hand"
-          value={`${texture.averageOpeningHand.toFixed(1)} cards`}
+          label={t("deck.texture.openingHand")}
+          value={t("deck.texture.cards", {
+            cards: texture.averageOpeningHand.toFixed(1),
+          })}
         />
         <StatTile
-          label="Mulligan rate"
+          label={t("deck.texture.mulligan")}
           value={formatProportion(mulliganRate)}
           gated={mulliganRate.of === 0}
-          detail={`${formatCount(mulliganRate.count)} of ${formatCount(mulliganRate.of)} games`}
+          detail={t("deck.texture.mulliganGames", {
+            count: mulliganRate.of,
+            mulligans: formatCount(mulliganRate.count),
+            games: formatCount(mulliganRate.of),
+          })}
         />
       </StatList>
     </Panel>

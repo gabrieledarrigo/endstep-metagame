@@ -1,3 +1,5 @@
+import type { TFunction } from "i18next";
+import { useTranslation } from "react-i18next";
 import { Panel } from "../../components/Panel";
 import { Skeleton } from "../../components/Skeleton";
 import { WindowLink } from "../../components/WindowLink";
@@ -8,37 +10,45 @@ import "./ExpectedRates.css";
 const TICK_STEP = 5;
 const MAJOR_TICK = 10;
 
-function noteOf(changed: boolean, period?: string): string | undefined {
+function noteOf(
+  t: TFunction,
+  changed: boolean,
+  period?: string,
+): string | undefined {
   if (changed) {
-    return "The metagame you set";
+    return t("whatToPlay.expectedRates.note.changed");
   }
 
   if (period === undefined) {
     return undefined;
   }
 
-  return `Metagame of ${period}`;
+  return t("whatToPlay.expectedRates.note.period", { period });
 }
 
 function ExpectedHead({ note }: { note?: string }) {
+  const { t } = useTranslation();
+
   return (
     <>
       <div className="expected__head">
-        <h2 className="expected__title">Expected match win rate</h2>
+        <h2 className="expected__title">
+          {t("whatToPlay.expectedRates.title")}
+        </h2>
         {note !== undefined && <span className="expected__note">{note}</span>}
       </div>
       <div className="expected__legend">
         <span className="expected__key">
           <span className="expected__swatch expected__swatch--win" />
-          Clearly above 50%
+          {t("whatToPlay.expectedRates.legend.win")}
         </span>
         <span className="expected__key">
           <span className="expected__swatch" />
-          Too close to call
+          {t("whatToPlay.expectedRates.legend.neutral")}
         </span>
         <span className="expected__key">
           <span className="expected__swatch expected__swatch--loss" />
-          Clearly below 50%
+          {t("whatToPlay.expectedRates.legend.loss")}
         </span>
       </div>
     </>
@@ -53,6 +63,8 @@ function ticks(first: number, last: number): number[] {
 }
 
 function Movement({ places }: { places: number }) {
+  const { t } = useTranslation();
+
   if (places === 0) {
     return <span className="expected__move" />;
   }
@@ -73,7 +85,9 @@ function Movement({ places }: { places: number }) {
         {count}
       </span>
       <span className="visually-hidden">
-        , {up ? "up" : "down"} {count}
+        {up
+          ? t("whatToPlay.expectedRates.movement.up", { count })
+          : t("whatToPlay.expectedRates.movement.down", { count })}
       </span>
     </span>
   );
@@ -92,6 +106,7 @@ export function ExpectedRates({
   changed = false,
   period,
 }: ExpectedRatesProps) {
+  const { t } = useTranslation();
   const { min, max } = rangeScale(ranking);
   const first = Math.round(min * 100);
   const last = Math.round(max * 100);
@@ -101,7 +116,7 @@ export function ExpectedRates({
 
   return (
     <Panel className="expected">
-      <ExpectedHead note={noteOf(changed, period)} />
+      <ExpectedHead note={noteOf(t, changed, period)} />
       <div className="expected__axis" aria-hidden="true">
         <span className="expected__gap" />
         <span className="expected__gap" />
@@ -147,7 +162,10 @@ export function ExpectedRates({
             <span className="expected__rate">
               {percent(entry.rate)}
               <span className="visually-hidden">
-                , likely between {percent(entry.low)} and {percent(entry.high)}
+                {t("whatToPlay.expectedRates.likely", {
+                  low: percent(entry.low),
+                  high: percent(entry.high),
+                })}
               </span>
             </span>
             <Movement places={(places.get(entry.deck.slug) ?? index) - index} />

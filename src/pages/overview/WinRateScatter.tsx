@@ -5,6 +5,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { useTranslation } from "react-i18next";
 import {
   CartesianGrid,
   ReferenceLine,
@@ -181,6 +182,8 @@ type WinRateTooltipProps = TooltipContentProps & {
 };
 
 function WinRateTooltip({ active, payload, armed }: WinRateTooltipProps) {
+  const { t } = useTranslation();
+
   if (!active || payload.length === 0) {
     return null;
   }
@@ -193,29 +196,32 @@ function WinRateTooltip({ active, payload, armed }: WinRateTooltipProps) {
       rows={[
         {
           key: "share",
-          name: "Meta share",
+          name: t("overview.winRateScatter.tooltip.share"),
           value: tooltipShare(point.share),
         },
         {
           key: "players",
-          name: "Players",
+          name: t("overview.winRateScatter.tooltip.players"),
           value: formatCount(point.players),
         },
         {
           key: "winRate",
-          name: "Match win rate",
+          name: t("overview.winRateScatter.tooltip.winRate"),
           value: winRateText(point.winRate),
         },
         {
           key: "bounds",
-          name: "Confidence bounds",
-          value: `${winRateText(point.low)} to ${winRateText(point.high)}`,
+          name: t("overview.winRateScatter.tooltip.bounds"),
+          value: t("common.range", {
+            from: winRateText(point.low),
+            to: winRateText(point.high),
+          }),
         },
       ]}
       verdict={
         point.id === armed
-          ? "Tap again to open the deck."
-          : "Click to open the deck."
+          ? t("overview.winRateScatter.tooltip.tap")
+          : t("overview.winRateScatter.tooltip.click")
       }
     />
   );
@@ -229,24 +235,19 @@ function axisTicks(min: number, max: number, step: number): number[] {
   return ticks;
 }
 
-const WIN_RATE_NOTE =
-  "The bubble area represents player count. Decks above the line win more than half their matches.";
-
 export function WinRateScatterSkeleton() {
+  const { t } = useTranslation();
+
   return (
     <Panel className="chart-section win-rate" aria-busy="true">
-      <h2 className="chart-section__title">Win rate against share</h2>
-      <p className="chart-section__note">{WIN_RATE_NOTE}</p>
+      <h2 className="chart-section__title">
+        {t("overview.winRateScatter.heading")}
+      </h2>
+      <p className="chart-section__note">{t("overview.winRateScatter.note")}</p>
 
       <Skeleton className="win-rate__frame" width="100%" />
     </Panel>
   );
-}
-
-function leftOutNote(count: number): string {
-  return count === 1
-    ? `1 deck with fewer than ${DECIDED_NEEDED} decided matches is left out, too few to place.`
-    : `${count} decks with fewer than ${DECIDED_NEEDED} decided matches are left out, too few to place.`;
 }
 
 type ArmedMark = {
@@ -260,6 +261,7 @@ type Arming = {
 };
 
 export function WinRateScatter({ decks }: { decks: Deck[] }) {
+  const { t } = useTranslation();
   const arming = useRef<Arming | null>(null);
   const [armedMark, setArmedMark] = useState<ArmedMark | null>(null);
   const armed = armedMark?.decks === decks ? armedMark.id : null;
@@ -286,6 +288,11 @@ export function WinRateScatter({ decks }: { decks: Deck[] }) {
   const points = winRatePoints(decks);
   const drawn = [...points].sort((a, b) => b.players - a.players);
   const leftOut = decks.length - points.length;
+  const leftOutNote = t("overview.winRateScatter.leftOut", {
+    count: leftOut,
+    needed: DECIDED_NEEDED,
+  });
+  const note = t("overview.winRateScatter.note");
 
   if (decks.length === 0) {
     return null;
@@ -294,8 +301,10 @@ export function WinRateScatter({ decks }: { decks: Deck[] }) {
   if (points.length === 0) {
     return (
       <Panel className="chart-section win-rate">
-        <h2 className="chart-section__title">Win rate against share</h2>
-        <p className="chart-section__note">{leftOutNote(leftOut)}</p>
+        <h2 className="chart-section__title">
+          {t("overview.winRateScatter.heading")}
+        </h2>
+        <p className="chart-section__note">{leftOutNote}</p>
       </Panel>
     );
   }
@@ -325,17 +334,22 @@ export function WinRateScatter({ decks }: { decks: Deck[] }) {
         setArmedMark(null);
       }}
     >
-      <h2 className="chart-section__title">Win rate against share</h2>
+      <h2 className="chart-section__title">
+        {t("overview.winRateScatter.heading")}
+      </h2>
       <p className="chart-section__note">
         {leftOut > 0
-          ? `${WIN_RATE_NOTE} ${leftOutNote(leftOut)}`
-          : WIN_RATE_NOTE}
+          ? t("overview.winRateScatter.noteWithLeftOut", {
+              note,
+              leftOut: leftOutNote,
+            })
+          : note}
       </p>
 
       <ChartFrame className="win-rate__frame">
         <ScatterChart
           margin={{ top: 28, right: 24, bottom: 20, left: 24 }}
-          aria-label="Match win rate against meta share"
+          aria-label={t("overview.winRateScatter.chart")}
           accessibilityLayer
         >
           <CartesianGrid {...CHART_CARTESIAN_GRID} />
@@ -346,7 +360,7 @@ export function WinRateScatter({ decks }: { decks: Deck[] }) {
             ticks={axisTicks(0, shareMax, 2)}
             tickFormatter={axisShare}
             label={{
-              value: "meta share",
+              value: t("overview.winRateScatter.xAxis"),
               position: "insideBottom",
               offset: -14,
               fill: CHART_TICK,
@@ -362,7 +376,7 @@ export function WinRateScatter({ decks }: { decks: Deck[] }) {
             tickFormatter={axisShare}
             width={46}
             label={{
-              value: "match win rate",
+              value: t("overview.winRateScatter.yAxis"),
               position: "top",
               offset: 14,
               fill: CHART_TICK,
@@ -375,7 +389,7 @@ export function WinRateScatter({ decks }: { decks: Deck[] }) {
             dataKey="players"
             domain={[0, "dataMax"]}
             range={[0, 1020]}
-            name="Players"
+            name={t("overview.winRateScatter.players")}
           />
           <ReferenceLine
             y={50}
@@ -383,7 +397,7 @@ export function WinRateScatter({ decks }: { decks: Deck[] }) {
             strokeWidth={1.5}
             strokeDasharray="5 4"
             label={{
-              value: "50% win rate",
+              value: t("overview.winRateScatter.reference"),
               position: "insideBottomRight",
               fill: SCATTER_LABEL,
               fontSize: 12,

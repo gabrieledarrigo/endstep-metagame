@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "../../components/Button";
 import "./CardSheet.css";
 
@@ -9,6 +10,7 @@ type CardSheetProps = {
 };
 
 export function CardSheet({ name, imageUrl, onClose }: CardSheetProps) {
+  const { t } = useTranslation();
   const [failed, setFailed] = useState(false);
   const dialog = useRef<HTMLDialogElement>(null);
   const image = useRef<HTMLImageElement>(null);
@@ -37,9 +39,7 @@ export function CardSheet({ name, imageUrl, onClose }: CardSheetProps) {
     >
       <div className="card-sheet__box">
         {failed ? (
-          <p className="card-sheet__error">
-            {"The card's image could not be loaded."}
-          </p>
+          <p className="card-sheet__error">{t("deck.cardSheet.error")}</p>
         ) : (
           <img
             ref={image}
@@ -56,7 +56,7 @@ export function CardSheet({ name, imageUrl, onClose }: CardSheetProps) {
           variant="secondary"
           onClick={() => dialog.current?.close()}
         >
-          Close
+          {t("deck.cardSheet.close")}
         </Button>
       </div>
     </dialog>

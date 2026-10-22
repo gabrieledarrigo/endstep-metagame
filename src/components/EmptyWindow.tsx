@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { TimeWindow } from "../api/types";
 import { Button } from "./Button";
 import { StatePanel } from "./StatePanel";
@@ -13,20 +14,30 @@ type EmptyWindowProps = {
 export function EmptyWindow({
   timeWindow,
   onSelect,
-  title = "No decks in this window",
-  detail = `The ${timeWindow} window has no registrations yet.`,
+  title,
+  detail,
 }: EmptyWindowProps) {
+  const { t } = useTranslation();
+  const text =
+    detail ??
+    t("components.emptyWindow.detail", {
+      window: t(`common.window.${timeWindow}`),
+    });
   const longer: TimeWindow | undefined =
     WINDOWS[WINDOWS.indexOf(timeWindow) + 1];
 
   return (
     <StatePanel
-      title={title}
-      detail={longer ? `${detail} Try a longer window.` : detail}
+      title={title ?? t("components.emptyWindow.title")}
+      detail={
+        longer ? t("components.emptyWindow.longer", { detail: text }) : text
+      }
       action={
         longer && (
           <Button variant="secondary" onClick={() => onSelect(longer)}>
-            Switch to {longer}
+            {t("components.emptyWindow.switch", {
+              window: t(`common.window.${longer}`),
+            })}
           </Button>
         )
       }

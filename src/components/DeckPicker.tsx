@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import type { MatrixDeck } from "../api/types";
 import "./DeckPicker.css";
 
@@ -18,11 +19,13 @@ export function DeckPicker({
   stacked,
   onChange,
 }: DeckPickerProps) {
+  const { t } = useTranslation();
+
   return (
     <label
       className={stacked ? "deck-picker deck-picker--stacked" : "deck-picker"}
     >
-      <span className="deck-picker__label">Deck</span>
+      <span className="deck-picker__label">{t("common.deck")}</span>
       <select
         className="deck-picker__select"
         value={value ?? ""}
@@ -30,10 +33,15 @@ export function DeckPicker({
       >
         {missing && (
           <option value={missing.slug}>
-            {missing.name} (not in the top {decks.length})
+            {t("components.deckPicker.missing", {
+              deck: missing.name,
+              top: decks.length,
+            })}
           </option>
         )}
-        {allDecks && <option value="">All decks</option>}
+        {allDecks && (
+          <option value="">{t("components.deckPicker.allDecks")}</option>
+        )}
         {decks.map((deck) => (
           <option key={deck.slug} value={deck.slug}>
             {deck.name}

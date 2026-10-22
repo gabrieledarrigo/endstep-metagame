@@ -15,6 +15,12 @@ describe("ColourPips", () => {
     expect(screen.getByText("Colours: red")).toBeTruthy();
   });
 
+  it("leaves out a name that only the object prototype has", () => {
+    render(<ColourPips colours={["G", "toString", "constructor"]} />);
+
+    expect(screen.getByText("Colours: green")).toBeTruthy();
+  });
+
   it("shows colourless when no letter is known", () => {
     render(<ColourPips colours={[]} />);
 

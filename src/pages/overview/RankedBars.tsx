@@ -1,4 +1,6 @@
+import type { TFunction } from "i18next";
 import { type PointerEvent, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Bar,
   BarChart,
@@ -38,7 +40,7 @@ type ShareBar = {
   share: number;
 };
 
-function shareBars({ items, total }: Page<Deck>): ShareBar[] {
+function shareBars({ items, total }: Page<Deck>, t: TFunction): ShareBar[] {
   const bars = items.map((deck) => ({
     name: deck.name,
     slug: deck.slug,
@@ -53,7 +55,7 @@ function shareBars({ items, total }: Page<Deck>): ShareBar[] {
   return [
     ...bars,
     {
-      name: `Other (${total - items.length} archetypes and unclassified)`,
+      name: t("overview.rankedBars.other", { count: total - items.length }),
       slug: null,
       share: other,
     },
@@ -122,19 +124,23 @@ function DeckTick({ payload, bars, pointed, onPoint, ...text }: DeckTickProps) {
   );
 }
 
-const RANKED_BARS_NOTE = `Other covers every archetype outside the top ${PAGE_SIZE}.`;
-
 export function RankedBarsSkeleton() {
+  const { t } = useTranslation();
+
   return (
     <section className="ranked-bars" aria-busy="true">
       <Panel>
-        <h2 className="ranked-bars__title">Meta share by deck</h2>
+        <h2 className="ranked-bars__title">
+          {t("overview.rankedBars.heading")}
+        </h2>
 
         <div className="ranked-bars__scroll">
           <Skeleton className="ranked-bars__frame" width="100%" />
         </div>
 
-        <p className="ranked-bars__note">{RANKED_BARS_NOTE}</p>
+        <p className="ranked-bars__note">
+          {t("overview.rankedBars.note", { top: PAGE_SIZE })}
+        </p>
       </Panel>
     </section>
   );
@@ -146,6 +152,7 @@ type PointedRow = {
 };
 
 export function RankedBars({ decks }: { decks: Page<Deck> }) {
+  const { t } = useTranslation();
   const [pointedRow, setPointedRow] = useState<PointedRow | null>(null);
   const pointed = pointedRow?.decks === decks ? pointedRow.slug : null;
 
@@ -166,21 +173,21 @@ export function RankedBars({ decks }: { decks: Page<Deck> }) {
     );
   };
 
-  const bars = shareBars(decks);
+  const bars = shareBars(decks, t);
   const axisMax = Math.ceil(Math.max(...bars.map((bar) => bar.share)) / 5) * 5;
 
   return (
     <section className="ranked-bars" aria-labelledby="ranked-bars-heading">
       <Panel>
         <h2 className="ranked-bars__title" id="ranked-bars-heading">
-          Meta share by deck
+          {t("overview.rankedBars.heading")}
         </h2>
 
         <div
           className="ranked-bars__scroll"
           tabIndex={0}
           role="region"
-          aria-label="Meta share by deck, chart"
+          aria-label={t("overview.rankedBars.region")}
         >
           <ChartFrame className="ranked-bars__frame">
             <BarChart
@@ -239,7 +246,9 @@ export function RankedBars({ decks }: { decks: Page<Deck> }) {
           </ChartFrame>
         </div>
 
-        <p className="ranked-bars__note">{RANKED_BARS_NOTE}</p>
+        <p className="ranked-bars__note">
+          {t("overview.rankedBars.note", { top: PAGE_SIZE })}
+        </p>
       </Panel>
     </section>
   );

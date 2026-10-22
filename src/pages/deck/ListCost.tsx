@@ -1,19 +1,13 @@
+import type { TFunction } from "i18next";
 import { useId, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { Currency, SampleCard, SampleCardData } from "../../api/types";
 import { SegmentedControl } from "../../components/SegmentedControl";
 import { formatPrice } from "../../helpers";
 import "./ListCost.css";
 
 const CURRENCY_KEY = "currency";
-const OPTIONS = ["MTGO", "€", "$"] as const;
-
-type Option = (typeof OPTIONS)[number];
-
-const CURRENCIES: Record<Option, Currency> = {
-  MTGO: "tix",
-  "€": "eur",
-  $: "usd",
-};
+const CURRENCIES: readonly Currency[] = ["tix", "eur", "usd"];
 
 let chosen: Currency | null = null;
 
@@ -41,10 +35,6 @@ function storedCurrency(): Currency {
   }
 
   return "tix";
-}
-
-function optionOf(currency: Currency): Option {
-  return OPTIONS.find((option) => CURRENCIES[option] === currency) ?? "MTGO";
 }
 
 function centsOf(
@@ -76,13 +66,14 @@ function unpriced(
   return new Set(names).size;
 }
 
-function priceText(cents: number, currency: Currency): string {
+function priceText(t: TFunction, cents: number, currency: Currency): string {
   const price = formatPrice(cents / 100, currency);
 
-  return currency === "tix" ? `${price} tix` : price;
+  return currency === "tix" ? t("deck.listCost.tix", { price }) : price;
 }
 
 export function ListCost({ main, side, cards }: ListCostProps) {
+  const { t } = useTranslation();
   const id = useId();
   const [currency, setCurrency] = useState(storedCurrency);
 
@@ -92,11 +83,13 @@ export function ListCost({ main, side, cards }: ListCostProps) {
   const missing = unpriced([main, side], cards, currency);
   const split =
     side.length > 0
-      ? `Main deck ${priceText(mainCents, currency)} · Sideboard ${priceText(sideCents, currency)}`
-      : `Main deck ${priceText(mainCents, currency)}`;
+      ? t("deck.listCost.split", {
+          main: priceText(t, mainCents, currency),
+          side: priceText(t, sideCents, currency),
+        })
+      : t("deck.listCost.main", { main: priceText(t, mainCents, currency) });
 
-  const choose = (option: Option): void => {
-    const next = CURRENCIES[option];
+  const choose = (next: Currency): void => {
     setCurrency(next);
     try {
       localStorage.setItem(CURRENCY_KEY, next);
@@ -110,12 +103,13 @@ export function ListCost({ main, side, cards }: ListCostProps) {
     <section className="list-cost" aria-labelledby={id}>
       <div className="list-cost__head">
         <h3 className="list-cost__label" id={id}>
-          Cost to build
+          {t("deck.listCost.heading")}
         </h3>
         <SegmentedControl
-          label="Currency"
-          options={OPTIONS}
-          value={optionOf(currency)}
+          label={t("deck.listCost.currency")}
+          options={CURRENCIES}
+          labels={{ tix: t("deck.listCost.mtgo"), eur: "€", usd: "$" }}
+          value={currency}
           onChange={choose}
           small
         />
@@ -126,7 +120,9 @@ export function ListCost({ main, side, cards }: ListCostProps) {
             {currency === "tix" ? (
               <>
                 {formatPrice(total / 100, currency)}{" "}
-                <span className="list-cost__unit">tix</span>
+                <span className="list-cost__unit">
+                  {t("deck.listCost.unit")}
+                </span>
               </>
             ) : (
               formatPrice(total / 100, currency)
@@ -135,12 +131,10 @@ export function ListCost({ main, side, cards }: ListCostProps) {
           <p className="list-cost__split">{split}</p>
         </>
       )}
-      <p className="list-cost__source">
-        Prices from Scryfall, at each card’s cheapest printing.
-      </p>
+      <p className="list-cost__source">{t("deck.listCost.source")}</p>
       {missing > 0 && (
         <p className="list-cost__missing">
-          No price for {missing} {missing === 1 ? "card" : "cards"}.
+          {t("deck.listCost.missing", { count: missing })}
         </p>
       )}
     </section>

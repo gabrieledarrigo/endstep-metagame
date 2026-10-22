@@ -1,3 +1,4 @@
+import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router";
 import type { Deck, MatchupMatrix, TimeWindow } from "../../api/types";
 import { MatchupGrid } from "../../components/MatchupGrid";
@@ -20,12 +21,21 @@ type MatchupRowProps = {
   timeWindow: TimeWindow;
 };
 
+function DeckName({ name }: { name: string }) {
+  return name;
+}
+
 function MatchupRow({ deck, matrix, loading, timeWindow }: MatchupRowProps) {
+  const { t } = useTranslation();
   const row = matrix.decks.find((item) => item.id === deck.id);
 
   if (row) {
     const others = matrix.decks.filter((item) => item.id !== deck.id);
-    const scope = loading ? "" : `, ${timeWindow} window`;
+    const label = {
+      deck: row.name,
+      count: others.length,
+      top: matrix.decks.length,
+    };
 
     return (
       <>
@@ -34,7 +44,14 @@ function MatchupRow({ deck, matrix, loading, timeWindow }: MatchupRowProps) {
           rows={[row]}
           columns={others}
           cells={matrix.cells}
-          label={`Match win rate of ${row.name} against the other ${others.length} decks in the top ${matrix.decks.length}${scope}, rated.`}
+          label={
+            loading
+              ? t("deck.matchups.grid", label)
+              : t("deck.matchups.gridWindow", {
+                  ...label,
+                  window: t(`common.window.${timeWindow}`),
+                })
+          }
           linkRows={false}
           contained
         />
@@ -46,7 +63,7 @@ function MatchupRow({ deck, matrix, loading, timeWindow }: MatchupRowProps) {
               search: `?${new URLSearchParams({ window: timeWindow, deck: deck.slug })}`,
             }}
           >
-            See {deck.name} in the full table
+            {t("deck.matchups.more", { deck: deck.name })}
           </Link>
         </p>
       </>
@@ -61,9 +78,14 @@ function MatchupRow({ deck, matrix, loading, timeWindow }: MatchupRowProps) {
     return (
       <Panel>
         <p className="deck-matchups__outside">
-          {deck.name} is not in the top {matrix.decks.length} for this window,
-          so it has no row in the matchup table.{" "}
-          <WindowLink to="/matchups">See the matchup table</WindowLink>
+          <Trans
+            i18nKey="deck.matchups.outside"
+            values={{ top: matrix.decks.length }}
+            components={{
+              deck: <DeckName name={deck.name} />,
+              matchups: <WindowLink to="/matchups" />,
+            }}
+          />
         </p>
       </Panel>
     );
@@ -71,9 +93,7 @@ function MatchupRow({ deck, matrix, loading, timeWindow }: MatchupRowProps) {
 
   return (
     <Panel>
-      <p className="deck-matchups__outside">
-        No matchups are recorded for this window yet.
-      </p>
+      <p className="deck-matchups__outside">{t("deck.matchups.none")}</p>
     </Panel>
   );
 }
@@ -91,6 +111,7 @@ export function DeckMatchups({
   detailLoading,
   timeWindow,
 }: DeckMatchupsProps) {
+  const { t } = useTranslation();
   const matchups = useMatchups(timeWindow);
   const matrix = matchups.data;
   const loading = matchups.isPlaceholderData;
@@ -104,11 +125,11 @@ export function DeckMatchups({
   return (
     <DeckSection
       className="deck-matchups"
-      title={`Matchups against the top ${matrix?.decks.length || TOP}`}
+      title={t("deck.matchups.title", { top: matrix?.decks.length || TOP })}
     >
       {otherDates && matrix && (
         <p className="deck-matchups__dates">
-          These matchups cover {formatWindow(matrix.window)}.
+          {t("deck.matchups.dates", { dates: formatWindow(matrix.window) })}
         </p>
       )}
       <div
@@ -122,7 +143,7 @@ export function DeckMatchups({
         <Section
           query={matchups}
           skeleton={<Skeleton className="deck-matchups__skeleton" />}
-          title="The matchups could not be loaded"
+          title={t("deck.matchups.failed")}
         >
           {(data) => (
             <MatchupRow

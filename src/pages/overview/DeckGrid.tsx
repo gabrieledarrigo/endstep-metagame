@@ -1,13 +1,16 @@
+import { useTranslation } from "react-i18next";
 import type { Deck } from "../../api/types";
 import { PAGE_SIZE } from "../../config";
 import { DeckCard, DeckCardSkeleton } from "./DeckCard";
 import "./DeckGrid.css";
 
 export function DeckGrid({ decks }: { decks: Deck[] }) {
+  const { t } = useTranslation();
+
   return (
     <section className="deck-grid" aria-labelledby="deck-grid-heading">
       <h2 className="visually-hidden" id="deck-grid-heading">
-        Decks by meta share
+        {t("overview.deckGrid.heading")}
       </h2>
       {decks.map((deck) => (
         <DeckCard key={deck.id} deck={deck} />

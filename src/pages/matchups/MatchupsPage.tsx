@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   NavigationType,
   useLocation,
@@ -24,6 +25,7 @@ import { MatchupTable, MatchupTableSkeleton } from "./MatchupTable";
 const TABLE_WIDTH = "(min-width: 640px)";
 
 export function MatchupsPage() {
+  const { t } = useTranslation();
   const [timeWindow, selectTimeWindow] = useTimeWindow();
   const [searchParams, setSearchParams] = useSearchParams();
   const navigationType = useNavigationType();
@@ -51,15 +53,22 @@ export function MatchupsPage() {
     placeholderData: (previous, previousQuery) =>
       previousQuery?.queryKey[1] === outside ? previous : undefined,
   });
-  const missingName = detail.data?.deck.name ?? "This deck";
+  const missingName =
+    detail.data?.deck.name ?? t("matchups.matchupsPage.thisDeck");
   const outsideLine =
     missing === null
       ? undefined
-      : `${missingName} isn't in the top ${decks.length} for the selected time window.`;
+      : t("matchups.matchupsPage.outside", {
+          deck: missingName,
+          top: decks.length,
+        });
   const notice =
     outsideLine === undefined || wide
       ? outsideLine
-      : `${outsideLine} The table shows ${shown.name} by default.`;
+      : t("matchups.matchupsPage.tableDefault", {
+          outside: outsideLine,
+          deck: shown.name,
+        });
   const named =
     detail.isError || (detail.isSuccess && !detail.isPlaceholderData);
 
@@ -101,12 +110,13 @@ export function MatchupsPage() {
 
   return (
     <>
-      <PageTitle title="Matchups" />
+      <PageTitle title={t("matchups.title")} />
 
       <div className="page__controls">
         <SegmentedControl
-          label="Time window"
+          label={t("common.timeWindow")}
           options={WINDOWS}
+          labels={t("common.window", { returnObjects: true })}
           value={timeWindow}
           onChange={(next) => selectTimeWindow(next, loading)}
           busy={loading}
@@ -134,7 +144,9 @@ export function MatchupsPage() {
 
       <p className="visually-hidden" role="status">
         {loading
-          ? `Loading the ${timeWindow} window.`
+          ? t("matchups.matchupsPage.loading", {
+              window: t(`common.window.${timeWindow}`),
+            })
           : named
             ? (outsideLine ?? "")
             : ""}
@@ -147,7 +159,7 @@ export function MatchupsPage() {
         <Section
           query={matchups}
           skeleton={wide ? <MatchupTableSkeleton /> : <MatchupListSkeleton />}
-          title="The matchup table could not be loaded"
+          title={t("matchups.matchupsPage.error")}
         >
           {(data) => {
             if (data.decks.length === 0) {

@@ -1,5 +1,6 @@
 import { skipToken, useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { type ReactNode, useCallback, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router";
 import { fetchDecks, fetchSeries, searchDecks } from "../../api/endpoints";
 import type { Deck, DecksResponse } from "../../api/types";
@@ -9,7 +10,7 @@ import { Section } from "../../components/Section";
 import { SegmentedControl } from "../../components/SegmentedControl";
 import { StatePanel } from "../../components/StatePanel";
 import { WINDOWS } from "../../config";
-import { formatCount, matchText, quoted, searchTerm } from "../../helpers";
+import { formatCount, quoted, searchTerm } from "../../helpers";
 import { useTimeWindow } from "../../hooks/useTimeWindow";
 import { DeckGrid, DeckGridSkeleton } from "./DeckGrid";
 import { DeckSearch, type DeckSearchHandle } from "./DeckSearch";
@@ -21,7 +22,7 @@ import { ShareOverTime, ShareOverTimeSkeleton } from "./ShareOverTime";
 import { Summary, SummarySkeleton } from "./Summary";
 import { WinRateScatter, WinRateScatterSkeleton } from "./WinRateScatter";
 
-const VIEWS = ["Cards", "Table"] as const;
+const VIEWS = ["cards", "table"] as const;
 
 type View = (typeof VIEWS)[number];
 
@@ -45,9 +46,10 @@ function uniqueDecks(pages: DecksResponse[]): Deck[] {
 }
 
 export function OverviewPage() {
+  const { t } = useTranslation();
   const [timeWindow, selectTimeWindow] = useTimeWindow();
   const [searchParams, setSearchParams] = useSearchParams();
-  const view: View = searchParams.get("view") === "table" ? "Table" : "Cards";
+  const view: View = searchParams.get("view") === "table" ? "table" : "cards";
   const decks = useQuery({
     queryKey: ["decks", timeWindow],
     queryFn: ({ signal }) => fetchDecks(timeWindow, signal),
@@ -143,17 +145,17 @@ export function OverviewPage() {
   };
 
   const deckView = (items: Deck[], caption?: string): ReactNode =>
-    view === "Table" ? (
+    view === "table" ? (
       <DeckTable decks={items} caption={caption} />
     ) : (
       <DeckGrid decks={items} />
     );
   const viewSkeleton =
-    view === "Table" ? <DeckTableSkeleton /> : <DeckGridSkeleton />;
+    view === "table" ? <DeckTableSkeleton /> : <DeckGridSkeleton />;
 
   const moreError =
     searching && search.isFetchNextPageError && !search.isFetchingNextPage
-      ? `The next decks could not be loaded. ${search.error.message}`
+      ? t("overview.overviewPage.moreError", { error: search.error.message })
       : undefined;
 
   const shortfall =
@@ -163,16 +165,24 @@ export function OverviewPage() {
     !search.hasNextPage &&
     results.length > 0 &&
     results.length < total
-      ? `Endstep returned ${formatCount(results.length)} of the ${formatCount(total)} decks it counted.`
+      ? t("overview.overviewPage.shortfall", {
+          count: total,
+          returned: formatCount(results.length),
+          total: formatCount(total),
+        })
       : undefined;
 
   const statusText = (): string => {
     if (loading) {
-      return `Loading the ${timeWindow} window.`;
+      return t("overview.overviewPage.status.loading", {
+        window: t(`common.window.${timeWindow}`),
+      });
     }
 
     if (loadingTerm) {
-      return `Searching for ${quoted(term)}.`;
+      return t("overview.overviewPage.status.searching", {
+        term: quoted(term),
+      });
     }
 
     if (moreError) {
@@ -188,19 +198,26 @@ export function OverviewPage() {
     }
 
     if (found === undefined) {
-      return search.isError ? "The search could not be loaded." : "";
+      return search.isError
+        ? t("overview.overviewPage.status.searchError")
+        : "";
     }
 
     if (results.length === 0) {
-      return `No deck or card matches ${quoted(term)}.`;
+      return t("overview.overviewPage.status.noMatch", {
+        term: quoted(term),
+      });
     }
 
-    const { count, rest } = matchText(total, foundTerm);
-    return `${count} ${rest}`;
+    return t("overview.overviewPage.status.found", {
+      count: total,
+      decks: formatCount(total),
+      term: quoted(foundTerm),
+    });
   };
 
   const selectView = (next: View): void => {
-    const written = next === "Table" ? "table" : null;
+    const written = next === "cards" ? null : next;
 
     if (searchParams.get("view") === written) {
       return;
@@ -221,19 +238,24 @@ export function OverviewPage() {
 
   return (
     <>
-      <PageTitle title="Overview" />
+      <PageTitle title={t("overview.title")} />
 
       <div className="page__controls">
         <SegmentedControl
-          label="Time window"
+          label={t("common.timeWindow")}
           options={WINDOWS}
+          labels={t("common.window", { returnObjects: true })}
           value={timeWindow}
           onChange={(next) => selectTimeWindow(next, loading)}
           busy={loading}
         />
         <SegmentedControl
-          label="View"
+          label={t("overview.overviewPage.view.label")}
           options={VIEWS}
+          labels={{
+            cards: t("overview.overviewPage.view.cards"),
+            table: t("overview.overviewPage.view.table"),
+          }}
           value={view}
           onChange={selectView}
         />
@@ -250,7 +272,7 @@ export function OverviewPage() {
         <Section
           query={decks}
           skeleton={<SummarySkeleton />}
-          title="The summary could not be loaded"
+          title={t("overview.overviewPage.errors.summary")}
         >
           {(data) => <Summary decks={data} loading={decks.isPlaceholderData} />}
         </Section>
@@ -284,17 +306,19 @@ export function OverviewPage() {
             <Section
               query={search}
               skeleton={topList.length > 0 ? deckView(topList) : viewSkeleton}
-              title="The search could not be loaded"
+              title={t("overview.overviewPage.errors.search")}
             >
               {() => {
                 if (results.length === 0) {
                   return (
                     <StatePanel
-                      title={`No deck or card matches ${quoted(term)}`}
-                      detail="Search covers deck names and every card in their lists, in the selected window."
+                      title={t("overview.overviewPage.noMatch.title", {
+                        term: quoted(term),
+                      })}
+                      detail={t("overview.overviewPage.noMatch.detail")}
                       action={
                         <Button variant="secondary" onClick={clearSearch}>
-                          Clear the search
+                          {t("overview.overviewPage.noMatch.clear")}
                         </Button>
                       }
                     />
@@ -303,7 +327,9 @@ export function OverviewPage() {
 
                 return deckView(
                   results,
-                  `Decks that match ${quoted(foundTerm)}, sortable by column`,
+                  t("overview.overviewPage.caption", {
+                    term: quoted(foundTerm),
+                  }),
                 );
               }}
             </Section>
@@ -312,9 +338,9 @@ export function OverviewPage() {
               query={decks}
               skeleton={viewSkeleton}
               title={
-                view === "Table"
-                  ? "The deck table could not be loaded"
-                  : "The deck grid could not be loaded"
+                view === "table"
+                  ? t("overview.overviewPage.errors.table")
+                  : t("overview.overviewPage.errors.grid")
               }
             >
               {(data) => {
@@ -336,7 +362,7 @@ export function OverviewPage() {
         <Section
           query={series}
           skeleton={<ShareOverTimeSkeleton />}
-          title="Share over time could not be loaded"
+          title={t("overview.overviewPage.errors.shareOverTime")}
         >
           {(data) => <ShareOverTime series={data.series} />}
         </Section>
@@ -344,7 +370,7 @@ export function OverviewPage() {
         <Section
           query={decks}
           skeleton={<RankedBarsSkeleton />}
-          title="Meta share by deck could not be loaded"
+          title={t("overview.overviewPage.errors.rankedBars")}
         >
           {(data) => <RankedBars decks={data.decks} />}
         </Section>
@@ -352,7 +378,7 @@ export function OverviewPage() {
         <Section
           query={decks}
           skeleton={<WinRateScatterSkeleton />}
-          title="Win rate against share could not be loaded"
+          title={t("overview.overviewPage.errors.winRateScatter")}
         >
           {(data) => <WinRateScatter decks={data.decks.items} />}
         </Section>

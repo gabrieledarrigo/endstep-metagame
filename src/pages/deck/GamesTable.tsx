@@ -1,4 +1,6 @@
+import type { TFunction } from "i18next";
 import { type FocusEvent, useLayoutEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { DeckDetail, GameSplit, WinLoss } from "../../api/types";
 import { ChartTooltip } from "../../charts/ChartTooltip";
 import { Panel } from "../../components/Panel";
@@ -12,11 +14,7 @@ import {
 } from "../../helpers";
 import "./GamesTable.css";
 
-const COLUMNS: { key: keyof GameSplit; label: string }[] = [
-  { key: "onPlay", label: "On the play" },
-  { key: "onDraw", label: "On the draw" },
-  { key: "total", label: "Total" },
-];
+const COLUMNS: readonly (keyof GameSplit)[] = ["onPlay", "onDraw", "total"];
 
 type GameCell = {
   id: string;
@@ -25,18 +23,45 @@ type GameCell = {
   read: ReadRate;
 };
 
-function cellLabel({ title, block, read }: GameCell): string {
+function cellLabel(t: TFunction, { title, block, read }: GameCell): string {
   if (read.gated) {
-    return `${title}: too few to call, ${neededText(read.decided, "games")}`;
+    return t("deck.games.gatedLabel", {
+      title,
+      needed: neededText(read.decided, "games"),
+    });
   }
 
-  return `${title}: game win rate ${percent(read.rate)}, range ${percent(read.low)} to ${percent(read.high)}, ${formatCount(block.wins)} wins, ${formatCount(block.losses)} losses`;
+  return t("deck.games.label", {
+    title,
+    rate: percent(read.rate),
+    range: t("common.range", {
+      from: percent(read.low),
+      to: percent(read.high),
+    }),
+    wins: t("deck.games.winCount", {
+      count: block.wins,
+      wins: formatCount(block.wins),
+    }),
+    losses: t("deck.games.lossCount", {
+      count: block.losses,
+      losses: formatCount(block.losses),
+    }),
+  });
 }
 
 function GameDetail({ title, block, read }: GameCell) {
+  const { t } = useTranslation();
   const counts = [
-    { key: "wins", name: "Wins", value: formatCount(block.wins) },
-    { key: "losses", name: "Losses", value: formatCount(block.losses) },
+    {
+      key: "wins",
+      name: t("deck.games.wins"),
+      value: formatCount(block.wins),
+    },
+    {
+      key: "losses",
+      name: t("deck.games.losses"),
+      value: formatCount(block.losses),
+    },
   ];
 
   if (read.gated) {
@@ -44,7 +69,9 @@ function GameDetail({ title, block, read }: GameCell) {
       <ChartTooltip
         day={title}
         rows={counts}
-        verdict={`Too few to call: ${neededText(read.decided, "games")}.`}
+        verdict={t("deck.games.gated", {
+          needed: neededText(read.decided, "games"),
+        })}
       />
     );
   }
@@ -53,11 +80,18 @@ function GameDetail({ title, block, read }: GameCell) {
     <ChartTooltip
       day={title}
       rows={[
-        { key: "rate", name: "Game win rate", value: percent(read.rate) },
+        {
+          key: "rate",
+          name: t("deck.games.rate"),
+          value: percent(read.rate),
+        },
         {
           key: "range",
-          name: "Range",
-          value: `${percent(read.low)} to ${percent(read.high)}`,
+          name: t("deck.games.range"),
+          value: t("common.range", {
+            from: percent(read.low),
+            to: percent(read.high),
+          }),
         },
         ...counts,
       ]}
@@ -65,12 +99,12 @@ function GameDetail({ title, block, read }: GameCell) {
   );
 }
 
-function unknownNote(games: number): string {
+function unknownNote(t: TFunction, games: number): string {
   if (games === 0) {
-    return "Every game has a play or draw record.";
+    return t("deck.games.allKnown");
   }
 
-  return `${formatCount(games)} ${games === 1 ? "game has" : "games have"} no play or draw record and count only in the totals.`;
+  return t("deck.games.unknown", { count: games, games: formatCount(games) });
 }
 
 export function GamesTable({
@@ -78,6 +112,7 @@ export function GamesTable({
 }: {
   results: DeckDetail["gameResults"];
 }) {
+  const { t } = useTranslation();
   const [activeId, setActiveId] = useState<string | null>(null);
   const focusedId = useRef<string | null>(null);
   const frame = useRef<HTMLDivElement>(null);
@@ -95,9 +130,7 @@ export function GamesTable({
   if (results === null) {
     return (
       <Panel className="games">
-        <p className="games__unavailable">
-          Game results are not available for this window.
-        </p>
+        <p className="games__unavailable">{t("deck.games.unavailable")}</p>
       </Panel>
     );
   }
@@ -105,7 +138,7 @@ export function GamesTable({
   const rows = [
     ...results.rows.map((row, index) => ({
       key: String(row.gameNumber),
-      label: `Game ${row.gameNumber}`,
+      label: t("deck.games.game", { number: row.gameNumber }),
       split: row,
       className:
         index === results.rows.length - 1
@@ -114,7 +147,7 @@ export function GamesTable({
     })),
     {
       key: "all",
-      label: "All games",
+      label: t("deck.games.all"),
       split: results.total,
       className: "games__row games__row--total",
     },
@@ -123,10 +156,10 @@ export function GamesTable({
   const grid = rows.map((row) => ({
     ...row,
     cells: COLUMNS.map((column) => ({
-      id: `${row.key}-${column.key}`,
-      title: `${row.label}, ${column.label.toLowerCase()}`,
-      block: row.split[column.key],
-      read: readRate(row.split[column.key]),
+      id: `${row.key}-${column}`,
+      title: t(`deck.games.cell.${column}`, { row: row.label }),
+      block: row.split[column],
+      read: readRate(row.split[column]),
     })),
   }));
   const active = grid
@@ -163,8 +196,8 @@ export function GamesTable({
               <tr>
                 <td className="games__corner" />
                 {COLUMNS.map((column) => (
-                  <th key={column.key} scope="col" className="games__col">
-                    {column.label}
+                  <th key={column} scope="col" className="games__col">
+                    {t(`deck.games.columns.${column}`)}
                   </th>
                 ))}
               </tr>
@@ -194,7 +227,7 @@ export function GamesTable({
                             : "games__cell"
                         }
                         tabIndex={0}
-                        aria-label={cellLabel(cell)}
+                        aria-label={cellLabel(t, cell)}
                         onFocus={() => onFocusCell(cell)}
                         onMouseEnter={() => setActiveId(cell.id)}
                       >
@@ -215,12 +248,10 @@ export function GamesTable({
         )}
       </div>
 
-      <p className="games__note">{unknownNote(results.unknownPositionGames)}</p>
-      {gated && (
-        <p className="games__note">
-          A hatched cell has fewer than 20 decided games, too few to call.
-        </p>
-      )}
+      <p className="games__note">
+        {unknownNote(t, results.unknownPositionGames)}
+      </p>
+      {gated && <p className="games__note">{t("deck.games.hatched")}</p>}
     </Panel>
   );
 }

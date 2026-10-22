@@ -1,7 +1,8 @@
 import { type ReactNode, useEffect, useRef } from "react";
+import { Trans, useTranslation } from "react-i18next";
 import { Button } from "../../components/Button";
 import { PAGE_SIZE } from "../../config";
-import { matchText } from "../../helpers";
+import { formatCount, quoted } from "../../helpers";
 import "./SearchResults.css";
 
 type SearchResultsProps = {
@@ -15,6 +16,10 @@ type SearchResultsProps = {
   children: ReactNode;
 };
 
+function Term({ term }: { term: string }) {
+  return quoted(term);
+}
+
 export function SearchResults({
   field,
   found,
@@ -25,9 +30,9 @@ export function SearchResults({
   onFocused,
   children,
 }: SearchResultsProps) {
+  const { t } = useTranslation();
   const body = useRef<HTMLDivElement>(null);
   const moreHeldFocus = useRef(false);
-  const line = found && matchText(found.total, found.term);
 
   useEffect(() => {
     if (focus === undefined || body.current === null) {
@@ -60,10 +65,17 @@ export function SearchResults({
         className={busy ? "search-results__body busy" : "search-results__body"}
         aria-busy={busy || undefined}
       >
-        {line && (
+        {found && (
           <p className="search-results__line">
-            <b className="search-results__count">{line.count}</b> {line.rest}{" "}
-            Search covers deck names and every card in their lists.
+            <Trans
+              i18nKey="overview.searchResults.line"
+              count={found.total}
+              values={{ decks: formatCount(found.total) }}
+              components={{
+                total: <b className="search-results__count" />,
+                term: <Term term={found.term} />,
+              }}
+            />
           </p>
         )}
         {children}
@@ -82,7 +94,9 @@ export function SearchResults({
               }
             }}
           >
-            Show {Math.min(PAGE_SIZE, more.remaining)} more
+            {t("overview.searchResults.more", {
+              count: Math.min(PAGE_SIZE, more.remaining),
+            })}
           </Button>
         )}
       </div>
