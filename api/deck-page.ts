@@ -1,13 +1,17 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import {
+  type CallLog,
   EDGE_CACHE,
+  type LogContext,
   PARTIAL_ART_CACHE,
   SEGMENT,
   SITE_ORIGIN,
   WINDOWS,
   deckDetailUrl,
   isRecord,
+  logged,
+  outcomeOf,
   pageTitle,
   withMeta,
   writeHead,
@@ -117,7 +121,10 @@ function isPreviewDeck(value: unknown): value is PreviewDeck {
 async function deckDetail(
   origin: string,
   target: Target,
+  calls: CallLog,
 ): Promise<PreviewDeck | null> {
+  let reading = false;
+
   try {
     const response = await fetch(
       deckDetailUrl(origin, target.slug, target.window),
@@ -127,7 +134,10 @@ async function deckDetail(
       },
     );
 
+    reading = true;
+
     if (!response.ok) {
+      calls.record("endstep", response.status);
       await response.body?.cancel();
       return null;
     }
@@ -135,11 +145,15 @@ async function deckDetail(
     const body: unknown = await response.json();
 
     if (!isRecord(body) || !isPreviewDeck(body.deck)) {
+      calls.record("endstep", "body");
       return null;
     }
 
+    calls.record("endstep", "succeeded");
+
     return body.deck;
-  } catch {
+  } catch (error) {
+    calls.record("endstep", outcomeOf(error, reading));
     return null;
   }
 }
@@ -216,32 +230,47 @@ export default {
    * @returns A Promise resolving to the page, or to a 405 for any method other than GET or HEAD.
    * @see https://vercel.com/docs/functions/functions-api-reference#fetch-web-standard
    */
-  fetch: async function handler(req: Request): Promise<Response> {
-    if (req.method !== "GET" && req.method !== "HEAD") {
-      return new Response("Method not allowed", {
-        headers: { Allow: "GET, HEAD", "Content-Type": "text/plain" },
-        status: 405,
-      });
-    }
+  fetch: logged(
+    "deck-page",
+    async function handler(
+      req: Request,
+      { calls, fellBack }: LogContext,
+    ): Promise<Response> {
+      if (req.method !== "GET" && req.method !== "HEAD") {
+        return new Response("Method not allowed", {
+          headers: { Allow: "GET, HEAD", "Content-Type": "text/plain" },
+          status: 405,
+        });
+      }
 
-    const html = await builtPage();
-    const url = new URL(req.url);
-    const target = targetOf(url.searchParams);
+      const html = await builtPage();
+      const url = new URL(req.url);
+      const target = targetOf(url.searchParams);
 
-    if (!target) {
-      return pageResponse(req.method, html, NO_STORE);
-    }
+      if (!target) {
+        return pageResponse(req.method, html, NO_STORE);
+      }
 
-    const deck = await deckDetail(url.origin, target);
+      const deck = await deckDetail(url.origin, target, calls);
 
-    if (!deck) {
-      return pageResponse(req.method, html, NO_STORE);
-    }
+      if (!deck) {
+        fellBack();
+        return pageResponse(req.method, html, NO_STORE);
+      }
 
-    return pageResponse(
-      req.method,
-      preview(html, deck, target.window),
-      deck.art.imageUrl ? EDGE_CACHE : PARTIAL_ART_CACHE,
-    );
-  },
+      return pageResponse(
+        req.method,
+        preview(html, deck, target.window),
+        deck.art.imageUrl ? EDGE_CACHE : PARTIAL_ART_CACHE,
+      );
+    },
+    (url) => {
+      const slug = url.searchParams.get("slug");
+
+      return {
+        page: slug === null ? null : `/decks/${slug}`,
+        subject: slug,
+      };
+    },
+  ),
 };
