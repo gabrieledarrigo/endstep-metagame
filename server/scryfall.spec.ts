@@ -55,6 +55,39 @@ describe("findArt", () => {
     return fetchMock;
   }
 
+  it.each([
+    ["a success", collection([card("Bargain", BARGAIN_ART)]), {}],
+    [
+      "a 503",
+      async (): Promise<Response> => new Response(null, { status: 503 }),
+      { 503: 1 },
+    ],
+    [
+      "a timeout",
+      async (): Promise<Response> => {
+        throw new DOMException("The operation timed out", "TimeoutError");
+      },
+      { timeout: 1 },
+    ],
+    [
+      "a body it cannot read",
+      async (): Promise<Response> => Response.json({ data: "x" }),
+      { body: 1 },
+    ],
+  ])(
+    "records %s of the collection request in the call log",
+    async (_, answer, failures) => {
+      const { CallLog } = await import("./log.js");
+      const calls = new CallLog();
+      scryfall(answer);
+
+      await findArt(["Bargain"], BOUND, calls);
+
+      expect(calls.calls("scryfall").total).toBe(1);
+      expect(calls.failures("scryfall")).toEqual(failures);
+    },
+  );
+
   function scryfallNames(fetchMock: Mock<typeof fetch>): string[][] {
     return fetchMock.mock.calls.map(([, init]) =>
       (
