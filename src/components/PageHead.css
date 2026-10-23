@@ -1,11 +1,11 @@
 @layer components {
-  .staples-head {
+  .page-head {
     display: flex;
     flex-direction: column;
     gap: 6px;
   }
 
-  .staples-head__intro {
+  .page-head__line {
     margin: 0;
     font-size: 14px;
     color: var(--text-600);

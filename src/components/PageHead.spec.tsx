@@ -1,10 +1,12 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { StaplesHead } from "./StaplesHead";
+import { PageHead } from "./PageHead";
 
-describe("StaplesHead", () => {
+const LINE = "The cards the top 24 decks play most.";
+
+describe("PageHead", () => {
   it("names the page in its heading and its document title", () => {
-    render(<StaplesHead />);
+    render(<PageHead title="Staples" line={LINE} />);
 
     expect(
       screen.getByRole("heading", { level: 1, name: "Staples" }),
@@ -13,17 +15,16 @@ describe("StaplesHead", () => {
   });
 
   it("says what the page shows under the heading", () => {
-    render(<StaplesHead />);
+    render(<PageHead title="Staples" line={LINE} />);
 
-    const line = screen.getByText("The cards the top 24 decks play most.");
-    expect(line.previousElementSibling).toBe(
+    expect(screen.getByText(LINE).previousElementSibling).toBe(
       screen.getByRole("heading", { level: 1, name: "Staples" }),
     );
   });
 
   it("carries its block on its root", () => {
-    const { container } = render(<StaplesHead />);
+    const { container } = render(<PageHead title="Staples" line={LINE} />);
 
-    expect(container.firstElementChild?.className).toBe("staples-head");
+    expect(container.firstElementChild?.className).toBe("page-head");
   });
 });

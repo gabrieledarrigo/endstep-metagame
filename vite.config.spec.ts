@@ -406,6 +406,29 @@ describe("pagePreviews", () => {
     ).toEqual(headings);
   });
 
+  it("says in each page's line what its description says, without the word Pauper", () => {
+    const lines: Record<string, string> = {
+      "/matchups": locales.en.translation.matchups.line,
+      "/what-to-play": locales.en.translation.whatToPlay.line,
+      "/staples": locales.en.translation.staples.line,
+    };
+
+    expect(
+      Object.fromEntries(
+        PAGE_PREVIEWS.map(({ path, description }) => [
+          path,
+          description.replace("Pauper ", ""),
+        ]),
+      ),
+    ).toEqual(lines);
+  });
+
+  it("writes the description of What to play? into its built file", () => {
+    expect(files["what-to-play.html"]).toContain(
+      '<meta name="description" content="The Pauper deck that does the best against the metagame you expect." />',
+    );
+  });
+
   it("uses the origin and the site name of the app", () => {
     expect(SITE_ORIGIN).toBe(APP_ORIGIN);
     expect(SITE_NAME).toBe(APP_NAME);
