@@ -201,6 +201,7 @@ On 2026-09-20, the project tested public CORS proxies and rejected them. All six
    - `scryfall.ts`: the art lookup on Scryfall, §3.4, with its memory and its pause. It also holds the Scryfall addresses, the request headers and the length of the pause. The sample cards function uses them too.
    - `cards.ts`: the rules for card names, the six basic lands and their snow-covered versions.
    - `http.ts`: the CORS headers, the method rules, the error responses, the cache rules and the check of a JSON object.
+   - `log.ts`: the pino logger, the log of each response's calls, and the wrapper that logs a failed response, NFR-12.
    - `head.ts`: the code that writes a title, a description, a canonical link and `og:url` into the HTML, and the list of page previews. The deck page's function and the build plugin both use it, FR-15.
 5. `api/deck-page.ts` is the deck page's HTML function. It writes the title, the description and the image of the deck into the built `index.html` for link previews, FR-15. `vercel.json` sends `/decks/:slug` to this function in place of the static rewrite.
 6. `api/staples.ts` is the staples function. It builds the 50 most played cards of the top 24 decks on the server, with their art. It returns them in one response. See §4.9.
@@ -1080,7 +1081,7 @@ The front end is a Vite application in TypeScript with React 19. `npm run build`
 | Recharts | 3.10 |
 | Vite | 8 |
 | TypeScript | 6.0, strict mode. See below |
-| pino | The current major, in the functions only. See NFR-12 |
+| pino | 10, in the functions only. See NFR-12 |
 
 - TypeScript stays on 6.0, the last release with the JavaScript compiler API. TypeScript 7.0 has no such API. So typescript-eslint refuses it, and the install on Vercel fails on the peer conflict. A measurement on this repository on 2026-10-06 showed this. typescript-eslint tracks support for 7.1 in issue #10940. When that support is released, move to 7. Move directly, or use the side-by-side setup that TypeScript documents. 6.0 already warns about everything that 7 removes.
 - TypeScript runs in strict mode, and a type error fails the build.
@@ -1320,11 +1321,12 @@ The project has no CSS linter for now. Prettier formats the CSS, and review enfo
 
 
 ### NFR-12. Logging
-The functions log every response that fails. So the owner can see how often each page fails to load, and why. Each function uses pino, with no transport. Pino writes one JSON line to standard output, and Vercel keeps the line in the runtime logs of the function.
+The functions log every response that fails. So the owner can see how often each page fails to load, and why. Each function uses pino, with no transport. Pino writes one JSON line to standard output, and Vercel keeps the line in the runtime logs of the function. The `LOG_LEVEL` variable sets the level, `info` by default. The specs set it to `silent`.
 
 - A function logs one line for each response with a status of 429, or of 500 and above. It logs nothing for a response that succeeds. Vercel already counts the responses by status.
 - The deck page's function also logs when it falls back to the site card, FR-15. It logs this at the `warn` level, because the reader still gets the page.
-- Each line has a summary message and an object of fields. The summary reads, for example, "matchups 1d: 502, 3 of 25 Endstep calls failed (2 timeout, 1 503)".
+- A function that throws answers 500 and logs one `error` line. The line has `upstream` set to `null`, and the message of the error in a field named `error`. One wrapper in `server/log.ts` does this for the five functions.
+- Each line has a summary message and an object of fields. The summary reads, for example, "matchups 1d: 502, 3 of 25 Endstep calls failed (2 timeout, 1 503)". When the function aborted calls, it adds their count, such as ", 21 aborted". `upstream`, `calls` and `failures` name only the service whose failures caused the status. They are `null` when no call failed.
 
   | Field | Holds |
   |---|---|
@@ -1333,8 +1335,8 @@ The functions log every response that fails. So the owner can see how often each
   | `window` | The window of the request, or `null` |
   | `status` | The status that the function returned |
   | `upstream` | The service that failed: `endstep` or `scryfall` |
-  | `calls` | The calls of this response to that service: `total`, `succeeded` and `failed` |
-  | `failures` | The count of each reason for a failed call. A reason is the status of the service, such as `503`, or one of `timeout`, `network` and `body` |
+  | `calls` | The calls of this response to that service: `total`, `succeeded`, `failed` and `aborted`. A call is aborted when the function stops it itself, such as the other card tables after a 429 on Staples. So `succeeded`, `failed` and `aborted` add up to `total` |
+  | `failures` | The count of each reason for a failed call. A reason is the status of the service, such as `503`, or one of `timeout`, `network` and `body`. An aborted call has no reason |
   | `durationMs` | How long the function ran, in milliseconds |
 
 - The `Referer` header carries the page, because every call of the app goes to its own origin and the policy is `strict-origin-when-cross-origin`, §4.7.
