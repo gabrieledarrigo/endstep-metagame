@@ -2118,21 +2118,22 @@ This story covers the previews of the matchup table, What to play? and Staples, 
 
 ---
 
-# Milestone 9: page cards and analytics
+# Milestone 9: page cards, analytics and logs
 
 **Date:** 2026-10-23. This milestone comes from Draft v18 of the requirements.
 
-This milestone has one design item, two user stories and one enabler, for FR-12, FR-15, FR-17 and NFR-9. On 2026-10-23 the owner chose a card for each page, a line under each page heading, and Vercel Web Analytics with the full address. Open item 17 of the requirements lists these choices.
+This milestone has one design item, two user stories and two enablers, for FR-12, FR-15, FR-17, NFR-9 and NFR-12. On 2026-10-23 the owner chose a card for each page, a line under each page heading, Vercel Web Analytics with the full address, and a log line for each failed response. Open item 17 of the requirements lists these choices.
 
 | Wave | Items | Runs in parallel |
 |---|---|---|
-| 36 | #180, #181, #182 | Yes, three ways |
+| 36 | #180, #181, #182, #187 | Yes, four ways |
 | 37 | #183 | No |
 
 ```
 #180 design ──► #183 a card for each page
 #181 a line under each heading
 #182 page views
+#187 a log line for each failure
 ```
 
 ---
@@ -2208,6 +2209,36 @@ This enabler covers NFR-9. It replaces pull request #177, which the Vercel app o
 
 ---
 
+## #187 Log why a page fails to load
+
+This enabler covers NFR-12. The owner sees the matchup table fail to load, and wants to know how often and why. The same holds for every page.
+
+**Tasks**
+
+1. Add pino to the dependencies of the functions. Pin it in `package-lock.json`, and add its version to the table of NFR-1.
+2. Add `server/log.ts` with one pino logger and no transport. Export it through `server/index.ts`.
+3. Count the calls of each response to Endstep and to Scryfall, and the reason of each failed call:
+   - A status of the service, such as `503`.
+   - `timeout`, `network` or `body`, as `server/endstep.ts` already tells them apart.
+4. In each function, log one line for a response with a status of 429, or of 500 and above. Give it the summary and the fields of NFR-12.
+5. In the deck page's function, log a `warn` line when it falls back to the site card.
+6. Read `page` from the `Referer` header, as a path with no query string. Use `null` when the header is missing.
+7. Add specs for each function:
+   - A failed response writes one line, with every field of NFR-12.
+   - A successful response writes no line.
+   - The counts of `calls` and `failures` match the calls that failed.
+8. Update §4.2 and NFR-12 if the code differs from them in any detail.
+
+**Done when**
+
+- Each of the five functions writes one line for a failed response, and none for a success.
+- In production, a request for `/api/matchups?window=1d`, which fails today, shows its line in the runtime logs of Vercel. The line names the page, the window and the count of failed calls.
+- The specs pass.
+
+**Blocked by** nothing. **Blocks** nothing.
+
+---
+
 ## #183 Share a page with its own card
 
 As a Pauper player, I want a shared link to the matchup table, What to play? or Staples to show a picture of that page. Then a friend sees which page the link opens.
@@ -2239,6 +2270,8 @@ This story covers the page cards of FR-15 and §4.7.
 ## Notes on sequencing, milestone 9
 
 #180, #181 and #182 touch different files, so they run in parallel. #182 changes only the root of the app and the lockfile.
+
+#187 changes every function and adds a dependency. It also changes `package-lock.json`, so it rebases after #182 or #182 after it. It runs beside the other items of wave 36.
 
 #181 and #183 both change the list in `server/head.ts` and the spec of the built files. #183 waits for #180, so #181 merges first. The second to merge rebases in a few lines.
 
