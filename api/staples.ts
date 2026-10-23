@@ -274,7 +274,9 @@ async function build(
   const controller = new AbortController();
   const endsAt = Date.now() + DEADLINE_MS;
   const deadline = setTimeout(() => {
-    controller.abort();
+    controller.abort(
+      new DOMException("The 50 second deadline passed", "TimeoutError"),
+    );
   }, DEADLINE_MS);
   let top: DecksBody;
   let tables: Table[];
