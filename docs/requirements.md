@@ -1,6 +1,6 @@
 # Endstep Pauper Metagame Viewer: Requirements
 
-Status: Draft v17 · Date: 2026-10-20
+Status: Draft v18 · Date: 2026-10-23
 
 Scope: five pages.
 
@@ -54,7 +54,8 @@ The application is read-only. It stores only three display preferences: the them
 | Matchup table | A page of its own. The top 24 decks. Colour only the clear pairs. Below 640px, the list of one deck, FR-12 |
 | Card art | From Scryfall by name. The proxy adds it. Endstep's image endpoint is the fallback, §3.4 |
 | Install | The reader can install the site as an app. No offline caching and no service worker, FR-16 |
-| Sharing | Each deck page shares with its own title, figures and art. The overview shares the site card. The other pages share their own title and description, with the site card as image, FR-15 |
+| Sharing | Each deck page shares with its own title, figures and art. The overview shares the site card. The other pages share their own title, description and page card, FR-15 |
+| Analytics | Vercel Web Analytics counts the page views, with the full address. No cookies, NFR-9 |
 | What to play? | The top 24, ranked by expected match win rate against a metagame that the reader can change. The data comes from the matchup table. No new calls to Endstep, FR-17 |
 | Staples | The 50 cards that the top 24 play most, weighted by share, for the main deck and the sideboard. The staples function builds them, FR-18 and §4.9 |
 | Languages | English, Italian, Spanish and Portuguese, through i18next. The page detects the language from the browser, and a switch in the header changes it, FR-20 |
@@ -315,9 +316,9 @@ Vercel runs `npm run build` and serves `dist/`. Vercel builds the functions in `
 
 - `vercel.json` pins `"framework": "vite"`. The Vercel project started with the "Other" preset. Without the pin, Vercel may skip the build and serve the source `index.html`. That file renders a blank page.
 - `vercel.json` also carries the proxy rewrite (§4.3), the deck page rewrite and `cleanUrls` (§4.5).
-- After Vite writes `dist/index.html`, a small Vite plugin writes `matchups.html`, `what-to-play.html` and `staples.html` beside it. Each is a copy of `index.html` with the title, the description, the canonical link and the `og:url` of its page, FR-15. Nothing runs for each request.
+- After Vite writes `dist/index.html`, a small Vite plugin writes `matchups.html`, `what-to-play.html` and `staples.html` beside it. Each is a copy of `index.html` with the title, the description, the card, the canonical link and the `og:url` of its page, FR-15. Nothing runs for each request.
 - The copies keep the inline theme script unchanged. So its hash in the security policy stays the same.
-- `public/` holds the icons, the web app manifest, the site card image and `robots.txt`. Vite copies it into `dist/` unchanged.
+- `public/` holds the icons, the web app manifest, the site card, the three page cards and `robots.txt`. Vite copies it into `dist/` unchanged.
 - Vercel serves the hashed files under `/assets/` with `public, max-age=31536000, immutable`, because their names change with every build. The HTML files keep a short cache, so a deploy reaches readers at once.
 - Every response carries the security headers that `vercel.json` sets: a Content Security Policy, `X-Content-Type-Options: nosniff` and `Referrer-Policy: strict-origin-when-cross-origin`. The policy forbids framing with `frame-ancestors 'none'`. The policy allows these:
   - Scripts from the site, and the inline theme script by its hash.
@@ -618,6 +619,8 @@ If the slug is unknown, the page shows a not-found state with a link to the over
 ### FR-12. Matchup table
 This page has one table. The table shows the top 24 decks by share, against each other. The page makes one call to `/api/matchups`, §4.4. The Matchup table section of the design system is the visual specification.
 
+A line under the heading reads "How the top 24 decks do against each other.", as on Staples, FR-18.
+
 - The rows and the columns are the same 24 decks in share order. A cell is the match win rate of the row deck against the column deck, as a whole percentage. The table reads by row.
 - The row headers are the deck names. The column headers are the same names in full, rotated. Neither carries a rank number.
 - The table colours only clear results. A clear pair has at least one range, and every range present for it excludes 50%. Both cells of a clear pair get the colour for their side of 50%. If the row deck is favoured, the cell is one shade of blue. If it is not, the cell is one shade of red. There is no intensity scale, because the number already carries the size. Every other cell stays neutral and still shows its number. Clear cells also use a heavier weight, so colour is never the only cue. On 2026-10-03 at 30d, 96 pairs qualified, which is 192 cells. See §6.10.
@@ -688,19 +691,21 @@ Every page carries the data that browsers, search engines and chat apps read wit
 
 - `index.html` has a description, "Which Pauper decks are played, how they perform, and how they do against each other." It also has Open Graph tags, a `summary_large_image` Twitter card, the icon set, FR-16, and `theme-color` for each theme. The theme toggle updates `theme-color` with the theme, FR-13. `robots.txt` allows every page. `index.html` carries no canonical link and no `og:url`, because it is also the template of the deck pages and of the three copies.
 - The overview shares the site card. The site card has the name of the site, the description, and a 1200 by 630 image with the site mark, from the design system.
-- The matchup table, What to play? and Staples each share their own title and description. Their image is the site card.
+- The matchup table, What to play? and Staples each share their own title, description and page card. A page card is a 1200 by 630 image in the layout of the site card, with the name of its page, from the design system.
 
   | Page | Title | Description |
   |---|---|---|
   | Matchups | Matchups · Pauper Endstep metagame | How the top 24 Pauper decks do against each other. |
-  | What to play? | What to play? · Pauper Endstep metagame | The Pauper deck that wins most against the decks you expect to meet. |
+  | What to play? | What to play? · Pauper Endstep metagame | The Pauper deck that does the best against the metagame you expect. |
   | Staples | Staples · Pauper Endstep metagame | The cards the top 24 Pauper decks play most. |
 
   - The titles repeat the document titles of FR-10.
+  - The line under the heading of each page repeats its description without the word "Pauper", FR-12, FR-17 and FR-18. A spec checks the English line against the description.
+  - The `og:image` of each page names its card in `public/`, such as `https://pauper-endstep-metagame.vercel.app/staples-card.png`.
   - The `og:title` and `og:description` repeat the title and the description.
   - The canonical link and `og:url` of each page are its full address with no query string, such as `https://pauper-endstep-metagame.vercel.app/staples`. So every window of a page counts as one page.
   - The build writes these values into the copies of `index.html`, §4.7.
-  - One list in `server/head.ts` holds the path, the title and the description of each page. The plugin reads it, and a spec checks the built files against it.
+  - One list in `server/head.ts` holds the path, the title, the description and the card of each page. The plugin reads it, and a spec checks the built files against it.
   - A spec checks each title against the English heading of its page. So the preview and the page do not drift apart.
   - These words stay in English, FR-20.
 - The app keeps the canonical link and `og:url` in step with the page on the screen:
@@ -742,7 +747,7 @@ The site installs as an app on phones and desktops. The reader installs it from 
 ### FR-17. What to play?
 This page answers a question that a player has before a league or a tournament: which deck to play. It ranks the top 24 by their expected match win rate against the metagame that the reader expects. It names the best deck. It makes one call to `/api/matchups`, §4.4. This is the same call that the matchup table makes, so the two pages share one edge cache entry. The page asks nothing new of Endstep, NFR-4. The What to play? section of the design system is the visual specification.
 
-The page lives at `/what-to-play`. Its heading and the header link read "What to play?". The document title reads "What to play? · Pauper Endstep metagame", FR-10. The page has the window selector and the resolved dates of the window, as the matchup table does. Its words are short and plain, for readers whose first language is not English.
+The page lives at `/what-to-play`. Its heading and the header link read "What to play?". The document title reads "What to play? · Pauper Endstep metagame", FR-10. A line under the heading reads "The deck that does the best against the metagame you expect.", as on Staples, FR-18. The page has the window selector and the resolved dates of the window, as the matchup table does. Its words are short and plain, for readers whose first language is not English.
 
 #### The expected match win rate
 
@@ -1247,7 +1252,14 @@ The site supports the current versions of Chrome, Firefox, Safari and Edge. It d
 The code targets ES2025 in these places: `target` and `lib` in the three TypeScript configuration files, and `build.target` in Vite. The site does not support older browser versions.
 
 ### NFR-9. Privacy
-The site has no analytics and no cookies. It keeps no personal data in local storage. It sends no third-party requests beyond the card-art hosts: the Scryfall CDN, and the Endstep image endpoint as the fallback. The app keeps three values in local storage: the theme choice, FR-13, the currency of the sample list, FR-19, and the language, FR-20. All three are display preferences, not personal data. They never leave the browser.
+The site counts its page views with Vercel Web Analytics, and nothing else. It sets no cookies.
+
+- The `Analytics` component of `@vercel/analytics/react` sits once at the root of the app. It counts the first page and each route change.
+- Each page view sends the full address, with its query string, so the owner sees which windows, decks and searches people open. A search term of FR-14 is part of the address.
+- The script and its requests stay on the site's own origin, at `/_vercel/insights`. So the security policy of §4.7 does not change.
+- The owner turns on Web Analytics in the Vercel dashboard. The plan of the Vercel project sets a monthly limit of events.
+
+It keeps no personal data in local storage. It sends no third-party requests beyond the card-art hosts: the Scryfall CDN, and the Endstep image endpoint as the fallback. The app keeps three values in local storage: the theme choice, FR-13, the currency of the sample list, FR-19, and the language, FR-20. All three are display preferences, not personal data. They never leave the browser.
 
 ### NFR-10. Deployment
 Vercel deploys the site from the Git repository. The deploy is a Vite build and five serverless functions. It uses no environment variables and no secrets. Production waits until CI passes, §4.7.
@@ -1351,3 +1363,8 @@ The project has no CSS linter for now. Prettier formats the CSS, and review enfo
     - A switch beside the theme toggle that shows the code and a chevron, with a native select over it.
     - One file for all the strings, and i18next.
     - Translations that the owner writes.
+17. ~~Lines under the headings, page cards and analytics.~~ Settled on 2026-10-23. The owner chose:
+    - A line under the heading of the matchup table and of What to play?, as on Staples. Each line is the page's description without "Pauper". The description of What to play? changes to match its line, FR-15.
+    - A page card for each of the three pages, in place of the site card, FR-15.
+    - Vercel Web Analytics with the full address, query string included, NFR-9. This replaced "no analytics".
+18. The `1d` window. On 2026-10-23, Endstep answered the `1d` deck list with a 503 after 27 seconds. The proxy stops at 8 seconds and returns a 502, so `1d` fails on every page. A cold `7d`, `14d` or `season` call also passed 8 seconds once, then answered in under half a second. The owner reports it to the maintainer of Endstep. Nothing changes here until Endstep answers.
