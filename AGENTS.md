@@ -136,9 +136,10 @@ The owner has decided these. Reviews do not raise them again. A change goes to t
 
 Each item of `docs/backlog.md` has a GitHub issue, and the issue body copies the item. The issue number is the item's only identifier. The item's heading starts with it, such as `## #166 Share a page with its own preview`. "Blocked by" and "Blocks" use it too. Other issues track one-off work, such as the review loop in #61.
 
-- Each backlog milestone has a GitHub milestone with the same name. Every issue sits in its milestone.
+- Each backlog milestone has a GitHub milestone with the same name. Milestone 1 is "Pauper metagame overview".
+- Every backlog issue sits in its milestone. A one-off issue sits in the milestone in progress when it opens, or in none.
 - Every issue is on [Project 2](https://github.com/users/gabrieledarrigo/projects/2).
-- To plan an item, create its issue first. Then write the issue number into the backlog.
+- To plan an item, write it in the backlog and create its issue from it. Then put the issue number in the heading and in every reference to the item.
 - Labels carry type (`enabler`, `story`, `hardening`, `design`) and wave (`wave-0` onwards). Items in the same wave have no dependency on each other and can run in parallel.
 
 In messages to the owner and between sessions, name an issue by its number and its title: "#168 Split the shared server code by subject is ready for review".
