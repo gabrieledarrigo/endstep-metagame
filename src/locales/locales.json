@@ -416,6 +416,7 @@
       },
       "matchups": {
         "title": "Matchups",
+        "line": "How the top 24 decks do against each other.",
         "matchupsPage": {
           "thisDeck": "This deck",
           "outside": "{{deck}} isn't in the top {{top}} for the selected time window.",
@@ -448,6 +449,7 @@
       },
       "whatToPlay": {
         "title": "What to play?",
+        "line": "The deck that does the best against the metagame you expect.",
         "loading": "Loading the {{window}} window.",
         "error": "The ranking could not be loaded",
         "pick": {
@@ -1009,6 +1011,7 @@
       },
       "matchups": {
         "title": "Matchup",
+        "line": "Come vanno i primi 24 mazzi l'uno contro l'altro.",
         "matchupsPage": {
           "thisDeck": "Questo mazzo",
           "outside": "{{deck}} non è tra i primi {{top}} nella finestra temporale selezionata.",
@@ -1046,6 +1049,7 @@
       },
       "whatToPlay": {
         "title": "Cosa giocare?",
+        "line": "Il mazzo che rende meglio contro il metagame che ti aspetti.",
         "loading": "Caricamento della finestra {{window}}.",
         "error": "Impossibile caricare la classifica",
         "pick": {
@@ -1615,6 +1619,7 @@
       },
       "matchups": {
         "title": "Enfrentamientos",
+        "line": "Cómo les va a los 24 mejores mazos entre sí.",
         "matchupsPage": {
           "thisDeck": "Este mazo",
           "outside": "{{deck}} no está en el top {{top}} de la ventana de tiempo seleccionada.",
@@ -1652,6 +1657,7 @@
       },
       "whatToPlay": {
         "title": "¿Qué jugar?",
+        "line": "El mazo al que mejor le va contra el metagame que esperas.",
         "loading": "Cargando la ventana {{window}}.",
         "error": "No se pudo cargar la clasificación",
         "pick": {
@@ -2221,6 +2227,7 @@
       },
       "matchups": {
         "title": "Confrontos",
+        "line": "Como os 24 primeiros decks se saem uns contra os outros.",
         "matchupsPage": {
           "thisDeck": "Este deck",
           "outside": "{{deck}} não está no top {{top}} da janela de tempo selecionada.",
@@ -2258,6 +2265,7 @@
       },
       "whatToPlay": {
         "title": "O que jogar?",
+        "line": "O deck que se sai melhor contra o metagame que você espera.",
         "loading": "Carregando a janela {{window}}.",
         "error": "Não foi possível carregar o ranking",
         "pick": {
