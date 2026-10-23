@@ -1329,7 +1329,7 @@ The project has no CSS linter for now. Prettier formats the CSS, and review enfo
 8. ~~Finding a deck in the matchup table.~~ Settled: `?deck=` puts one deck in the spotlight and fades the other cells. A picker chooses the deck, and the matchups row of the deck page links to it. The table has no hover crosshair. FR-11 and FR-12.
 9. ~~Cards or a table on the overview.~~ Settled: the overview shows one view at a time. The reader chooses it with a switch, kept in `view`. The default is cards. FR-3 and FR-4.
 10. ~~The dark palette.~~ Settled: Soft graphite. The owner chose it over warm stone on 2026-10-16. NFR-1a gives its figures, and the design system gives its tokens.
-11. ~~Card art from our server.~~ Settled on 2026-10-17: Scryfall, by name. The owner accepted that the art may differ from the Endstep art. When measured, it differed for 11 of the 24 decks. The owner accepted this because the site presents its own view of the data. §3.4 and §4.3 give the rules, and E14 builds it.
+11. ~~Card art from our server.~~ Settled on 2026-10-17: Scryfall, by name. The owner accepted that the art may differ from the Endstep art. When measured, it differed for 11 of the 24 decks. The owner accepted this because the site presents its own view of the data. §3.4 and §4.3 give the rules, and #112 builds it.
 12. ~~A page that suggests a deck.~~ Settled on 2026-10-18: What to play?, FR-17. The owner chose these points:
     - The answer first, "Play {deck}!".
     - A metagame that the reader can change, kept in the address as changes, not as shares.

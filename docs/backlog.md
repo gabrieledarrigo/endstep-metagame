@@ -6,51 +6,53 @@ Milestone 1 has sixteen items: four enablers, nine user stories and three harden
 
 Every item lists what blocks it, what it blocks, and how to know that it is done.
 
+Each item has a GitHub issue. The issue number is the item's only identifier. It starts the item's heading, and "Blocked by" and "Blocks" use it.
+
 ---
 
 ## How the work splits
 
 Two tracks start at the same time. They do not touch each other.
 
-- Track A is data: E1, then E2. It is the track with the risk, because it depends on an external API. It also depends on Vercel doing what its documentation says.
-- Track B is the interface. E3 needs no data and no network. You can build it straight from the design system while Track A is still in progress.
+- Track A is data: #1, then #2. It is the track with the risk, because it depends on an external API. It also depends on Vercel doing what its documentation says.
+- Track B is the interface. #3 needs no data and no network. You can build it straight from the design system while Track A is still in progress.
 
-The tracks meet at E2. After that, four stories run in parallel. Then the three charts run in parallel.
+The tracks meet at #2. After that, four stories run in parallel. Then the three charts run in parallel.
 
 | Wave | Items | Runs in parallel |
 |---|---|---|
-| 0 | E1, E3 | Yes, two people or two sessions |
-| 1 | E2 | No |
-| 2 | S1, S2, S3, S7, E4 | Yes, five ways |
-| 3 | S4, S5, S6 | Yes, three ways |
-| 4 | S8, S9 | Yes, two ways |
-| 5 | H1, H2 | Yes |
-| 6 | H3 | No |
+| 0 | #1, #3 | Yes, two people or two sessions |
+| 1 | #2 | No |
+| 2 | #5, #6, #7, #11, #4 | Yes, five ways |
+| 3 | #8, #9, #10 | Yes, three ways |
+| 4 | #12, #13 | Yes, two ways |
+| 5 | #14, #15 | Yes |
+| 6 | #16 | No |
 
 ---
 
 ## Dependency map
 
 ```
-E1 proxy ──► E2 shell ─┬─► S1 summary ─────────────┐
-                       ├─► S2 deck grid ──┬─► S8 ──┤
-                       ├─► S3 deck table ─┘        │
-                       ├─► S7 window               │
-                       └─► E4 charts ─┬─► S4 line  ├─► S9 states
-                                      ├─► S5 bars  │
-                                      └─► S6 scatter ──────┘
+#1 proxy ──► #2 shell ─┬─► #5 summary ──────────────┐
+                       ├─► #6 deck grid ──┬─► #12 ──┤
+                       ├─► #7 deck table ─┘         │
+                       ├─► #11 window               │
+                       └─► #4 charts ─┬─► #8 line   ├─► #13 states
+                                      ├─► #9 bars   │
+                                      └─► #10 scatter ──────┘
 
-E3 primitives ──► feeds E2, S1, S2, S3, S7, E4, S9
+#3 primitives ──► feeds #2, #5, #6, #7, #11, #4, #13
 
-S8 and S9 ──► H1 accessibility ─┐
-          ──► H2 performance ───┴─► H3 ship
+#12 and #13 ──► #14 accessibility ─┐
+            ──► #15 performance ───┴─► #16 ship
 ```
 
 ---
 
 # Enablers
 
-## E1. Reach the API from our own origin
+## #1 Reach the API from our own origin
 
 This item is not a user story. It exists only because the Endstep API refuses cross-origin requests (§4.1).
 
@@ -73,11 +75,11 @@ This item is not a user story. It exists only because the Endstep API refuses cr
 - A path outside the allow-list returns 400.
 - A `POST` returns 405.
 
-**Blocked by** nothing. **Blocks** E2.
+**Blocked by** nothing. **Blocks** #2.
 
 ---
 
-## E2. Application shell and data layer
+## #2 Application shell and data layer
 
 **Tasks**
 
@@ -88,7 +90,7 @@ This item is not a user story. It exists only because the Endstep API refuses cr
 5. Keep the window state in React, in sync with the URL query string. The default window is `30d`.
 6. Normalise the errors into three kinds: a network failure, a 429, and any other non-2xx.
 7. Retry at most two times, with backoff. Do not poll (NFR-4).
-8. Add a temporary panel that prints the totals and the deck count, so that a reviewer can check this item. S1 deletes the panel.
+8. Add a temporary panel that prints the totals and the deck count, so that a reviewer can check this item. #5 deletes the panel.
 
 **Done when**
 
@@ -97,13 +99,13 @@ This item is not a user story. It exists only because the Endstep API refuses cr
 - If you edit `?window=7d` in the address bar, the page fetches the data again and updates those numbers.
 - If you cut the network, the page shows the error path, not a blank page.
 
-**Blocked by** E1. **Blocks** S1, S2, S3, S7, E4.
+**Blocked by** #1. **Blocks** #5, #6, #7, #11, #4.
 
 ---
 
-## E3. Component primitives
+## #3 Component primitives
 
-This item builds the primitives from part two of the design system. It needs no data and no network, so it runs beside E1 and E2.
+This item builds the primitives from part two of the design system. It needs no data and no network, so it runs beside #1 and #2.
 
 **Tasks**
 
@@ -118,11 +120,11 @@ This item builds the primitives from part two of the design system. It needs no 
 
 **Done when** a temporary section renders every primitive, and each one matches part two of the design system. This includes the focus rings and the disabled state.
 
-**Blocked by** nothing. **Blocks** S1, S2, S3, S7, E4, H1.
+**Blocked by** nothing. **Blocks** #5, #6, #7, #11, #4, #14.
 
 ---
 
-## E4. Chart foundation
+## #4 Chart foundation
 
 The three charts have more parts in common than different parts. This item builds the common parts once, so that the three charts do not get three inconsistent implementations.
 
@@ -137,13 +139,13 @@ The three charts have more parts in common than different parts. This item build
 
 **Done when** one throwaway line chart renders with our tooltip, our legend and our axis styles. Toggling a series leaves the other colours unchanged.
 
-**Blocked by** E2, E3. **Blocks** S4, S5, S6.
+**Blocked by** #2, #3. **Blocks** #8, #9, #10.
 
 ---
 
 # User stories
 
-## S1. See how big the field is and what window I am looking at
+## #5 See how big the field is and what window I am looking at
 
 As a Pauper player, I want to know how much play the numbers come from. Then I can judge how much to trust them.
 
@@ -154,15 +156,15 @@ This story covers FR-2 and NFR-5.
 1. Build the summary header. Registrations are the hero figure. After it come the players, the archetypes, the window dates and the population.
 2. Format the dates from `provenance.window.from` and `to`.
 3. Add the attribution line. It links to endstep.cc and states that this is not an official Endstep product.
-4. Delete the temporary panel from E2.
+4. Delete the temporary panel from #2.
 
-**Done when** the header shows live figures for the selected window, and the debug panel from E2 is gone.
+**Done when** the header shows live figures for the selected window, and the debug panel from #2 is gone.
 
-**Blocked by** E2, E3. **Blocks** nothing.
+**Blocked by** #2, #3. **Blocks** nothing.
 
 ---
 
-## S2. Browse the decks as a grid
+## #6 Browse the decks as a grid
 
 As a Pauper player, I want to recognise decks by sight. Then I can scan the field faster than I can read a list.
 
@@ -173,7 +175,7 @@ This story covers FR-3.
 1. Build the `DeckCard` component as part two of the design system shows it.
 2. Request the card art from `/api/cards/image?name=...&version=art_crop`. Request it directly from endstep.cc, not through the proxy (§3.4).
 3. Set `loading="lazy"`. Set `width` and `height` to match the 626:300 crop, so that the page reserves the box before the image arrives.
-4. Use the colour pips from E3.
+4. Use the colour pips from #3.
 5. Show the three stats in equal columns.
 6. Push the key cards line to the bottom.
 7. Make the whole card the link. Its target follows open item 1 in the requirements.
@@ -181,11 +183,11 @@ This story covers FR-3.
 
 **Done when** 24 cards render and the art loads. The stat rows line up across the cards, and nothing shifts when the images arrive.
 
-**Blocked by** E2, E3. **Blocks** S8.
+**Blocked by** #2, #3. **Blocks** #12.
 
 ---
 
-## S3. Read the decks as a sortable table
+## #7 Read the decks as a sortable table
 
 As a Pauper player, I want exact figures that I can sort. The grid shows me the shape, and the table shows me the numbers.
 
@@ -202,11 +204,11 @@ This story covers FR-4. The table is also the accessible alternative that NFR-6 
 
 **Done when** every column sorts in both directions with the keyboard alone. The table holds every value that appears in any chart.
 
-**Blocked by** E2, E3. **Blocks** S8, H1.
+**Blocked by** #2, #3. **Blocks** #12, #14.
 
 ---
 
-## S4. See how the field moved over the window
+## #8 See how the field moved over the window
 
 As a Pauper player, I want to see which decks gain and which decks lose. Then I know what is trending, not only what is big today.
 
@@ -217,16 +219,16 @@ This story covers FR-5.
 1. Draw a line chart of the eight series that the API returns.
 2. Render the days with `rate: null` as a gap, never as zero (§6.2). This part is the most likely to go wrong.
 3. Label the endpoint of each series.
-4. Use the legend toggle from E4.
+4. Use the legend toggle from #4.
 5. Make the date axis span the full window.
 
 **Done when** the eight lines render, and the region before 2026-09-05 is empty, not flat at zero. Toggling a series in the legend leaves the other colours unchanged.
 
-**Blocked by** E4. **Blocks** nothing.
+**Blocked by** #4. **Blocks** nothing.
 
 ---
 
-## S5. Compare every deck's share at once
+## #9 Compare every deck's share at once
 
 As a Pauper player, I want to see the whole field in one view. This includes the part that is not a named deck.
 
@@ -242,11 +244,11 @@ This story covers FR-6.
 
 **Done when** 25 bars render in share order, and the values sum to 100%. The `Other` label states what it contains.
 
-**Blocked by** E4. **Blocks** nothing.
+**Blocked by** #4. **Blocks** nothing.
 
 ---
 
-## S6. Tell a good deck from a popular one
+## #10 Tell a good deck from a popular one
 
 As a Pauper player, I want to find the decks that win more than their share suggests. That is how I pick what to play.
 
@@ -263,11 +265,11 @@ This story covers FR-7.
 
 **Done when** 24 bubbles render and the 50% line has a label. The tooltip shows `low` and `high` beside the rate.
 
-**Blocked by** E4. **Blocks** nothing.
+**Blocked by** #4. **Blocks** nothing.
 
 ---
 
-## S7. Change the time window
+## #11 Change the time window
 
 As a Pauper player, I want to switch between a day and a season. A one-day field and a 30-day field are different questions.
 
@@ -275,18 +277,18 @@ This story covers FR-1.
 
 **Tasks**
 
-1. Use the segmented control from E3, wired to the window state in E2.
+1. Use the segmented control from #3, wired to the window state in #2.
 2. Keep the URL query string in sync, so that a reader can link to a view.
 3. When the window changes, fetch and render every section again.
 4. Show a busy state on the control while the new fetch is in progress.
 
 **Done when** all five windows load and the URL updates. A reload restores the same view, and the control shows that it is working during the fetch.
 
-**Blocked by** E2, E3. **Blocks** nothing, but do it before S4 to S6. Then you write the charts for a changing window from the start.
+**Blocked by** #2, #3. **Blocks** nothing, but do it before #8 to #10. Then you write the charts for a changing window from the start.
 
 ---
 
-## S8. See whether a deck is rising or falling
+## #12 See whether a deck is rising or falling
 
 As a Pauper player, I want to know which way a deck is moving, not only where it is now.
 
@@ -302,15 +304,15 @@ This story covers FR-8 and the awkward case in §6.3.
 
 **Done when** 7d shows real deltas and 30d shows the unavailable state everywhere. No cell shows a zero or a blank.
 
-**Blocked by** S2, S3. **Blocks** nothing.
+**Blocked by** #6, #7. **Blocks** nothing.
 
 ---
 
-## S9. Know when the page is loading, empty or broken
+## #13 Know when the page is loading, empty or broken
 
 As a Pauper player, I want to see what the page is doing. Then I can tell a slow load from a failure, and I know whether to retry.
 
-This story covers FR-9. E2 produces the error states and E3 builds the panels. This story wires them into each section.
+This story covers FR-9. #2 produces the error states and #3 builds the panels. This story wires them into each section.
 
 **Tasks**
 
@@ -323,13 +325,13 @@ This story covers FR-9. E2 produces the error states and E3 builds the panels. T
 
 **Done when** you can see each section in all three states. A throttled network shows skeletons, not a blank page. A forced 429 produces the rate limit message, not a generic error.
 
-**Blocked by** E3, S1, S2, S3, S4, S5, S6. **Blocks** H1.
+**Blocked by** #3, #5, #6, #7, #8, #9, #10. **Blocks** #14.
 
 ---
 
 # Hardening
 
-## H1. Accessibility and responsive pass
+## #14 Accessibility and responsive pass
 
 > Dropped. Closed as not planned (#14). Hobby project. Each story did its own accessibility work, so no separate pass happened. The project skipped the end-to-end audit.
 
@@ -344,11 +346,11 @@ This item covers NFR-6 and NFR-7.
 5. At 360px, make sure that the table scrolls inside its panel and that the page does not scroll sideways.
 6. Spot-check the contrast against the figures in the design system.
 
-**Blocked by** S1 to S9. **Blocks** H3.
+**Blocked by** #5 to #13. **Blocks** #16.
 
 ---
 
-## H2. Performance and budget check
+## #15 Performance and budget check
 
 > Dropped. Closed as not planned (#15). The NFR-3 budget stays in the requirements as a note, not as a gate.
 
@@ -363,11 +365,11 @@ This item covers NFR-3 and NFR-4.
 5. Make sure that repeat requests hit the Vercel edge, not Endstep.
 6. Make sure that the page does not poll, and that it retries at most two times.
 
-**Blocked by** S1 to S9. **Blocks** H3.
+**Blocked by** #5 to #13. **Blocks** #16.
 
 ---
 
-## H3. Ship
+## #16 Ship
 
 This item covers NFR-10 and NFR-5.
 
@@ -378,19 +380,19 @@ This item covers NFR-10 and NFR-5.
 3. Put the attribution copy in place.
 4. Write a README. It covers what the app is, where the data comes from, and how to run it.
 
-**Blocked by** nothing. H1 and H2 were dropped.
+**Blocked by** nothing. #14 and #15 were dropped.
 
 ---
 
 ## Notes on sequencing
 
-Do E1 first, and alone. It is the only item that can prove the architecture wrong. §4.3 assumes how the Vercel edge cache and the allow-list behave. If they behave differently, it is better to learn this before other items build on top.
+Do #1 first, and alone. It is the only item that can prove the architecture wrong. §4.3 assumes how the Vercel edge cache and the allow-list behave. If they behave differently, it is better to learn this before other items build on top.
 
-E3 runs in parallel at no cost. It touches no network and no data. You can build all of it from the design system while E1 and E2 are in progress. If you want two items in progress at once, it is the natural second track.
+#3 runs in parallel at no cost. It touches no network and no data. You can build all of it from the design system while #1 and #2 are in progress. If you want two items in progress at once, it is the natural second track.
 
-S7 is small, but its place in the order matters. If you add the window selector after the charts, you must go back to all three charts. If you add it before, you write the charts for a changing window from the start.
+#11 is small, but its place in the order matters. If you add the window selector after the charts, you must go back to all three charts. If you add it before, you write the charts for a changing window from the start.
 
-S8 is last among the stories on purpose. It touches two surfaces that must exist first. Its most common state today is the unavailable one. When something already exists to put it beside, that state is easier to get right.
+#12 is last among the stories on purpose. It touches two surfaces that must exist first. Its most common state today is the unavailable one. When something already exists to put it beside, that state is easier to get right.
 
 ---
 
@@ -402,27 +404,27 @@ This milestone has twelve items: eight enablers, one design item and three user 
 
 | Wave | Items | Runs in parallel |
 |---|---|---|
-| 7 | E5, D1 | Yes, two ways |
-| 8 | E10 | No |
-| 9 | E6, E9 | Yes, two ways |
-| 10 | E7 | No |
-| 11 | E8 | No |
-| 12 | E12 | No |
-| 13 | E11, S10, S11 | Yes, three ways |
-| 14 | S12 | No |
+| 7 | #40, #46 | Yes, two ways |
+| 8 | #41 | No |
+| 9 | #42, #45 | Yes, two ways |
+| 10 | #43 | No |
+| 11 | #44 | No |
+| 12 | #58 | No |
+| 13 | #49, #47, #48 | Yes, three ways |
+| 14 | #51 | No |
 
 ```
-E5 vite ──► E10 checks and CI ─┬─► E6 modules ──► E7 typescript ──► E8 routing ──► E12 data and view ─┬─► S10 deck page
-                               │                                                                       ├─► S11 matchup table
-                               │                                                                       └─► E11 tests
-                               └─► E9 matchup function ───────────────────────────────────────────────────► S11
-D1 design ──► E8, S10, S12
-S10, S11 ──► S12 deck matchups
+#40 vite ──► #41 checks and CI ─┬─► #42 modules ──► #43 typescript ──► #44 routing ──► #58 data and view ─┬─► #47 deck page
+                                │                                                                         ├─► #48 matchup table
+                                │                                                                         └─► #49 tests
+                                └─► #45 matchup function ───────────────────────────────────────────────────► #48
+#46 design ──► #44, #47, #51
+#47, #48 ──► #51 deck matchups
 ```
 
 ---
 
-## E5. Build with Vite
+## #40 Build with Vite
 
 This item covers NFR-1, §4.6 and §4.7. It is the riskiest item in the milestone.
 
@@ -442,11 +444,11 @@ This item covers NFR-1, §4.6 and §4.7. It is the riskiest item in the mileston
 - The proxy answers on the preview.
 - No CDN script tag and no `dev-server.js` remain.
 
-**Blocked by** nothing. **Blocks** E10.
+**Blocked by** nothing. **Blocks** #41.
 
 ---
 
-## E10. Lint, format, test, and gate the release
+## #41 Lint, format, test, and gate the release
 
 This item covers NFR-1 and §4.7. Every later item runs against these checks.
 
@@ -456,7 +458,7 @@ This item covers NFR-1 and §4.7. Every later item runs against these checks.
 2. Set up Prettier 3 with its defaults. Add a `.prettierignore` for `dist/`, `docs/` and the lockfile. Add `npm run format` and `npm run format:check`. Reformat the code base in a commit that has no other change.
 3. Set up Vitest 5, React Testing Library and jsdom. Add `npm test`.
 4. Add `api/metagame.spec.ts`, with `fetch` stubbed. It covers the allow-list, the methods, the path parsing and the cache header for each status.
-5. Add a smoke spec that renders the app with `fetch` stubbed. This is the only component spec until E11, because the components are still in one module.
+5. Add a smoke spec that renders the app with `fetch` stubbed. This is the only component spec until #49, because the components are still in one module.
 6. Add `.vercelignore` with `api/**/*.spec.ts`, so that Vercel does not deploy the specs as functions.
 7. Add `.github/workflows/ci.yml` with the `ci` job from NFR-1.
 8. Add two rules to `AGENTS.md`:
@@ -470,11 +472,11 @@ This item covers NFR-1 and §4.7. Every later item runs against these checks.
 - A push that breaks formatting, lint, a test or the build turns `ci` red. Show this once on a throwaway branch.
 - After the merge, the production deployment waits for `ci` before it takes the domain.
 
-**Blocked by** E5. **Blocks** E6, E9.
+**Blocked by** #40. **Blocks** #42, #45.
 
 ---
 
-## E6. Split into modules
+## #42 Split into modules
 
 This item covers the agreed layout for the refactor, and NFR-11. The code stays in JavaScript. The behaviour does not change, apart from the breakpoints.
 
@@ -486,7 +488,7 @@ This item covers the agreed layout for the refactor, and NFR-11. The code stays 
    - Wrap the stylesheet in `@layer components`.
    - Cover only the elements that the component renders.
    - Move every rule that more than one component needs to `base` or `layout`.
-4. Put the page wrapper in `layout.css`. The full-width band comes later, with its first user, S11.
+4. Put the page wrapper in `layout.css`. The full-width band comes later, with its first user, #48.
 5. Reduce the media queries to the two boundaries in NFR-11, mobile first. Two current queries move:
    - The sideways scroll of the window selector, at 400px.
    - The scatter labels, hidden below 760px.
@@ -497,7 +499,7 @@ This item covers the agreed layout for the refactor, and NFR-11. The code stays 
 
 **Done when**
 
-- At 360px, 800px and 1280px, the page renders and behaves as it does after E5. Only the two moved queries differ.
+- At 360px, 800px and 1280px, the page renders and behaves as it does after #40. Only the two moved queries differ.
 - `src/main.jsx` only mounts `App`.
 - No module holds more than one concern.
 - Every rule is inside a layer.
@@ -505,11 +507,11 @@ This item covers the agreed layout for the refactor, and NFR-11. The code stays 
 - Element selectors appear only in `base.css`.
 - Media queries use only 640px and 1,100px.
 
-**Blocked by** E10. **Blocks** E7.
+**Blocked by** #41. **Blocks** #43.
 
 ---
 
-## E7. Convert to TypeScript
+## #43 Convert to TypeScript
 
 This item covers NFR-1.
 
@@ -526,13 +528,13 @@ This item covers NFR-1.
 - `npm run build` passes in strict mode with no explicit `any` and no `@ts-ignore`.
 - ESLint passes.
 - Every helper has a JSDoc block.
-- The page renders and behaves as it does after E6.
+- The page renders and behaves as it does after #42.
 
-**Blocked by** E6. **Blocks** E8.
+**Blocked by** #42. **Blocks** #44.
 
 ---
 
-## E8. Route between pages
+## #44 Route between pages
 
 This item covers FR-1, FR-3, FR-4, FR-10 and §4.5.
 
@@ -557,15 +559,15 @@ This item covers FR-1, FR-3, FR-4, FR-10 and §4.5.
 - Back returns to the overview without a reload.
 - On a Vercel preview, a reload of `/decks/affinity-e93f5f74` and of `/matchups` loads the page.
 
-**Blocked by** E7, D1. D1 designs the page header. **Blocks** E12.
+**Blocked by** #43, #46. #46 designs the page header. **Blocks** #58.
 
 ---
 
-## E12. Cache the data and keep the view in the address
+## #58 Cache the data and keep the view in the address
 
 This item covers §4.5, §4.8, FR-4, FR-5, NFR-3 and NFR-4.
 
-Back must return to a page as the reader left it. A link must open the page fresh. E8 already restores the scroll position and the window. This item restores the rest: the data, without a loading state, and the view.
+Back must return to a page as the reader left it. A link must open the page fresh. #44 already restores the scroll position and the window. This item restores the rest: the data, without a loading state, and the view.
 
 **Tasks**
 
@@ -590,11 +592,11 @@ Back must return to a page as the reader left it. A link must open the page fres
 - A reload keeps the sort and the hidden series.
 - If the reader sorts the table and then presses Back, the browser leaves the page. Back does not undo the sort.
 
-**Blocked by** E8. **Blocks** E11, S10, S11.
+**Blocked by** #44. **Blocks** #49, #47, #48.
 
 ---
 
-## E9. Aggregate the matchups
+## #45 Aggregate the matchups
 
 This item covers §4.4. It is only server code, so it runs beside the refactor.
 
@@ -611,7 +613,7 @@ This item covers §4.4. It is only server code, so it runs beside the refactor.
 5. Set `Cache-Control` by status, the method rules and the CORS headers as the proxy does. Cache a 429 for 60 seconds, not 10.
 6. Put code that the proxy also uses in `api/_shared.ts`. Vercel does not deploy a file in `api/` whose name starts with an underscore. Give each helper there a JSDoc block and a spec in `api/_shared.spec.ts`.
 7. Measure the coverage in all five windows, open item 4 in the requirements. Record the result there.
-8. Add `api/matchups.spec.ts` beside the function. The spec calls the handler with a plain `Request` and a stubbed `fetch`. E5 adds the development plugin, and S11 connects this function to it.
+8. Add `api/matchups.spec.ts` beside the function. The spec calls the handler with a plain `Request` and a stubbed `fetch`. #40 adds the development plugin, and #48 connects this function to it.
 9. Add a JSDoc block to the handler, as `api/metagame.ts` has.
 
 **Done when**
@@ -621,11 +623,11 @@ This item covers §4.4. It is only server code, so it runs beside the refactor.
 - A repeat request within five minutes is a hit in the edge cache.
 - The spec covers each rule in §4.4.
 
-**Blocked by** E10, for Vitest. **Blocks** S11.
+**Blocked by** #41, for Vitest. **Blocks** #48.
 
 ---
 
-## D1. Design the deck page and the page header
+## #46 Design the deck page and the page header
 
 This item covers the appearance of FR-10 and FR-11. It changes only `docs/design-system.html`. The design system already has the matchup table for FR-12, from a design session with the owner on 2026-10-03.
 
@@ -655,11 +657,11 @@ This item covers the appearance of FR-10 and FR-11. It changes only `docs/design
 - Every state in FR-10 and FR-11 has a specimen.
 - Every new colour has its contrast figure.
 
-**Blocked by** nothing. **Blocks** E8, S10, S12.
+**Blocked by** nothing. **Blocks** #44, #47, #51.
 
 ---
 
-## S10. Read one deck's numbers
+## #47 Read one deck's numbers
 
 As a Pauper player, I want the numbers of one deck in one place. Then I can judge the deck beyond its share and win rate.
 
@@ -667,7 +669,7 @@ This story covers FR-11, §6.8 and §6.11.
 
 **Tasks**
 
-1. Read the deck detail through the query of the deck page. E8 added this query, and E12 keys it by slug and window.
+1. Read the deck detail through the query of the deck page. #44 added this query, and #58 keys it by slug and window.
 2. Build these parts, as FR-11 describes:
    - The header.
    - The stat tiles.
@@ -691,11 +693,11 @@ This story covers FR-11, §6.8 and §6.11.
 - `/decks/renamed-e93f5f74` opens the Affinity deck page, and the router corrects the URL.
 - No gated figure reads as 0%.
 
-**Blocked by** E12, D1. **Blocks** S12.
+**Blocked by** #58, #46. **Blocks** #51.
 
 ---
 
-## S11. See how the top decks do against each other
+## #48 See how the top decks do against each other
 
 As a Pauper player, I want to see which decks beat which. Then I can pick a deck for the field that I expect.
 
@@ -727,11 +729,11 @@ This story covers FR-12 and §6.10.
 - Tab enters the table once. Arrow keys move between cells. Focus on a cell shows its detail.
 - At 1280 px, the table has no scrollbar. At 360 px, the page does not scroll sideways.
 
-**Blocked by** E12, E9. **Blocks** S12.
+**Blocked by** #58, #45. **Blocks** #51.
 
 ---
 
-## S12. See how one deck does against the top 24
+## #51 See how one deck does against the top 24
 
 As a Pauper player, I want the results of a deck against each top deck on its own page. Then I can judge the deck without reading the whole table.
 
@@ -739,8 +741,8 @@ This story covers the matchups row in FR-11, and §4.4.
 
 **Tasks**
 
-1. On the deck page, read `/api/matchups` through the query that S11 uses, keyed by window.
-2. Render the row of the deck with the components of the matchup table: the rotated names, the cells, the legend and the detail. If S11 does not share a component yet, make it shared.
+1. On the deck page, read `/api/matchups` through the query that #48 uses, keyed by window.
+2. Render the row of the deck with the components of the matchup table: the rotated names, the cells, the legend and the detail. If #48 does not share a component yet, make it shared.
 3. Find the row by `deck.id` from the deck detail, not by the slug in the address. Leave the deck itself out of the row. Keep the share order.
 4. If the window of the row differs from the window of the deck detail, show the dates of the row.
 5. Below the width of the row, scroll sideways and keep the name of the deck in view.
@@ -757,17 +759,17 @@ This story covers the matchups row in FR-11, and §4.4.
 - A failed `/api/matchups` request leaves the numbers and the sample list in place.
 - At 360 px, the page does not scroll sideways.
 
-**Blocked by** S10, S11, D1. **Blocks** nothing.
+**Blocked by** #47, #48, #46. **Blocks** nothing.
 
 ---
 
-## E11. Test every exported function
+## #49 Test every exported function
 
-This item covers the rule in NFR-1 that an exported function with a consumer has a spec beside it. E10 set up the tools. E8, E9, E12, S10 and S11 test what they add. This item covers everything that existed before them.
+This item covers the rule in NFR-1 that an exported function with a consumer has a spec beside it. #41 set up the tools. #44, #45, #58, #47 and #48 test what they add. This item covers everything that existed before them.
 
 **Tasks**
 
-1. Add a spec beside every component that exists after E12, in `src/components`, `src/charts`, `src/pages/overview` and the shell.
+1. Add a spec beside every component that exists after #58, in `src/components`, `src/charts`, `src/pages/overview` and the shell.
 2. Add a spec beside every helper module. This includes the hooks, with `renderHook`, and the formatting and data functions.
 3. Query by role and by visible text. Do not use snapshots.
 4. Cover the states that each component has: loading, error, empty, and the 429 copy where it applies.
@@ -778,66 +780,66 @@ This item covers the rule in NFR-1 that an exported function with a consumer has
 - Every module that exports a function with a consumer has a spec beside it.
 - `ci` passes.
 
-**Blocked by** E12. **Blocks** nothing.
+**Blocked by** #58. **Blocks** nothing.
 
 ---
 
 ## Notes on sequencing, milestone 2
 
-E5 comes first, and a person looks at its preview. If Vercel skips the build, it serves the source `index.html`, and the site goes blank. The framework pin prevents that. The preview proves it.
+#40 comes first, and a person looks at its preview. If Vercel skips the build, it serves the source `index.html`, and the site goes blank. The framework pin prevents that. The preview proves it.
 
-E10 runs alone. Prettier rewrites every file once, so any item that runs beside it conflicts everywhere. For the same reason, the reformat is a commit of its own.
+#41 runs alone. Prettier rewrites every file once, so any item that runs beside it conflicts everywhere. For the same reason, the reformat is a commit of its own.
 
-E6 and E7 touch every file in `src/`. E9 touches only `api/`, so it runs beside E6. D1 touches only `docs/`, so it runs beside E5.
+#42 and #43 touch every file in `src/`. #45 touches only `api/`, so it runs beside #42. #46 touches only `docs/`, so it runs beside #40.
 
-S12 comes last. It needs the page from S10 and the components of the matchup table from S11, so it waits for both.
+#51 comes last. It needs the page from #47 and the components of the matchup table from #48, so it waits for both.
 
-E11 waits for E8 and E12. E8 changes the deck card, the table and the shell. E12 replaces the data hook. So a spec written before them needs a rewrite. After E12, E11 adds only spec files. So it runs beside S10 and S11, which add new components.
+#49 waits for #44 and #58. #44 changes the deck card, the table and the shell. #58 replaces the data hook. So a spec written before them needs a rewrite. After #58, #49 adds only spec files. So it runs beside #47 and #48, which add new components.
 
-E12 comes before the pages. S10, S11 and S12 read their data through the queries that it sets up. So the stories start on the final data layer and need no rewrite.
+#58 comes before the pages. #47, #48 and #51 read their data through the queries that it sets up. So the stories start on the final data layer and need no rewrite.
 
-E8 gives the stories empty pages. Then S10 and S11 each fill one page and do not touch the router. So they can run in parallel.
+#44 gives the stories empty pages. Then #47 and #48 each fill one page and do not touch the router. So they can run in parallel.
 
 ---
 # Milestone 3: connected pages
 
-**Date:** 2026-10-13. This milestone comes from Draft v4 of the requirements. D3 and S18 were added on 2026-10-14, from Draft v5. D4, S19, S20 and S21 were added on 2026-10-17, from Draft v6. D5, E13, S22, S23 and S24 were added the same day, from Draft v7, and E14 from Draft v8. H4 was added the same day. H5 was added on 2026-10-18, from Draft v9.
+**Date:** 2026-10-13. This milestone comes from Draft v4 of the requirements. #87 and #88 were added on 2026-10-14, from Draft v5. #100, #101, #102 and #103 were added on 2026-10-17, from Draft v6. #106, #107, #108, #109 and #110 were added the same day, from Draft v7, and #112 from Draft v8. #116 was added the same day. #127 was added on 2026-10-18, from Draft v9.
 
-This milestone has twenty items: four design items, two enablers, twelve user stories and two hardening items. Two stories, the enablers and H4 need no design, so they start at once. The design of H5 is done. It waits only for the mark component of the footer, S24. The other items wait for D2, D3, D4 or D5. Each of them changes how a page looks, and the owner chooses the design first.
+This milestone has twenty items: four design items, two enablers, twelve user stories and two hardening items. Two stories, the enablers and #116 need no design, so they start at once. The design of #127 is done. It waits only for the mark component of the footer, #110. The other items wait for #79, #87, #100 or #106. Each of them changes how a page looks, and the owner chooses the design first.
 
 | Wave | Items | Runs in parallel |
 |---|---|---|
-| 15 | D2, D3, S13, S14 | Yes, four ways |
-| 16 | S16, S17, S18 | Yes, three ways |
-| 17 | S15 | No |
-| 18 | D4 | No |
-| 19 | S19, S20, S21 | Yes, three ways |
-| 20 | D5, E13, E14, H4 | Yes, four ways |
-| 21 | S22, S23, S24 | Yes, three ways |
-| 22 | H5 | No |
+| 15 | #79, #87, #80, #81 | Yes, four ways |
+| 16 | #82, #83, #88 | Yes, three ways |
+| 17 | #84 | No |
+| 18 | #100 | No |
+| 19 | #101, #102, #103 | Yes, three ways |
+| 20 | #106, #107, #112, #116 | Yes, four ways |
+| 21 | #108, #109, #110 | Yes, three ways |
+| 22 | #127 | No |
 
 ```
-D2 design ─┬─► S16 find a deck in the matchup table ──► S15 matchup table on a phone
-           ├─► S17 cards or table on the overview
-           └─► S15
-D3 design ──► S18 light and dark theme ──┬─► S20 highlight a deck in Share over time
-                                         └─► S21 show the pointed deck on the charts
-D4 design ──┬─► S19 search for any deck
-            ├─► S20
-            └─► S21
-D5 design ──┬─► S22 install as an app
-            ├─► S23 a preview per deck
-            └─► S24 the footer ──► H5 the mark in the header
-E13 metadata and headers ──► S23
-E14 art from Scryfall ──► S23
-H4 the deck page's tables
-S13 every page kept on a window change
-S14 charts open the deck pages
+#79 design ─┬─► #82 find a deck in the matchup table ──► #84 matchup table on a phone
+            ├─► #83 cards or table on the overview
+            └─► #84
+#87 design ──► #88 light and dark theme ──┬─► #102 highlight a deck in Share over time
+                                          └─► #103 show the pointed deck on the charts
+#100 design ──┬─► #101 search for any deck
+              ├─► #102
+              └─► #103
+#106 design ──┬─► #108 install as an app
+              ├─► #109 a preview per deck
+              └─► #110 the footer ──► #127 the mark in the header
+#107 metadata and headers ──► #109
+#112 art from Scryfall ──► #109
+#116 the deck page's tables
+#80 every page kept on a window change
+#81 charts open the deck pages
 ```
 
 ---
 
-## D2. Design the phone matchup view, the deck highlight and the overview's switch
+## #79 Design the phone matchup view, the deck highlight and the overview's switch
 
 This item covers open items 7, 8 and 9 in the requirements. It changes `docs/design-system.html`, and the owner chooses between the proposals. Then it writes the chosen behaviour into `docs/requirements.md`. It has no code.
 
@@ -861,11 +863,11 @@ This item covers open items 7, 8 and 9 in the requirements. It changes `docs/des
 - Each chosen design has a specimen, with its states.
 - FR-3, FR-4 and FR-12 describe the behaviour. Open items 7, 8 and 9 are settled.
 
-**Blocked by** nothing. **Blocks** S15, S16, S17.
+**Blocked by** nothing. **Blocks** #84, #82, #83.
 
 ---
 
-## D3. Design the dark theme and its toggle
+## #87 Design the dark theme and its toggle
 
 This item covers FR-13 and open item 10 in the requirements. It changes `docs/design-system.html`, and the owner chooses between the palettes. Then it writes the chosen values into NFR-1a. It has no code.
 
@@ -898,11 +900,11 @@ This item covers FR-13 and open item 10 in the requirements. It changes `docs/de
 - The design system specifies both palettes and the toggle, with specimens.
 - NFR-1a and open item 10 name the chosen palette.
 
-**Blocked by** nothing. **Blocks** S18.
+**Blocked by** nothing. **Blocks** #88.
 
 ---
 
-## D4. Design the deck search, the share chart's highlight and the chart hover
+## #100 Design the deck search, the share chart's highlight and the chart hover
 
 This item covers FR-5, FR-6, FR-7 and FR-14 in the requirements. On 2026-10-17 the owner chose these options:
 
@@ -935,11 +937,11 @@ It changes `docs/design-system.html` and `docs/requirements.md`. It has no code.
 - Each design has a specimen with its states, in both themes.
 - The requirements describe the search, the highlight and the hover.
 
-**Blocked by** nothing. **Blocks** S19, S20, S21.
+**Blocked by** nothing. **Blocks** #101, #102, #103.
 
 ---
 
-## D5. Design the site mark, the icon set, the site card and the footer
+## #106 Design the site mark, the icon set, the site card and the footer
 
 This item covers FR-15, FR-16 and NFR-5. On 2026-10-17 the owner chose these options:
 
@@ -962,7 +964,7 @@ It changes `docs/design-system.html`. It has no code.
    - The site and its author on one side.
    - The notices on the other side.
    - Below 640px, the two sides stack.
-5. Add the icons and the site card to the `public/` folder of the repository, ready for S22 and S23.
+5. Add the icons and the site card to the `public/` folder of the repository, ready for #108 and #109.
 6. Republish the artifact.
 
 **Done when**
@@ -970,11 +972,11 @@ It changes `docs/design-system.html`. It has no code.
 - The design system specifies the mark, the icons, the site card and the footer, with specimens in both themes.
 - The icon files and the site card are in `public/`.
 
-**Blocked by** nothing. **Blocks** S22, S23, S24.
+**Blocked by** nothing. **Blocks** #108, #109, #110.
 
 ---
 
-## E13. Add the page description, the asset cache and the security headers
+## #107 Add the page description, the asset cache and the security headers
 
 This item covers the text tags of FR-15, and §4.7. It needs no design.
 
@@ -995,11 +997,11 @@ This item covers the text tags of FR-15, and §4.7. It needs no design.
 - A second visit loads the hashed files from the browser cache, with no request.
 - The response headers carry the policy. The browser console reports no violation on any page.
 
-**Blocked by** nothing. **Blocks** S23.
+**Blocked by** nothing. **Blocks** #109.
 
 ---
 
-## E14. Serve the card art straight from Scryfall
+## #112 Serve the card art straight from Scryfall
 
 This item covers §3.4, §4.3, FR-3, FR-11, NFR-4 and open item 11. The owner settled that item on 2026-10-17. It needs no design.
 
@@ -1029,11 +1031,11 @@ This item covers §3.4, §4.3, FR-3, FR-11, NFR-4 and open item 11. The owner se
 - If the API of Scryfall is unreachable, every card still shows its art through the Endstep endpoint. This item cannot cover a failure of the Scryfall CDN, because the Endstep endpoint also redirects there.
 - No response waits more than a second for Scryfall.
 
-**Blocked by** nothing. **Blocks** S23.
+**Blocked by** nothing. **Blocks** #109.
 
 ---
 
-## S13. Keep every page on screen while another window loads
+## #80 Keep every page on screen while another window loads
 
 As a Pauper player, I want to switch windows, and no page goes blank. Then I can compare what changed.
 
@@ -1063,7 +1065,7 @@ This story covers §4.8.
 
 ---
 
-## S14. Open a deck from the charts
+## #81 Open a deck from the charts
 
 As a Pauper player, I want to click a deck in a chart. Then I can read its page, and I do not look it up.
 
@@ -1086,7 +1088,7 @@ This story covers FR-6 and FR-7.
 
 ---
 
-## S15. Read the matchup table on a phone
+## #84 Read the matchup table on a phone
 
 As a Pauper player on a phone, I want to read the matchups. I do not want to scroll across a table of 24 columns.
 
@@ -1110,11 +1112,11 @@ This story covers the part of FR-12 that is called On a phone.
 - If the address has no deck, the list shows the top deck by share. If the address has a deck, the list shows that deck.
 - For a deck outside the top 24, the page shows the list of the top deck under the line.
 
-**Blocked by** D2, S16. **Blocks** nothing.
+**Blocked by** #79, #82. **Blocks** nothing.
 
 ---
 
-## S16. Find a deck in the matchup table
+## #82 Find a deck in the matchup table
 
 As a Pauper player, I want to land on the row of my deck in the matchup table. Then I do not search for it.
 
@@ -1149,10 +1151,10 @@ This story covers FR-11, and the part of FR-12 that is called A deck in the spot
 - A deck outside the top 24 of the window shows the line and no spotlight. The address keeps the deck.
 - The row on the deck page links to its deck in the table.
 
-**Blocked by** D2. **Blocks** S15.
+**Blocked by** #79. **Blocks** #84.
 
 ---
-## S17. Switch the overview between cards and a table
+## #83 Switch the overview between cards and a table
 
 As a Pauper player, I want either the cards or the table, not both. Then the overview is shorter.
 
@@ -1172,11 +1174,11 @@ This story covers FR-3 and FR-4.
 - `?view=table` opens on the table. A switch back to the cards removes `view` from the address.
 - Back leaves the page. It does not undo a switch.
 
-**Blocked by** D2. **Blocks** nothing.
+**Blocked by** #79. **Blocks** nothing.
 
 ---
 
-## S18. Switch between a light and a dark theme
+## #88 Switch between a light and a dark theme
 
 As a Pauper player, I want the site dark when my device is dark, and a toggle to switch the theme. Then I can read the site in any light.
 
@@ -1188,12 +1190,12 @@ This story covers FR-13, NFR-1a and NFR-9.
    - If the reader did not choose a theme, apply them under `prefers-color-scheme: dark`.
    - If the reader chose a theme, apply them under that choice.
    - Set `color-scheme` with them, so that native controls and scrollbars follow the theme.
-2. Replace the colour literals that D3 names with tokens.
+2. Replace the colour literals that #87 names with tokens.
 3. In `index.html`, add a script that applies a stored choice before the first paint.
 4. Put the toggle at the right end of the site header. The toggle writes the choice to local storage.
 5. When the theme changes, recolour the charts. This includes a change to the device setting before the reader chooses.
-   - Before S18, every chart read its tokens once, when its module loaded: `src/charts/theme.ts`, `DeckShare`, `RankedBars` and `WinRateScatter`.
-   - S18 gives the charts their colours as CSS variables instead. Then the browser resolves the colours on every paint.
+   - Before #88, every chart read its tokens once, when its module loaded: `src/charts/theme.ts`, `DeckShare`, `RankedBars` and `WinRateScatter`.
+   - #88 gives the charts their colours as CSS variables instead. Then the browser resolves the colours on every paint.
 6. Add a spec beside each component, hook and helper that the story adds or changes.
 
 **Done when**
@@ -1204,11 +1206,11 @@ This story covers FR-13, NFR-1a and NFR-9.
 - If no choice is stored, a change to the device setting recolours the page and its charts. The change also updates the toggle.
 - Text, labels and chart marks meet the contrast that NFR-1a gives for the dark palette.
 
-**Blocked by** D3. **Blocks** nothing.
+**Blocked by** #87. **Blocks** nothing.
 
 ---
 
-## S19. Search for any deck on the overview
+## #101 Search for any deck on the overview
 
 As a Pauper player, I want to search the decks by name or by a card that they play. Then I can find a deck outside the top 24.
 
@@ -1235,11 +1237,11 @@ This story covers FR-14 and NFR-4.
 - A search with no match shows the panel. The button of the panel clears the search.
 - One character searches nothing.
 
-**Blocked by** D4. **Blocks** nothing.
+**Blocked by** #100. **Blocks** nothing.
 
 ---
 
-## S20. Highlight a deck in Share over time
+## #102 Highlight a deck in Share over time
 
 As a Pauper player, I want to click a deck in the legend of the chart to bring its line forward. Then I can follow the deck among the others.
 
@@ -1262,11 +1264,11 @@ This story covers FR-5.
 - `?highlight=` survives a reload.
 - No control hides a line.
 
-**Blocked by** D4, S18. **Blocks** nothing.
+**Blocked by** #100, #88. **Blocks** nothing.
 
 ---
 
-## S21. Show the deck under the pointer on the deck charts
+## #103 Show the deck under the pointer on the deck charts
 
 As a Pauper player, I want the deck charts to show the deck that I point at. Then I can tell that it is a link.
 
@@ -1282,11 +1284,11 @@ This story covers FR-6 and FR-7.
 
 - In both themes, bars and markers react to the pointer as the design system shows.
 
-**Blocked by** D4, S18. **Blocks** nothing.
+**Blocked by** #100, #88. **Blocks** nothing.
 
 ---
 
-## S22. Install the site as an app
+## #108 Install the site as an app
 
 As a Pauper player, I want to add the site to my home screen. Then I can open it like an app.
 
@@ -1310,11 +1312,11 @@ This story covers FR-16 and the icons of FR-15.
 - The installed app opens on the overview, in standalone mode.
 - Browser tabs show the favicon in both themes.
 
-**Blocked by** D5. **Blocks** nothing.
+**Blocked by** #106. **Blocks** nothing.
 
 ---
 
-## S23. Share a deck with its own preview
+## #109 Share a deck with its own preview
 
 As a Pauper player, I want the link of a deck page to show that deck in a chat app. Then the people that I share it with see what it is.
 
@@ -1345,11 +1347,11 @@ This story covers FR-15.
 - A shared link to the overview or to the matchup table shows the site card.
 - If Endstep is unreachable, a deck page still loads, with the site card.
 
-**Blocked by** D5, E13, E14. **Blocks** nothing.
+**Blocked by** #106, #107, #112. **Blocks** nothing.
 
 ---
 
-## S24. Credit the data, the author and Wizards in the footer
+## #110 Credit the data, the author and Wizards in the footer
 
 As a Pauper player, I want to see where the data comes from and who made the site. The site also needs the notice that Wizards asks of fan content.
 
@@ -1367,11 +1369,11 @@ This story covers NFR-5.
 
 - The footer of every page has the five items of NFR-5, with working links. This is true in both themes and at 360px.
 
-**Blocked by** D5. **Blocks** H5.
+**Blocked by** #106. **Blocks** #127.
 
 ---
 
-## H4. Make the deck page's tables match the design system
+## #116 Make the deck page's tables match the design system
 
 This item covers FR-11 and NFR-6. On 2026-10-17 the owner found the gaps and chose the column layout for the daily share. The design system already shows both.
 
@@ -1395,7 +1397,7 @@ This item covers FR-11 and NFR-6. On 2026-10-17 the owner found the gaps and cho
 
 ---
 
-## H5. Put the site mark in the header
+## #127 Put the site mark in the header
 
 This item covers FR-10 and FR-16. On 2026-10-18 the owner chose to put the site mark in the header too. Today the mark appears only in the footer, the tab and the app icons. The installed app has no tab. The Page header in the design system shows the mark.
 
@@ -1420,21 +1422,21 @@ This item covers FR-10 and FR-16. On 2026-10-18 the owner chose to put the site 
 - At 360px and at 640px, the name wraps to two lines. At these widths, the mark sits on the first line and the toggle keeps its place.
 - The accessible name of the brand link is still "Pauper Endstep metagame".
 
-**Blocked by** S24. **Blocks** S25.
+**Blocked by** #110. **Blocks** #132.
 
 ---
 
 ## Notes on sequencing, milestone 3
 
-S13 and S14 need no design. They change behaviour, not appearance, so they start beside D2. S13 reuses the dimmed, busy state of the deck page.
+#80 and #81 need no design. They change behaviour, not appearance, so they start beside #79. #80 reuses the dimmed, busy state of the deck page.
 
-S16 comes before S15. Both stories change the matchup page, and the phone view can open on the deck that the address names.
+#82 comes before #84. Both stories change the matchup page, and the phone view can open on the deck that the address names.
 
-D3 does not wait for D2. The theme changes colours, not layout. S18 and S14 both change the chart code. The story that lands second rebases onto the first.
+#87 does not wait for #79. The theme changes colours, not layout. #88 and #81 both change the chart code. The story that lands second rebases onto the first.
 
-S20 and S21 wait for S18. S18 turns the chart colours into CSS variables, and both stories change how the charts draw. S19 changes only the deck list of the overview. It can start as soon as D4 lands.
+#102 and #103 wait for #88. #88 turns the chart colours into CSS variables, and both stories change how the charts draw. #101 changes only the deck list of the overview. It can start as soon as #100 lands.
 
-E13 and E14 come before S23. The deck page's HTML function writes into the head that E13 fills. It also takes the art address that E14 adds. D5's mark is for the owner to finish, so S22 and S24 wait for it. H5 waits for S24, because it reuses `SiteMark` from the footer.
+#107 and #112 come before #109. The deck page's HTML function writes into the head that #107 fills. It also takes the art address that #112 adds. #106's mark is for the owner to finish, so #108 and #110 wait for it. #127 waits for #110, because it reuses `SiteMark` from the footer.
 
 ---
 
@@ -1446,17 +1448,17 @@ This milestone has three user stories, all for FR-17. On 2026-10-18 the owner ch
 
 | Wave | Items | Runs in parallel |
 |---|---|---|
-| 23 | S25 | No |
-| 24 | S26, S27 | Yes, two ways |
+| 23 | #132 | No |
+| 24 | #133, #134 | Yes, two ways |
 
 ```
-H5 the mark in the header ──► S25 which deck to play ──┬─► S26 the metagame you expect
-                                                        └─► S27 beat a deck
+#127 the mark in the header ──► #132 which deck to play ──┬─► #133 the metagame you expect
+                                                          └─► #134 beat a deck
 ```
 
 ---
 
-## S25. See which deck to play
+## #132 See which deck to play
 
 As a Pauper player, I want the site to tell me which deck wins most against the decks I will meet. Then I can choose what to bring to a league.
 
@@ -1509,11 +1511,11 @@ This story covers the page, the pick and the ranking in FR-17, and the third lin
 - Every deck name links to its deck page with the current window.
 - The header shows three links at every width. From 640px, the name is on one line.
 
-**Blocked by** H5. Both change the site header. **Blocks** S26, S27.
+**Blocked by** #127. Both change the site header. **Blocks** #133, #134.
 
 ---
 
-## S26. Set the metagame I expect
+## #133 Set the metagame I expect
 
 As a Pauper player, I want to raise or lower how often I expect to meet each deck. Then the suggestion fits the league that I am going to.
 
@@ -1552,11 +1554,11 @@ This story covers the metagame panel in FR-17 and its place in the address.
 - An address with a malformed entry, an unknown deck or a change of zero still opens, with the rest of its changes.
 - An address whose changes empty the metagame opens the window's own metagame.
 
-**Blocked by** S25. **Blocks** nothing.
+**Blocked by** #132. **Blocks** nothing.
 
 ---
 
-## S27. Find the decks that beat a deck
+## #134 Find the decks that beat a deck
 
 As a Pauper player, I want to see which decks clearly beat a deck that I expect to meet often. I also want to see how those decks do against everything else.
 
@@ -1575,15 +1577,15 @@ This story covers the Beat a deck panel in FR-17.
 - When the reader chooses a deck, the table updates. A copied address opens the same deck.
 - At 30d on the day of the check, the list for Affinity has exactly the decks whose cell against Affinity is clearly blue in the matchup table.
 
-**Blocked by** S25. **Blocks** nothing.
+**Blocked by** #132. **Blocks** nothing.
 
 ---
 
 ## Notes on sequencing, milestone 4
 
-S25 waits for H5, because both items change the site header. H5 adds the mark. S25 adds the third link and moves the one-row layout to 1,100px.
+#132 waits for #127, because both items change the site header. #127 adds the mark. #132 adds the third link and moves the one-row layout to 1,100px.
 
-S26 and S27 run in parallel. Both stories add a panel to the page that S25 builds. Only S26 changes the ranking and the pick. The story that merges second rebases onto the first. The expected-rate column of S27 reads the metagame that S26 makes changeable. If S27 merges first, the column shows the window's own metagame until S26 merges.
+#133 and #134 run in parallel. Both stories add a panel to the page that #132 builds. Only #133 changes the ranking and the pick. The story that merges second rebases onto the first. The expected-rate column of #134 reads the metagame that #133 makes changeable. If #134 merges first, the column shows the window's own metagame until #133 merges.
 
 ---
 
@@ -1591,24 +1593,24 @@ S26 and S27 run in parallel. Both stories add a panel to the page that S25 build
 
 **Date:** 2026-10-18. This milestone comes from Draft v11 of the requirements.
 
-This milestone has one enabler, two user stories and one hardening item, for FR-18 and §4.9. H7 was added on 2026-10-20, from Draft v15. On 2026-10-18 the owner chose the design from a working draft. The Staples section of the design system shows that design, so this milestone has no design item.
+This milestone has one enabler, two user stories and one hardening item, for FR-18 and §4.9. #161 was added on 2026-10-20, from Draft v15. On 2026-10-18 the owner chose the design from a working draft. The Staples section of the design system shows that design, so this milestone has no design item.
 
 | Wave | Items | Runs in parallel |
 |---|---|---|
-| 25 | E15 | Yes, beside milestone 4 |
-| 26 | S28 | No |
-| 27 | S29 | No |
-| 33 | H7 | Yes, beside any other item |
+| 25 | #136 | Yes, beside milestone 4 |
+| 26 | #137 | No |
+| 27 | #138 | No |
+| 33 | #161 | Yes, beside any other item |
 
 ```
-E15 the staples function ──┐
-S25 which deck to play ────┴─► S28 the staples page ──► S29 the decks behind a card
-H7 ask once more for a slow table
+#136 the staples function ──┐
+#132 which deck to play ────┴─► #137 the staples page ──► #138 the decks behind a card
+#161 ask once more for a slow table
 ```
 
 ---
 
-## E15. Build the staples on the server
+## #136 Build the staples on the server
 
 This item covers §4.9.
 
@@ -1649,11 +1651,11 @@ This item covers §4.9.
 - A repeat request within 30 minutes is a cache hit.
 - Any other query string returns 400.
 
-**Blocked by** nothing. **Blocks** S28.
+**Blocked by** nothing. **Blocks** #137.
 
 ---
 
-## S28. See the format's staples
+## #137 See the format's staples
 
 As a Pauper player, I want to see the cards that the top decks play most. Then I know which cards are worth owning.
 
@@ -1684,11 +1686,11 @@ This story covers the page and the list in FR-18, and the fourth link in FR-10.
 - A copied address with `section=side` opens the sideboard.
 - At 360px, the four links in the header fit or wrap, with no sideways scroll.
 
-**Blocked by** E15, and S25 for the third link in the header and its layout. **Blocks** S29.
+**Blocked by** #136, and #132 for the third link in the header and its layout. **Blocks** #138.
 
 ---
 
-## S29. See the decks behind a staple
+## #138 See the decks behind a staple
 
 As a Pauper player, I want to open a staple and see which of the top decks play it, and how many copies they play. Then I know where it matters.
 
@@ -1712,11 +1714,11 @@ This story covers the decks behind a card in FR-18.
 - When the reader opens Counterspell at 30d, the panel lists the same decks, shares and copies as the response. Each link opens its deck page.
 - A reader with a keyboard opens and closes a card with Enter and Space. Focus stays on the name of the card.
 
-**Blocked by** S28. **Blocks** nothing.
+**Blocked by** #137. **Blocks** nothing.
 
 ---
 
-## H7. Ask once more for a card table that times out
+## #161 Ask once more for a card table that times out
 
 This item covers the behaviour of §4.9. On 2026-10-20 the first build of a cold window at 7d or 14d still returned 502, after 20 to 22 seconds. The next build found every table ready.
 
@@ -1750,13 +1752,13 @@ This item covers the behaviour of §4.9. On 2026-10-20 the first build of a cold
 
 ## Notes on sequencing, milestone 5
 
-E15 starts at once. It is only server code and changes no page, so it runs beside milestone 4.
+#136 starts at once. It is only server code and changes no page, so it runs beside milestone 4.
 
-S28 waits for E15 and S25. It reads the response of E15. Its fourth link goes into the header that S25 changes.
+#137 waits for #136 and #132. It reads the response of #136. Its fourth link goes into the header that #132 changes.
 
-S29 is the last step. It opens a panel inside the lines of S28.
+#138 is the last step. It opens a panel inside the lines of #137.
 
-H7 changes only the staples function, so it runs beside any other item.
+#161 changes only the staples function, so it runs beside any other item.
 
 ---
 # Milestone 6: card previews and cost
@@ -1767,17 +1769,17 @@ This milestone has one enabler and two user stories, for FR-19 and §4.10. On 20
 
 | Wave | Items | Runs in parallel |
 |---|---|---|
-| 28 | E16 | Yes, beside milestones 4 and 5 |
-| 29 | S30, S31 | Yes, two ways |
+| 28 | #144 | Yes, beside milestones 4 and 5 |
+| 29 | #145, #146 | Yes, two ways |
 
 ```
-E16 the sample cards function ──┬─► S30 the cost to build
-                                └─► S31 card previews
+#144 the sample cards function ──┬─► #145 the cost to build
+                                 └─► #146 card previews
 ```
 
 ---
 
-## E16. Fetch a sample list's images and prices
+## #144 Fetch a sample list's images and prices
 
 This item covers §4.10.
 
@@ -1820,11 +1822,11 @@ This item covers §4.10.
 - A second request within the hour is a cache hit.
 - Any other query string returns 400.
 
-**Blocked by** nothing. **Blocks** S30, S31.
+**Blocked by** nothing. **Blocks** #145, #146.
 
 ---
 
-## S30. See what a list costs to build
+## #145 See what a list costs to build
 
 As a Pauper player, I want to see the cost of the sample list on MTGO or in paper. Then I know if I can pay for the deck.
 
@@ -1853,11 +1855,11 @@ This story covers the cost to build in FR-19 and the Scryfall credit in NFR-5.
 - The currency that the reader selects on one deck page is selected on the next deck page.
 - If `/api/sample-cards` fails, the page shows the sample list as before, without the block.
 
-**Blocked by** E16. **Blocks** nothing.
+**Blocked by** #144. **Blocks** nothing.
 
 ---
 
-## S31. Preview a card in the sample list
+## #146 Preview a card in the sample list
 
 As a Pauper player, I want to point at the name of a card and see its image. Then I know the card, and I stay on the page.
 
@@ -1881,15 +1883,15 @@ This story covers the card previews in FR-19.
 - On a phone, a tap opens the card. With a keyboard, Enter opens the card. Close moves focus back to the name.
 - If `/api/sample-cards` fails, the names are plain text.
 
-**Blocked by** E16. **Blocks** nothing.
+**Blocked by** #144. **Blocks** nothing.
 
 ---
 
 ## Notes on sequencing, milestone 6
 
-E16 starts at once. It is only server code, so it runs beside milestones 4 and 5.
+#144 starts at once. It is only server code, so it runs beside milestones 4 and 5.
 
-S30 and S31 run in parallel. Both stories change the sample list. S30 adds a block after the lists, and S31 changes how the page renders a name. Both stories use the same request. The first story to merge adds the request, and the second story uses it.
+#145 and #146 run in parallel. Both stories change the sample list. #145 adds a block after the lists, and #146 changes how the page renders a name. Both stories use the same request. The first story to merge adds the request, and the second story uses it.
 
 ---
 
@@ -1901,18 +1903,18 @@ This milestone has one hardening item, one enabler and two user stories, for FR-
 
 | Wave | Items | Runs in parallel |
 |---|---|---|
-| 30 | H6, E17 | Yes, two ways |
-| 31 | S32 | No |
-| 32 | S33 | No |
+| 30 | #155, #156 | Yes, two ways |
+| 31 | #157 | No |
+| 32 | #158 | No |
 
 ```
-H6 a plain day number
-E17 the strings in one file ──► S32 choose the language ──► S33 Italian, Spanish and Portuguese
+#168 the server code by subject ──┐
+#156 the strings in one file ─────┴─► #166 a preview for each page
 ```
 
 ---
 
-## H6. Show dates with a plain day number
+## #155 Show dates with a plain day number
 
 This item covers the formats of FR-20. Today the site writes "05 Sept", and the design system writes "5 Sept".
 
@@ -1931,7 +1933,7 @@ This item covers the formats of FR-20. Today the site writes "05 Sept", and the 
 
 ---
 
-## E17. Move every string into one file
+## #156 Move every string into one file
 
 This item covers the strings of FR-20.
 
@@ -1955,11 +1957,11 @@ This item covers the strings of FR-20.
 - A search of `src/` finds no UI string outside `locales.json`, apart from the strings that task 4 keeps out.
 - A key that is missing from the file fails `npm run build`.
 
-**Blocked by** nothing. **Blocks** S32.
+**Blocked by** nothing. **Blocks** #157.
 
 ---
 
-## S32. Choose the language
+## #157 Choose the language
 
 As a Pauper player, I want to read the site in my own language. Then I understand the figures and the advice without a translator.
 
@@ -1981,11 +1983,11 @@ This story covers the first visit, the switch and the formats of FR-20.
 - A choice changes the text, the `lang` attribute and the formats at once. The choice is still there after a reload.
 - A browser that prefers `pt-PT` opens the site in `pt` when the file holds `pt`. A browser that prefers `fr` opens it in English.
 
-**Blocked by** E17. **Blocks** S33.
+**Blocked by** #156. **Blocks** #158.
 
 ---
 
-## S33. Read the site in Italian, Spanish or Portuguese
+## #158 Read the site in Italian, Spanish or Portuguese
 
 As an Italian, Spanish or Portuguese player, I want the site in my language.
 
@@ -2004,17 +2006,17 @@ This story covers the languages of FR-20.
 - Every page reads in each language with no text cut off and no sideways scroll at 360px.
 - The owner accepts each language on the production site.
 
-**Blocked by** S32, and the translations from the owner. **Blocks** nothing.
+**Blocked by** #157, and the translations from the owner. **Blocks** nothing.
 
 ---
 
 ## Notes on sequencing, milestone 7
 
-H6 and E17 run in parallel. Both touch `src/helpers/format.ts`. H6 changes only the day option, so the second to merge rebases in a few lines.
+#155 and #156 run in parallel. Both touch `src/helpers/format.ts`. #155 changes only the day option, so the second to merge rebases in a few lines.
 
-E17 touches about 70 components, but each change is mechanical. It can go out as a stack of pull requests, one group of pages in each.
+#156 touches about 70 components, but each change is mechanical. It can go out as a stack of pull requests, one group of pages in each.
 
-S33 waits for the owner. The owner writes the translations in `locales.json`, once E17 has made that file.
+#158 waits for the owner. The owner writes the translations in `locales.json`, once #156 has made that file.
 
 ---
 
@@ -2022,21 +2024,21 @@ S33 waits for the owner. The owner writes the translations in `locales.json`, on
 
 **Date:** 2026-10-20. This milestone comes from Draft v17 of the requirements.
 
-This milestone has one enabler and one user story, for §4.2, FR-15 and §4.7. On 2026-10-20 the owner asked to split the shared server code by subject before S34 adds to it. The milestone changes no screen, so it has no design item.
+This milestone has one enabler and one user story, for §4.2, FR-15 and §4.7. On 2026-10-20 the owner asked to split the shared server code by subject before #166 adds to it. The milestone changes no screen, so it has no design item.
 
 | Wave | Items | Runs in parallel |
 |---|---|---|
-| 34 | E18 | Yes, beside milestone 7 |
-| 35 | S34 | No |
+| 34 | #168 | Yes, beside milestone 7 |
+| 35 | #166 | No |
 
 ```
-E18 the server code by subject ──┐
-E17 the strings in one file ─────┴─► S34 a preview for each page
+#168 the server code by subject ──┐
+#156 the strings in one file ─────┴─► #166 a preview for each page
 ```
 
 ---
 
-## E18. Split the shared server code by subject
+## #168 Split the shared server code by subject
 
 This enabler covers the `server/` folder of §4.2 and the configs of NFR-1. It moves code and changes no behaviour.
 
@@ -2061,11 +2063,11 @@ This enabler covers the `server/` folder of §4.2 and the configs of NFR-1. It m
 - An offline `vercel build` builds every function with no error.
 - In production, each function answers as before: the proxy, the matchup function, the staples function, the sample cards function and the deck page's function.
 
-**Blocked by** nothing. **Blocks** S34.
+**Blocked by** nothing. **Blocks** #166.
 
 ---
 
-## S34. Share a page with its own preview
+## #166 Share a page with its own preview
 
 As a Pauper player, I want a shared link to name the page it opens. Then a friend knows what the link shows before they open it.
 
@@ -2102,12 +2104,12 @@ This story covers the previews of the matchup table, What to play? and Staples, 
 - Each page loads and works as before, with no error in the security policy.
 - The specs pass.
 
-**Blocked by** E18 and E17. **Blocks** nothing.
+**Blocked by** #168 and #156. **Blocks** nothing.
 
 ---
 
 ## Notes on sequencing, milestone 8
 
-E18 moves code and changes no behaviour. It touches no file in `src/`, so it runs beside milestone 7.
+#168 moves code and changes no behaviour. It touches no file in `src/`, so it runs beside milestone 7.
 
-S34 waits for E18, because it adds its list to `server/head.ts`. It also waits for E17. Its spec reads the page headings from `locales.json`, and its route change code sits in the layout that E17 rewrites.
+#166 waits for #168, because it adds its list to `server/head.ts`. It also waits for #156. Its spec reads the page headings from `locales.json`, and its route change code sits in the layout that #156 rewrites.
