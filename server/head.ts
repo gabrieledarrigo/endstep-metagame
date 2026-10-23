@@ -11,24 +11,32 @@ const ENTITIES: Readonly<Record<string, string>> = {
 
 type Head = { title: string; description: string; address: string };
 
-type PagePreview = { path: string; title: string; description: string };
+type PagePreview = {
+  path: string;
+  title: string;
+  description: string;
+  card: string;
+};
 
 export const PAGE_PREVIEWS: readonly PagePreview[] = [
   {
     path: "/matchups",
     title: "Matchups",
     description: "How the top 24 Pauper decks do against each other.",
+    card: "/matchups-card.png",
   },
   {
     path: "/what-to-play",
     title: "What to play?",
     description:
       "The Pauper deck that does the best against the metagame you expect.",
+    card: "/what-to-play-card.png",
   },
   {
     path: "/staples",
     title: "Staples",
     description: "The cards the top 24 Pauper decks play most.",
+    card: "/staples-card.png",
   },
 ];
 
