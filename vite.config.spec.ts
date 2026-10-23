@@ -286,6 +286,12 @@ describe("pagePreviews", () => {
     return [...files[file].matchAll(pattern)].map((match) => match[0]);
   }
 
+  function ogImage(page: string): string[] {
+    return [
+      ...page.matchAll(/<meta\s+property="og:image"\s+content="([^"]*)"/g),
+    ].map(([, content]) => content);
+  }
+
   function inlineScripts(page: string): string[] {
     return [...page.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)]
       .filter(([, attributes]) => !attributes.includes("src="))
@@ -369,16 +375,38 @@ describe("pagePreviews", () => {
     },
   );
 
-  it.each(PAGE_PREVIEWS)(
-    "keeps the image of the site card in $path",
-    ({ path }) => {
-      const image = /<meta\s+property="og:image"\s+content="([^"]*)"/;
+  it.each([
+    ["/matchups", "matchups-card.png"],
+    ["/what-to-play", "what-to-play-card.png"],
+    ["/staples", "staples-card.png"],
+  ])("names its own card in og:image for %s", (path, card) => {
+    expect(ogImage(files[`${path.slice(1)}.html`])).toEqual([
+      `https://pauper-endstep-metagame.vercel.app/${card}`,
+    ]);
+  });
 
-      expect(image.exec(files[`${path.slice(1)}.html`])?.[1]).toBe(
-        "https://pauper-endstep-metagame.vercel.app/site-card.png",
-      );
+  it("checks the card of every page in the list", () => {
+    expect(PAGE_PREVIEWS.map(({ path, card }) => [path, card])).toEqual([
+      ["/matchups", "/matchups-card.png"],
+      ["/what-to-play", "/what-to-play-card.png"],
+      ["/staples", "/staples-card.png"],
+    ]);
+  });
+
+  it.each(PAGE_PREVIEWS)(
+    "ships the card of $path in the build, 1200 by 630",
+    async ({ card }) => {
+      const png = await readFile(join(outDirs[0], card));
+
+      expect([png.readUInt32BE(16), png.readUInt32BE(20)]).toEqual([1200, 630]);
     },
   );
+
+  it("keeps the site card in index.html, for the overview and the Not found page", () => {
+    expect(ogImage(files["index.html"])).toEqual([
+      "https://pauper-endstep-metagame.vercel.app/site-card.png",
+    ]);
+  });
 
   it("leaves index.html as a build without the plugin writes it", () => {
     expect(files["index.html"]).toBe(plainIndex);
@@ -432,6 +460,35 @@ describe("pagePreviews", () => {
   it("uses the origin and the site name of the app", () => {
     expect(SITE_ORIGIN).toBe(APP_ORIGIN);
     expect(SITE_NAME).toBe(APP_NAME);
+  });
+
+  it("fails the build when a copy has no og:image to name its card", () => {
+    const plugin = pagePreviews();
+    const generate = plugin.generateBundle as (
+      this: object,
+      options: object,
+      bundle: object,
+    ) => void;
+    const context = {
+      error: (message: string): never => {
+        throw new Error(message);
+      },
+      emitFile: vi.fn(),
+    };
+
+    expect(() =>
+      generate.call(
+        context,
+        {},
+        {
+          "index.html": {
+            type: "asset",
+            source: "<html><head><title>x</title></head></html>",
+          },
+        },
+      ),
+    ).toThrow("The copy for /matchups has no og:image to name its card");
+    expect(context.emitFile).not.toHaveBeenCalled();
   });
 
   it("runs only at build time", () => {

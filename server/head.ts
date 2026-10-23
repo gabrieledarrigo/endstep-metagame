@@ -9,26 +9,39 @@ const ENTITIES: Readonly<Record<string, string>> = {
   "'": "&#39;",
 };
 
-type Head = { title: string; description: string; address: string };
+type Head = {
+  title: string;
+  description: string;
+  address: string;
+  image: string;
+};
 
-type PagePreview = { path: string; title: string; description: string };
+type PagePreview = {
+  path: string;
+  title: string;
+  description: string;
+  card: string;
+};
 
 export const PAGE_PREVIEWS: readonly PagePreview[] = [
   {
     path: "/matchups",
     title: "Matchups",
     description: "How the top 24 Pauper decks do against each other.",
+    card: "/matchups-card.png",
   },
   {
     path: "/what-to-play",
     title: "What to play?",
     description:
       "The Pauper deck that does the best against the metagame you expect.",
+    card: "/what-to-play-card.png",
   },
   {
     path: "/staples",
     title: "Staples",
     description: "The cards the top 24 Pauper decks play most.",
+    card: "/staples-card.png",
   },
 ];
 
@@ -79,8 +92,8 @@ export function withMeta(
  * Writes a page's own link preview into the head of the built `index.html`, FR-15.
  *
  * @param html - The page's HTML.
- * @param head - The title, the description and the full address of the page, all unescaped.
- * @returns The page with the title, the description, `og:title` and `og:description` rewritten, and a canonical link and `og:url` added before `</head>`. Every value is escaped.
+ * @param head - The title, the description, the full address and the image of the page, all unescaped.
+ * @returns The page with the title, the description, `og:title`, `og:description` and `og:image` rewritten, and a canonical link and `og:url` added before `</head>`. Every value is escaped.
  */
 export function writeHead(html: string, head: Head): string {
   const address = escapeHtml(head.address);
@@ -92,6 +105,7 @@ export function writeHead(html: string, head: Head): string {
   page = withMeta(page, "name", "description", head.description);
   page = withMeta(page, "property", "og:title", head.title);
   page = withMeta(page, "property", "og:description", head.description);
+  page = withMeta(page, "property", "og:image", head.image);
 
   return page.replace(
     "</head>",

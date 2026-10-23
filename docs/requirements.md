@@ -859,7 +859,7 @@ The states follow the matchup table, FR-12:
 - The page does not retry on its own, because one cold build costs 25 upstream calls.
 - While the next window loads, the page dims the previous window, §4.8.
 
-The page shares its own title and description, with the site card, FR-15.
+The page shares its own title, description and page card, FR-15.
 
 ### FR-18. Staples
 This page shows the cards that the top 24 decks play most, weighted by the share of each deck. It makes one call to `/api/staples`, §4.9. The Staples section of the design system is the visual specification.
@@ -916,7 +916,7 @@ The states follow the matchup table, FR-12:
 - If Endstep withholds the card table of every deck, the list has no cards. The page then shows the empty state "No cards in this window", with that line as its detail.
 - While a list loads, the status line names it and the window: "Loading the main deck for the 7d window." or "Loading the sideboard for the 7d window."
 
-The page shares its own title and description, with the site card, FR-15.
+The page shares its own title, description and page card, FR-15.
 
 ### FR-19. Card previews and cost to build
 The sample list of the deck page, FR-11, shows the image of each card on demand and what the list costs to build. It makes one call to `/api/sample-cards`, §4.10. The Card previews and cost section of the design system is the visual specification.
