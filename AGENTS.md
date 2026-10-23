@@ -89,13 +89,14 @@ Every pull request gets an independent review before it reaches the human review
 2. Run `/code-review <pr-number>` without `--comment`. It runs in its own context and returns its findings to the author. Nothing is posted.
 3. A finding counts only when it names a concrete failure: wrong behaviour, a regression, a spec that cannot fail, or a mismatch with the requirements, the design system or this agreement. The author can take or leave anything else without recording it.
 4. Grade every finding that counts. Fix it, decline it, or hand it to the human reviewer when it is a trade-off only the owner can decide.
-5. To fix: change the code, commit, and push to the same branch.
-6. Run a second round on `git diff <first-round-head>..HEAD`, the commits pushed after the first round, and on the code they touch. Name that range in the reviewer's brief, so it does not review the whole pull request again. Skip the round when the first one pushed no commits, or only docs. Two rounds is the cap, whatever the second round returns.
-7. Post one comment on the pull request. Start it with the heading `## Review`. It holds:
-   - how many findings each round returned, and how many were fixed, declined and handed over;
+5. To fix: change the code, commit, and push to the same branch. Do not run the review again.
+6. Post one comment on the pull request. Start it with the heading `## Review`. It holds:
+   - how many findings the review returned, and how many were fixed, declined and handed over;
    - each fix in one line, with its commit;
    - each decline in one line, with its reason.
-8. Post an inline comment for each decision handed to the human reviewer: the question, the options, and a recommendation. Leave these threads open. Nothing else gets a thread. When the owner settles one, the author adds the answer to Settled decisions.
+7. Post an inline comment for each decision handed to the human reviewer: the question, the options, and a recommendation. Leave these threads open. Nothing else gets a thread. When the owner settles one, the author adds the answer to Settled decisions.
+
+The pull request is then ready for the human reviewer. One review is the rule. A pull request that changes only documents gets no review.
 
 The loop runs unattended. Report once at the end, in the same shape as the Review comment.
 
