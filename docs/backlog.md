@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-26. Derived from [`requirements.md`](./requirements.md) and [`design-system.html`](./design-system.html).
 
-Milestone 1, the Pauper metagame overview, has sixteen items: four enablers, nine user stories and three hardening items. Milestones 2 to 8 follow at the end of this file. Each item gets a separate branch and a separate review. No item assumes one large implementation pass.
+Milestone 1, the Pauper metagame overview, has sixteen items: four enablers, nine user stories and three hardening items. Milestones 2 to 9 follow at the end of this file. Each item gets a separate branch and a separate review. No item assumes one large implementation pass.
 
 Every item lists what blocks it, what it blocks, and how to know that it is done.
 
@@ -2115,3 +2115,163 @@ This story covers the previews of the matchup table, What to play? and Staples, 
 #168 moves code and changes no behaviour. It touches no file in `src/`, so it runs beside milestone 7.
 
 #166 waits for #168, because it adds its list to `server/head.ts`. It also waits for #156. Its spec reads the page headings from `locales.json`, and its route change code sits in the layout that #156 rewrites.
+
+---
+
+# Milestone 9: page cards, analytics and logs
+
+**Date:** 2026-10-23. This milestone comes from Draft v18 of the requirements.
+
+This milestone has one design item, two user stories and two enablers, for FR-12, FR-15, FR-17, NFR-9 and NFR-12. On 2026-10-23 the owner chose a card for each page, a line under each page heading, Vercel Web Analytics with the full address, and a log line for each failed response. Open item 17 of the requirements lists these choices.
+
+| Wave | Items | Runs in parallel |
+|---|---|---|
+| 36 | #180, #181, #182, #187 | Yes, four ways |
+| 37 | #183 | No |
+
+```
+#180 design ──► #183 a card for each page
+#181 a line under each heading
+#182 page views
+#187 a log line for each failure
+```
+
+---
+
+## #180 Design the three page cards
+
+This item covers the page cards of FR-15. It changes `docs/design-system.html` and `public/`. It has no code.
+
+**Tasks**
+
+1. Draw two or three drafts of a page card in the layout of the site card. Each card names its page: "Matchups", "What to play?" and "Staples".
+2. Show the drafts to the owner as an artifact, in both themes if the card has a theme. Wait for the owner's choice.
+3. Add the chosen cards to the site card section of the design system.
+4. Export the three cards as 1200 by 630 PNG files into `public/`: `matchups-card.png`, `what-to-play-card.png` and `staples-card.png`.
+5. Republish the design system artifact.
+
+**Done when**
+
+- The design system shows the three page cards beside the site card.
+- The three PNG files are in `public/`, each 1200 by 630.
+
+**Blocked by** nothing. **Blocks** #183.
+
+---
+
+## #181 Read a line under the heading of the matchup table and What to play?
+
+As a Pauper player, I want each page to say in one line what it shows. Then I know what I am looking at before I read the table.
+
+This story covers the lines of FR-12 and FR-17, and the new description of What to play? in FR-15.
+
+**Tasks**
+
+1. Add a line under the heading of the matchup table: "How the top 24 decks do against each other."
+2. Add a line under the heading of What to play?: "The deck that does the best against the metagame you expect."
+3. Style both lines as the line on Staples. If that line lives in a Staples component, move it to a shared component.
+4. Add both lines to `locales.json` in all four languages. Translate them as the Staples line is translated, and list the translations in the pull request for the owner.
+5. In `server/head.ts`, change the description of What to play? to "The Pauper deck that does the best against the metagame you expect."
+6. Add a spec that checks each English line against its page description in `server/head.ts`, without the word "Pauper". It covers the three pages.
+7. Update the spec of the built files for the new description.
+
+**Done when**
+
+- The matchup table and What to play? show their line under the heading, in each language, at 360px, 640px and 1,280px.
+- `npm run build` writes the new description into `dist/what-to-play.html`.
+- The specs pass.
+
+**Blocked by** nothing. **Blocks** nothing.
+
+---
+
+## #182 Count page views with Vercel Web Analytics
+
+This enabler covers NFR-9. The owner merged pull request #177 of the Vercel app on 2026-10-23. It added `@vercel/analytics` and its `Analytics` component at the root of the app. This item finishes that work.
+
+**Tasks**
+
+1. Keep the full address, so do not set `beforeSend`.
+2. Regenerate `package-lock.json` with the project's npm. #177 dropped the `libc` fields of the optional native packages, because the Vercel app used another npm.
+3. Check that the security policy of `vercel.json` allows the script and its requests on the site's own origin. Change nothing if it does.
+4. Add a spec that renders the app and finds no error from the component.
+5. Ask the owner to turn on Web Analytics in the Vercel dashboard, and to check the monthly limit of events of the plan.
+
+**Done when**
+
+- On production, a page load sends one page view to `/_vercel/insights`, with the query string in its address.
+- A route change sends a second page view.
+- The browser reports no error from the security policy.
+- The owner sees the page views in the Vercel dashboard.
+
+**Blocked by** nothing. **Blocks** nothing.
+
+---
+
+## #187 Log why a page fails to load
+
+This enabler covers NFR-12. The owner sees the matchup table fail to load, and wants to know how often and why. The same holds for every page.
+
+**Tasks**
+
+1. Add pino to the dependencies of the functions. Pin it in `package-lock.json`, and add its version to the table of NFR-1.
+2. Add `server/log.ts` with one pino logger and no transport. Export it through `server/index.ts`.
+3. Count the calls of each response to Endstep and to Scryfall, and the reason of each failed call:
+   - A status of the service, such as `503`.
+   - `timeout`, `network` or `body`, as `server/endstep.ts` already tells them apart.
+4. In each function, log one line for a response with a status of 429, or of 500 and above. Give it the summary and the fields of NFR-12.
+5. In the deck page's function, log a `warn` line when it falls back to the site card.
+6. Read `page` from the `Referer` header, as a path with no query string. Use `null` when the header is missing.
+7. Add specs for each function:
+   - A failed response writes one line, with every field of NFR-12.
+   - A successful response writes no line.
+   - The counts of `calls` and `failures` match the calls that failed.
+8. Update §4.2 and NFR-12 if the code differs from them in any detail.
+
+**Done when**
+
+- Each of the five functions writes one line for a failed response, and none for a success.
+- In production, a request for `/api/matchups?window=1d`, which fails today, shows its line in the runtime logs of Vercel. The line names the page, the window and the count of failed calls.
+- The specs pass.
+
+**Blocked by** nothing. **Blocks** nothing.
+
+---
+
+## #183 Share a page with its own card
+
+As a Pauper player, I want a shared link to the matchup table, What to play? or Staples to show a picture of that page. Then a friend sees which page the link opens.
+
+This story covers the page cards of FR-15 and §4.7.
+
+**Tasks**
+
+1. In `server/head.ts`, add the card of each page to its entry in the list, FR-15.
+2. In the Vite plugin, write the `og:image` of each copy from the list, as the full address of the card.
+3. Leave `dist/index.html` and its site card unchanged. The overview and the Not found page keep the site card.
+4. Leave the deck pages unchanged. They share the art of the deck.
+5. Update the specs of the built files:
+   - Each copy names its own card in `og:image`.
+   - Each card in the list exists in `public/`.
+   - `dist/index.html` still names the site card.
+
+**Done when**
+
+- `npm run build` writes the three copies, each with the address of its own card.
+- In production, the HTML of `/matchups`, `/what-to-play` and `/staples` names its card, and each card loads.
+- A link to each page, pasted in a chat app, shows its card.
+- The specs pass.
+
+**Blocked by** #180. **Blocks** nothing.
+
+---
+
+## Notes on sequencing, milestone 9
+
+#180, #181 and #182 touch different files, so they run in parallel. #182 changes only the lockfile and a spec.
+
+#187 changes every function and adds a dependency. It also changes `package-lock.json`, so it rebases after #182 or #182 after it. It runs beside the other items of wave 36.
+
+#181 and #183 both change the list in `server/head.ts` and the spec of the built files. #183 waits for #180, so #181 merges first. The second to merge rebases in a few lines.
+
+The `1d` window fails at Endstep, open item 18. The owner reports it. This milestone has no item for it.
