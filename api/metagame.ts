@@ -1,5 +1,7 @@
 import {
   BASE_HEADERS,
+  type CallLog,
+  type LogContext,
   PARTIAL_ART_CACHE,
   SEGMENT,
   TIMEOUT_MS,
@@ -9,7 +11,9 @@ import {
   findArt,
   hasNoBody,
   isRecord,
+  logged,
   methodResponse,
+  outcomeOf,
 } from "../server/index.js";
 
 const RATE_LIMIT_SECONDS = 10;
@@ -144,11 +148,13 @@ function decksIn(segments: string[], body: unknown): ArtDeck[] | null {
  *
  * @param segments - The allow-listed path segments.
  * @param text - Endstep's response body.
+ * @param calls - Records the Scryfall request for the log line, NFR-12.
  * @returns A Promise resolving to the body and whether every deck's card has an answer, or to `null` when the response carries no decks to add art to. The body is Endstep's own text when no deck got an address.
  */
 async function withArt(
   segments: string[],
   text: string,
+  calls: CallLog,
 ): Promise<{ body: string; complete: boolean } | null> {
   let body: unknown;
 
@@ -167,6 +173,7 @@ async function withArt(
   const { art, complete } = await findArt(
     decks.map((deck) => deck.art.cardName),
     ART_BOUND_MS,
+    calls,
   );
   let added = false;
 
@@ -198,63 +205,81 @@ export default {
    * @returns A Promise resolving to the upstream response, or to a JSON error: 400 for a path outside the allow-list, 405 for any other method, 502 when Endstep is unreachable.
    * @see https://vercel.com/docs/functions/functions-api-reference#fetch-web-standard
    */
-  fetch: async function handler(req: Request): Promise<Response> {
-    const refused = methodResponse(req);
+  fetch: logged(
+    "metagame",
+    async function handler(
+      req: Request,
+      { calls }: LogContext,
+    ): Promise<Response> {
+      const refused = methodResponse(req);
 
-    if (refused) {
-      return refused;
-    }
+      if (refused) {
+        return refused;
+      }
 
-    const query = new URL(req.url).searchParams;
-    const segments = query.getAll("path").join("/").split("/").filter(Boolean);
+      const query = new URL(req.url).searchParams;
+      const segments = query
+        .getAll("path")
+        .join("/")
+        .split("/")
+        .filter(Boolean);
 
-    if (!isAllowed(segments)) {
-      return errorResponse(400, "Unsupported metagame path");
-    }
+      if (!isAllowed(segments)) {
+        return errorResponse(400, "Unsupported metagame path");
+      }
 
-    const target = `${UPSTREAM}/${segments.join("/")}${forwardedQuery(query)}`;
+      const target = `${UPSTREAM}/${segments.join("/")}${forwardedQuery(query)}`;
 
-    let status;
-    let contentType;
-    let body;
+      let reading = false;
+      let status;
+      let contentType;
+      let body;
 
-    try {
-      const upstream = await fetch(target, {
-        method: req.method,
+      try {
+        const upstream = await fetch(target, {
+          method: req.method,
+          headers: {
+            accept: "application/json",
+          },
+          signal: AbortSignal.timeout(TIMEOUT_MS),
+        });
+
+        reading = true;
+        status = upstream.status;
+        contentType = upstream.headers.get("content-type");
+        body = await upstream.text();
+      } catch (error) {
+        calls.record("endstep", outcomeOf(error, reading));
+        return errorResponse(502, "Endstep is unreachable");
+      }
+
+      calls.record("endstep", status < 400 ? "succeeded" : status);
+
+      let cache = cacheControl(status, RATE_LIMIT_SECONDS);
+      const enriched =
+        req.method === "GET" && status >= 200 && status < 300
+          ? await withArt(segments, body, calls)
+          : null;
+
+      if (enriched) {
+        body = enriched.body;
+      }
+
+      if (enriched && !enriched.complete) {
+        cache = PARTIAL_ART_CACHE;
+      }
+
+      return new Response(hasNoBody(status) ? null : body, {
         headers: {
-          accept: "application/json",
+          ...BASE_HEADERS,
+          "Content-Type": contentType ?? "application/json",
+          "Cache-Control": cache,
         },
-        signal: AbortSignal.timeout(TIMEOUT_MS),
+        status,
       });
-
-      status = upstream.status;
-      contentType = upstream.headers.get("content-type");
-      body = await upstream.text();
-    } catch {
-      return errorResponse(502, "Endstep is unreachable");
-    }
-
-    let cache = cacheControl(status, RATE_LIMIT_SECONDS);
-    const enriched =
-      req.method === "GET" && status >= 200 && status < 300
-        ? await withArt(segments, body)
-        : null;
-
-    if (enriched) {
-      body = enriched.body;
-    }
-
-    if (enriched && !enriched.complete) {
-      cache = PARTIAL_ART_CACHE;
-    }
-
-    return new Response(hasNoBody(status) ? null : body, {
-      headers: {
-        ...BASE_HEADERS,
-        "Content-Type": contentType ?? "application/json",
-        "Cache-Control": cache,
-      },
-      status,
-    });
-  },
+    },
+    (url) => ({
+      subject: url.searchParams.getAll("path").join("/") || null,
+    }),
+  ),
 };
