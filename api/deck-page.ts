@@ -9,6 +9,7 @@ import {
   SITE_ORIGIN,
   WINDOWS,
   deckDetailUrl,
+  discardBody,
   isRecord,
   logged,
   outcomeOf,
@@ -138,7 +139,7 @@ async function deckDetail(
 
     if (!response.ok) {
       calls.record("endstep", response.status);
-      await response.body?.cancel();
+      await discardBody(response);
       return null;
     }
 
@@ -254,7 +255,10 @@ export default {
       const deck = await deckDetail(url.origin, target, calls);
 
       if (!deck) {
-        fellBack();
+        if (calls.failures("endstep")[404] === undefined) {
+          fellBack();
+        }
+
         return pageResponse(req.method, html, NO_STORE);
       }
 
@@ -269,6 +273,7 @@ export default {
 
       return {
         page: slug === null ? null : `/decks/${slug}`,
+        window: url.searchParams.get("window") ?? DEFAULT_WINDOW,
         subject: slug,
       };
     },

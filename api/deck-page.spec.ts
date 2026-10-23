@@ -591,7 +591,7 @@ describe("the deck page's log line", () => {
       {
         page: "/decks/affinity-e93f5f74",
         function: "deck-page",
-        window: null,
+        window: "30d",
         status: 500,
         upstream: null,
         calls: null,
@@ -599,7 +599,31 @@ describe("the deck page's log line", () => {
         durationMs: expect.any(Number),
         error: "EMFILE: too many open files",
       },
-      "deck-page affinity-e93f5f74: 500, the function failed (EMFILE: too many open files)",
+      "deck-page affinity-e93f5f74 30d: 500, the function failed (EMFILE: too many open files)",
     ]);
+  });
+});
+
+describe("the deck page's log line, on the window and an unknown deck", () => {
+  it("names the default window when the link names none", async () => {
+    const warn = vi.spyOn(logger, "warn");
+    proxy({ error: "Endstep did not respond" }, 503);
+
+    await deckPage.fetch(request("slug=affinity-e93f5f74"));
+
+    expect(warn.mock.calls[0]).toEqual([
+      expect.objectContaining({ window: "30d" }),
+      "deck-page affinity-e93f5f74 30d: fell back to the site card, 1 of 1 Endstep calls failed (1 503)",
+    ]);
+  });
+
+  it("writes no line for a deck that Endstep does not know", async () => {
+    const warn = vi.spyOn(logger, "warn");
+    proxy({ error: "Not found" }, 404);
+
+    const response = await deckPage.fetch(request("slug=retired-deck"));
+
+    expect(response.status).toBe(200);
+    expect(warn).not.toHaveBeenCalled();
   });
 });
