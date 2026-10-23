@@ -1324,7 +1324,7 @@ The project has no CSS linter for now. Prettier formats the CSS, and review enfo
 The functions log every response that fails. So the owner can see how often each page fails to load, and why. Each function uses pino, with no transport. Pino writes one JSON line to standard output, and Vercel keeps the line in the runtime logs of the function. The `LOG_LEVEL` variable sets the level, `info` by default. The specs set it to `silent`.
 
 - A function logs one line for each response with a status of 429, or of 500 and above. It logs nothing for a response that succeeds. Vercel already counts the responses by status.
-- The deck page's function also logs when it falls back to the site card, FR-15. It logs this at the `warn` level, because the reader still gets the page.
+- The deck page's function also logs when it falls back to the site card after a failed call, FR-15. It logs this at the `warn` level, because the reader still gets the page. A deck that Endstep does not know, a 404, is not a failure, so it gets no line.
 - A function that throws answers 500 and logs one `error` line. The line has `upstream` set to `null`, and the message of the error in a field named `error`. One wrapper in `server/log.ts` does this for the five functions.
 - Each line has a summary message and an object of fields. The summary reads, for example, "matchups 1d: 502, 3 of 25 Endstep calls failed (2 timeout, 1 503)". When the function aborted calls, it adds their count, such as ", 21 aborted". `upstream`, `calls` and `failures` name only the service whose failures caused the status. They are `null` when no call failed.
 
@@ -1332,9 +1332,9 @@ The functions log every response that fails. So the owner can see how often each
   |---|---|
   | `page` | The path of the page that made the request, such as `/matchups`, from the `Referer` header. The path only, without the query string. `null` when the request has no `Referer`. The deck page's function serves the page itself, so its `page` is the path of its own request |
   | `function` | `metagame`, `matchups`, `staples`, `sample-cards` or `deck-page` |
-  | `window` | The window of the request, or `null` |
+  | `window` | The window of the request, or `null`. The deck page's function names the window it used, 30 days when the link names none |
   | `status` | The status that the function returned |
-  | `upstream` | The service that failed: `endstep` or `scryfall` |
+  | `upstream` | The service whose failures caused the status. Only Endstep's failures fail a response, since a failed Scryfall lookup only shortens the cache. So it is `endstep`, or `null` when no call failed |
   | `calls` | The calls of this response to that service: `total`, `succeeded`, `failed` and `aborted`. A call is aborted when the function stops it itself, such as the other card tables after a 429 on Staples. So `succeeded`, `failed` and `aborted` add up to `total` |
   | `failures` | The count of each reason for a failed call. A reason is the status of the service, such as `503`, or one of `timeout`, `network` and `body`. An aborted call has no reason |
   | `durationMs` | How long the function ran, in milliseconds |
