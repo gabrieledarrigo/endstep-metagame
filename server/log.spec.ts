@@ -220,3 +220,31 @@ describe("logger", () => {
     expect(logger.level).toBe("silent");
   });
 });
+
+describe("the logger's level", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
+  it.each(["warning", ""])(
+    "falls back to info for LOG_LEVEL %j",
+    async (level) => {
+      vi.stubEnv("LOG_LEVEL", level);
+      vi.resetModules();
+
+      const { logger: fresh } = await import("./log.js");
+
+      expect(fresh.level).toBe("info");
+    },
+  );
+
+  it("takes a known level from LOG_LEVEL", async () => {
+    vi.stubEnv("LOG_LEVEL", "warn");
+    vi.resetModules();
+
+    const { logger: fresh } = await import("./log.js");
+
+    expect(fresh.level).toBe("warn");
+  });
+});

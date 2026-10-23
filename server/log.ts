@@ -34,8 +34,18 @@ const SERVICE_NAMES: Readonly<Record<Service, string>> = {
   scryfall: "Scryfall",
 };
 
+const LEVELS = ["fatal", "error", "warn", "info", "debug", "trace", "silent"];
+
+function levelOf(level: string | undefined): string {
+  if (level !== undefined && LEVELS.includes(level)) {
+    return level;
+  }
+
+  return "info";
+}
+
 export const logger = pino({
-  level: process.env.LOG_LEVEL ?? "info",
+  level: levelOf(process.env.LOG_LEVEL),
   base: undefined,
 });
 
@@ -215,18 +225,15 @@ export function logged(
       return errorResponse(500, "The function failed");
     }
 
-    if (response.status === 429 || response.status >= 500) {
-      const upstream = failedService(calls);
-      const cause = upstream === null ? "" : `, ${callsText(calls, upstream)}`;
+    const upstream = failedService(calls);
+    const cause = upstream === null ? "" : `, ${callsText(calls, upstream)}`;
 
+    if (response.status === 429 || response.status >= 500) {
       logger.error(
         fields(request, response.status, upstream, calls, startedAt),
         `${heading(request)}: ${response.status}${cause}`,
       );
     } else if (fellBack) {
-      const upstream = failedService(calls);
-      const cause = upstream === null ? "" : `, ${callsText(calls, upstream)}`;
-
       logger.warn(
         fields(request, response.status, upstream, calls, startedAt),
         `${heading(request)}: fell back to the site card${cause}`,
