@@ -536,9 +536,7 @@
       },
       "staples": {
         "title": "Staples",
-        "staplesHead": {
-          "intro": "The cards the top 24 decks play most."
-        },
+        "line": "The cards the top 24 decks play most.",
         "staplesPage": {
           "loading": {
             "main": "Loading the main deck for the {{window}} window.",
@@ -1141,9 +1139,7 @@
       },
       "staples": {
         "title": "Staples",
-        "staplesHead": {
-          "intro": "Le carte che i primi 24 mazzi giocano di più."
-        },
+        "line": "Le carte che i primi 24 mazzi giocano di più.",
         "staplesPage": {
           "loading": {
             "main": "Caricamento del mazzo principale per la finestra {{window}}.",
@@ -1749,9 +1745,7 @@
       },
       "staples": {
         "title": "Staples",
-        "staplesHead": {
-          "intro": "Las cartas que más juegan los 24 mejores mazos."
-        },
+        "line": "Las cartas que más juegan los 24 mejores mazos.",
         "staplesPage": {
           "loading": {
             "main": "Cargando el mazo principal de la ventana {{window}}.",
@@ -2357,9 +2351,7 @@
       },
       "staples": {
         "title": "Staples",
-        "staplesHead": {
-          "intro": "As cartas que os 24 primeiros decks mais jogam."
-        },
+        "line": "As cartas que os 24 primeiros decks mais jogam.",
         "staplesPage": {
           "loading": {
             "main": "Carregando o deck principal da janela {{window}}.",

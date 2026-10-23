@@ -3,13 +3,13 @@ import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router";
 import { fetchStaples } from "../../api/endpoints";
 import type { StaplesSection } from "../../api/types";
+import { PageHead } from "../../components/PageHead";
 import { SegmentedControl } from "../../components/SegmentedControl";
 import { WINDOWS } from "../../config";
 import { formatWindow } from "../../helpers";
 import { useCanonicalLink } from "../../hooks/useCanonicalLink";
 import { useTimeWindow } from "../../hooks/useTimeWindow";
 import { Staples } from "./Staples";
-import { StaplesHead } from "./StaplesHead";
 
 export function StaplesPage() {
   const { t } = useTranslation();
@@ -51,7 +51,7 @@ export function StaplesPage() {
 
   return (
     <>
-      <StaplesHead />
+      <PageHead title={t("staples.title")} line={t("staples.line")} />
 
       <div className="page__controls">
         <SegmentedControl
