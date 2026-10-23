@@ -1260,6 +1260,7 @@ The site counts its page views with Vercel Web Analytics, and nothing else. It s
 - The `Analytics` component of `@vercel/analytics/react` sits once at the root of the app. It counts the first page and each route change.
 - Each page view sends the full address, with its query string, so the owner sees which windows, decks and searches people open. A search term of FR-14 is part of the address.
 - The script and its requests stay on the site's own origin, at `/_vercel/insights`. So the security policy of §4.7 does not change.
+- Under `npm run dev`, the package runs in development mode and loads its debug script from Vercel's CDN, `va.vercel-scripts.com`. It sends no page views, and the dev server sends no security policy. The specs run in the same mode, with the package mocked. `vite preview` asks for `/_vercel/insights/script.js`, which only Vercel serves, so the script fails to load there. The production build loads nothing from another origin.
 - The owner turns on Web Analytics in the Vercel dashboard. The plan of the Vercel project sets a monthly limit of events.
 
 It keeps no personal data in local storage. It sends no third-party requests beyond the card-art hosts: the Scryfall CDN, and the Endstep image endpoint as the fallback. The app keeps three values in local storage: the theme choice, FR-13, the currency of the sample list, FR-19, and the language, FR-20. All three are display preferences, not personal data. They never leave the browser.

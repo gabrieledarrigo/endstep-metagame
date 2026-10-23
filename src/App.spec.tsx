@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, within } from "@testing-library/react";
+import type { ReactElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import detail from "../test/fixtures/deck.json";
 import decks from "../test/fixtures/decks.json";
@@ -7,6 +8,15 @@ import sampleCards from "../test/fixtures/sample-cards.json";
 import series from "../test/fixtures/share-series.json";
 import staples from "../test/fixtures/staples.json";
 import { App } from "./App";
+
+const analytics = vi.hoisted(() => vi.fn<(props: object) => void>());
+
+vi.mock("@vercel/analytics/react", () => ({
+  Analytics: (props: object): ReactElement => {
+    analytics(props);
+    return <p>Vercel Web Analytics</p>;
+  },
+}));
 
 describe("App", () => {
   beforeEach(() => {
@@ -245,5 +255,13 @@ describe("App", () => {
 
     expect(document.head.querySelector('link[rel="canonical"]')).toBeNull();
     expect(document.head.querySelector('meta[property="og:url"]')).toBeNull();
+  });
+
+  it("renders Vercel Web Analytics once, at the root, with the full address of each page", () => {
+    history.replaceState(null, "", "/?window=30d");
+    render(<App />);
+
+    expect(screen.getAllByText("Vercel Web Analytics")).toHaveLength(1);
+    expect(analytics).toHaveBeenCalledWith({});
   });
 });
