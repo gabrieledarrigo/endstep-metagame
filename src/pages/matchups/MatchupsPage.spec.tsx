@@ -157,6 +157,16 @@ afterEach(() => {
 });
 
 describe("MatchupsPage", () => {
+  it("says what the page shows in a line under the heading", () => {
+    stubApi(() => Response.json(matrix));
+    renderAt("/matchups?window=30d");
+
+    expect(
+      screen.getByText("How the top 24 decks do against each other.")
+        .previousElementSibling,
+    ).toBe(screen.getByRole("heading", { level: 1, name: "Matchups" }));
+  });
+
   it("announces the loading window, then shows the table and the window's dates", async () => {
     const fetchMock = stubApi(() => Response.json(matrix));
     renderAt("/matchups?window=30d");

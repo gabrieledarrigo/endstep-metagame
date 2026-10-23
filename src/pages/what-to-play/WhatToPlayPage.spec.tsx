@@ -111,6 +111,17 @@ describe("WhatToPlayPage", () => {
     expect(String(fetchMock.mock.calls[0][0])).toBe("/api/matchups?window=30d");
   });
 
+  it("says what the page shows in a line under the heading", () => {
+    stubApi(() => Response.json(matrix));
+    renderAt("/what-to-play?window=30d");
+
+    expect(
+      screen.getByText(
+        "The deck that does the best against the metagame you expect.",
+      ).previousElementSibling,
+    ).toBe(screen.getByRole("heading", { level: 1, name: "What to play?" }));
+  });
+
   it("names the page in the document title", async () => {
     stubApi(() => Response.json(matrix));
     renderAt("/what-to-play?window=30d");
