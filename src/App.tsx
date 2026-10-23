@@ -1,6 +1,7 @@
 import { QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
 import { BrowserRouter, Route, Routes } from "react-router";
+import { Analytics } from "@vercel/analytics/react";
 import { createQueryClient } from "./api/queryClient";
 import { Layout } from "./Layout";
 import { DeckPage } from "./pages/deck/DeckPage";
@@ -27,6 +28,7 @@ export function App() {
           </Route>
         </Routes>
       </BrowserRouter>
+      <Analytics />
     </QueryClientProvider>
   );
 }
