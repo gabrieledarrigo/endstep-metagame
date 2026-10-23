@@ -246,4 +246,17 @@ describe("App", () => {
     expect(document.head.querySelector('link[rel="canonical"]')).toBeNull();
     expect(document.head.querySelector('meta[property="og:url"]')).toBeNull();
   });
+
+  it("adds the script of Vercel Web Analytics, with no error", async () => {
+    const error = vi.spyOn(console, "error");
+    history.replaceState(null, "", "/?window=30d");
+    render(<App />);
+
+    await screen.findByRole("heading", { level: 1, name: "Overview" });
+
+    expect(
+      document.querySelectorAll('script[data-sdkn="@vercel/analytics/react"]'),
+    ).toHaveLength(1);
+    expect(error).not.toHaveBeenCalled();
+  });
 });
