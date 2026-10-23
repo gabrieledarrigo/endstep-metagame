@@ -23,7 +23,7 @@ export const PAGE_PREVIEWS: readonly PagePreview[] = [
     path: "/what-to-play",
     title: "What to play?",
     description:
-      "The Pauper deck that wins most against the decks you expect to meet.",
+      "The Pauper deck that does the best against the metagame you expect.",
   },
   {
     path: "/staples",
