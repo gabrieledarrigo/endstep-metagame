@@ -1,7 +1,9 @@
 import {
   BASE_HEADERS,
   BASICS,
+  type CallLog,
   EDGE_CACHE,
+  type LogContext,
   SNOW_COVERED_BASICS,
   WINDOWS,
   cacheControl,
@@ -10,6 +12,7 @@ import {
   isNetworkError,
   isRateLimit,
   isRecord,
+  logged,
   methodResponse,
   nameKey,
   upstream,
@@ -50,7 +53,12 @@ type CardsBody = {
 
 type Table = { deck: UpstreamDeck; cards: CardRow[] | null };
 
-type Run = { signal: AbortSignal; endsAt: number; failed: boolean };
+type Run = {
+  signal: AbortSignal;
+  endsAt: number;
+  failed: boolean;
+  calls: CallLog;
+};
 
 type CountedTable = { deck: UpstreamDeck; cards: CardRow[] };
 
@@ -109,7 +117,7 @@ function pageOf(
   deck: UpstreamDeck,
   target: Target,
   page: number,
-  signal: AbortSignal,
+  run: Run,
 ): Promise<CardsBody> {
   return upstream<CardsBody>(
     `Pauper/decks/${encodeURIComponent(deck.slug)}/cards`,
@@ -120,7 +128,7 @@ function pageOf(
       pageSize: String(PAGE_SIZE),
       page: String(page),
     },
-    { timeoutMs: TABLE_TIMEOUT_MS, signal },
+    { timeoutMs: TABLE_TIMEOUT_MS, signal: run.signal, calls: run.calls },
   );
 }
 
@@ -140,14 +148,14 @@ async function tableOf(
     let body: CardsBody;
 
     try {
-      body = await pageOf(deck, target, page, run.signal);
+      body = await pageOf(deck, target, page, run);
     } catch (error) {
       if (!canAskAgain(error, retried, run)) {
         throw error;
       }
 
       retried = true;
-      body = await pageOf(deck, target, page, run.signal);
+      body = await pageOf(deck, target, page, run);
     }
 
     if (isRecord(body.withheld) && !Array.isArray(body.withheld)) {
@@ -230,8 +238,9 @@ async function tablesOf(
   target: Target,
   controller: AbortController,
   endsAt: number,
+  calls: CallLog,
 ): Promise<Table[]> {
-  const run = { signal: controller.signal, endsAt, failed: false };
+  const run = { signal: controller.signal, endsAt, failed: false, calls };
   const results = await Promise.allSettled(
     decks.map((deck) =>
       tableOf(deck, target, run).catch((error: unknown) => {
@@ -260,6 +269,7 @@ async function tablesOf(
 
 async function build(
   target: Target,
+  calls: CallLog,
 ): Promise<{ staples: Staples; complete: boolean }> {
   const controller = new AbortController();
   const endsAt = Date.now() + DEADLINE_MS;
@@ -279,9 +289,9 @@ async function build(
         dir: "desc",
         pageSize: String(TOP_DECKS),
       },
-      { signal: controller.signal },
+      { signal: controller.signal, calls },
     );
-    tables = await tablesOf(top.decks.items, target, controller, endsAt);
+    tables = await tablesOf(top.decks.items, target, controller, endsAt, calls);
   } finally {
     clearTimeout(deadline);
   }
@@ -290,6 +300,7 @@ async function build(
   const { art, complete } = await findArt(
     staples.map((card) => card.name),
     ART_BOUND_MS,
+    calls,
   );
 
   return {
@@ -326,42 +337,48 @@ export default {
    * @returns A Promise resolving to `{ window, section, withheld, cards }`, cached for 30 minutes with 30 more of stale-while-revalidate, or for five minutes when the art lookup failed. Otherwise a JSON error: 400 for any other query string, 405 for any other method, 429 when Endstep rate limits a call, cached for 60 seconds, and 502 when any other call fails.
    * @see https://vercel.com/docs/functions/functions-api-reference#fetch-web-standard
    */
-  fetch: async function handler(req: Request): Promise<Response> {
-    const refused = methodResponse(req);
+  fetch: logged(
+    "staples",
+    async function handler(
+      req: Request,
+      { calls }: LogContext,
+    ): Promise<Response> {
+      const refused = methodResponse(req);
 
-    if (refused) {
-      return refused;
-    }
-
-    const target = targetOf(new URL(req.url).search);
-
-    if (!target) {
-      return errorResponse(400, "Unsupported staples query");
-    }
-
-    let built;
-
-    try {
-      built = await build(target);
-    } catch (error) {
-      if (isRateLimit(error)) {
-        return errorResponse(429, "Endstep's rate limit was reached", {
-          "Cache-Control": cacheControl(429, RATE_LIMIT_SECONDS),
-        });
+      if (refused) {
+        return refused;
       }
 
-      return errorResponse(502, "Endstep did not answer every call");
-    }
+      const target = targetOf(new URL(req.url).search);
 
-    return new Response(
-      req.method === "HEAD" ? null : JSON.stringify(built.staples),
-      {
-        headers: {
-          ...BASE_HEADERS,
-          "Cache-Control": built.complete ? SUCCESS_CACHE : EDGE_CACHE,
+      if (!target) {
+        return errorResponse(400, "Unsupported staples query");
+      }
+
+      let built;
+
+      try {
+        built = await build(target, calls);
+      } catch (error) {
+        if (isRateLimit(error)) {
+          return errorResponse(429, "Endstep's rate limit was reached", {
+            "Cache-Control": cacheControl(429, RATE_LIMIT_SECONDS),
+          });
+        }
+
+        return errorResponse(502, "Endstep did not answer every call");
+      }
+
+      return new Response(
+        req.method === "HEAD" ? null : JSON.stringify(built.staples),
+        {
+          headers: {
+            ...BASE_HEADERS,
+            "Cache-Control": built.complete ? SUCCESS_CACHE : EDGE_CACHE,
+          },
+          status: 200,
         },
-        status: 200,
-      },
-    );
-  },
+      );
+    },
+  ),
 };

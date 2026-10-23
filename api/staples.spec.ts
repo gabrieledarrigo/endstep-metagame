@@ -48,10 +48,12 @@ type Upstream = {
 };
 
 let staples: Staples;
+let logger: (typeof import("../server/index.js"))["logger"];
 
 beforeEach(async () => {
   vi.resetModules();
   staples = (await import("./staples")).default;
+  logger = (await import("../server/index.js")).logger;
 });
 
 afterEach(() => {
@@ -1289,5 +1291,50 @@ describe("the staples function's second request", () => {
     expect(response.status).toBe(502);
     expect(response.headers.get("cache-control")).toBe("no-store");
     expect(pagesOf(fetchMock, "a")).toEqual([1]);
+  });
+});
+
+describe("the staples function's log line", () => {
+  it("counts the calls it aborted after a 429, beside the failed ones", async () => {
+    const error = vi.spyOn(logger, "error");
+    endstep({
+      decks: [deck("a", 0.2), deck("b", 0.1)],
+      status: (url) => (url.pathname.includes("/decks/a/") ? 429 : undefined),
+      delay: (url) => (url.pathname.includes("/decks/b/") ? 20 : 0),
+    });
+
+    const response = await staples.fetch(
+      new Request(`http://localhost/api/staples${MAIN_30D}`, {
+        headers: { referer: "http://localhost/staples?window=30d" },
+      }),
+    );
+
+    expect(response.status).toBe(429);
+    expect(error).toHaveBeenCalledOnce();
+    expect(error.mock.calls[0]).toEqual([
+      {
+        page: "/staples",
+        function: "staples",
+        window: "30d",
+        status: 429,
+        upstream: "endstep",
+        calls: { total: 3, succeeded: 1, failed: 1, aborted: 1 },
+        failures: { 429: 1 },
+        durationMs: expect.any(Number),
+      },
+      "staples 30d: 429, 1 of 3 Endstep calls failed (1 429), 1 aborted",
+    ]);
+  });
+
+  it("writes no line for a success", async () => {
+    const error = vi.spyOn(logger, "error");
+    endstep({
+      decks: [deck("a", 0.2)],
+      pages: { a: [{ total: 1, rows: [["Counterspell", 1, 4]] }] },
+      scryfall: collection("Counterspell"),
+    });
+
+    expect((await staples.fetch(request(MAIN_30D))).status).toBe(200);
+    expect(error).not.toHaveBeenCalled();
   });
 });
