@@ -134,6 +134,13 @@ The owner has decided these. Reviews do not raise them again. A change goes to t
 | `docs/design-system.html` | Tokens and components. The authority on appearance                     |
 | `docs/backlog.md`         | Every milestone's items, their tasks and their dependencies            |
 
-Issues #1 to #16 mirror milestone 1 of `docs/backlog.md`, and #40 onwards mirror milestones 2 and 3. Other issues track one-off work, such as the review loop in #61. Labels carry type (`enabler`, `story`, `hardening`) and wave (`wave-0` onwards). Items in the same wave have no dependency on each other and can run in parallel.
+Each item of `docs/backlog.md` has a GitHub issue, and the issue body copies the item. The issue number is the item's only identifier. The item's heading starts with it, such as `## #166 Share a page with its own preview`. "Blocked by" and "Blocks" use it too. Other issues track one-off work, such as the review loop in #61.
+
+- Each backlog milestone has a GitHub milestone with the same name. Every issue sits in its milestone.
+- Every issue is on [Project 2](https://github.com/users/gabrieledarrigo/projects/2).
+- To plan an item, create its issue first. Then write the issue number into the backlog.
+- Labels carry type (`enabler`, `story`, `hardening`, `design`) and wave (`wave-0` onwards). Items in the same wave have no dependency on each other and can run in parallel.
+
+In messages to the owner and between sessions, name an issue by its number and its title: "#168 Split the shared server code by subject is ready for review".
 
 The data source is the public Endstep API. It refuses cross-origin requests, which is why the app proxies it. Read section 4.1 of the requirements before changing anything about data access.
