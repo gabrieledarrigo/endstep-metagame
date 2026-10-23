@@ -1,3 +1,4 @@
+import { discardBody } from "./http.js";
 import { type CallLog, outcomeOf } from "./log.js";
 
 export const UPSTREAM = "https://endstep.cc/api/metagame/v1";
@@ -71,7 +72,7 @@ export async function upstream<Body>(
 
   if (!response.ok) {
     calls?.record("endstep", response.status);
-    await response.body?.cancel();
+    await discardBody(response);
     throw new UpstreamError(response.status);
   }
 

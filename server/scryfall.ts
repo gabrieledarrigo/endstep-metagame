@@ -1,5 +1,5 @@
 import { frontOf, nameKey } from "./cards.js";
-import { isRecord } from "./http.js";
+import { discardBody, isRecord } from "./http.js";
 import { type CallLog, outcomeOf } from "./log.js";
 
 export const SCRYFALL_API = "https://api.scryfall.com/";
@@ -185,7 +185,7 @@ async function lookUpArt(
 
   if (!response.ok) {
     calls?.record("scryfall", response.status);
-    await response.body?.cancel();
+    await discardBody(response);
     return false;
   }
 

@@ -14,6 +14,7 @@ import {
   WINDOWS,
   cacheControl,
   deckDetailUrl,
+  discardBody,
   errorResponse,
   frontOf,
   isRecord,
@@ -136,7 +137,7 @@ async function listedNames(
 
   if (!response.ok) {
     calls.record("endstep", response.status);
-    await response.body?.cancel();
+    await discardBody(response);
     throw new UpstreamError(response.status);
   }
 
@@ -216,7 +217,7 @@ async function ask(
 
     if (!response.ok) {
       budget.calls.record("scryfall", response.status);
-      await response.body?.cancel();
+      await discardBody(response);
       return { status: response.status, body: null };
     }
 

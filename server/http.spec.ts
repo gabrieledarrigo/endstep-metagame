@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   cacheControl,
+  discardBody,
   errorResponse,
   hasNoBody,
   isRecord,
@@ -102,5 +103,29 @@ describe("cacheControl", () => {
   it("holds a 429 for the given number of seconds", () => {
     expect(cacheControl(429, 10)).toBe("public, s-maxage=10");
     expect(cacheControl(429, 60)).toBe("public, s-maxage=60");
+  });
+});
+
+describe("discardBody", () => {
+  it("cancels the body", async () => {
+    const response = new Response("unread");
+    const cancel = vi.spyOn(response.body as ReadableStream, "cancel");
+
+    await discardBody(response);
+
+    expect(cancel).toHaveBeenCalledOnce();
+  });
+
+  it("resolves when cancelling fails", async () => {
+    const response = new Response("unread");
+    vi.spyOn(response.body as ReadableStream, "cancel").mockRejectedValue(
+      new TypeError("terminated"),
+    );
+
+    await expect(discardBody(response)).resolves.toBeUndefined();
+  });
+
+  it("resolves for a response with no body", async () => {
+    await expect(discardBody(new Response(null))).resolves.toBeUndefined();
   });
 });

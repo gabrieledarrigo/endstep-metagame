@@ -95,3 +95,17 @@ export function cacheControl(status: number, rateLimitSeconds: number): string {
 
   return "no-store";
 }
+
+/**
+ * Lets go of a response body that the caller will not read, so the connection can close.
+ *
+ * @param response - A response whose body is not needed.
+ * @returns A Promise that resolves once the body is cancelled, and also when cancelling fails, so a dropped connection never turns into a failure of its own.
+ */
+export async function discardBody(response: Response): Promise<void> {
+  try {
+    await response.body?.cancel();
+  } catch {
+    return;
+  }
+}
