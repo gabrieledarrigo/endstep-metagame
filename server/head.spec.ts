@@ -48,6 +48,7 @@ describe("writeHead", () => {
     title: `Bogles & "Friends" · Pauper Endstep metagame`,
     description: "<b>12.0%</b> of the field.",
     address: `https://example.com/decks/a?b=1&c="2"`,
+    image: "https://example.com/art.jpg?a=1&b=2",
   });
 
   it("writes the title, the description, og:title and og:description, escaped", () => {
@@ -73,10 +74,11 @@ describe("writeHead", () => {
     );
   });
 
-  it("leaves the image of the site card in place", () => {
+  it("writes the image in og:image, escaped", () => {
     expect(page).toContain(
-      '<meta property="og:image" content="https://example.com/card.png" />',
+      '<meta property="og:image" content="https://example.com/art.jpg?a=1&amp;b=2" />',
     );
+    expect(page).not.toContain("https://example.com/card.png");
   });
 });
 

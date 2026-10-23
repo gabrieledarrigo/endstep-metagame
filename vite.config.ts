@@ -16,7 +16,6 @@ import {
   PAGE_PREVIEWS,
   SITE_ORIGIN,
   pageTitle,
-  withMeta,
   writeHead,
 } from "./server/index.ts";
 import vercel from "./vercel.json" with { type: "json" };
@@ -138,7 +137,7 @@ export function previewDeckPage(): Plugin {
 /**
  * Writes a copy of the built `index.html` for each page in `PAGE_PREVIEWS`, with that page's own link preview and card, FR-15 and §4.7.
  *
- * @returns A Vite plugin that runs after the HTML plugin and emits `matchups.html`, `what-to-play.html` and `staples.html` beside `index.html`, which it leaves unchanged. With `cleanUrls`, Vercel serves each copy at its path.
+ * @returns A Vite plugin that runs after the HTML plugin and emits `matchups.html`, `what-to-play.html` and `staples.html` beside `index.html`, which it leaves unchanged. Each copy names its page's card in `og:image`, and the build fails when a copy has no `og:image` to rewrite. With `cleanUrls`, Vercel serves each copy at its path.
  */
 export function pagePreviews(): Plugin {
   return {
@@ -153,19 +152,24 @@ export function pagePreviews(): Plugin {
       }
 
       for (const page of PAGE_PREVIEWS) {
+        const card = `${SITE_ORIGIN}${page.card}`;
+        const source = writeHead(String(index.source), {
+          title: pageTitle(page.title),
+          description: page.description,
+          address: `${SITE_ORIGIN}${page.path}`,
+          image: card,
+        });
+
+        if (!source.includes(`content="${card}"`)) {
+          this.error(
+            `The copy for ${page.path} has no og:image to name its card`,
+          );
+        }
+
         this.emitFile({
           type: "asset",
           fileName: `${page.path.slice(1)}.html`,
-          source: withMeta(
-            writeHead(String(index.source), {
-              title: pageTitle(page.title),
-              description: page.description,
-              address: `${SITE_ORIGIN}${page.path}`,
-            }),
-            "property",
-            "og:image",
-            `${SITE_ORIGIN}${page.card}`,
-          ),
+          source,
         });
       }
     },

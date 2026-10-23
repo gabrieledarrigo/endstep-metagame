@@ -14,7 +14,6 @@ import {
   logged,
   outcomeOf,
   pageTitle,
-  withMeta,
   writeHead,
 } from "../server/index.js";
 
@@ -199,13 +198,12 @@ function imageOf(art: PreviewDeck["art"]): string {
 }
 
 function preview(html: string, deck: PreviewDeck, timeWindow: string): string {
-  const page = writeHead(html, {
+  return writeHead(html, {
     title: pageTitle(deck.name),
     description: description(deck, timeWindow),
     address: `${SITE_ORIGIN}/decks/${deck.slug}`,
+    image: imageOf(deck.art),
   });
-
-  return withMeta(page, "property", "og:image", imageOf(deck.art));
 }
 
 function pageResponse(method: string, html: string, cache: string): Response {
