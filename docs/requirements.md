@@ -56,6 +56,7 @@ The application is read-only. It stores only three display preferences: the them
 | Install | The reader can install the site as an app. No offline caching and no service worker, FR-16 |
 | Sharing | Each deck page shares with its own title, figures and art. The overview shares the site card. The other pages share their own title, description and page card, FR-15 |
 | Analytics | Vercel Web Analytics counts the page views, with the full address. No cookies, NFR-9 |
+| Logging | Each function logs every failed response with pino, as one JSON line in Vercel's runtime logs. No line for a success, NFR-12 |
 | What to play? | The top 24, ranked by expected match win rate against a metagame that the reader can change. The data comes from the matchup table. No new calls to Endstep, FR-17 |
 | Staples | The 50 cards that the top 24 play most, weighted by share, for the main deck and the sideboard. The staples function builds them, FR-18 and §4.9 |
 | Languages | English, Italian, Spanish and Portuguese, through i18next. The page detects the language from the browser, and a switch in the header changes it, FR-20 |
@@ -1079,6 +1080,7 @@ The front end is a Vite application in TypeScript with React 19. `npm run build`
 | Recharts | 3.10 |
 | Vite | 8 |
 | TypeScript | 6.0, strict mode. See below |
+| pino | The current major, in the functions only. See NFR-12 |
 
 - TypeScript stays on 6.0, the last release with the JavaScript compiler API. TypeScript 7.0 has no such API. So typescript-eslint refuses it, and the install on Vercel fails on the peer conflict. A measurement on this repository on 2026-10-06 showed this. typescript-eslint tracks support for 7.1 in issue #10940. When that support is released, move to 7. Move directly, or use the side-by-side setup that TypeScript documents. 6.0 already warns about everything that 7 removes.
 - TypeScript runs in strict mode, and a type error fails the build.
@@ -1316,6 +1318,32 @@ Three ranges, and only their two boundaries appear in media queries.
 
 The project has no CSS linter for now. Prettier formats the CSS, and review enforces the rules above.
 
+
+### NFR-12. Logging
+The functions log every response that fails. So the owner can see how often each page fails to load, and why. Each function uses pino, with no transport. Pino writes one JSON line to standard output, and Vercel keeps the line in the runtime logs of the function.
+
+- A function logs one line for each response with a status of 429, or of 500 and above. It logs nothing for a response that succeeds. Vercel already counts the responses by status.
+- The deck page's function also logs when it falls back to the site card, FR-15. It logs this at the `warn` level, because the reader still gets the page.
+- Each line has a summary message and an object of fields. The summary reads, for example, "matchups 1d: 502, 3 of 25 Endstep calls failed (2 timeout, 1 503)".
+
+  | Field | Holds |
+  |---|---|
+  | `page` | The path of the page that made the request, such as `/matchups`, from the `Referer` header. The path only, without the query string. `null` when the request has no `Referer`. The deck page's function serves the page itself, so its `page` is the path of its own request |
+  | `function` | `metagame`, `matchups`, `staples`, `sample-cards` or `deck-page` |
+  | `window` | The window of the request, or `null` |
+  | `status` | The status that the function returned |
+  | `upstream` | The service that failed: `endstep` or `scryfall` |
+  | `calls` | The calls of this response to that service: `total`, `succeeded` and `failed` |
+  | `failures` | The count of each reason for a failed call. A reason is the status of the service, such as `503`, or one of `timeout`, `network` and `body` |
+  | `durationMs` | How long the function ran, in milliseconds |
+
+- The `Referer` header carries the page, because every call of the app goes to its own origin and the policy is `strict-origin-when-cross-origin`, §4.7.
+- A line holds no personal data and no IP address, NFR-9.
+- The logs do not see everything:
+  - The edge cache answers most requests, and then no function runs. A 429 stays cached for 60 seconds, §4.4. So one line can stand for many failed page loads.
+  - A failure in the browser, such as a dropped connection, never reaches a function.
+  - The project is on the Hobby plan of Vercel. It keeps runtime logs for a short time and has no log drain. So the owner reads the logs soon after a failure. On 2026-10-23 the owner chose this over a paid plan.
+
 ---
 
 ## 8. Out of scope
@@ -1363,8 +1391,9 @@ The project has no CSS linter for now. Prettier formats the CSS, and review enfo
     - A switch beside the theme toggle that shows the code and a chevron, with a native select over it.
     - One file for all the strings, and i18next.
     - Translations that the owner writes.
-17. ~~Lines under the headings, page cards and analytics.~~ Settled on 2026-10-23. The owner chose:
+17. ~~Lines under the headings, page cards, analytics and logs.~~ Settled on 2026-10-23. The owner chose:
     - A line under the heading of the matchup table and of What to play?, as on Staples. Each line is the page's description without "Pauper". The description of What to play? changes to match its line, FR-15.
     - A page card for each of the three pages, in place of the site card, FR-15.
     - Vercel Web Analytics with the full address, query string included, NFR-9. This replaced "no analytics".
+    - A log line for every failed response of the functions, with pino, NFR-12. No line for a success. The owner accepted the short log retention of the Hobby plan.
 18. The `1d` window. On 2026-10-23, Endstep answered the `1d` deck list with a 503 after 27 seconds. The proxy stops at 8 seconds and returns a 502, so `1d` fails on every page. A cold `7d`, `14d` or `season` call also passed 8 seconds once, then answered in under half a second. The owner reports it to the maintainer of Endstep. Nothing changes here until Endstep answers.
