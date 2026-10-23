@@ -2187,16 +2187,15 @@ This story covers the lines of FR-12 and FR-17, and the new description of What 
 
 ## #182 Count page views with Vercel Web Analytics
 
-This enabler covers NFR-9. It replaces pull request #177, which the Vercel app opened on 2026-10-22.
+This enabler covers NFR-9. The owner merged pull request #177 of the Vercel app on 2026-10-23. It added `@vercel/analytics` and its `Analytics` component at the root of the app. This item finishes that work.
 
 **Tasks**
 
-1. Add `@vercel/analytics` and its `Analytics` component at the root of the app, as #177 does. Keep the full address, so do not set `beforeSend`.
-2. Regenerate `package-lock.json` with the project's npm. The lockfile of #177 drops the `libc` fields of the optional native packages.
+1. Keep the full address, so do not set `beforeSend`.
+2. Regenerate `package-lock.json` with the project's npm. #177 dropped the `libc` fields of the optional native packages, because the Vercel app used another npm.
 3. Check that the security policy of `vercel.json` allows the script and its requests on the site's own origin. Change nothing if it does.
 4. Add a spec that renders the app and finds no error from the component.
-5. Close #177 with a link to this pull request, or rework #177 itself on its branch.
-6. Ask the owner to turn on Web Analytics in the Vercel dashboard, and to check the monthly limit of events of the plan.
+5. Ask the owner to turn on Web Analytics in the Vercel dashboard, and to check the monthly limit of events of the plan.
 
 **Done when**
 
@@ -2269,7 +2268,7 @@ This story covers the page cards of FR-15 and §4.7.
 
 ## Notes on sequencing, milestone 9
 
-#180, #181 and #182 touch different files, so they run in parallel. #182 changes only the root of the app and the lockfile.
+#180, #181 and #182 touch different files, so they run in parallel. #182 changes only the lockfile and a spec.
 
 #187 changes every function and adds a dependency. It also changes `package-lock.json`, so it rebases after #182 or #182 after it. It runs beside the other items of wave 36.
 
