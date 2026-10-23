@@ -1,3 +1,4 @@
+import { existsSync } from "node:fs";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -286,6 +287,12 @@ describe("pagePreviews", () => {
     return [...files[file].matchAll(pattern)].map((match) => match[0]);
   }
 
+  function ogImage(page: string): string[] {
+    return [
+      ...page.matchAll(/<meta\s+property="og:image"\s+content="([^"]*)"/g),
+    ].map(([, content]) => content);
+  }
+
   function inlineScripts(page: string): string[] {
     return [...page.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/g)]
       .filter(([, attributes]) => !attributes.includes("src="))
@@ -369,16 +376,25 @@ describe("pagePreviews", () => {
     },
   );
 
-  it.each(PAGE_PREVIEWS)(
-    "keeps the image of the site card in $path",
-    ({ path }) => {
-      const image = /<meta\s+property="og:image"\s+content="([^"]*)"/;
+  it.each([
+    ["/matchups", "matchups-card.png"],
+    ["/what-to-play", "what-to-play-card.png"],
+    ["/staples", "staples-card.png"],
+  ])("names its own card in og:image for %s", (path, card) => {
+    expect(ogImage(files[`${path.slice(1)}.html`])).toEqual([
+      `https://pauper-endstep-metagame.vercel.app/${card}`,
+    ]);
+  });
 
-      expect(image.exec(files[`${path.slice(1)}.html`])?.[1]).toBe(
-        "https://pauper-endstep-metagame.vercel.app/site-card.png",
-      );
-    },
-  );
+  it.each(PAGE_PREVIEWS)("finds the card of $path in public/", ({ card }) => {
+    expect(existsSync(join(root, "public", card))).toBe(true);
+  });
+
+  it("keeps the site card in index.html, for the overview and the Not found page", () => {
+    expect(ogImage(files["index.html"])).toEqual([
+      "https://pauper-endstep-metagame.vercel.app/site-card.png",
+    ]);
+  });
 
   it("leaves index.html as a build without the plugin writes it", () => {
     expect(files["index.html"]).toBe(plainIndex);
