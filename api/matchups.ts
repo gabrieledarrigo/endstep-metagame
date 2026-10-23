@@ -1,9 +1,12 @@
 import {
   BASE_HEADERS,
+  type CallLog,
+  type LogContext,
   WINDOWS,
   cacheControl,
   errorResponse,
   isRateLimit,
+  logged,
   methodResponse,
   upstream,
 } from "../server/index.js";
@@ -121,17 +124,22 @@ function mirrored(cell: Cell): Cell {
  * Builds the top-24 matchup matrix for one window, §4.4.
  *
  * @param timeWindow - One of the five windows.
+ * @param calls - Records each Endstep call for the log line, NFR-12.
  * @returns A Promise resolving to the window, the decks in share order, and each deck's record against the others.
  * @throws The first rate limit when any upstream call answers 429, or else the first failure.
  */
-async function build(timeWindow: string): Promise<Matrix> {
+async function build(timeWindow: string, calls: CallLog): Promise<Matrix> {
   const fixed = { window: timeWindow, population: "rated" };
-  const top = await upstream<DecksBody>("Pauper/decks", {
-    ...fixed,
-    sort: "share",
-    dir: "desc",
-    pageSize: String(TOP_DECKS),
-  });
+  const top = await upstream<DecksBody>(
+    "Pauper/decks",
+    {
+      ...fixed,
+      sort: "share",
+      dir: "desc",
+      pageSize: String(TOP_DECKS),
+    },
+    { calls },
+  );
   const decks = top.decks.items;
 
   const results = await Promise.allSettled(
@@ -145,6 +153,7 @@ async function build(timeWindow: string): Promise<Matrix> {
           dir: "desc",
           pageSize: String(MATCHUP_ROWS),
         },
+        { calls },
       ),
     })),
   );
@@ -213,39 +222,48 @@ export default {
    * @returns A Promise resolving to the matrix, cached for five minutes, or to a JSON error: 400 for any other query string, 405 for any other method, 429 when Endstep rate limits a call, cached for 60 seconds, and 502 when any other call fails.
    * @see https://vercel.com/docs/functions/functions-api-reference#fetch-web-standard
    */
-  fetch: async function handler(req: Request): Promise<Response> {
-    const refused = methodResponse(req);
+  fetch: logged(
+    "matchups",
+    async function handler(
+      req: Request,
+      { calls }: LogContext,
+    ): Promise<Response> {
+      const refused = methodResponse(req);
 
-    if (refused) {
-      return refused;
-    }
-
-    const timeWindow = windowOf(new URL(req.url).search);
-
-    if (timeWindow === undefined) {
-      return errorResponse(400, "Unsupported matchups query");
-    }
-
-    let matrix;
-
-    try {
-      matrix = await build(timeWindow);
-    } catch (error) {
-      if (isRateLimit(error)) {
-        return errorResponse(429, "Endstep's rate limit was reached", {
-          "Cache-Control": cacheControl(429, RATE_LIMIT_SECONDS),
-        });
+      if (refused) {
+        return refused;
       }
 
-      return errorResponse(502, "Endstep did not answer every call");
-    }
+      const timeWindow = windowOf(new URL(req.url).search);
 
-    return new Response(req.method === "HEAD" ? null : JSON.stringify(matrix), {
-      headers: {
-        ...BASE_HEADERS,
-        "Cache-Control": cacheControl(200, RATE_LIMIT_SECONDS),
-      },
-      status: 200,
-    });
-  },
+      if (timeWindow === undefined) {
+        return errorResponse(400, "Unsupported matchups query");
+      }
+
+      let matrix;
+
+      try {
+        matrix = await build(timeWindow, calls);
+      } catch (error) {
+        if (isRateLimit(error)) {
+          return errorResponse(429, "Endstep's rate limit was reached", {
+            "Cache-Control": cacheControl(429, RATE_LIMIT_SECONDS),
+          });
+        }
+
+        return errorResponse(502, "Endstep did not answer every call");
+      }
+
+      return new Response(
+        req.method === "HEAD" ? null : JSON.stringify(matrix),
+        {
+          headers: {
+            ...BASE_HEADERS,
+            "Cache-Control": cacheControl(200, RATE_LIMIT_SECONDS),
+          },
+          status: 200,
+        },
+      );
+    },
+  ),
 };

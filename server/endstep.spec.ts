@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { CallLog } from "./log.js";
 import {
   deckDetailUrl,
   isNetworkError,
@@ -209,5 +210,82 @@ describe("isRateLimit", () => {
   it("reads any error other than Endstep's own 429 as no rate limit", () => {
     expect(isRateLimit(new Error("429"))).toBe(false);
     expect(isRateLimit({ status: 429 })).toBe(false);
+  });
+});
+
+describe("upstream's call log", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  async function outcome(answer: () => Promise<Response>): Promise<CallLog> {
+    const calls = new CallLog();
+    vi.stubGlobal("fetch", vi.fn<typeof fetch>(answer));
+
+    await upstream("Pauper/decks", {}, { calls }).catch(() => undefined);
+
+    return calls;
+  }
+
+  it.each([
+    [
+      "a success",
+      async (): Promise<Response> => Response.json({ ok: true }),
+      {},
+      1,
+    ],
+    [
+      "a 503",
+      async (): Promise<Response> => new Response(null, { status: 503 }),
+      { 503: 1 },
+      0,
+    ],
+    [
+      "a failed fetch",
+      async (): Promise<Response> => {
+        throw new TypeError("fetch failed");
+      },
+      { network: 1 },
+      0,
+    ],
+    [
+      "a timeout",
+      async (): Promise<Response> => {
+        throw new DOMException("The operation timed out", "TimeoutError");
+      },
+      { timeout: 1 },
+      0,
+    ],
+    [
+      "a body that is not JSON",
+      async (): Promise<Response> => new Response("<html>"),
+      { body: 1 },
+      0,
+    ],
+  ])("records %s", async (_, answer, failures, succeeded) => {
+    const calls = await outcome(answer);
+
+    expect(calls.calls("endstep")).toMatchObject({ total: 1, succeeded });
+    expect(calls.failures("endstep")).toEqual(failures);
+  });
+
+  it("records a call that its signal stopped before it started as aborted", async () => {
+    const calls = new CallLog();
+    const controller = new AbortController();
+    controller.abort();
+    vi.stubGlobal("fetch", vi.fn<typeof fetch>());
+
+    await upstream(
+      "Pauper/decks",
+      {},
+      { calls, signal: controller.signal },
+    ).catch(() => undefined);
+
+    expect(calls.calls("endstep")).toEqual({
+      total: 1,
+      succeeded: 0,
+      failed: 0,
+      aborted: 1,
+    });
   });
 });

@@ -30,6 +30,8 @@ const ONE_MINUTE = "public, s-maxage=60, stale-while-revalidate=600";
 
 type DeckPage = (typeof import("./deck-page"))["default"];
 
+type Logger = (typeof import("../server/index.js"))["logger"];
+
 type DeckFields = {
   slug: string;
   name: string;
@@ -47,12 +49,14 @@ type DeckFields = {
 };
 
 let deckPage: DeckPage;
+let logger: Logger;
 
 beforeEach(async () => {
   vi.resetModules();
   readFile.mockReset();
   readFile.mockResolvedValue(source);
   deckPage = (await import("./deck-page")).default;
+  logger = (await import("../server/index.js")).logger;
 });
 
 afterEach(() => {
@@ -515,13 +519,13 @@ describe("deck-page", () => {
     },
   );
 
-  it("reads index.html again after a failed read", async () => {
+  it("answers 500 after a failed read, and reads index.html again on the next request", async () => {
     proxy({ deck: deck() });
     readFile.mockRejectedValueOnce(new Error("EMFILE: too many open files"));
 
-    await expect(
-      deckPage.fetch(request("slug=affinity-e93f5f74")),
-    ).rejects.toThrow("EMFILE");
+    expect(
+      (await deckPage.fetch(request("slug=affinity-e93f5f74"))).status,
+    ).toBe(500);
     const response = await deckPage.fetch(request("slug=affinity-e93f5f74"));
 
     expect(response.status).toBe(200);
@@ -538,5 +542,88 @@ describe("deck-page", () => {
     await deckPage.fetch(request("slug=affinity-e93f5f74&window=7d"));
 
     expect(readFile).toHaveBeenCalledOnce();
+  });
+});
+
+describe("the deck page's log line", () => {
+  it("writes one warn line when it falls back to the site card after a failed call", async () => {
+    const warn = vi.spyOn(logger, "warn");
+    proxy({ error: "Endstep did not respond" }, 503);
+
+    await deckPage.fetch(request("slug=affinity-e93f5f74&window=7d"));
+
+    expect(warn).toHaveBeenCalledOnce();
+    expect(warn.mock.calls[0]).toEqual([
+      {
+        page: "/decks/affinity-e93f5f74",
+        function: "deck-page",
+        window: "7d",
+        status: 200,
+        upstream: "endstep",
+        calls: { total: 1, succeeded: 0, failed: 1, aborted: 0 },
+        failures: { 503: 1 },
+        durationMs: expect.any(Number),
+      },
+      "deck-page affinity-e93f5f74 7d: fell back to the site card, 1 of 1 Endstep calls failed (1 503)",
+    ]);
+  });
+
+  it("writes no line when it serves the deck's own preview", async () => {
+    const warn = vi.spyOn(logger, "warn");
+    const error = vi.spyOn(logger, "error");
+    proxy({ deck: deck() });
+
+    await deckPage.fetch(request("slug=affinity-e93f5f74"));
+
+    expect(warn).not.toHaveBeenCalled();
+    expect(error).not.toHaveBeenCalled();
+  });
+
+  it("writes one error line, with the error's message, when the page cannot be read", async () => {
+    const error = vi.spyOn(logger, "error");
+    proxy({ deck: deck() });
+    readFile.mockRejectedValueOnce(new Error("EMFILE: too many open files"));
+
+    await deckPage.fetch(request("slug=affinity-e93f5f74"));
+
+    expect(error).toHaveBeenCalledOnce();
+    expect(error.mock.calls[0]).toEqual([
+      {
+        page: "/decks/affinity-e93f5f74",
+        function: "deck-page",
+        window: "30d",
+        status: 500,
+        upstream: null,
+        calls: null,
+        failures: null,
+        durationMs: expect.any(Number),
+        error: "EMFILE: too many open files",
+      },
+      "deck-page affinity-e93f5f74 30d: 500, the function failed (EMFILE: too many open files)",
+    ]);
+  });
+});
+
+describe("the deck page's log line, on the window and an unknown deck", () => {
+  it("names the default window when the link names none", async () => {
+    const warn = vi.spyOn(logger, "warn");
+    proxy({ error: "Endstep did not respond" }, 503);
+
+    await deckPage.fetch(request("slug=affinity-e93f5f74"));
+
+    expect(warn.mock.calls[0]).toEqual([
+      expect.objectContaining({ window: "30d" }),
+      "deck-page affinity-e93f5f74 30d: fell back to the site card, 1 of 1 Endstep calls failed (1 503)",
+    ]);
+  });
+
+  it("writes no line for a deck that Endstep does not know", async () => {
+    const warn = vi.spyOn(logger, "warn");
+    proxy({ error: "Not found" }, 404);
+
+    const response = await deckPage.fetch(request("slug=retired-deck"));
+
+    expect(response.status).toBe(200);
+    expect(warn).not.toHaveBeenCalled();
   });
 });

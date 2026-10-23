@@ -22,10 +22,12 @@ type Metagame = (typeof import("./metagame"))["default"];
 type ArtDeck = { slug: string; art: { cardName: string; imageUrl?: string } };
 
 let metagame: Metagame;
+let logger: (typeof import("../server/index.js"))["logger"];
 
 beforeEach(async () => {
   vi.resetModules();
   metagame = (await import("./metagame")).default;
+  logger = (await import("../server/index.js")).logger;
 });
 
 function request(query: string, method = "GET"): Request {
@@ -445,6 +447,73 @@ describe("the metagame proxy's card art", () => {
 
       expect(scryfallNames(fetchMock)).toEqual([]);
       expect(await response.text()).toBe(JSON.stringify(body));
+    },
+  );
+});
+
+describe("the proxy's log line", () => {
+  function fromPage(query: string): Request {
+    return new Request(`http://localhost/api/metagame?${query}`, {
+      headers: {
+        referer: "http://localhost/decks/affinity-e93f5f74?window=7d",
+      },
+    });
+  }
+
+  it("writes one error line, named by its endpoint, when Endstep answers 503", async () => {
+    const error = vi.spyOn(logger, "error");
+    upstream(503);
+
+    const response = await metagame.fetch(
+      fromPage(
+        "path=Pauper/decks/affinity-e93f5f74&window=7d&population=rated",
+      ),
+    );
+
+    expect(response.status).toBe(503);
+    expect(error).toHaveBeenCalledOnce();
+    expect(error.mock.calls[0]).toEqual([
+      {
+        page: "/decks/affinity-e93f5f74",
+        function: "metagame",
+        window: "7d",
+        status: 503,
+        upstream: "endstep",
+        calls: { total: 1, succeeded: 0, failed: 1, aborted: 0 },
+        failures: { 503: 1 },
+        durationMs: expect.any(Number),
+      },
+      "metagame Pauper/decks/affinity-e93f5f74 7d: 503, 1 of 1 Endstep calls failed (1 503)",
+    ]);
+  });
+
+  it("reads a timeout as its reason when Endstep cannot be reached in time", async () => {
+    const error = vi.spyOn(logger, "error");
+    vi.stubGlobal(
+      "fetch",
+      vi.fn<typeof fetch>(async () => {
+        throw new DOMException("The operation timed out", "TimeoutError");
+      }),
+    );
+
+    const response = await metagame.fetch(fromPage("path=formats"));
+
+    expect(response.status).toBe(502);
+    expect(error.mock.calls[0]).toEqual([
+      expect.objectContaining({ window: null, failures: { timeout: 1 } }),
+      "metagame formats: 502, 1 of 1 Endstep calls failed (1 timeout)",
+    ]);
+  });
+
+  it.each([200, 404])(
+    "writes no line when Endstep answers %i",
+    async (status) => {
+      const error = vi.spyOn(logger, "error");
+      upstream(status);
+
+      await metagame.fetch(fromPage("path=formats"));
+
+      expect(error).not.toHaveBeenCalled();
     },
   );
 });

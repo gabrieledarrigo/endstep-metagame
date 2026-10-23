@@ -1,4 +1,5 @@
 import { type Mock, afterEach, describe, expect, it, vi } from "vitest";
+import { logger } from "../server/index.js";
 import matchups from "./matchups.js";
 
 const UPSTREAM = "https://endstep.cc/api/metagame/v1";
@@ -427,5 +428,90 @@ describe("the matchup function", () => {
     const response = await matchups.fetch(request("?window=30d"));
 
     expect(response.status).toBe(502);
+  });
+});
+
+describe("the matchup function's log line", () => {
+  function fromPage(search: string): Request {
+    return new Request(`http://localhost/api/matchups${search}`, {
+      headers: { referer: "http://localhost/matchups?window=1d&deck=elves" },
+    });
+  }
+
+  it("writes one error line with every field when calls fail", async () => {
+    const error = vi.spyOn(logger, "error");
+    endstep((url) =>
+      url.pathname.endsWith("/flicker/matchups") ||
+      url.pathname.endsWith("/walls/matchups")
+        ? json({ error: "nope" }, 503)
+        : undefined,
+    );
+
+    const response = await matchups.fetch(fromPage("?window=1d"));
+
+    expect(response.status).toBe(502);
+    expect(error).toHaveBeenCalledOnce();
+    expect(error.mock.calls[0]).toEqual([
+      {
+        page: "/matchups",
+        function: "matchups",
+        window: "1d",
+        status: 502,
+        upstream: "endstep",
+        calls: { total: 5, succeeded: 3, failed: 2, aborted: 0 },
+        failures: { 503: 2 },
+        durationMs: expect.any(Number),
+      },
+      "matchups 1d: 502, 2 of 5 Endstep calls failed (2 503)",
+    ]);
+  });
+
+  it("counts each reason of the failed calls", async () => {
+    const error = vi.spyOn(logger, "error");
+    endstep((url) => {
+      if (url.pathname.endsWith("/flicker/matchups")) {
+        return json({ error: "nope" }, 429);
+      }
+
+      if (url.pathname.endsWith("/walls/matchups")) {
+        throw new TypeError("fetch failed");
+      }
+
+      return undefined;
+    });
+
+    const response = await matchups.fetch(fromPage("?window=30d"));
+
+    expect(response.status).toBe(429);
+    expect(error.mock.calls[0][0]).toMatchObject({
+      status: 429,
+      calls: { total: 5, succeeded: 3, failed: 2, aborted: 0 },
+      failures: { 429: 1, network: 1 },
+    });
+  });
+
+  it("writes no line for a success, and none for a refused query", async () => {
+    const error = vi.spyOn(logger, "error");
+    endstep();
+
+    expect((await matchups.fetch(fromPage("?window=30d"))).status).toBe(200);
+    expect((await matchups.fetch(fromPage("?window=2d"))).status).toBe(400);
+    expect(error).not.toHaveBeenCalled();
+  });
+
+  it("names no page when the request has no Referer", async () => {
+    const error = vi.spyOn(logger, "error");
+    endstep((url) =>
+      url.pathname.endsWith("/Pauper/decks")
+        ? json({ error: "nope" }, 500)
+        : undefined,
+    );
+
+    await matchups.fetch(request("?window=30d"));
+
+    expect(error.mock.calls[0][0]).toMatchObject({
+      page: null,
+      calls: { total: 1, succeeded: 0, failed: 1, aborted: 0 },
+    });
   });
 });

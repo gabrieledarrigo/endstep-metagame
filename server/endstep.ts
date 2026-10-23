@@ -1,3 +1,6 @@
+import { discardBody } from "./http.js";
+import { type CallLog, outcomeOf } from "./log.js";
+
 export const UPSTREAM = "https://endstep.cc/api/metagame/v1";
 export const TIMEOUT_MS = 8000;
 export const SEGMENT = /^[A-Za-z0-9_-]+$/;
@@ -25,7 +28,7 @@ class NetworkError extends Error {
  *
  * @param path - The endpoint path after the API version, such as `Pauper/decks`.
  * @param params - The query parameters, in the order they are sent.
- * @param options - `timeoutMs`, the call's timeout, 8 seconds by default. `signal`, which aborts the call, or stops it before it starts.
+ * @param options - `timeoutMs`, the call's timeout, 8 seconds by default. `signal`, which aborts the call, or stops it before it starts. `calls`, which records the call's outcome for the log line, NFR-12.
  * @returns A Promise resolving to the parsed body.
  * @throws An `UpstreamError` with the status when Endstep answers anything other than a success.
  * @throws An error that `isNetworkError` reads as a network failure, when `fetch` fails before Endstep answers.
@@ -39,8 +42,13 @@ export async function upstream<Body>(
   {
     timeoutMs = TIMEOUT_MS,
     signal,
-  }: { timeoutMs?: number; signal?: AbortSignal } = {},
+    calls,
+  }: { timeoutMs?: number; signal?: AbortSignal; calls?: CallLog } = {},
 ): Promise<Body> {
+  if (signal?.aborted) {
+    calls?.record("endstep", "aborted");
+  }
+
   signal?.throwIfAborted();
 
   const timeout = AbortSignal.timeout(timeoutMs);
@@ -53,6 +61,8 @@ export async function upstream<Body>(
       signal: signal ? AbortSignal.any([timeout, signal]) : timeout,
     },
   ).catch((error: unknown) => {
+    calls?.record("endstep", outcomeOf(error, false));
+
     if (error instanceof TypeError) {
       throw new NetworkError(error);
     }
@@ -61,11 +71,19 @@ export async function upstream<Body>(
   });
 
   if (!response.ok) {
-    await response.body?.cancel();
+    calls?.record("endstep", response.status);
+    await discardBody(response);
     throw new UpstreamError(response.status);
   }
 
-  return (await response.json()) as Body;
+  try {
+    const body = (await response.json()) as Body;
+    calls?.record("endstep", "succeeded");
+    return body;
+  } catch (error) {
+    calls?.record("endstep", outcomeOf(error, true));
+    throw error;
+  }
 }
 
 /**

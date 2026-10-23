@@ -339,6 +339,7 @@ export default defineConfig({
         test: {
           name: "api",
           environment: "node",
+          env: { LOG_LEVEL: "silent" },
           include: [
             "api/**/*.spec.ts",
             "server/**/*.spec.ts",
