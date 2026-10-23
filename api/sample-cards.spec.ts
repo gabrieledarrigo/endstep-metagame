@@ -44,11 +44,13 @@ type Routes = {
 };
 
 let sampleCards: SampleCards;
+let logger: (typeof import("../server/index.js"))["logger"];
 
 beforeEach(async () => {
   vi.resetModules();
   vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout", "Date"] });
   sampleCards = (await import("./sample-cards")).default;
+  logger = (await import("../server/index.js")).logger;
 });
 
 afterEach(() => {
@@ -1196,5 +1198,62 @@ describe("the sample cards function's Scryfall failures", () => {
     await call();
 
     expect(cancel).toHaveBeenCalledOnce();
+  });
+});
+
+describe("the sample cards function's log line", () => {
+  function fromPage(): Promise<Response> {
+    return settle(
+      sampleCards.fetch(
+        new Request(`${ORIGIN}/api/sample-cards${QUERY}`, {
+          headers: {
+            referer: `${ORIGIN}/decks/affinity-e93f5f74?window=30d`,
+          },
+        }),
+      ),
+    );
+  }
+
+  it("writes one error line when the deck detail fails", async () => {
+    const error = vi.spyOn(logger, "error");
+    stub({ detail: async () => new Response(null, { status: 503 }) });
+
+    const response = await fromPage();
+
+    expect(response.status).toBe(502);
+    expect(error).toHaveBeenCalledOnce();
+    expect(error.mock.calls[0]).toEqual([
+      {
+        page: "/decks/affinity-e93f5f74",
+        function: "sample-cards",
+        window: "30d",
+        status: 502,
+        upstream: "endstep",
+        calls: { total: 1, succeeded: 0, failed: 1, aborted: 0 },
+        failures: { 503: 1 },
+        durationMs: expect.any(Number),
+      },
+      "sample-cards affinity-e93f5f74 30d: 502, 1 of 1 Endstep calls failed (1 503)",
+    ]);
+  });
+
+  it("reads an unreadable sample list as a failure of the body", async () => {
+    const error = vi.spyOn(logger, "error");
+    stub({ detail: async () => Response.json({ deck: {} }) });
+
+    await fromPage();
+
+    expect(error.mock.calls[0][0]).toMatchObject({ failures: { body: 1 } });
+  });
+
+  it("writes no line for a success, even when Scryfall fails", async () => {
+    const error = vi.spyOn(logger, "error");
+    stub({
+      detail: detail(["Thoughtcast"]),
+      collection: async () => new Response(null, { status: 503 }),
+    });
+
+    expect((await fromPage()).status).toBe(200);
+    expect(error).not.toHaveBeenCalled();
   });
 });

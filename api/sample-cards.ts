@@ -1,7 +1,9 @@
 import {
   BASE_HEADERS,
   BASICS,
+  type CallLog,
   EDGE_CACHE,
+  type LogContext,
   SCRYFALL_API,
   SCRYFALL_CDN,
   SCRYFALL_COLLECTION,
@@ -15,8 +17,10 @@ import {
   errorResponse,
   frontOf,
   isRecord,
+  logged,
   methodResponse,
   nameKey,
+  outcomeOf,
 } from "../server/index.js";
 
 const RATE_LIMIT_SECONDS = 60;
@@ -38,7 +42,7 @@ type Prices = { tix: number | null; eur: number | null; usd: number | null };
 
 type Remembered<Value> = { value: Value; at: number };
 
-type Budget = { left: number; deadline: number };
+type Budget = { left: number; deadline: number; calls: CallLog };
 
 type Answer = { status: number; body: unknown };
 
@@ -116,21 +120,38 @@ function namesOf(body: unknown): string[] | null {
 async function listedNames(
   origin: string,
   target: Target,
+  calls: CallLog,
 ): Promise<string[] | null> {
-  const response = await fetch(
-    deckDetailUrl(origin, target.slug, target.window),
-    {
+  let response;
+
+  try {
+    response = await fetch(deckDetailUrl(origin, target.slug, target.window), {
       headers: { accept: "application/json" },
       signal: AbortSignal.timeout(TIMEOUT_MS),
-    },
-  );
+    });
+  } catch (error) {
+    calls.record("endstep", outcomeOf(error, false));
+    throw error;
+  }
 
   if (!response.ok) {
+    calls.record("endstep", response.status);
     await response.body?.cancel();
     throw new UpstreamError(response.status);
   }
 
-  return namesOf(await response.json());
+  let names;
+
+  try {
+    names = namesOf(await response.json());
+  } catch (error) {
+    calls.record("endstep", outcomeOf(error, true));
+    throw error;
+  }
+
+  calls.record("endstep", "succeeded");
+
+  return names;
 }
 
 function recall<Value>(
@@ -178,6 +199,8 @@ async function ask(
     return null;
   }
 
+  let reading = false;
+
   try {
     const response = await fetch(url, {
       ...init,
@@ -185,17 +208,24 @@ async function ask(
       signal: AbortSignal.timeout(budget.deadline - Date.now()),
     });
 
+    reading = true;
+
     if (response.status === 429) {
       pausedUntil = Date.now() + SCRYFALL_PAUSE_MS;
     }
 
     if (!response.ok) {
+      budget.calls.record("scryfall", response.status);
       await response.body?.cancel();
       return { status: response.status, body: null };
     }
 
-    return { status: response.status, body: await response.json() };
-  } catch {
+    const body: unknown = await response.json();
+    budget.calls.record("scryfall", "succeeded");
+
+    return { status: response.status, body };
+  } catch (error) {
+    budget.calls.record("scryfall", outcomeOf(error, reading));
     return null;
   }
 }
@@ -478,62 +508,73 @@ export default {
    * @see https://scryfall.com/docs/api/cards/collection
    * @see https://scryfall.com/docs/api/cards/search
    */
-  fetch: async function handler(req: Request): Promise<Response> {
-    const refused = methodResponse(req);
+  fetch: logged(
+    "sample-cards",
+    async function handler(
+      req: Request,
+      { calls }: LogContext,
+    ): Promise<Response> {
+      const refused = methodResponse(req);
 
-    if (refused) {
-      return refused;
-    }
-
-    const url = new URL(req.url);
-    const target = targetOf(url.search);
-
-    if (!target) {
-      return errorResponse(400, "Unsupported sample cards query");
-    }
-
-    let names;
-
-    try {
-      names = await listedNames(url.origin, target);
-    } catch (error) {
-      if (error instanceof UpstreamError && error.status === 404) {
-        return errorResponse(404, "Unknown deck");
+      if (refused) {
+        return refused;
       }
 
-      if (error instanceof UpstreamError && error.status === 429) {
-        return errorResponse(429, "Endstep's rate limit was reached", {
-          "Cache-Control": cacheControl(429, RATE_LIMIT_SECONDS),
-        });
+      const url = new URL(req.url);
+      const target = targetOf(url.search);
+
+      if (!target) {
+        return errorResponse(400, "Unsupported sample cards query");
       }
 
-      return errorResponse(502, "The deck detail could not be read");
-    }
+      let names;
 
-    if (names === null) {
-      return jsonResponse(req.method, { cards: {} }, EDGE_CACHE);
-    }
+      try {
+        names = await listedNames(url.origin, target, calls);
+      } catch (error) {
+        if (error instanceof UpstreamError && error.status === 404) {
+          return errorResponse(404, "Unknown deck");
+        }
 
-    const budget = { left: MAX_REQUESTS, deadline: Date.now() + BOUND_MS };
+        if (error instanceof UpstreamError && error.status === 429) {
+          return errorResponse(429, "Endstep's rate limit was reached", {
+            "Cache-Control": cacheControl(429, RATE_LIMIT_SECONDS),
+          });
+        }
 
-    await lookUpImages(budget, names);
-    await lookUpPrices(budget, names);
+        return errorResponse(502, "The deck detail could not be read");
+      }
 
-    const complete = names.every(
-      (name) => recall(images, nameKey(name)) && pricesOf(nameKey(name)),
-    );
-    const cards = names.map((name) => [
-      name,
-      {
-        imageUrl: recall(images, nameKey(name))?.value ?? null,
-        ...(pricesOf(nameKey(name)) ?? NO_PRICES),
-      },
-    ]);
+      if (names === null) {
+        return jsonResponse(req.method, { cards: {} }, EDGE_CACHE);
+      }
 
-    return jsonResponse(
-      req.method,
-      { cards: Object.fromEntries(cards) },
-      complete ? SUCCESS_CACHE : EDGE_CACHE,
-    );
-  },
+      const budget = {
+        left: MAX_REQUESTS,
+        deadline: Date.now() + BOUND_MS,
+        calls,
+      };
+
+      await lookUpImages(budget, names);
+      await lookUpPrices(budget, names);
+
+      const complete = names.every(
+        (name) => recall(images, nameKey(name)) && pricesOf(nameKey(name)),
+      );
+      const cards = names.map((name) => [
+        name,
+        {
+          imageUrl: recall(images, nameKey(name))?.value ?? null,
+          ...(pricesOf(nameKey(name)) ?? NO_PRICES),
+        },
+      ]);
+
+      return jsonResponse(
+        req.method,
+        { cards: Object.fromEntries(cards) },
+        complete ? SUCCESS_CACHE : EDGE_CACHE,
+      );
+    },
+    (url) => ({ subject: url.searchParams.get("deck") }),
+  ),
 };
