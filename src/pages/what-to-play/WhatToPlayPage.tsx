@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate, useSearchParams } from "react-router";
 import type { MatrixDeck } from "../../api/types";
 import { EmptyWindow } from "../../components/EmptyWindow";
-import { PageTitle } from "../../components/PageTitle";
+import { PageHead } from "../../components/PageHead";
 import { Section } from "../../components/Section";
 import { SegmentedControl } from "../../components/SegmentedControl";
 import { WINDOWS } from "../../config";
@@ -74,7 +74,7 @@ export function WhatToPlayPage() {
 
   return (
     <>
-      <PageTitle title={t("whatToPlay.title")} />
+      <PageHead title={t("whatToPlay.title")} line={t("whatToPlay.line")} />
 
       <div className="page__controls">
         <SegmentedControl

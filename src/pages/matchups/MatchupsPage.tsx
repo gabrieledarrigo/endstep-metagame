@@ -11,7 +11,7 @@ import {
 import { fetchDeck } from "../../api/endpoints";
 import { DeckPicker } from "../../components/DeckPicker";
 import { EmptyWindow } from "../../components/EmptyWindow";
-import { PageTitle } from "../../components/PageTitle";
+import { PageHead } from "../../components/PageHead";
 import { Section } from "../../components/Section";
 import { SegmentedControl } from "../../components/SegmentedControl";
 import { WINDOWS } from "../../config";
@@ -112,7 +112,7 @@ export function MatchupsPage() {
 
   return (
     <>
-      <PageTitle title={t("matchups.title")} />
+      <PageHead title={t("matchups.title")} line={t("matchups.line")} />
 
       <div className="page__controls">
         <SegmentedControl
