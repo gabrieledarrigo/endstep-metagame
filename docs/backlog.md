@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-26. Derived from [`requirements.md`](./requirements.md) and [`design-system.html`](./design-system.html).
 
-Milestone 1 has sixteen items: four enablers, nine user stories and three hardening items. Milestones 2 to 8 follow at the end of this file. Each item gets a separate branch and a separate review. No item assumes one large implementation pass.
+Milestone 1, the Pauper metagame overview, has sixteen items: four enablers, nine user stories and three hardening items. Milestones 2 to 8 follow at the end of this file. Each item gets a separate branch and a separate review. No item assumes one large implementation pass.
 
 Every item lists what blocks it, what it blocks, and how to know that it is done.
 
@@ -1908,8 +1908,8 @@ This milestone has one hardening item, one enabler and two user stories, for FR-
 | 32 | #158 | No |
 
 ```
-#168 the server code by subject ──┐
-#156 the strings in one file ─────┴─► #166 a preview for each page
+#155 a plain day number
+#156 the strings in one file ──► #157 choose the language ──► #158 Italian, Spanish and Portuguese
 ```
 
 ---
