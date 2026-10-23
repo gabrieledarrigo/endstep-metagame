@@ -44,8 +44,10 @@ The tracks meet at #2. After that, four stories run in parallel. Then the three 
 
 #3 primitives ──► feeds #2, #5, #6, #7, #11, #4, #13
 
-#12 and #13 ──► #14 accessibility ─┐
-            ──► #15 performance ───┴─► #16 ship
+#12 and #13 ──► #14 accessibility
+            ──► #15 performance
+
+#16 ship
 ```
 
 ---
@@ -120,7 +122,7 @@ This item builds the primitives from part two of the design system. It needs no 
 
 **Done when** a temporary section renders every primitive, and each one matches part two of the design system. This includes the focus rings and the disabled state.
 
-**Blocked by** nothing. **Blocks** #5, #6, #7, #11, #4, #14.
+**Blocked by** nothing. **Blocks** #5, #6, #7, #11, #4, #13, #14, #15.
 
 ---
 
@@ -160,7 +162,7 @@ This story covers FR-2 and NFR-5.
 
 **Done when** the header shows live figures for the selected window, and the debug panel from #2 is gone.
 
-**Blocked by** #2, #3. **Blocks** nothing.
+**Blocked by** #2, #3. **Blocks** #13, #14, #15.
 
 ---
 
@@ -183,7 +185,7 @@ This story covers FR-3.
 
 **Done when** 24 cards render and the art loads. The stat rows line up across the cards, and nothing shifts when the images arrive.
 
-**Blocked by** #2, #3. **Blocks** #12.
+**Blocked by** #2, #3. **Blocks** #12, #13, #14, #15.
 
 ---
 
@@ -204,7 +206,7 @@ This story covers FR-4. The table is also the accessible alternative that NFR-6 
 
 **Done when** every column sorts in both directions with the keyboard alone. The table holds every value that appears in any chart.
 
-**Blocked by** #2, #3. **Blocks** #12, #14.
+**Blocked by** #2, #3. **Blocks** #12, #13, #14, #15.
 
 ---
 
@@ -224,7 +226,7 @@ This story covers FR-5.
 
 **Done when** the eight lines render, and the region before 2026-09-05 is empty, not flat at zero. Toggling a series in the legend leaves the other colours unchanged.
 
-**Blocked by** #4. **Blocks** nothing.
+**Blocked by** #4. **Blocks** #13, #14, #15.
 
 ---
 
@@ -244,7 +246,7 @@ This story covers FR-6.
 
 **Done when** 25 bars render in share order, and the values sum to 100%. The `Other` label states what it contains.
 
-**Blocked by** #4. **Blocks** nothing.
+**Blocked by** #4. **Blocks** #13, #14, #15.
 
 ---
 
@@ -265,7 +267,7 @@ This story covers FR-7.
 
 **Done when** 24 bubbles render and the 50% line has a label. The tooltip shows `low` and `high` beside the rate.
 
-**Blocked by** #4. **Blocks** nothing.
+**Blocked by** #4. **Blocks** #13, #14, #15.
 
 ---
 
@@ -284,7 +286,7 @@ This story covers FR-1.
 
 **Done when** all five windows load and the URL updates. A reload restores the same view, and the control shows that it is working during the fetch.
 
-**Blocked by** #2, #3. **Blocks** nothing, but do it before #8 to #10. Then you write the charts for a changing window from the start.
+**Blocked by** #2, #3. **Blocks** #14, #15. Do it before #8 to #10. Then you write the charts for a changing window from the start.
 
 ---
 
@@ -304,7 +306,7 @@ This story covers FR-8 and the awkward case in §6.3.
 
 **Done when** 7d shows real deltas and 30d shows the unavailable state everywhere. No cell shows a zero or a blank.
 
-**Blocked by** #6, #7. **Blocks** nothing.
+**Blocked by** #6, #7. **Blocks** #14, #15.
 
 ---
 
@@ -325,7 +327,7 @@ This story covers FR-9. #2 produces the error states and #3 builds the panels. T
 
 **Done when** you can see each section in all three states. A throttled network shows skeletons, not a blank page. A forced 429 produces the rate limit message, not a generic error.
 
-**Blocked by** #3, #5, #6, #7, #8, #9, #10. **Blocks** #14.
+**Blocked by** #3, #5, #6, #7, #8, #9, #10. **Blocks** #14, #15.
 
 ---
 
@@ -346,7 +348,7 @@ This item covers NFR-6 and NFR-7.
 5. At 360px, make sure that the table scrolls inside its panel and that the page does not scroll sideways.
 6. Spot-check the contrast against the figures in the design system.
 
-**Blocked by** #5 to #13. **Blocks** #16.
+**Blocked by** #3, and #5 to #13. **Blocks** nothing.
 
 ---
 
@@ -365,7 +367,7 @@ This item covers NFR-3 and NFR-4.
 5. Make sure that repeat requests hit the Vercel edge, not Endstep.
 6. Make sure that the page does not poll, and that it retries at most two times.
 
-**Blocked by** #5 to #13. **Blocks** #16.
+**Blocked by** #3, and #5 to #13. **Blocks** nothing.
 
 ---
 
@@ -1206,7 +1208,7 @@ This story covers FR-13, NFR-1a and NFR-9.
 - If no choice is stored, a change to the device setting recolours the page and its charts. The change also updates the toggle.
 - Text, labels and chart marks meet the contrast that NFR-1a gives for the dark palette.
 
-**Blocked by** #87. **Blocks** nothing.
+**Blocked by** #87. **Blocks** #102, #103.
 
 ---
 
@@ -1511,7 +1513,7 @@ This story covers the page, the pick and the ranking in FR-17, and the third lin
 - Every deck name links to its deck page with the current window.
 - The header shows three links at every width. From 640px, the name is on one line.
 
-**Blocked by** #127. Both change the site header. **Blocks** #133, #134.
+**Blocked by** #127. Both change the site header. **Blocks** #133, #134, #137.
 
 ---
 
@@ -1957,7 +1959,7 @@ This item covers the strings of FR-20.
 - A search of `src/` finds no UI string outside `locales.json`, apart from the strings that task 4 keeps out.
 - A key that is missing from the file fails `npm run build`.
 
-**Blocked by** nothing. **Blocks** #157.
+**Blocked by** nothing. **Blocks** #157, #166.
 
 ---
 
